@@ -24,15 +24,15 @@ description: "Task list template for feature implementation"
 
 ## Phase 2: Foundational (bloquant pour toutes les User Stories)
 
-- [ ] T004 Créer `scripts/db/migrate.sh` : script bash qui (1) attend que Postgres soit prêt
+- [x] T004 Créer `scripts/db/migrate.sh` : script bash qui (1) attend que Postgres soit prêt
   (`pg_isready`), (2) crée la table `schema_migrations` si absente, (3) parcourt `db/migrations/*.sql`
   par ordre de nom de fichier, (4) pour chaque fichier non présent dans `schema_migrations`, calcule
   son SHA-256, l'applique dans une transaction, puis insère `(version, description, checksum, now())`
   — voir `data-model.md`
-- [ ] T005 Dans `scripts/db/migrate.sh`, ajouter la vérification de checksum : si un fichier déjà
+- [x] T005 Dans `scripts/db/migrate.sh`, ajouter la vérification de checksum : si un fichier déjà
   appliqué a un checksum différent de celui stocké, le script MUST échouer explicitement avant
   d'appliquer quoi que ce soit d'autre (FR-007)
-- [ ] T006 Rendre `scripts/db/migrate.sh` exécutable (`chmod +x`) et documenter son usage en tête de
+- [x] T006 Rendre `scripts/db/migrate.sh` exécutable (`chmod +x`) et documenter son usage en tête de
   fichier (commentaire) : prérequis, variables d'environnement lues, codes de sortie
 
 ## Phase 3: User Story 1 - Démarrage d'un environnement de base de données local (Priority: P1) 🎯 MVP
@@ -46,10 +46,10 @@ base existante, puis vérifier via `psql \dt` que toutes les tables du MPD sont 
 - [x] T007 [US1] Créer `db/init/000_bootstrap.sql` : script minimal exécuté une seule fois par Postgres
   au premier démarrage du volume — se limite à `CREATE EXTENSION IF NOT EXISTS "pgcrypto";` (le reste
   du schéma est désormais porté par les migrations, pas par `docker-entrypoint-initdb.d`)
-- [ ] T008 [P] [US1] Créer `db/migrations/0001_init_schema.sql` en reprenant exactement le contenu du
+- [x] T008 [P] [US1] Créer `db/migrations/0001_init_schema.sql` en reprenant exactement le contenu du
   MPD validé (`docs/merise/05-mpd.sql`) : 13 tables métier, enums, contraintes, index
-- [ ] T009 [US1] Exécuter le Scénario 1 de `quickstart.md` (démarrage) et vérifier les 13 tables + `schema_migrations`
-- [ ] T010 [US1] Exécuter le Scénario 2 de `quickstart.md` (persistance après `docker compose restart`)
+- [x] T009 [US1] Exécuter le Scénario 1 de `quickstart.md` (démarrage) et vérifier les 13 tables + `schema_migrations`
+- [x] T010 [US1] Exécuter le Scénario 2 de `quickstart.md` (persistance après `docker compose restart`)
 
 **Checkpoint**: À ce stade, US1 est livrable de façon autonome — un développeur peut démarrer et
 utiliser l'environnement.
@@ -62,20 +62,20 @@ un environnement vide, sans jamais modifier une base existante à la main.
 **Independent Test**: Partir d'un environnement vide (`docker compose down -v`), rejouer toutes les
 migrations dans l'ordre, obtenir un schéma identique à celui d'un environnement existant.
 
-- [ ] T011 [US2] Documenter dans `scripts/db/migrate.sh` (commentaire d'en-tête) la convention de
+- [x] T011 [US2] Documenter dans `scripts/db/migrate.sh` (commentaire d'en-tête) la convention de
   nommage des futures migrations : `NNNN_description.sql`, `NNNN` strictement croissant
-- [ ] T012 [US2] Exécuter le Scénario 3 de `quickstart.md` (reconstruction depuis zéro via
+- [x] T012 [US2] Exécuter le Scénario 3 de `quickstart.md` (reconstruction depuis zéro via
   `docker compose down -v` puis remontée + migration) et confirmer l'identité du schéma obtenu
-- [ ] T013 [US2] Exécuter le Scénario 4 de `quickstart.md` (modification a posteriori d'une migration
+- [x] T013 [US2] Exécuter le Scénario 4 de `quickstart.md` (modification a posteriori d'une migration
   déjà appliquée) et confirmer l'échec explicite du script (FR-007)
 
 **Checkpoint**: US1 + US2 livrées — le socle de données du projet est complet et évolutif.
 
 ## Phase 5: Polish & Cross-Cutting Concerns
 
-- [ ] T014 [P] Ajouter au `README.md` racine (à créer si absent) une section "Base de données" avec
+- [x] T014 [P] Ajouter au `README.md` racine (à créer si absent) une section "Base de données" avec
   les commandes de démarrage (`docker compose up -d postgres`, `./scripts/db/migrate.sh`)
-- [ ] T015 Mettre à jour `docs/scrum/sprint-0.md` : cocher la ligne "US-02 — Schéma appliqué" une fois
+- [x] T015 Mettre à jour `docs/scrum/sprint-0.md` : cocher la ligne "US-02 — Schéma appliqué" une fois
   T004 à T013 terminées
 
 ## Dependencies & Execution Order

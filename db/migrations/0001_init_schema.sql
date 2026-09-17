@@ -1,7 +1,5 @@
--- MPD — Modèle Physique des Données (PostgreSQL 16+)
--- Copie déployable : voir également db/init/001_schema.sql (exécuté par docker-compose au démarrage)
-
-CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+-- Migration 0001 : schema initial complet, copie exacte du MPD MERISE valide
+-- (docs/merise/05-mpd.sql). L'extension pgcrypto est deja creee par db/init/000_bootstrap.sql.
 
 CREATE TYPE type_compte_enum AS ENUM ('CLIENT', 'PARTENAIRE', 'ADMIN');
 CREATE TYPE statut_kyc_enum AS ENUM ('EN_ATTENTE', 'VALIDE', 'REJETE');
@@ -115,7 +113,6 @@ CREATE TABLE transaction (
     id_abonnement UUID NOT NULL REFERENCES abonnement(id_abonnement) ON DELETE RESTRICT
 );
 
--- Index utiles aux parcours principaux (recherche géo/catégorie, calendrier RDV)
 CREATE INDEX idx_etablissement_commune ON etablissement(id_commune);
 CREATE INDEX idx_etablissement_kyc ON etablissement(statut_kyc);
 CREATE INDEX idx_rdv_etablissement_date ON rdv(id_etablissement, date_heure_debut);
