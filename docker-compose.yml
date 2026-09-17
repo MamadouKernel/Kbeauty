@@ -1,0 +1,37 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: kekebeauty-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-kekebeauty}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-kekebeauty}
+      POSTGRES_DB: ${POSTGRES_DB:-kekebeauty}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - kekebeauty_postgres_data:/var/lib/postgresql/data
+      - ./db/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-kekebeauty} -d ${POSTGRES_DB:-kekebeauty}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: kekebeauty-pgadmin
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@kekebeauty.local}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}
+    ports:
+      - "${PGADMIN_PORT:-5050}:80"
+    volumes:
+      - kekebeauty_pgadmin_data:/var/lib/pgadmin
+
+volumes:
+  kekebeauty_postgres_data:
+  kekebeauty_pgadmin_data:

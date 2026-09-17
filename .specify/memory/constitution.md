@@ -1,50 +1,80 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+<!--
+Sync Impact Report
+Version change: (none) → 1.0.0
+Modified principles: n/a (initial ratification)
+Added sections: Core Principles (5), Contraintes Techniques & Données, Processus Scrum, Governance
+Removed sections: none
+Follow-up TODOs: TODO(RATIFICATION_DATE) — confirmer la date officielle de lancement du projet avec le porteur du projet.
+-->
+
+# Keke Beauty Constitution
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### I. Spec-Driven Development (Spec Kit)
+Toute fonctionnalité MUST suivre le flux Spec Kit avant tout code : `/speckit-constitution` →
+`/speckit-specify` → `/speckit-plan` → `/speckit-tasks` → `/speckit-implement`. Aucune implémentation
+ne démarre sans une spécification (`spec.md`) et un plan (`plan.md`) validés. Les artefacts générés
+(spec, plan, tasks) sont versionnés dans `specs/<feature>/` et servent de source de vérité — le code
+ne doit jamais diverger silencieusement de la spécification sans mise à jour du document.
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+### II. Conception des Données par MERISE (NON-NEGOTIABLE)
+Chaque domaine métier (utilisateurs, établissements, prestations, RDV, abonnements/paiements) MUST
+être modélisé selon la méthode MERISE complète avant toute création de schéma de base de données :
+- **RG** (Règles de Gestion) : règles métier explicites, numérotées, traçables vers les besoins du CDC.
+- **DD** (Dictionnaire des Données) : chaque donnée nommée, typée, avec règle de validation et origine.
+- **MCD** (Modèle Conceptuel des Données) : entités, associations, cardinalités, sans considération technique.
+- **MLD** (Modèle Logique des Données) : traduction relationnelle du MCD (tables, clés primaires/étrangères).
+- **MPD** (Modèle Physique des Données) : DDL PostgreSQL réel (types, contraintes, index).
+- **MCT** (Modèle Conceptuel des Traitements) : processus métier, événements, synchronisations.
+- **MOT** (Modèle Organisationnel des Traitements) : qui fait quoi, quand, sur quel poste (client, partenaire, admin).
+Rationale : MERISE garantit une traçabilité règle métier → donnée → traitement → schéma, essentielle
+pour un système multi-acteurs (B2C/B2B/Admin) avec des règles de gestion sensibles (KYC, paiement, RDV).
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+### III. PostgreSQL Conteneurisé comme Source de Vérité
+La base de données MUST être PostgreSQL, exécutée via Docker Desktop (docker-compose) en développement,
+avec un chemin de déploiement conteneurisé équivalent en production. Toute migration de schéma MUST être
+versionnée (fichiers de migration SQL ou outil de migration), reproductible depuis un environnement vide
+via `docker compose up`. Aucun accès direct à la base de production sans passer par les migrations versionnées.
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+### IV. Gouvernance Scrum
+Le développement MUST être organisé en Sprints Scrum : Product Backlog priorisé, Sprint Backlog par
+itération, Daily Scrum, Sprint Review, Sprint Retrospective. Chaque User Story du Product Backlog MUST
+être reliée à une spécification Spec Kit (`specs/<feature>/spec.md`) avant d'entrer dans un Sprint Backlog.
+La Definition of Done d'une Story inclut : spec validée, modèle MERISE à jour si données impactées,
+tests passants, revue de code effectuée.
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+### V. Sécurité et Conformité des Données Sensibles
+Toute fonctionnalité traitant des données sensibles (OTP, pièces d'identité KYC, paiement) MUST respecter :
+validation stricte aux frontières (entrée utilisateur, upload, webhook de paiement), absence de secrets
+en dur dans le code, chiffrement/protection des pièces d'identité stockées, jamais de log de données
+personnelles ou de moyens de paiement en clair. Rationale : Keke Beauty gère des identités de gérants
+(KYC) et des transactions financières (Mobile Money, cartes) — un incident de sécurité y est critique.
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+## Contraintes Techniques & Données
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+- Base de données : PostgreSQL 16+, orchestré localement via Docker Desktop / docker-compose.
+- Modélisation des données : dossier `docs/merise/` contenant RG, DD, MCD, MLD, MCT, MOT, MPD par domaine.
+- Intégrations externes attendues (cf. CDC) : cartographie (Google Maps/Mapbox), deep-links Yango,
+  SMS/OTP et notifications (Twilio/Infobip/Firebase), agrégateur de paiement local (CinetPay/PaySika/TouchPay).
+- Toute nouvelle intégration externe MUST être documentée dans le plan Spec Kit correspondant (`plan.md`)
+  avant implémentation.
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
+## Processus Scrum
 
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+- Artefacts : `docs/scrum/product-backlog.md`, `docs/scrum/sprint-<n>.md` par sprint.
+- Cadence : Sprint de 2 semaines par défaut (ajustable, à documenter si modifié).
+- Chaque Sprint Backlog référence les User Stories et leurs specs Spec Kit associées.
+- Sprint Review MUST valider la Definition of Done définie au Principe IV avant clôture du sprint.
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+La constitution prévaut sur toute pratique de développement contradictoire. Toute modification de
+principe MUST être proposée via une mise à jour de ce fichier, avec justification et impact sur les
+specs/plans existants documenté dans le Sync Impact Report. Politique de versionnage sémantique :
+MAJOR pour suppression/redéfinition incompatible d'un principe, MINOR pour ajout de principe/section,
+PATCH pour clarification. Toute revue de code ou de spec MUST vérifier la conformité à cette constitution ;
+toute complexité additionnelle (nouvelle dépendance, nouvel entité hors MERISE, etc.) MUST être justifiée
+dans le plan Spec Kit correspondant.
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+**Version**: 1.0.0 | **Ratified**: TODO(RATIFICATION_DATE): date de lancement officiel à confirmer | **Last Amended**: 2026-09-17
