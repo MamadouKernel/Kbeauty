@@ -82,6 +82,26 @@ au gérant dépend de Zavu (même comportement que l'OTP client : échec explici
 
 Détails : [specs/004-onboarding-partenaire/quickstart.md](specs/004-onboarding-partenaire/quickstart.md).
 
+### Recherche et fiche établissement (annuaire client)
+
+```bash
+curl "http://localhost:${API_PORT:-5080}/etablissements?categorie=Spa&commune=Cocody"
+curl "http://localhost:${API_PORT:-5080}/etablissements/<id>"
+
+# Mecanisme minimal temporaire (FR-008) pour tester la recherche sans gestion partenaire encore construite
+curl -X POST -H "X-Admin-Api-Key: $ADMIN_API_KEY" -H "Content-Type: application/json" \
+  -d '{"libelleCategorie":"Spa"}' "http://localhost:${API_PORT:-5080}/admin/applications/<id>/categories"
+curl -X POST -H "X-Admin-Api-Key: $ADMIN_API_KEY" -H "Content-Type: application/json" \
+  -d '{"libellePrestation":"...","tarif":15000,"dureeMinutes":60}' \
+  "http://localhost:${API_PORT:-5080}/admin/applications/<id>/prestations"
+```
+
+Seuls les établissements `VALIDE` avec au moins une catégorie apparaissent en recherche ; la fiche
+d'un établissement non validé répond `404`, identique à un identifiant inexistant (pas de fuite
+d'information).
+
+Détails : [specs/005-recherche-annuaire/quickstart.md](specs/005-recherche-annuaire/quickstart.md).
+
 ## pgAdmin (optionnel)
 
 ```bash

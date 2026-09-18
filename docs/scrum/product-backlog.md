@@ -20,10 +20,10 @@ de son entrée en Sprint Backlog (Principe IV de la constitution).
 ## Epic 3 — Annuaire & Recherche
 | ID | User Story | Priorité | Feature Spec Kit |
 |---|---|---|---|
-| US-06 | En tant que client, je veux rechercher des établissements par catégorie et localisation | Must | `004-recherche-annuaire` |
-| US-07 | En tant que client, je veux consulter la fiche établissement (médias, prestations, tarifs) | Must | `005-fiche-etablissement` |
-| US-08 | En tant que client, je veux appeler l'établissement en un clic | Must | `005-fiche-etablissement` |
-| US-09 | En tant que client, je veux un itinéraire vers Yango/Google Maps/Apple Maps | Must | `005-fiche-etablissement` |
+| US-06 | En tant que client, je veux rechercher des établissements par catégorie et localisation | Must | `005-recherche-annuaire` |
+| US-07 | En tant que client, je veux consulter la fiche établissement (médias, prestations, tarifs) | Must | `005-recherche-annuaire` |
+| US-08 | En tant que client, je veux appeler l'établissement en un clic | Must | `005-recherche-annuaire` |
+| US-09 | En tant que client, je veux un itinéraire vers Yango/Google Maps/Apple Maps | Must | `005-recherche-annuaire` |
 | US-10 | En tant qu'administrateur, je veux gérer les catégories et zones géographiques | Should | `006-back-office-referentiels` |
 
 ## Epic 4 — Prise de Rendez-vous

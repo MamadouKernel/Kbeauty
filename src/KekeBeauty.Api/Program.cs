@@ -1,9 +1,11 @@
 using KekeBeauty.Api.Auth;
 using KekeBeauty.Application.Auth;
+using KekeBeauty.Application.Directory;
 using KekeBeauty.Application.Health;
 using KekeBeauty.Application.Onboarding;
 using KekeBeauty.Infrastructure;
 using KekeBeauty.Infrastructure.Auth;
+using KekeBeauty.Infrastructure.Listing;
 using KekeBeauty.Infrastructure.Health;
 using KekeBeauty.Infrastructure.Onboarding;
 
@@ -43,6 +45,14 @@ builder.Services.AddScoped<ListPendingApplicationsUseCase>();
 builder.Services.AddScoped<ValidateApplicationUseCase>();
 builder.Services.AddScoped<RejectApplicationUseCase>();
 builder.Services.AddScoped<AdminApiKeyFilter>();
+
+builder.Services.AddScoped<IDirectoryRepository, DirectoryRepository>();
+builder.Services.AddScoped<ICategorieRepository, CategorieRepository>();
+builder.Services.AddScoped<IPrestationRepository, PrestationRepository>();
+builder.Services.AddScoped<SearchEtablissementsUseCase>();
+builder.Services.AddScoped<GetEtablissementDetailUseCase>();
+builder.Services.AddScoped<AssignCategoryUseCase>();
+builder.Services.AddScoped<AddPrestationUseCase>();
 
 var app = builder.Build();
 

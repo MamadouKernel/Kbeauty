@@ -1,8 +1,12 @@
 using KekeBeauty.Api.Auth;
+using KekeBeauty.Application.Directory;
 using KekeBeauty.Application.Onboarding;
 using Microsoft.AspNetCore.Mvc;
 
 namespace KekeBeauty.Api.Controllers;
+
+public sealed record AssignCategoryRequest(string LibelleCategorie);
+public sealed record AddPrestationRequest(string LibellePrestation, decimal Tarif, short DureeMinutes);
 
 [ApiController]
 [Route("admin/applications")]
@@ -14,19 +18,25 @@ public sealed class AdminController : ControllerBase
     private readonly RejectApplicationUseCase _rejectUseCase;
     private readonly IEtablissementRepository _etablissementRepository;
     private readonly IFileStorage _fileStorage;
+    private readonly AssignCategoryUseCase _assignCategoryUseCase;
+    private readonly AddPrestationUseCase _addPrestationUseCase;
 
     public AdminController(
         ListPendingApplicationsUseCase listUseCase,
         ValidateApplicationUseCase validateUseCase,
         RejectApplicationUseCase rejectUseCase,
         IEtablissementRepository etablissementRepository,
-        IFileStorage fileStorage)
+        IFileStorage fileStorage,
+        AssignCategoryUseCase assignCategoryUseCase,
+        AddPrestationUseCase addPrestationUseCase)
     {
         _listUseCase = listUseCase;
         _validateUseCase = validateUseCase;
         _rejectUseCase = rejectUseCase;
         _etablissementRepository = etablissementRepository;
         _fileStorage = fileStorage;
+        _assignCategoryUseCase = assignCategoryUseCase;
+        _addPrestationUseCase = addPrestationUseCase;
     }
 
     [HttpGet]
@@ -78,5 +88,24 @@ public sealed class AdminController : ControllerBase
     {
         var result = await _rejectUseCase.ExecuteAsync(id, cancellationToken);
         return result.Status == "not_found" ? NotFound() : Ok(new { statut = result.Status });
+    }
+
+    [HttpPost("{id:guid}/categories")]
+    public async Task<IActionResult> AssignCategory(Guid id, [FromBody] AssignCategoryRequest request, CancellationToken cancellationToken)
+    {
+        var result = await _assignCategoryUseCase.ExecuteAsync(id, request.LibelleCategorie, cancellationToken);
+        return result.Status == "not_found"
+            ? NotFound()
+            : Ok(new { idCategorie = result.IdCategorie, libelleCategorie = request.LibelleCategorie });
+    }
+
+    [HttpPost("{id:guid}/prestations")]
+    public async Task<IActionResult> AddPrestation(Guid id, [FromBody] AddPrestationRequest request, CancellationToken cancellationToken)
+    {
+        var result = await _addPrestationUseCase.ExecuteAsync(
+            id, request.LibellePrestation, request.Tarif, request.DureeMinutes, cancellationToken);
+        return result.Status == "not_found"
+            ? NotFound()
+            : StatusCode(StatusCodes.Status201Created, new { idPrestation = result.IdPrestation });
     }
 }
