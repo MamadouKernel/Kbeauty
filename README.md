@@ -139,6 +139,28 @@ compromis technique que `X-Partner-Id` (pas de session/JWT).
 
 Détails : [specs/007-prise-rdv/quickstart.md](specs/007-prise-rdv/quickstart.md).
 
+### Abonnement et paiement
+
+```bash
+curl -X POST -H "X-Partner-Id: $PARTNER_ID" -H "Content-Type: application/json" \
+  -d '{"periodicite":"MENSUEL","canal":"WAVE"}' \
+  "http://localhost:${API_PORT:-5080}/etablissements/<id>/abonnements"
+
+curl -H "X-Admin-Api-Key: $ADMIN_API_KEY" "http://localhost:${API_PORT:-5080}/admin/abonnements?statut=IMPAYE"
+curl -X POST -H "X-Admin-Api-Key: $ADMIN_API_KEY" "http://localhost:${API_PORT:-5080}/admin/abonnements/<id>/relance"
+curl -H "X-Admin-Api-Key: $ADMIN_API_KEY" "http://localhost:${API_PORT:-5080}/admin/tarifs"
+curl -X PUT -H "X-Admin-Api-Key: $ADMIN_API_KEY" -H "Content-Type: application/json" \
+  -d '{"montant":50000}' "http://localhost:${API_PORT:-5080}/admin/tarifs/ANNUEL"
+```
+
+⚠️ **Dépendance externe** : le paiement passe par un agrégateur (CinetPay) non encore configuré
+(`Billing:CinetPay:ApiKey`) — la souscription reste possible mais retourne un abonnement `IMPAYE`
+de façon explicite, même comportement que Zavu quand non configuré. Un seul abonnement `ACTIF` par
+établissement, vérifié atomiquement en base (même pattern que le chevauchement de RDV). La
+modification du tarif standard n'affecte que les souscriptions futures.
+
+Détails : [specs/008-abonnement-paiement/quickstart.md](specs/008-abonnement-paiement/quickstart.md).
+
 ## pgAdmin (optionnel)
 
 ```bash

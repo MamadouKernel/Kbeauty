@@ -37,10 +37,10 @@ de son entrée en Sprint Backlog (Principe IV de la constitution).
 ## Epic 5 — Abonnement & Paiement
 | ID | User Story | Priorité | Feature Spec Kit |
 |---|---|---|---|
-| US-15 | En tant que partenaire, je veux souscrire un abonnement mensuel/annuel (engagement 1 an min) | Must | `009-abonnement` |
-| US-16 | En tant que partenaire, je veux payer via Mobile Money ou carte bancaire | Must | `010-paiement` |
-| US-17 | En tant qu'administrateur, je veux suivre les abonnements et relancer les impayés | Should | `011-back-office-finance` |
-| US-18 | En tant qu'administrateur, je veux ajuster les tarifs d'abonnement | Should | `011-back-office-finance` |
+| US-15 | En tant que partenaire, je veux souscrire un abonnement mensuel/annuel (engagement 1 an min) | Must | `008-abonnement-paiement` |
+| US-16 | En tant que partenaire, je veux payer via Mobile Money ou carte bancaire | Must | `008-abonnement-paiement` |
+| US-17 | En tant qu'administrateur, je veux suivre les abonnements et relancer les impayés | Should | `008-abonnement-paiement` |
+| US-18 | En tant qu'administrateur, je veux ajuster les tarifs d'abonnement | Should | `008-abonnement-paiement` |
 
 ## Epic 6 — Back-office & Modération
 | ID | User Story | Priorité | Feature Spec Kit |

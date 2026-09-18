@@ -10,8 +10,10 @@ using KekeBeauty.Infrastructure.Health;
 using KekeBeauty.Infrastructure.Onboarding;
 using KekeBeauty.Application.Partner;
 using KekeBeauty.Application.Rdv;
+using KekeBeauty.Application.Billing;
 using KekeBeauty.Infrastructure.Partner;
 using KekeBeauty.Infrastructure.Rdv;
+using KekeBeauty.Infrastructure.Billing;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -71,6 +73,22 @@ builder.Services.AddHttpClient<IRdvNotifier, ZavuWhatsAppRdvNotifier>(client =>
 });
 builder.Services.AddScoped<RequestRdvUseCase>();
 builder.Services.AddScoped<DecideRdvUseCase>();
+
+builder.Services.AddScoped<IAbonnementRepository, AbonnementRepository>();
+builder.Services.AddHttpClient<IPaymentGateway, CinetPayGateway>(client =>
+{
+    var baseUrl = builder.Configuration["Billing:CinetPay:BaseUrl"] ?? "https://api.cinetpay.com";
+    client.BaseAddress = new Uri(baseUrl);
+});
+builder.Services.AddHttpClient<IAbonnementNotifier, ZavuWhatsAppAbonnementNotifier>(client =>
+{
+    var baseUrl = builder.Configuration["Zavu:BaseUrl"] ?? "https://api.zavu.dev";
+    client.BaseAddress = new Uri(baseUrl);
+});
+builder.Services.AddScoped<SubscribeUseCase>();
+builder.Services.AddScoped<AdminListAbonnementsUseCase>();
+builder.Services.AddScoped<RelanceUseCase>();
+builder.Services.AddScoped<UpdateTarifUseCase>();
 
 var app = builder.Build();
 
