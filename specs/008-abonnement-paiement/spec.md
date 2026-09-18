@@ -57,10 +57,12 @@ Un administrateur consulte et modifie le tarif standard des abonnements (mensuel
 - **SC-003**: 100% des tentatives de souscription sur un établissement non possédé sont refusées.
 
 ## Assumptions
-- L'intégration réelle avec un agrégateur de paiement (CinetPay/PaySika/TouchPay) nécessite un compte
-  tiers non encore créé par le porteur du projet (cf. tableau des comptes déjà transmis). En son
-  absence, le paiement échoue de façon explicite (même comportement que Zavu quand non configuré) —
-  la logique de souscription/abonnement reste développable et testable dès maintenant.
+- **Mise à jour 2026-09-18** : l'agrégateur retenu est **WiniPayer** (compte marchand "Keke Beauty"
+  créé en environnement TEST via https://manager.winipayer.com, remplace l'hypothèse initiale
+  CinetPay/PaySika/TouchPay). WiniPayer fonctionne par lien de paiement hébergé (checkout) et
+  notification asynchrone (callback), pas par paiement synchrone — voir research.md Décision 4.
+  Le passage en environnement PROD nécessitera de renseigner `WINIPAYER_PROD_TOKEN_KEY`/
+  `WINIPAYER_PROD_PRIVATE_KEY` et `WINIPAYER_ENV=prod`.
 - RG-RDV-01 (module RDV conditionné à un abonnement actif) n'est pas rétrofitée dans la feature
   007 par cette itération — elle pourra être ajoutée dans un correctif ultérieur une fois l'abonnement
   disponible.

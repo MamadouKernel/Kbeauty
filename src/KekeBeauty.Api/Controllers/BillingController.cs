@@ -4,14 +4,13 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace KekeBeauty.Api.Controllers;
 
-public sealed record SubscribeBody(string Periodicite, string Canal);
+public sealed record SubscribeBody(string Periodicite);
 public sealed record UpdateTarifBody(decimal Montant);
 
 [ApiController]
 public sealed class BillingController : ControllerBase
 {
     private static readonly string[] PeriodicitesValides = ["MENSUEL", "ANNUEL"];
-    private static readonly string[] CanauxValides = ["WAVE", "ORANGE_MONEY", "MTN", "MOOV", "VISA", "MASTERCARD"];
     private static readonly string[] StatutsValides = ["ACTIF", "IMPAYE", "RESILIE"];
 
     private readonly SubscribeUseCase _subscribeUseCase;
@@ -33,23 +32,25 @@ public sealed class BillingController : ControllerBase
     [ServiceFilter(typeof(PartnerOwnershipFilter))]
     public async Task<IActionResult> Subscribe(Guid id, [FromBody] SubscribeBody body, CancellationToken cancellationToken)
     {
-        if (!PeriodicitesValides.Contains(body.Periodicite) || !CanauxValides.Contains(body.Canal))
+        if (!PeriodicitesValides.Contains(body.Periodicite))
         {
             return BadRequest(new { status = "invalid_input" });
         }
 
-        var result = await _subscribeUseCase.ExecuteAsync(id, body.Periodicite, body.Canal, cancellationToken);
+        var result = await _subscribeUseCase.ExecuteAsync(id, body.Periodicite, cancellationToken);
 
         if (!result.Success)
         {
-            return Conflict(new { status = result.Status });
+            return result.Status == "payment_initiation_failed"
+                ? StatusCode(StatusCodes.Status502BadGateway, new { status = result.Status })
+                : Conflict(new { status = result.Status });
         }
 
         return StatusCode(StatusCodes.Status201Created, new
         {
             idAbonnement = result.IdAbonnement,
             statut = result.StatutAbonnement,
-            statutTransaction = result.StatutTransaction,
+            checkoutUrl = result.CheckoutUrl,
         });
     }
 

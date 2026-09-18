@@ -77,9 +77,9 @@ builder.Services.AddScoped<RequestRdvUseCase>();
 builder.Services.AddScoped<DecideRdvUseCase>();
 
 builder.Services.AddScoped<IAbonnementRepository, AbonnementRepository>();
-builder.Services.AddHttpClient<IPaymentGateway, CinetPayGateway>(client =>
+builder.Services.AddHttpClient<IPaymentGateway, WinPayerGateway>(client =>
 {
-    var baseUrl = builder.Configuration["Billing:CinetPay:BaseUrl"] ?? "https://api.cinetpay.com";
+    var baseUrl = builder.Configuration["Billing:WiniPayer:BaseUrl"] ?? "https://api-v2.winipayer.com";
     client.BaseAddress = new Uri(baseUrl);
 });
 builder.Services.AddHttpClient<IAbonnementNotifier, ZavuWhatsAppAbonnementNotifier>(client =>

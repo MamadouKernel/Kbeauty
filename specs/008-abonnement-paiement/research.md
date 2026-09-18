@@ -1,12 +1,31 @@
 # Research: Abonnement et Paiement
 
 ## Décision 1 — Agrégateur de paiement
-**Décision**: `IPaymentGateway` avec une implémentation `CinetPayGateway` qui échoue explicitement
-(`success = false`) si `Billing:CinetPay:ApiKey` est absent de la config, sans lever d'exception.
-**Rationale**: identique au pattern déjà validé pour Zavu (003/004/006/007) — permet de développer et
-tester la logique métier (abonnement/transaction) sans compte tiers réel.
+**Décision (mise à jour 2026-09-18)**: `IPaymentGateway` implémentée par `WinPayerGateway` (compte
+marchand WiniPayer réel créé, TEST). Échoue explicitement (`Success = false`) si le compte marchand
+n'est pas configuré (`Billing:WiniPayer:MerchantApply`/`TestTokenKey`), sans lever d'exception.
+**Historique**: initialement prévu avec CinetPay (jamais de compte créé), remplacé par WiniPayer sur
+demande explicite de l'utilisateur (compte créé via https://manager.winipayer.com).
+**Rationale**: identique au pattern déjà validé pour Zavu (003/004/006/007) pour l'échec explicite —
+permet de développer et tester la logique métier sans dépendre d'un service externe disponible.
 **Alternatives rejetées**: mock permanent en profondeur (masquerait l'état "non configuré" en prod) ;
 lever une exception (romprait le contrat "reflète fidèlement le résultat" du FR-002).
+
+## Décision 4 (mise à jour) — WiniPayer est asynchrone (checkout hébergé), pas un paiement synchrone
+**Décision**: `POST /etablissements/{id}/abonnements` crée l'abonnement `IMPAYE` et retourne un
+`checkoutUrl` (lien de paiement hébergé WiniPayer) au lieu d'un résultat ACTIF/IMPAYE immédiat. Le
+résultat réel arrive via `POST /webhooks/winipayer/callback`, dont la signature (`hash` =
+`sha256(privateKey + uuid + crypto + amount + created_at)`) est vérifiée avant toute mise à jour.
+**Rationale**: contrairement à l'hypothèse initiale (CinetPay simulé comme synchrone), l'API réelle
+de WiniPayer (doc `docs.winipayer.com`) ne fait que générer un lien ; le client paie sur une page
+hébergée, et le marchand est notifié après coup. FR-002 ("reflète fidèlement le résultat") est
+respecté par cette mise à jour asynchrone plutôt qu'un faux résultat immédiat.
+**Alternatives rejetées**: appeler `checkout/standard/detail/:uuid` en boucle juste après la
+création pour simuler un résultat synchrone — contraire au fonctionnement réel du paiement (le
+client n'a pas encore eu le temps de payer), aurait donné un IMPAYE quasi systématique inutile.
+**Impact**: `transaction.canal_paiement` devient nullable (le canal n'est connu qu'après paiement,
+choisi par le client sur la page WiniPayer) ; nouvelle colonne `reference_externe` (uuid WiniPayer)
+et `operateur_externe` (opérateur réel retourné, ex. `wave-cote-divoire`) — migration 0007.
 
 ## Décision 2 — Un seul abonnement ACTIF par établissement
 **Décision**: contrainte vérifiée atomiquement au niveau SQL via

@@ -143,8 +143,9 @@ Détails : [specs/007-prise-rdv/quickstart.md](specs/007-prise-rdv/quickstart.md
 
 ```bash
 curl -X POST -H "X-Partner-Id: $PARTNER_ID" -H "Content-Type: application/json" \
-  -d '{"periodicite":"MENSUEL","canal":"WAVE"}' \
+  -d '{"periodicite":"MENSUEL"}' \
   "http://localhost:${API_PORT:-5080}/etablissements/<id>/abonnements"
+# -> { "idAbonnement", "statut": "IMPAYE", "checkoutUrl": "https://checkout.winipayer.com/..." }
 
 curl -H "X-Admin-Api-Key: $ADMIN_API_KEY" "http://localhost:${API_PORT:-5080}/admin/abonnements?statut=IMPAYE"
 curl -X POST -H "X-Admin-Api-Key: $ADMIN_API_KEY" "http://localhost:${API_PORT:-5080}/admin/abonnements/<id>/relance"
@@ -153,11 +154,13 @@ curl -X PUT -H "X-Admin-Api-Key: $ADMIN_API_KEY" -H "Content-Type: application/j
   -d '{"montant":50000}' "http://localhost:${API_PORT:-5080}/admin/tarifs/ANNUEL"
 ```
 
-⚠️ **Dépendance externe** : le paiement passe par un agrégateur (CinetPay) non encore configuré
-(`Billing:CinetPay:ApiKey`) — la souscription reste possible mais retourne un abonnement `IMPAYE`
-de façon explicite, même comportement que Zavu quand non configuré. Un seul abonnement `ACTIF` par
-établissement, vérifié atomiquement en base (même pattern que le chevauchement de RDV). La
-modification du tarif standard n'affecte que les souscriptions futures.
+L'agrégateur de paiement est **WiniPayer** (compte marchand "Keke Beauty" créé, environnement TEST
+— voir `.env` `WINIPAYER_*`). WiniPayer fonctionne par lien de paiement hébergé : la souscription
+crée l'abonnement `IMPAYE` et retourne `checkoutUrl` (à ouvrir pour payer) ; le résultat réel arrive
+via `POST /webhooks/winipayer/callback`, signé (`sha256(privateKey+uuid+crypto+amount+created_at)`)
+et idempotent. Un seul abonnement `ACTIF` par établissement, vérifié atomiquement en base (même
+pattern que le chevauchement de RDV). La modification du tarif standard n'affecte que les
+souscriptions futures. Le passage en PROD nécessite `WINIPAYER_ENV=prod` + les clés PROD.
 
 Détails : [specs/008-abonnement-paiement/quickstart.md](specs/008-abonnement-paiement/quickstart.md).
 

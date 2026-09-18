@@ -1,20 +1,34 @@
 # API Contract: Billing (Abonnement et Paiement)
 
 ## POST /api/etablissements/{id}/abonnements
-Souscrit un abonnement pour l'établissement `{id}`.
+Souscrit un abonnement pour l'établissement `{id}`. WiniPayer fonctionne par lien de paiement
+hébergé (pas de paiement synchrone) : la souscription crée l'abonnement `IMPAYE` et retourne un
+`checkoutUrl` vers lequel rediriger le client ; le paiement réel arrive plus tard via
+`POST /webhooks/winipayer/callback` (voir Décision 4 mise à jour, remplacement CinetPay→WiniPayer).
 **Auth**: header `X-Partner-Id` (guid), vérifié par `PartnerOwnershipFilter` (existant, 006/007).
 
 **Request**:
 ```json
-{ "periodicite": "MENSUEL|ANNUEL", "canal": "WAVE|ORANGE_MONEY|MTN|MOOV|VISA|MASTERCARD" }
+{ "periodicite": "MENSUEL|ANNUEL" }
 ```
 
 **Responses**:
-- `201 Created` — paiement réussi. Body: `{ "idAbonnement", "statut": "ACTIF", "statutTransaction": "REUSSIE" }`
-- `201 Created` — paiement échoué (agrégateur non configuré/refus). Body: `{ "idAbonnement", "statut": "IMPAYE", "statutTransaction": "ECHOUEE" }` (créé quand même — FR-002, jamais un succès trompeur mais pas un blocage silencieux)
+- `201 Created` — lien de paiement généré. Body: `{ "idAbonnement", "statut": "IMPAYE", "checkoutUrl" }`
 - `409 Conflict` — un abonnement `ACTIF` existe déjà pour cet établissement (FR-004)
+- `502 Bad Gateway` — échec explicite si le compte marchand WiniPayer n'est pas configuré ou refuse la demande
 - `401 Unauthorized` — header `X-Partner-Id` absent/malformé
 - `403 Forbidden` — établissement non possédé par ce gérant (FR-003)
+
+## POST /webhooks/winipayer/callback
+Notification WiniPayer du résultat réel du paiement (`callback_url` fourni à la création du lien).
+Le `hash` reçu est vérifié (`sha256(privateKey + uuid + crypto + amount + created_at)`) avant toute
+mise à jour ; idempotent (un callback rejoué n'a aucun effet supplémentaire).
+
+**Responses**:
+- `200 OK` — `{ "status": "applied" }` ou `{ "status": "already_processed_or_unknown" }`
+- `400 Bad Request` — payload incomplet
+- `401 Unauthorized` — signature invalide
+- `503 Service Unavailable` — clé privée non configurée
 
 ## GET /api/admin/abonnements?statut={statut}
 Liste les abonnements filtrés par statut.

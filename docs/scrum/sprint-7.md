@@ -20,9 +20,13 @@ les abonnements, relance les impayés, et ajuste le tarif standard.
 
 ## Dette technique explicite (confirmée)
 `X-Partner-Id`/`Admin:ApiKey` — pas de session/JWT ni RBAC réel (même dette que 004/006/007).
-Agrégateur de paiement (CinetPay) non configuré : comportement testé uniquement sur le chemin
-d'échec explicite, comme Zavu.
+
+## Mise à jour 2026-09-18 — Remplacement CinetPay → WiniPayer
+Compte marchand WiniPayer "Keke Beauty" créé (environnement TEST). Flux réel testé de bout en bout :
+génération de lien de paiement (`checkoutUrl`), callback signé (`POST /webhooks/winipayer/callback`),
+passage `ACTIF`/`REUSSIE`, idempotence sur callback rejoué. Voir `research.md` Décisions 1/4 mises
+à jour et `db/migrations/0007_winipayer_reference.sql`. Zavu reste non configuré (dette inchangée).
 
 ## Prochaine étape
-Product Backlog Epic 5 complet. Reste Epic 6 (US-19, modération back-office) et la configuration
-différée de Zavu/CinetPay pour les tests de bout en bout réels.
+Product Backlog Epic 5 complet. Reste la configuration Zavu pour les notifications, et le passage
+WiniPayer en environnement PROD avant mise en production réelle.

@@ -6,7 +6,7 @@ public sealed class SubscribeResult
     public string Status { get; init; } = "";
     public Guid? IdAbonnement { get; init; }
     public string? StatutAbonnement { get; init; }
-    public string? StatutTransaction { get; init; }
+    public string? CheckoutUrl { get; init; }
 }
 
 public sealed class SubscribeUseCase
@@ -20,15 +20,20 @@ public sealed class SubscribeUseCase
         _paymentGateway = paymentGateway;
     }
 
-    public async Task<SubscribeResult> ExecuteAsync(
-        Guid idEtablissement, string periodicite, string canal, CancellationToken cancellationToken)
+    public async Task<SubscribeResult> ExecuteAsync(Guid idEtablissement, string periodicite, CancellationToken cancellationToken)
     {
         var montant = await _repository.GetTarifStandardAsync(periodicite, cancellationToken);
 
-        var paiementReussi = await _paymentGateway.InitiateAsync(canal, montant, cancellationToken);
+        var initiation = await _paymentGateway.InitiateAsync(
+            montant, $"Abonnement Keke Beauty ({periodicite})", cancellationToken);
+
+        if (!initiation.Success || initiation.ReferenceExterne is null)
+        {
+            return new SubscribeResult { Success = false, Status = "payment_initiation_failed" };
+        }
 
         var idAbonnement = await _repository.CreerAvecTransactionAsync(
-            idEtablissement, periodicite, montant, canal, paiementReussi, cancellationToken);
+            idEtablissement, periodicite, montant, initiation.ReferenceExterne, cancellationToken);
 
         if (idAbonnement is null)
         {
@@ -40,8 +45,8 @@ public sealed class SubscribeUseCase
             Success = true,
             Status = "created",
             IdAbonnement = idAbonnement,
-            StatutAbonnement = paiementReussi ? "ACTIF" : "IMPAYE",
-            StatutTransaction = paiementReussi ? "REUSSIE" : "ECHOUEE",
+            StatutAbonnement = "IMPAYE",
+            CheckoutUrl = initiation.CheckoutUrl,
         };
     }
 }

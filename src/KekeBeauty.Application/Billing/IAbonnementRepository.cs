@@ -22,11 +22,19 @@ public interface IAbonnementRepository
 {
     Task<decimal> GetTarifStandardAsync(string periodicite, CancellationToken cancellationToken);
 
-    /// <summary>Cree l'abonnement et sa transaction. Retourne null si un abonnement ACTIF existe deja
-    /// pour cet etablissement (FR-004, insertion atomique - voir research.md Decision 2).</summary>
+    /// <summary>Cree l'abonnement (IMPAYE) et sa transaction (EN_COURS, liee a referenceExterne -
+    /// l'uuid du lien de paiement WiniPayer). Retourne null si un abonnement ACTIF existe deja
+    /// pour cet etablissement (FR-004, insertion atomique - voir research.md Decision 2). Le
+    /// resultat reel du paiement arrive plus tard via MarquerPaiementAsync (callback WiniPayer).</summary>
     Task<Guid?> CreerAvecTransactionAsync(
-        Guid idEtablissement, string periodicite, decimal montant, string canal, bool paiementReussi,
+        Guid idEtablissement, string periodicite, decimal montant, string referenceExterne,
         CancellationToken cancellationToken);
+
+    /// <summary>Applique le resultat d'un paiement WiniPayer recu via callback : met a jour la
+    /// transaction (REUSSIE/ECHOUEE) identifiee par referenceExterne, et l'abonnement associe
+    /// (ACTIF si reussi, reste IMPAYE sinon). Retourne false si aucune transaction ne correspond
+    /// (callback invalide ou deja traite - idempotent car un second appel ne change rien).</summary>
+    Task<bool> MarquerPaiementAsync(string referenceExterne, bool paiementReussi, string? operateurExterne, CancellationToken cancellationToken);
 
     Task<IReadOnlyList<AbonnementResume>> ListerAsync(string? statut, CancellationToken cancellationToken);
 

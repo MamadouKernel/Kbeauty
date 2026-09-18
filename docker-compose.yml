@@ -31,6 +31,12 @@ services:
       ConnectionStrings__Default: "Host=postgres;Port=5432;Database=${POSTGRES_DB:-kekebeauty};Username=${POSTGRES_USER:-kekebeauty};Password=${POSTGRES_PASSWORD:-kekebeauty}"
       Zavu__ApiKey: "${ZAVU_API_KEY:-}"
       Admin__ApiKey: "${ADMIN_API_KEY:-}"
+      Billing__WiniPayer__Env: "${WINIPAYER_ENV:-test}"
+      Billing__WiniPayer__MerchantApply: "${WINIPAYER_MERCHANT_APPLY:-}"
+      Billing__WiniPayer__TestTokenKey: "${WINIPAYER_TEST_TOKEN_KEY:-}"
+      Billing__WiniPayer__TestPrivateKey: "${WINIPAYER_TEST_PRIVATE_KEY:-}"
+      Billing__WiniPayer__ProdTokenKey: "${WINIPAYER_PROD_TOKEN_KEY:-}"
+      Billing__WiniPayer__ProdPrivateKey: "${WINIPAYER_PROD_PRIVATE_KEY:-}"
     ports:
       - "${API_PORT:-5080}:8080"
     volumes:
