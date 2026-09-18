@@ -1,13 +1,13 @@
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
+using KekeBeauty.Domain.Entities;
 
 namespace KekeBeauty.Application.Auth;
 
 public sealed partial class RequestOtpUseCase
 {
     private static readonly TimeSpan OtpLifetime = TimeSpan.FromMinutes(5);
-    private const string TargetTypeCompte = "CLIENT";
 
     private readonly IOtpChallengeRepository _challengeRepository;
     private readonly IOtpSender _otpSender;
@@ -18,7 +18,11 @@ public sealed partial class RequestOtpUseCase
         _otpSender = otpSender;
     }
 
-    public async Task<RequestOtpResult> ExecuteAsync(string telephone, CancellationToken cancellationToken)
+    public async Task<RequestOtpResult> ExecuteAsync(string telephone, CancellationToken cancellationToken) =>
+        await ExecuteAsync(telephone, TypeCompte.Client, cancellationToken);
+
+    // Feature 006 : generalise au type de compte (CLIENT par defaut pour compatibilite avec 003).
+    public async Task<RequestOtpResult> ExecuteAsync(string telephone, TypeCompte typeCompte, CancellationToken cancellationToken)
     {
         if (!IsValidE164(telephone))
         {
@@ -28,9 +32,10 @@ public sealed partial class RequestOtpUseCase
         var code = GenerateSixDigitCode();
         var codeHash = HashCode(code);
         var expiresAt = DateTimeOffset.UtcNow.Add(OtpLifetime);
+        var targetTypeCompte = typeCompte.ToString().ToUpperInvariant();
 
         await _challengeRepository.CreateAndInvalidatePreviousAsync(
-            telephone, TargetTypeCompte, codeHash, expiresAt, cancellationToken);
+            telephone, targetTypeCompte, codeHash, expiresAt, cancellationToken);
 
         var sent = await _otpSender.SendAsync(telephone, code, cancellationToken);
         return sent

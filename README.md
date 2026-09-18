@@ -102,6 +102,25 @@ d'information).
 
 Détails : [specs/005-recherche-annuaire/quickstart.md](specs/005-recherche-annuaire/quickstart.md).
 
+### Gestion des prestations/catégories par le partenaire (self-service)
+
+```bash
+# OTP generalise au type PARTENAIRE (feature 006)
+curl -X POST http://localhost:${API_PORT:-5080}/auth/otp/request -H "Content-Type: application/json" \
+  -d '{"telephone":"+225XXXXXXXXXX","typeCompte":"Partenaire"}'
+
+curl -X POST -H "X-Partner-Id: $PARTNER_ID" -H "Content-Type: application/json" \
+  -d '{"libellePrestation":"...","tarif":5000,"dureeMinutes":30}' \
+  "http://localhost:${API_PORT:-5080}/partenaire/etablissements/<id>/prestations"
+```
+
+⚠️ **Dette technique documentée** : `X-Partner-Id` (l'`idUtilisateur` obtenu après OTP) tient lieu de
+preuve d'identité — aucune session/JWT n'est encore construite dans le projet (même compromis que la
+clé admin). Toute action est vérifiée contre `id_utilisateur_gerant` de l'établissement cible (`403`
+sinon). Remplace le mécanisme admin temporaire de la feature 005 pour l'usage courant.
+
+Détails : [specs/006-gestion-prestations/quickstart.md](specs/006-gestion-prestations/quickstart.md).
+
 ## pgAdmin (optionnel)
 
 ```bash

@@ -6,8 +6,6 @@ namespace KekeBeauty.Application.Auth;
 
 public sealed class VerifyOtpUseCase
 {
-    private const string TargetTypeCompte = "CLIENT";
-
     private readonly IOtpChallengeRepository _challengeRepository;
     private readonly IUtilisateurRepository _utilisateurRepository;
 
@@ -17,9 +15,14 @@ public sealed class VerifyOtpUseCase
         _utilisateurRepository = utilisateurRepository;
     }
 
-    public async Task<VerifyOtpResult> ExecuteAsync(string telephone, string code, CancellationToken cancellationToken)
+    public Task<VerifyOtpResult> ExecuteAsync(string telephone, string code, CancellationToken cancellationToken) =>
+        ExecuteAsync(telephone, TypeCompte.Client, code, cancellationToken);
+
+    // Feature 006 : generalise au type de compte (CLIENT par defaut pour compatibilite avec 003).
+    public async Task<VerifyOtpResult> ExecuteAsync(string telephone, TypeCompte typeCompte, string code, CancellationToken cancellationToken)
     {
-        var challenge = await _challengeRepository.GetActivePendingAsync(telephone, TargetTypeCompte, cancellationToken);
+        var targetTypeCompte = typeCompte.ToString().ToUpperInvariant();
+        var challenge = await _challengeRepository.GetActivePendingAsync(telephone, targetTypeCompte, cancellationToken);
 
         if (challenge is null || challenge.ExpiresAt < DateTimeOffset.UtcNow)
         {
@@ -34,7 +37,7 @@ public sealed class VerifyOtpUseCase
         await _challengeRepository.MarkConsumedAsync(challenge.Id, cancellationToken);
 
         var (utilisateur, isNewAccount) = await _utilisateurRepository.FindOrCreateAsync(
-            telephone, TypeCompte.Client, cancellationToken);
+            telephone, typeCompte, cancellationToken);
 
         return new VerifyOtpResult(true, "verified", utilisateur.IdUtilisateur, isNewAccount);
     }

@@ -41,6 +41,17 @@ public sealed class CategorieRepository : ICategorieRepository
             cancellationToken: cancellationToken));
     }
 
+    public async Task RemoveFromEtablissementAsync(Guid idEtablissement, Guid idCategorie, CancellationToken cancellationToken)
+    {
+        using var connection = _connectionFactory.CreateConnection();
+        await connection.OpenAsync(cancellationToken);
+
+        await connection.ExecuteAsync(new CommandDefinition(
+            "DELETE FROM etablissement_categorie WHERE id_etablissement = @idEtablissement AND id_categorie = @idCategorie;",
+            new { idEtablissement, idCategorie },
+            cancellationToken: cancellationToken));
+    }
+
     public async Task<bool> EtablissementExistsAsync(Guid idEtablissement, CancellationToken cancellationToken)
     {
         using var connection = _connectionFactory.CreateConnection();

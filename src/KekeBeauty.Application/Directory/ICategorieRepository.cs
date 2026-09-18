@@ -6,5 +6,7 @@ public interface ICategorieRepository
 
     Task AssignToEtablissementAsync(Guid idEtablissement, Guid idCategorie, CancellationToken cancellationToken);
 
+    Task RemoveFromEtablissementAsync(Guid idEtablissement, Guid idCategorie, CancellationToken cancellationToken);
+
     Task<bool> EtablissementExistsAsync(Guid idEtablissement, CancellationToken cancellationToken);
 }

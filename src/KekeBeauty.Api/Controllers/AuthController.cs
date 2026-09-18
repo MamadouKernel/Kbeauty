@@ -1,10 +1,11 @@
 using KekeBeauty.Application.Auth;
+using KekeBeauty.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
 
 namespace KekeBeauty.Api.Controllers;
 
-public sealed record RequestOtpRequest(string Telephone);
-public sealed record VerifyOtpRequest(string Telephone, string Code);
+public sealed record RequestOtpRequest(string Telephone, TypeCompte TypeCompte = TypeCompte.Client);
+public sealed record VerifyOtpRequest(string Telephone, string Code, TypeCompte TypeCompte = TypeCompte.Client);
 
 [ApiController]
 [Route("auth/otp")]
@@ -22,7 +23,7 @@ public sealed class AuthController : ControllerBase
     [HttpPost("request")]
     public async Task<IActionResult> RequestOtp([FromBody] RequestOtpRequest request, CancellationToken cancellationToken)
     {
-        var result = await _requestOtpUseCase.ExecuteAsync(request.Telephone, cancellationToken);
+        var result = await _requestOtpUseCase.ExecuteAsync(request.Telephone, request.TypeCompte, cancellationToken);
 
         if (result.Success)
         {
@@ -37,7 +38,7 @@ public sealed class AuthController : ControllerBase
     [HttpPost("verify")]
     public async Task<IActionResult> Verify([FromBody] VerifyOtpRequest request, CancellationToken cancellationToken)
     {
-        var result = await _verifyOtpUseCase.ExecuteAsync(request.Telephone, request.Code, cancellationToken);
+        var result = await _verifyOtpUseCase.ExecuteAsync(request.Telephone, request.TypeCompte, request.Code, cancellationToken);
 
         return result.Success
             ? Ok(new { status = result.Status, idUtilisateur = result.IdUtilisateur, isNewAccount = result.IsNewAccount })

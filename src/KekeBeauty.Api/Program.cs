@@ -8,6 +8,8 @@ using KekeBeauty.Infrastructure.Auth;
 using KekeBeauty.Infrastructure.Listing;
 using KekeBeauty.Infrastructure.Health;
 using KekeBeauty.Infrastructure.Onboarding;
+using KekeBeauty.Application.Partner;
+using KekeBeauty.Infrastructure.Partner;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -53,6 +55,11 @@ builder.Services.AddScoped<SearchEtablissementsUseCase>();
 builder.Services.AddScoped<GetEtablissementDetailUseCase>();
 builder.Services.AddScoped<AssignCategoryUseCase>();
 builder.Services.AddScoped<AddPrestationUseCase>();
+
+builder.Services.AddScoped<IPartnerPrestationRepository, PartnerPrestationRepository>();
+builder.Services.AddScoped<ManagePrestationsUseCase>();
+builder.Services.AddScoped<ManageCategoriesUseCase>();
+builder.Services.AddScoped<PartnerOwnershipFilter>();
 
 var app = builder.Build();
 
