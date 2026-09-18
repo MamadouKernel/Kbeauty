@@ -24,6 +24,13 @@ curl -s -X POST http://localhost:$API_PORT/webhooks/winipayer/callback -H "Conte
 Attendu : `{ "status": "applied" }`, puis l'abonnement passe `ACTIF` et la transaction `REUSSIE`. Un
 rejeu du même callback renvoie `{ "status": "already_processed_or_unknown" }` (idempotent).
 
+## 1ter. Réconciliation manuelle (si un callback a été raté)
+```bash
+curl -s -X POST http://localhost:$API_PORT/admin/abonnements/$ID_ABO/verifier-paiement -H "X-Admin-Api-Key: $ADMIN_KEY"
+```
+Attendu avant tout paiement réel : `{ "status": "still_pending", "statut": "IMPAYE" }` (interroge
+réellement WiniPayer — testé en réel, pas une simulation).
+
 ## 2. Double souscription (FR-004)
 Répéter l'appel ci-dessus avec un abonnement déjà `ACTIF` → `409 Conflict`.
 

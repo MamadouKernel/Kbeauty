@@ -42,6 +42,10 @@ public interface IAbonnementRepository
 
     Task<string?> GetGerantTelephoneAsync(Guid idAbonnement, CancellationToken cancellationToken);
 
+    /// <summary>Reference externe (uuid WiniPayer) de la transaction EN_COURS la plus recente de cet
+    /// abonnement. Utilise pour la reconciliation manuelle (si un callback a ete rate).</summary>
+    Task<string?> GetReferenceExterneEnCoursAsync(Guid idAbonnement, CancellationToken cancellationToken);
+
     Task<IReadOnlyList<TarifStandard>> ListerTarifsAsync(CancellationToken cancellationToken);
 
     Task SetTarifStandardAsync(string periodicite, decimal montant, CancellationToken cancellationToken);

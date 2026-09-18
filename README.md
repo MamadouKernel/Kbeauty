@@ -160,7 +160,9 @@ crée l'abonnement `IMPAYE` et retourne `checkoutUrl` (à ouvrir pour payer) ; l
 via `POST /webhooks/winipayer/callback`, signé (`sha256(privateKey+uuid+crypto+amount+created_at)`)
 et idempotent. Un seul abonnement `ACTIF` par établissement, vérifié atomiquement en base (même
 pattern que le chevauchement de RDV). La modification du tarif standard n'affecte que les
-souscriptions futures. Le passage en PROD nécessite `WINIPAYER_ENV=prod` + les clés PROD.
+souscriptions futures. Si un callback est raté, `POST /admin/abonnements/<id>/verifier-paiement`
+interroge directement WiniPayer pour réconcilier. Le passage en PROD reste explicitement désactivé
+tant que `WINIPAYER_PROD_TOKEN_KEY`/`WINIPAYER_PROD_PRIVATE_KEY` ne sont pas renseignées.
 
 Détails : [specs/008-abonnement-paiement/quickstart.md](specs/008-abonnement-paiement/quickstart.md).
 

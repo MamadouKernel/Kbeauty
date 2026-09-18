@@ -19,6 +19,21 @@ hébergé (pas de paiement synchrone) : la souscription crée l'abonnement `IMPA
 - `401 Unauthorized` — header `X-Partner-Id` absent/malformé
 - `403 Forbidden` — établissement non possédé par ce gérant (FR-003)
 
+## POST /api/admin/abonnements/{id}/verifier-paiement
+Réconciliation manuelle : interroge directement WiniPayer (`checkout/standard/detail/:uuid`) pour
+l'état réel du paiement en cours, au cas où le callback aurait été raté. N'agit que si l'état est
+terminal (`success`/`fail`/`cancel`/`expired`) ; si le paiement est encore `pending`, ne change rien.
+**Auth**: `Admin:ApiKey`.
+
+**Responses**:
+- `200 OK` — `{ "status": "reconciled"|"still_pending", "statut": "ACTIF"|"IMPAYE" }`
+- `404 Not Found` — abonnement introuvable
+- `502 Bad Gateway` — pas de transaction en cours, ou agrégateur non configuré/injoignable
+
+## GET /billing/winipayer/return · GET /billing/winipayer/cancel
+Pages de redirection après passage sur la page de paiement WiniPayer (`return_url`/`cancel_url`).
+N'ont aucun effet métier — le résultat réel provient uniquement du callback (source de vérité).
+
 ## POST /webhooks/winipayer/callback
 Notification WiniPayer du résultat réel du paiement (`callback_url` fourni à la création du lien).
 Le `hash` reçu est vérifié (`sha256(privateKey + uuid + crypto + amount + created_at)`) avant toute

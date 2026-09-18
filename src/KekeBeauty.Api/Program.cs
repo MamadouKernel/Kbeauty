@@ -91,6 +91,7 @@ builder.Services.AddScoped<SubscribeUseCase>();
 builder.Services.AddScoped<AdminListAbonnementsUseCase>();
 builder.Services.AddScoped<RelanceUseCase>();
 builder.Services.AddScoped<UpdateTarifUseCase>();
+builder.Services.AddScoped<VerifyAbonnementPaiementUseCase>();
 
 builder.Services.AddScoped<IModerationRepository, ModerationRepository>();
 builder.Services.AddScoped<SuspendUtilisateurUseCase>();

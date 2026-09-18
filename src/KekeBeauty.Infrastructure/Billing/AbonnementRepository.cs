@@ -121,6 +121,19 @@ public sealed class AbonnementRepository : IAbonnementRepository
             cancellationToken: cancellationToken));
     }
 
+    public async Task<string?> GetReferenceExterneEnCoursAsync(Guid idAbonnement, CancellationToken cancellationToken)
+    {
+        using var connection = _connectionFactory.CreateConnection();
+        await connection.OpenAsync(cancellationToken);
+
+        return await connection.ExecuteScalarAsync<string?>(new CommandDefinition(
+            @"SELECT reference_externe FROM transaction
+              WHERE id_abonnement = @idAbonnement AND statut_transaction = 'EN_COURS'
+              ORDER BY date_transaction DESC LIMIT 1;",
+            new { idAbonnement },
+            cancellationToken: cancellationToken));
+    }
+
     public async Task<string?> GetGerantTelephoneAsync(Guid idAbonnement, CancellationToken cancellationToken)
     {
         using var connection = _connectionFactory.CreateConnection();

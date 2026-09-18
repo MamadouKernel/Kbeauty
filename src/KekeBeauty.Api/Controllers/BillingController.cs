@@ -17,15 +17,18 @@ public sealed class BillingController : ControllerBase
     private readonly AdminListAbonnementsUseCase _listUseCase;
     private readonly RelanceUseCase _relanceUseCase;
     private readonly UpdateTarifUseCase _updateTarifUseCase;
+    private readonly VerifyAbonnementPaiementUseCase _verifyPaiementUseCase;
 
     public BillingController(
         SubscribeUseCase subscribeUseCase, AdminListAbonnementsUseCase listUseCase,
-        RelanceUseCase relanceUseCase, UpdateTarifUseCase updateTarifUseCase)
+        RelanceUseCase relanceUseCase, UpdateTarifUseCase updateTarifUseCase,
+        VerifyAbonnementPaiementUseCase verifyPaiementUseCase)
     {
         _subscribeUseCase = subscribeUseCase;
         _listUseCase = listUseCase;
         _relanceUseCase = relanceUseCase;
         _updateTarifUseCase = updateTarifUseCase;
+        _verifyPaiementUseCase = verifyPaiementUseCase;
     }
 
     [HttpPost("etablissements/{id:guid}/abonnements")]
@@ -53,6 +56,31 @@ public sealed class BillingController : ControllerBase
             checkoutUrl = result.CheckoutUrl,
         });
     }
+
+    [HttpPost("admin/abonnements/{id:guid}/verifier-paiement")]
+    [ServiceFilter(typeof(AdminApiKeyFilter))]
+    public async Task<IActionResult> VerifierPaiement(Guid id, CancellationToken cancellationToken)
+    {
+        var result = await _verifyPaiementUseCase.ExecuteAsync(id, cancellationToken);
+
+        if (!result.Success)
+        {
+            return result.Status == "not_found"
+                ? NotFound()
+                : StatusCode(StatusCodes.Status502BadGateway, new { status = result.Status });
+        }
+
+        return Ok(new { status = result.Status, statut = result.StatutAbonnement });
+    }
+
+    // Redirections client apres passage sur la page de paiement WiniPayer (cancel_url/return_url,
+    // voir WinPayerGateway.InitiateAsync). Le resultat reel a deja ete applique par le callback
+    // (source de verite) ; ces routes ne font qu'informer l'utilisateur, sans logique metier.
+    [HttpGet("billing/winipayer/return")]
+    public IActionResult WinPayerReturn() => Ok(new { message = "Paiement en cours de confirmation." });
+
+    [HttpGet("billing/winipayer/cancel")]
+    public IActionResult WinPayerCancel() => Ok(new { message = "Paiement annule." });
 
     [HttpGet("admin/abonnements")]
     [ServiceFilter(typeof(AdminApiKeyFilter))]

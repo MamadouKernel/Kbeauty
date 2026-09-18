@@ -27,6 +27,23 @@ public sealed class WinPayerGateway : IPaymentGateway
         [JsonPropertyName("checkout_process")] public string? CheckoutProcess { get; set; }
     }
 
+    private sealed class DetailResponse
+    {
+        [JsonPropertyName("success")] public bool Success { get; set; }
+        [JsonPropertyName("results")] public DetailResults? Results { get; set; }
+    }
+
+    private sealed class DetailResults
+    {
+        [JsonPropertyName("invoice")] public DetailInvoice? Invoice { get; set; }
+    }
+
+    private sealed class DetailInvoice
+    {
+        [JsonPropertyName("state")] public string? State { get; set; }
+        [JsonPropertyName("operator")] public string? Operator { get; set; }
+    }
+
     private readonly HttpClient _httpClient;
     private readonly string? _merchantApply;
     private readonly string? _tokenKey;
@@ -91,6 +108,51 @@ public sealed class WinPayerGateway : IPaymentGateway
         {
             _logger.LogWarning(ex, "Creation du lien de paiement WiniPayer echouee (exception reseau/agregateur).");
             return new PaymentInitiation { Success = false };
+        }
+    }
+
+    public async Task<PaymentVerification> VerifyAsync(string referenceExterne, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(_merchantApply) || string.IsNullOrWhiteSpace(_tokenKey))
+        {
+            _logger.LogWarning("Verification ignoree : compte marchand WiniPayer non configure.");
+            return new PaymentVerification { Success = false };
+        }
+
+        try
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Post, $"/checkout/standard/detail/{referenceExterne}")
+            {
+                Content = new FormUrlEncodedContent(new Dictionary<string, string> { ["env"] = _env })
+            };
+            request.Headers.Add("X-Merchant-Apply", _merchantApply);
+            request.Headers.Add("X-Merchant-Token", _tokenKey);
+
+            using var response = await _httpClient.SendAsync(request, cancellationToken);
+            var body = await response.Content.ReadFromJsonAsync<DetailResponse>(cancellationToken: cancellationToken);
+
+            if (!response.IsSuccessStatusCode || body is not { Success: true, Results.Invoice: not null })
+            {
+                _logger.LogWarning("Verification WiniPayer echouee : statut HTTP {StatusCode}.", (int)response.StatusCode);
+                return new PaymentVerification { Success = false };
+            }
+
+            var etat = body.Results.Invoice.State;
+            var estTerminal = etat is "success" or "fail" or "cancel" or "expired";
+
+            return new PaymentVerification
+            {
+                Success = true,
+                EtatBrut = etat,
+                EstTerminal = estTerminal,
+                PaiementReussi = etat == "success",
+                OperateurExterne = body.Results.Invoice.Operator,
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Verification WiniPayer echouee (exception reseau/agregateur).");
+            return new PaymentVerification { Success = false };
         }
     }
 }
