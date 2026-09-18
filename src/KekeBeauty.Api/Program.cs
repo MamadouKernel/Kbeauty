@@ -1,5 +1,7 @@
+using KekeBeauty.Application.Auth;
 using KekeBeauty.Application.Health;
 using KekeBeauty.Infrastructure;
+using KekeBeauty.Infrastructure.Auth;
 using KekeBeauty.Infrastructure.Health;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -15,6 +17,16 @@ builder.Services.AddHealthChecks();
 
 builder.Services.AddSingleton<IDbConnectionFactory, DbConnectionFactory>();
 builder.Services.AddScoped<IHealthDataCheck, HealthDataCheck>();
+
+builder.Services.AddHttpClient<IOtpSender, ZavuWhatsAppOtpSender>(client =>
+{
+    var baseUrl = builder.Configuration["Zavu:BaseUrl"] ?? "https://api.zavu.dev";
+    client.BaseAddress = new Uri(baseUrl);
+});
+builder.Services.AddScoped<IOtpChallengeRepository, OtpChallengeRepository>();
+builder.Services.AddScoped<IUtilisateurRepository, UtilisateurRepository>();
+builder.Services.AddScoped<RequestOtpUseCase>();
+builder.Services.AddScoped<VerifyOtpUseCase>();
 
 var app = builder.Build();
 

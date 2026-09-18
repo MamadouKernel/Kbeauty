@@ -50,6 +50,19 @@ curl http://localhost:${API_PORT:-5080}/health/db    # lecture/ecriture reelle s
 
 Détails : [specs/002-scaffold-dotnet/quickstart.md](specs/002-scaffold-dotnet/quickstart.md).
 
+### Authentification client (OTP WhatsApp via Zavu)
+
+```bash
+curl -X POST http://localhost:${API_PORT:-5080}/auth/otp/request -H "Content-Type: application/json" -d '{"telephone":"+225XXXXXXXXXX"}'
+curl -X POST http://localhost:${API_PORT:-5080}/auth/otp/verify  -H "Content-Type: application/json" -d '{"telephone":"+225XXXXXXXXXX","code":"123456"}'
+```
+
+⚠️ **Dépendance externe** : l'envoi réel du code passe par WhatsApp via [Zavu](https://zavu.dev). Tant
+que le projet Zavu Keke Beauty n'est pas configuré (`Zavu:ApiKey` dans `.env`), `/auth/otp/request`
+retourne `502 send_failed` de façon explicite — comportement attendu, pas un bug.
+
+Détails : [specs/003-auth-client/quickstart.md](specs/003-auth-client/quickstart.md).
+
 ## pgAdmin (optionnel)
 
 ```bash

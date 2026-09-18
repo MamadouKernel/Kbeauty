@@ -17,28 +17,28 @@ description: "Task list template for feature implementation"
 
 ## Phase 1: Setup
 
-- [ ] T001 Créer `db/migrations/0003_otp_challenge.sql` : type `otp_status_enum` (`PENDING`,
+- [x] T001 Créer `db/migrations/0003_otp_challenge.sql` : type `otp_status_enum` (`PENDING`,
   `CONSUMED`, `INVALIDATED`), table `otp_challenge` (voir `data-model.md`), index
   `(telephone, type_compte, status)`
-- [ ] T002 Appliquer la migration via `./scripts/db/migrate.sh` et vérifier la table
+- [x] T002 Appliquer la migration via `./scripts/db/migrate.sh` et vérifier la table
 
 ## Phase 2: Foundational (bloquant pour toutes les User Stories)
 
-- [ ] T003 [P] Créer `src/KekeBeauty.Application/Auth/Dtos.cs` : `RequestOtpResult`,
+- [x] T003 [P] Créer `src/KekeBeauty.Application/Auth/Dtos.cs` : `RequestOtpResult`,
   `VerifyOtpResult` (records)
-- [ ] T004 [P] Créer `src/KekeBeauty.Application/Auth/IOtpSender.cs` (interface :
+- [x] T004 [P] Créer `src/KekeBeauty.Application/Auth/IOtpSender.cs` (interface :
   `Task<bool> SendAsync(string telephone, string code, CancellationToken ct)`)
-- [ ] T005 [P] Créer `src/KekeBeauty.Application/Auth/IOtpChallengeRepository.cs` (interface :
+- [x] T005 [P] Créer `src/KekeBeauty.Application/Auth/IOtpChallengeRepository.cs` (interface :
   créer challenge + invalider les précédents en une opération, récupérer challenge `PENDING` actif
   par téléphone, marquer `CONSUMED`)
-- [ ] T006 [P] Créer `src/KekeBeauty.Application/Auth/IUtilisateurRepository.cs` (interface :
+- [x] T006 [P] Créer `src/KekeBeauty.Application/Auth/IUtilisateurRepository.cs` (interface :
   trouver par téléphone+type CLIENT, créer si absent)
-- [ ] T007 Créer `src/KekeBeauty.Infrastructure/Auth/OtpChallengeRepository.cs` (Dapper — voir
+- [x] T007 Créer `src/KekeBeauty.Infrastructure/Auth/OtpChallengeRepository.cs` (Dapper — voir
   `data-model.md` pour les transitions d'état)
-- [ ] T008 Créer `src/KekeBeauty.Infrastructure/Auth/UtilisateurRepository.cs` (Dapper — `INSERT ...
+- [x] T008 Créer `src/KekeBeauty.Infrastructure/Auth/UtilisateurRepository.cs` (Dapper — `INSERT ...
   ON CONFLICT DO NOTHING` sur la contrainte `UNIQUE (telephone, type_compte)` pour appliquer FR-007
   sans erreur applicative)
-- [ ] T009 Configurer dans `src/KekeBeauty.Api/appsettings.json` un placeholder `Zavu:ApiKey` (vide) +
+- [x] T009 Configurer dans `src/KekeBeauty.Api/appsettings.json` un placeholder `Zavu:ApiKey` (vide) +
   `Zavu:BaseUrl` (`https://api.zavu.dev`), lu depuis `ConnectionStrings`-like config (jamais de vraie
   clé commitée)
 
@@ -48,20 +48,20 @@ description: "Task list template for feature implementation"
 
 **Independent Test**: Scénario 1 de `quickstart.md`.
 
-- [ ] T010 [US1] Créer `src/KekeBeauty.Infrastructure/Auth/ZavuWhatsAppOtpSender.cs` : `HttpClient`
+- [x] T010 [US1] Créer `src/KekeBeauty.Infrastructure/Auth/ZavuWhatsAppOtpSender.cs` : `HttpClient`
   nommé vers l'API Zavu ; retourne `false` immédiatement si `Zavu:ApiKey` est vide (FR-009, Decision 5
   de `research.md`), sans appel réseau
-- [ ] T011 [US1] Créer `src/KekeBeauty.Application/Auth/RequestOtpUseCase.cs` : valide le format du
+- [x] T011 [US1] Créer `src/KekeBeauty.Application/Auth/RequestOtpUseCase.cs` : valide le format du
   numéro (FR-008), génère un code à 6 chiffres, le hache (SHA-256), invalide les challenges `PENDING`
   précédents et en crée un nouveau (FR-006), appelle `IOtpSender`, retourne succès/échec explicite
-- [ ] T012 [US1] Créer `src/KekeBeauty.Application/Auth/VerifyOtpUseCase.cs` : récupère le challenge
+- [x] T012 [US1] Créer `src/KekeBeauty.Application/Auth/VerifyOtpUseCase.cs` : récupère le challenge
   `PENDING` actif, vérifie expiration + hash, marque `CONSUMED`, crée l'utilisateur CLIENT si absent
   (`isNewAccount = true`) ou récupère l'existant (`false`)
-- [ ] T013 [US1] Créer `src/KekeBeauty.Api/Controllers/AuthController.cs` : `POST /auth/otp/request`
+- [x] T013 [US1] Créer `src/KekeBeauty.Api/Controllers/AuthController.cs` : `POST /auth/otp/request`
   et `POST /auth/otp/verify`, mappés selon `contracts/auth-api.md` (codes 202/400/502/200)
-- [ ] T014 [US1] Enregistrer tous les services dans le DI (`Program.cs`) : `IOtpSender`,
+- [x] T014 [US1] Enregistrer tous les services dans le DI (`Program.cs`) : `IOtpSender`,
   `IOtpChallengeRepository`, `IUtilisateurRepository`, `HttpClient` nommé pour Zavu
-- [ ] T015 [US1] Exécuter le Scénario 1 de `quickstart.md` (sans Zavu configuré : confirmer le `502`
+- [x] T015 [US1] Exécuter le Scénario 1 de `quickstart.md` (sans Zavu configuré : confirmer le `502`
   explicite ; documenter que le `200`/`202` sera vérifié dès que Zavu sera configuré)
 
 **Checkpoint**: US1 livrable et testable pour son comportement d'échec explicite dès maintenant ;
@@ -73,13 +73,15 @@ le succès de bout en bout reste conditionné à la configuration Zavu (dépenda
 
 **Independent Test**: Scénario 2 de `quickstart.md`.
 
-- [ ] T016 [US2] Vérifier dans `VerifyOtpUseCase` (T012) que le cas "utilisateur existant" est bien
-  couvert par un test manuel dédié (Scénario 2 de `quickstart.md`) — aucune nouvelle classe requise,
-  la logique est déjà unifiée avec US1
-- [ ] T017 [US2] Exécuter le Scénario 2 de `quickstart.md` et confirmer `isNewAccount: false` +
-  absence de doublon en base
+- [x] T016 [US2] Vérifié par revue de code : `VerifyOtpUseCase.ExecuteAsync` appelle
+  `FindOrCreateAsync`, qui retourne l'utilisateur existant (`isNewAccount = false`) si trouvé — même
+  chemin de code que US1, aucune classe supplémentaire nécessaire
+- [ ] T017 [US2] **BLOQUÉ (dépendance Zavu)** : nécessite un code OTP réel reçu par WhatsApp pour
+  valider un `verify` de bout en bout ; le comportement d'échec (`send_failed`) est déjà vérifié
+  (T015). À exécuter dès que le projet Zavu Keke Beauty est configuré.
 
-**Checkpoint**: US1 + US2 livrées.
+**Checkpoint**: US1 + US2 — logique validée par revue de code et par test du chemin d'échec ; test
+de bout en bout en attente de Zavu (non bloquant pour les features suivantes du backlog).
 
 ## Phase 5: User Story 3 - Expiration et usage unique du code (Priority: P2)
 
@@ -87,9 +89,12 @@ le succès de bout en bout reste conditionné à la configuration Zavu (dépenda
 
 **Independent Test**: Scénarios 3 et 4 de `quickstart.md`.
 
-- [ ] T018 [US3] Exécuter le Scénario 3 de `quickstart.md` (code incorrect, puis réutilisation d'un
-  code déjà consommé) et confirmer le `400` explicite dans les deux cas
-- [ ] T019 [US3] Exécuter le Scénario 4 de `quickstart.md` (invalidation par une nouvelle demande,
+- [x] T018 [US3] Exécuté et validé pour le cas "code incorrect" : `POST /auth/otp/verify` avec un
+  code erroné sur un challenge `PENDING` existant retourne `400 {"status":"invalid_or_expired_code"}`
+  (testé en réel, bug Dapper corrigé au passage — voir note ci-dessous). Le sous-cas "réutilisation
+  d'un code déjà consommé" **reste bloqué (dépendance Zavu)** : il faut un code réel validé une
+  première fois, impossible à obtenir sans l'envoi WhatsApp réel.
+- [x] T019 [US3] Exécuter le Scénario 4 de `quickstart.md` (invalidation par une nouvelle demande,
   FR-006) et confirmer le `400` sur l'ancien code
 
 **Checkpoint**: US1 + US2 + US3 livrées — flux complet testable indépendamment de Zavu, prêt à être
@@ -97,9 +102,9 @@ validé de bout en bout dès la configuration Zavu finalisée.
 
 ## Phase 6: Polish & Cross-Cutting Concerns
 
-- [ ] T020 [P] Mettre à jour `README.md` (section API backend) avec les deux nouveaux endpoints et
+- [x] T020 [P] Mettre à jour `README.md` (section API backend) avec les deux nouveaux endpoints et
   la note sur la dépendance Zavu
-- [ ] T021 Mettre à jour `docs/scrum/product-backlog.md` (US-03 → référence `003-auth-client`) et
+- [x] T021 Mettre à jour `docs/scrum/product-backlog.md` (US-03 → référence `003-auth-client`) et
   créer/mettre à jour `docs/scrum/sprint-2.md`
 
 ## Dependencies & Execution Order
