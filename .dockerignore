@@ -1,0 +1,13 @@
+**/bin/
+**/obj/
+.git/
+.vs/
+.specify/
+.claude/
+docs/
+specs/
+db/init/
+*.md
+*.pdf
+*.docx
+*.jpeg

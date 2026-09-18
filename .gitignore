@@ -4,3 +4,10 @@ dist/
 build/
 *.log
 .DS_Store
+
+# .NET
+bin/
+obj/
+.vs/
+*.user
+

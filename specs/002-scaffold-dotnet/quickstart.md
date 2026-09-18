@@ -45,3 +45,17 @@ dotnet run
 ```
 
 **Résultat attendu** : identique au Scénario 1/2, utile pour déboguer depuis Visual Studio/Rider/VS Code.
+
+## Revue de structure (US3, T022) — exemple avec l'entité Établissement
+
+Pour une future feature d'annuaire (ex. `004-recherche-annuaire`) s'appuyant sur l'entité déjà créée
+`Etablissement` (`src/KekeBeauty.Domain/Entities/Etablissement.cs`) :
+- **Domain** : l'entité existe déjà, aucune modification requise.
+- **Application** : ajouter `src/KekeBeauty.Application/Etablissements/` avec une interface
+  `IEtablissementRepository` (ex. `SearchAsync(categorie, commune)`) et un DTO de sortie.
+- **Infrastructure** : ajouter `src/KekeBeauty.Infrastructure/Etablissements/EtablissementRepository.cs`,
+  implémentation Dapper interrogeant `etablissement`/`etablissement_categorie`/`commune`.
+- **Api** : ajouter `src/KekeBeauty.Api/Controllers/EtablissementsController.cs` exposant
+  `GET /etablissements?categorie=...&commune=...`.
+Aucune des couches existantes (`DbConnectionFactory`, `Program.cs` health checks, etc.) n'a besoin
+d'être modifiée pour cet ajout — confirme FR-005/FR-006/SC-003.

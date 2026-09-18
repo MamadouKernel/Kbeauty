@@ -18,6 +18,20 @@ services:
       timeout: 5s
       retries: 10
 
+  api:
+    build:
+      context: .
+      dockerfile: src/KekeBeauty.Api/Dockerfile
+    container_name: kekebeauty-api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      ConnectionStrings__Default: "Host=postgres;Port=5432;Database=${POSTGRES_DB:-kekebeauty};Username=${POSTGRES_USER:-kekebeauty};Password=${POSTGRES_PASSWORD:-kekebeauty}"
+    ports:
+      - "${API_PORT:-5080}:8080"
+
   pgadmin:
     image: dpage/pgadmin4:latest
     container_name: kekebeauty-pgadmin

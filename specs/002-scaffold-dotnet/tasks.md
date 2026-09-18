@@ -18,30 +18,30 @@ bloquer les futures features ; `quickstart.md` sert de plan de validation manuel
 
 ## Phase 1: Setup
 
-- [ ] T001 Créer la solution `.sln` et les 4 projets .NET 8 à la racine : `dotnet new sln -n KekeBeauty`,
+- [x] T001 Créer la solution `.sln` et les 4 projets .NET 8 à la racine : `dotnet new sln -n KekeBeauty`,
   `dotnet new classlib -o src/KekeBeauty.Domain`, `dotnet new classlib -o src/KekeBeauty.Application`,
   `dotnet new classlib -o src/KekeBeauty.Infrastructure`, `dotnet new webapi -o src/KekeBeauty.Api`
   (minimal API, sans Swagger par défaut), puis `dotnet sln add` pour chaque projet
-- [ ] T002 [P] Créer le projet de test vide `dotnet new xunit -o tests/KekeBeauty.Api.Tests`, l'ajouter
+- [x] T002 [P] Créer le projet de test vide `dotnet new xunit -o tests/KekeBeauty.Api.Tests`, l'ajouter
   à la solution
-- [ ] T003 Configurer les références de projet : `Application` → `Domain` ; `Infrastructure` →
+- [x] T003 Configurer les références de projet : `Application` → `Domain` ; `Infrastructure` →
   `Application` + `Domain` ; `Api` → `Infrastructure` + `Application` + `Domain`
-- [ ] T004 [P] Ajouter les paquets NuGet : `Npgsql`, `Dapper` dans `KekeBeauty.Infrastructure` ;
+- [x] T004 [P] Ajouter les paquets NuGet : `Npgsql`, `Dapper` dans `KekeBeauty.Infrastructure` ;
   `AspNetCore.HealthChecks.NpgSql` dans `KekeBeauty.Api`
 
 ## Phase 2: Foundational (bloquant pour toutes les User Stories)
 
-- [ ] T005 Créer `db/migrations/0002_health_check_table.sql` : table technique `health_check`
+- [x] T005 Créer `db/migrations/0002_health_check_table.sql` : table technique `health_check`
   (`id UUID PK DEFAULT gen_random_uuid()`, `checked_at TIMESTAMPTZ NOT NULL DEFAULT now()`) — voir
   `data-model.md`
-- [ ] T006 Appliquer la migration via `./scripts/db/migrate.sh` et vérifier la présence de la table
-- [ ] T007 [P] Créer les entités vides dans `src/KekeBeauty.Domain/Entities/` : une classe C# par table
+- [x] T006 Appliquer la migration via `./scripts/db/migrate.sh` et vérifier la présence de la table
+- [x] T007 [P] Créer les entités vides dans `src/KekeBeauty.Domain/Entities/` : une classe C# par table
   du MLD (`Utilisateur.cs`, `Etablissement.cs`, `Categorie.cs`, `Pays.cs`, `Region.cs`, `Ville.cs`,
   `Commune.cs`, `Media.cs`, `Prestation.cs`, `Rdv.cs`, `Abonnement.cs`, `Transaction.cs`) — propriétés
   reflétant `docs/merise/04-mld.md`, sans logique
-- [ ] T008 Créer `src/KekeBeauty.Infrastructure/DbConnectionFactory.cs` : fabrique de connexions
+- [x] T008 Créer `src/KekeBeauty.Infrastructure/DbConnectionFactory.cs` : fabrique de connexions
   `NpgsqlConnection` lisant la chaîne de connexion depuis la configuration (FR-008)
-- [ ] T009 Configurer `src/KekeBeauty.Api/appsettings.json` (placeholders) + lecture de la chaîne de
+- [x] T009 Configurer `src/KekeBeauty.Api/appsettings.json` (placeholders) + lecture de la chaîne de
   connexion depuis les variables d'environnement (`ConnectionStrings__Default`), pas de secret commité
 
 ## Phase 3: User Story 1 - Démarrage local de l'API backend (Priority: P1) 🎯 MVP
@@ -50,16 +50,16 @@ bloquer les futures features ; `quickstart.md` sert de plan de validation manuel
 
 **Independent Test**: Scénario 1 de `quickstart.md`.
 
-- [ ] T010 [US1] Créer `src/KekeBeauty.Api/Program.cs` : hosting minimal ASP.NET Core, enregistrement
+- [x] T010 [US1] Créer `src/KekeBeauty.Api/Program.cs` : hosting minimal ASP.NET Core, enregistrement
   des services (DI), mapping de l'endpoint `/health` (health check applicatif de base, sans dépendance
   base de données)
-- [ ] T011 [US1] Créer `src/KekeBeauty.Api/Dockerfile` (build multi-stage `mcr.microsoft.com/dotnet/sdk:8.0`
+- [x] T011 [US1] Créer `src/KekeBeauty.Api/Dockerfile` (build multi-stage `mcr.microsoft.com/dotnet/sdk:8.0`
   → `mcr.microsoft.com/dotnet/aspnet:8.0`)
-- [ ] T012 [US1] Ajouter le service `api` dans `docker-compose.yml` : build depuis `src/KekeBeauty.Api`,
+- [x] T012 [US1] Ajouter le service `api` dans `docker-compose.yml` : build depuis `src/KekeBeauty.Api`,
   `depends_on: postgres (condition: service_healthy)`, variable `API_PORT` configurable (comme
   `POSTGRES_PORT` déjà en place)
-- [ ] T013 [US1] Exécuter le Scénario 1 de `quickstart.md` et confirmer la réponse `Healthy` sur `/health`
-- [ ] T014 [US1] Exécuter le Scénario 4 de `quickstart.md` (`dotnet run` local hors Docker)
+- [x] T013 [US1] Exécuter le Scénario 1 de `quickstart.md` et confirmer la réponse `Healthy` sur `/health`
+- [x] T014 [US1] Exécuter le Scénario 4 de `quickstart.md` (`dotnet run` local hors Docker)
 
 **Checkpoint**: US1 livrable de façon autonome.
 
@@ -70,19 +70,19 @@ est indisponible.
 
 **Independent Test**: Scénarios 2 et 3 de `quickstart.md`.
 
-- [ ] T015 [US2] Créer `src/KekeBeauty.Application/Health/IHealthDataCheck.cs` (interface) et
+- [x] T015 [US2] Créer `src/KekeBeauty.Application/Health/IHealthDataCheck.cs` (interface) et
   `HealthDataCheckResult.cs` (résultat : succès/échec + message)
-- [ ] T016 [US2] Créer `src/KekeBeauty.Infrastructure/Health/HealthDataCheck.cs` : implémentation
+- [x] T016 [US2] Créer `src/KekeBeauty.Infrastructure/Health/HealthDataCheck.cs` : implémentation
   Dapper — `SELECT 1` (lecture), puis transaction `INSERT INTO health_check ... ; ROLLBACK` (écriture,
   jamais commitée) — voir `research.md` Décision 3
-- [ ] T017 [US2] Enregistrer `HealthDataCheck` dans le conteneur DI (`Program.cs`) et mapper l'endpoint
+- [x] T017 [US2] Enregistrer `HealthDataCheck` dans le conteneur DI (`Program.cs`) et mapper l'endpoint
   `/health/db` qui l'invoque et retourne 200 si succès, 503 avec message explicite si échec (FR-004)
-- [ ] T018 [US2] Configurer le health check `AspNetCore.HealthChecks.NpgSql` en complément (visibilité
+- [x] T018 [US2] Configurer le health check `AspNetCore.HealthChecks.NpgSql` en complément (visibilité
   standard ASP.NET Core), sans faire échouer le démarrage du processus si la base n'est pas encore
   prête (Edge Case — voir `research.md` Décision 5)
-- [ ] T019 [US2] Exécuter le Scénario 2 de `quickstart.md` et confirmer qu'aucune ligne ne persiste
+- [x] T019 [US2] Exécuter le Scénario 2 de `quickstart.md` et confirmer qu'aucune ligne ne persiste
   dans `health_check` après l'appel
-- [ ] T020 [US2] Exécuter le Scénario 3 de `quickstart.md` (base arrêtée) et confirmer la réponse 503
+- [x] T020 [US2] Exécuter le Scénario 3 de `quickstart.md` (base arrêtée) et confirmer la réponse 503
   explicite
 
 **Checkpoint**: US1 + US2 livrées — le socle applicatif est démarrable et vérifiable de bout en bout.
@@ -93,21 +93,21 @@ est indisponible.
 
 **Independent Test**: Revue de structure (voir Acceptance Scenarios de la User Story 3 dans `spec.md`).
 
-- [ ] T021 [P] [US3] Documenter dans `README.md` la convention d'ajout d'une future capacité métier :
+- [x] T021 [P] [US3] Documenter dans `README.md` la convention d'ajout d'une future capacité métier :
   entité dans `Domain`, interface + cas d'usage dans `Application`, implémentation dans
   `Infrastructure`, contrôleur dans `Api`
-- [ ] T022 [US3] Revue manuelle : décrire, pour l'entité `Etablissement` (déjà modélisée en MERISE),
+- [x] T022 [US3] Revue manuelle : décrire, pour l'entité `Etablissement` (déjà modélisée en MERISE),
   où prendrait place chaque partie d'une future feature d'annuaire — documenter le résultat en
   commentaire dans `specs/002-scaffold-dotnet/quickstart.md` ou en note de fin de tâche
 
 ## Phase 6: Polish & Cross-Cutting Concerns
 
-- [ ] T023 [P] Mettre à jour `README.md` (section "API backend") avec les commandes de démarrage
+- [x] T023 [P] Mettre à jour `README.md` (section "API backend") avec les commandes de démarrage
   (`docker compose up -d --build`, endpoints `/health` et `/health/db`)
-- [ ] T024 Ajouter au Product Backlog (`docs/scrum/product-backlog.md`) un item technique "Scaffold
+- [x] T024 Ajouter au Product Backlog (`docs/scrum/product-backlog.md`) un item technique "Scaffold
   applicatif .NET" sous l'Epic 1 (Fondations techniques), référençant `002-scaffold-dotnet` — pas
   présent explicitement dans le backlog initial (constaté lors du Constitution Check du plan)
-- [ ] T025 Créer `docs/scrum/sprint-1.md` et y consigner cette feature comme premier item du Sprint 1
+- [x] T025 Créer `docs/scrum/sprint-1.md` et y consigner cette feature comme premier item du Sprint 1
 
 ## Dependencies & Execution Order
 

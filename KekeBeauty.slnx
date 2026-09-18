@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/KekeBeauty.Api/KekeBeauty.Api.csproj" />
+    <Project Path="src/KekeBeauty.Application/KekeBeauty.Application.csproj" />
+    <Project Path="src/KekeBeauty.Domain/KekeBeauty.Domain.csproj" />
+    <Project Path="src/KekeBeauty.Infrastructure/KekeBeauty.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/KekeBeauty.Api.Tests/KekeBeauty.Api.Tests.csproj" />
+  </Folder>
+</Solution>

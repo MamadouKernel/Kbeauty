@@ -8,6 +8,7 @@ de son entrée en Sprint Backlog (Principe IV de la constitution).
 |---|---|---|---|
 | US-01 | En tant qu'équipe technique, je veux un environnement PostgreSQL reproductible via Docker Desktop | Must | `001-infra-postgres` |
 | US-02 | En tant qu'équipe technique, je veux le schéma MPD (tables MERISE) appliqué en migration versionnée | Must | `001-infra-postgres` |
+| US-02b | En tant qu'équipe technique, je veux un squelette applicatif backend .NET démarrable en une commande, connecté à la base, avec vérification de santé | Must | `002-scaffold-dotnet` |
 
 ## Epic 2 — Identité & Comptes
 | ID | User Story | Priorité | Feature Spec Kit |
