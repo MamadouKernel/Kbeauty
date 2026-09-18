@@ -9,7 +9,9 @@ using KekeBeauty.Infrastructure.Listing;
 using KekeBeauty.Infrastructure.Health;
 using KekeBeauty.Infrastructure.Onboarding;
 using KekeBeauty.Application.Partner;
+using KekeBeauty.Application.Rdv;
 using KekeBeauty.Infrastructure.Partner;
+using KekeBeauty.Infrastructure.Rdv;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -60,6 +62,15 @@ builder.Services.AddScoped<IPartnerPrestationRepository, PartnerPrestationReposi
 builder.Services.AddScoped<ManagePrestationsUseCase>();
 builder.Services.AddScoped<ManageCategoriesUseCase>();
 builder.Services.AddScoped<PartnerOwnershipFilter>();
+
+builder.Services.AddScoped<IRdvRepository, RdvRepository>();
+builder.Services.AddHttpClient<IRdvNotifier, ZavuWhatsAppRdvNotifier>(client =>
+{
+    var baseUrl = builder.Configuration["Zavu:BaseUrl"] ?? "https://api.zavu.dev";
+    client.BaseAddress = new Uri(baseUrl);
+});
+builder.Services.AddScoped<RequestRdvUseCase>();
+builder.Services.AddScoped<DecideRdvUseCase>();
 
 var app = builder.Build();
 

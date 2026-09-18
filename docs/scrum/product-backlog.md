@@ -30,9 +30,9 @@ de son entrée en Sprint Backlog (Principe IV de la constitution).
 | ID | User Story | Priorité | Feature Spec Kit |
 |---|---|---|---|
 | US-11 | En tant que partenaire, je veux gérer mes prestations et tarifs | Must | `006-gestion-prestations` |
-| US-12 | En tant que client, je veux prendre RDV via un calendrier avec créneaux indisponibles en rouge | Must | `008-prise-rdv` |
-| US-13 | En tant que partenaire, je veux valider/refuser/reprogrammer une demande de RDV | Must | `008-prise-rdv` |
-| US-14 | En tant que client, je veux être notifié (SMS/in-app) de la confirmation ou du refus | Must | `008-prise-rdv` |
+| US-12 | En tant que client, je veux prendre RDV via un calendrier avec créneaux indisponibles en rouge | Must | `007-prise-rdv` |
+| US-13 | En tant que partenaire, je veux valider/refuser/reprogrammer une demande de RDV | Must | `007-prise-rdv` |
+| US-14 | En tant que client, je veux être notifié (SMS/in-app) de la confirmation ou du refus | Must | `007-prise-rdv` |
 
 ## Epic 5 — Abonnement & Paiement
 | ID | User Story | Priorité | Feature Spec Kit |

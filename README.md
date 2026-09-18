@@ -121,6 +121,24 @@ sinon). Remplace le mécanisme admin temporaire de la feature 005 pour l'usage c
 
 Détails : [specs/006-gestion-prestations/quickstart.md](specs/006-gestion-prestations/quickstart.md).
 
+### Prise de rendez-vous
+
+```bash
+curl "http://localhost:${API_PORT:-5080}/etablissements/<id>/creneaux?date=2026-09-20"
+
+curl -X POST -H "X-Client-Id: $CLIENT_ID" -H "Content-Type: application/json" \
+  -d '{"idEtablissement":"<id>","idPrestation":"<idPrestation>","dateHeureDebut":"2026-09-20T10:00:00Z"}' \
+  http://localhost:${API_PORT:-5080}/rdv
+
+curl -X POST -H "X-Partner-Id: $PARTNER_ID" "http://localhost:${API_PORT:-5080}/partenaire/etablissements/<id>/rdv/<idRdv>/confirmer"
+```
+
+Le chevauchement de créneaux est détecté de façon atomique en base (`INSERT ... WHERE NOT EXISTS`)
+pour éviter toute double réservation en cas de demandes simultanées. `X-Client-Id` suit le même
+compromis technique que `X-Partner-Id` (pas de session/JWT).
+
+Détails : [specs/007-prise-rdv/quickstart.md](specs/007-prise-rdv/quickstart.md).
+
 ## pgAdmin (optionnel)
 
 ```bash
