@@ -1,8 +1,8 @@
 <!--
 Sync Impact Report
-Version change: (none) → 1.0.0
-Modified principles: n/a (initial ratification)
-Added sections: Core Principles (5), Contraintes Techniques & Données, Processus Scrum, Governance
+Version change: 1.0.0 → 1.1.0
+Modified principles: aucun principe redéfini
+Added sections: Contraintes Techniques & Données — stack applicatif Full .NET (C#) et nom de base précisés
 Removed sections: none
 Follow-up TODOs: TODO(RATIFICATION_DATE) — confirmer la date officielle de lancement du projet avec le porteur du projet.
 -->
@@ -53,7 +53,12 @@ personnelles ou de moyens de paiement en clair. Rationale : Keke Beauty gère de
 
 ## Contraintes Techniques & Données
 
-- Base de données : PostgreSQL 16+, orchestré localement via Docker Desktop / docker-compose.
+- Stack applicatif : Full .NET (C#) — backend API en ASP.NET Core, accès aux données via une couche
+  dédiée (ex. Dapper ou Entity Framework Core, à confirmer dans le plan de la première feature
+  applicative) ; toute couche cliente (web/mobile) future MUST être documentée dans son propre plan
+  Spec Kit avant implémentation.
+- Base de données : PostgreSQL 16+, orchestré localement via Docker Desktop / docker-compose, nom de
+  base `kekebeautyDb`.
 - Modélisation des données : dossier `docs/merise/` contenant RG, DD, MCD, MLD, MCT, MOT, MPD par domaine.
 - Intégrations externes attendues (cf. CDC) : cartographie (Google Maps/Mapbox), deep-links Yango,
   SMS/OTP et notifications (Twilio/Infobip/Firebase), agrégateur de paiement local (CinetPay/PaySika/TouchPay).
@@ -77,4 +82,4 @@ PATCH pour clarification. Toute revue de code ou de spec MUST vérifier la confo
 toute complexité additionnelle (nouvelle dépendance, nouvel entité hors MERISE, etc.) MUST être justifiée
 dans le plan Spec Kit correspondant.
 
-**Version**: 1.0.0 | **Ratified**: TODO(RATIFICATION_DATE): date de lancement officiel à confirmer | **Last Amended**: 2026-09-17
+**Version**: 1.1.0 | **Ratified**: TODO(RATIFICATION_DATE): date de lancement officiel à confirmer | **Last Amended**: 2026-09-18
