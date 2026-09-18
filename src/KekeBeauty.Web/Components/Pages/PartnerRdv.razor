@@ -42,6 +42,19 @@ else
                                 <button class="btn btn-sm btn-success" @onclick="() => ConfirmerAsync(rdv.IdRdv)">Confirmer</button>
                                 <button class="btn btn-sm btn-outline-danger" @onclick="() => RefuserAsync(rdv.IdRdv)">Refuser</button>
                             }
+                            @if (rdv.StatutRdv is "DEMANDE" or "CONFIRME")
+                            {
+                                @if (_idRdvEnReprogrammation == rdv.IdRdv)
+                                {
+                                    <input type="datetime-local" class="form-control form-control-sm d-inline-block" style="width:auto" @bind="_nouvelleDateHeure" />
+                                    <button class="btn btn-sm btn-primary" @onclick="() => ReprogrammerAsync(rdv.IdRdv)">Valider</button>
+                                    <button class="btn btn-sm btn-link" @onclick="() => _idRdvEnReprogrammation = null">Annuler</button>
+                                }
+                                else
+                                {
+                                    <button class="btn btn-sm btn-outline-secondary" @onclick="() => StartReprogrammer(rdv)">Reprogrammer</button>
+                                }
+                            }
                         </td>
                     </tr>
                 }
@@ -64,6 +77,8 @@ else
     private bool _error;
     private bool _success;
     private string? _message;
+    private Guid? _idRdvEnReprogrammation;
+    private DateTime _nouvelleDateHeure = DateTime.Now;
 
     protected override async Task OnInitializedAsync()
     {
@@ -103,6 +118,29 @@ else
         _message = success ? "RDV refusé." : "Action impossible (RDV introuvable ou déjà traité).";
         if (success)
         {
+            await LoadAsync();
+        }
+    }
+
+    private void StartReprogrammer(RdvPartenaire rdv)
+    {
+        _idRdvEnReprogrammation = rdv.IdRdv;
+        _nouvelleDateHeure = rdv.DateHeureDebut.ToLocalTime().DateTime;
+    }
+
+    private async Task ReprogrammerAsync(Guid idRdv)
+    {
+        var nouvelleDateHeureDebut = new DateTimeOffset(_nouvelleDateHeure, TimeZoneInfo.Local.GetUtcOffset(_nouvelleDateHeure));
+        var (success, status) = await PartnerRdvApi.ReprogrammerAsync(_idPartner!.Value, Id, idRdv, nouvelleDateHeureDebut, CancellationToken.None);
+        _success = success;
+        _message = success
+            ? "RDV reprogrammé."
+            : status == "slot_unavailable_or_not_found"
+                ? "Ce créneau n'est plus disponible ou ce RDV est introuvable. Choisissez un autre créneau."
+                : "Action impossible.";
+        if (success)
+        {
+            _idRdvEnReprogrammation = null;
             await LoadAsync();
         }
     }
