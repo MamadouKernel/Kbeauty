@@ -17,4 +17,16 @@ public interface IRdvRepository
 
     /// <summary>Reprogramme si le nouveau creneau ne chevauche pas un autre RDV (FR-007).</summary>
     Task<bool> RescheduleAsync(Guid idEtablissement, Guid idRdv, DateTimeOffset nouvelleDateHeureDebut, CancellationToken cancellationToken);
+
+    /// <summary>Feature 010 (frontend) : permet au client de relire le statut d'un RDV deja cree.
+    /// Retourne null si introuvable ou si idUtilisateurClient n'est pas le proprietaire (meme
+    /// reponse pour les deux cas au niveau controleur - pas de fuite d'information).</summary>
+    Task<RdvStatutRow?> GetStatutAsync(Guid idRdv, Guid idUtilisateurClient, CancellationToken cancellationToken);
+}
+
+public sealed class RdvStatutRow
+{
+    public Guid IdRdv { get; set; }
+    public string StatutRdv { get; set; } = string.Empty;
+    public DateTimeOffset DateHeureDebut { get; set; }
 }

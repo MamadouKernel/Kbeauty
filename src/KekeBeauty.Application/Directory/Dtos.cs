@@ -16,6 +16,7 @@ public sealed class MediaDto
 
 public sealed class PrestationDto
 {
+    public Guid IdPrestation { get; set; }
     public string LibellePrestation { get; set; } = string.Empty;
     public decimal Tarif { get; set; }
     public short DureeMinutes { get; set; }

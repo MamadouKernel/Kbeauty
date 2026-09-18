@@ -1,0 +1,72 @@
+@page "/etablissements/{Id:guid}"
+@inject DirectoryApiClient DirectoryApi
+
+<PageTitle>@(_detail?.NomEtablissement ?? "Établissement")</PageTitle>
+
+@if (_error)
+{
+    <div class="alert alert-danger">Le service annuaire est momentanément indisponible. Merci de réessayer.</div>
+}
+else if (_loaded && _detail is null)
+{
+    <div class="alert alert-warning">Établissement introuvable.</div>
+}
+else if (_detail is null)
+{
+    <p>Chargement…</p>
+}
+else
+{
+    <h1>@_detail.NomEtablissement</h1>
+    @if (!string.IsNullOrWhiteSpace(_detail.Description))
+    {
+        <p>@_detail.Description</p>
+    }
+
+    <div class="mb-3">
+        <a class="btn btn-outline-primary" href="@($"tel:{_detail.NumeroServiceClient}")">Appeler @_detail.NumeroServiceClient</a>
+        <a class="btn btn-outline-secondary" href="@_detail.LienItineraire" target="_blank" rel="noopener">Itinéraire</a>
+        <a class="btn btn-success" href="@($"/etablissements/{Id}/rdv")">Prendre RDV</a>
+    </div>
+
+    @if (_detail.Medias.Count > 0)
+    {
+        <div class="d-flex flex-wrap gap-2 mb-3">
+            @foreach (var media in _detail.Medias.OrderBy(m => m.OrdreAffichage))
+            {
+                <img src="@media.Url" alt="@_detail.NomEtablissement" style="max-width:200px; max-height:150px;" />
+            }
+        </div>
+    }
+
+    <h2>Prestations</h2>
+    <ul class="list-group">
+        @foreach (var prestation in _detail.Prestations)
+        {
+            <li class="list-group-item d-flex justify-content-between">
+                <span>@prestation.LibellePrestation (@prestation.DureeMinutes min)</span>
+                <strong>@prestation.Tarif.ToString("N0") XOF</strong>
+            </li>
+        }
+    </ul>
+}
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+
+    private EtablissementDetail? _detail;
+    private bool _loaded;
+    private bool _error;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _detail = null;
+        _loaded = false;
+        _error = false;
+
+        var (success, detail) = await DirectoryApi.GetDetailAsync(Id, CancellationToken.None);
+        _error = !success;
+        _detail = detail;
+        _loaded = true;
+    }
+}

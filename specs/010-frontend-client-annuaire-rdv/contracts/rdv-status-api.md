@@ -9,5 +9,5 @@ Retourne le statut courant d'un RDV, pour que le client puisse le rafraîchir ap
 **Responses**:
 - `200 OK` — `{ "idRdv", "statut": "DEMANDE|CONFIRME|REFUSE", "dateHeureDebut" }`
 - `401 Unauthorized` — header absent/malformé
-- `403 Forbidden` — RDV n'appartenant pas au client authentifié
-- `404 Not Found` — RDV introuvable
+- `404 Not Found` — RDV introuvable OU n'appartenant pas au client authentifié (même réponse pour
+  les deux cas, pas de fuite d'information — cohérent avec le pattern déjà utilisé en 005)

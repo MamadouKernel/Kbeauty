@@ -1,0 +1,161 @@
+@page "/etablissements/{Id:guid}/rdv"
+@inject DirectoryApiClient DirectoryApi
+@inject RdvApiClient RdvApi
+@inject ClientSessionService Session
+@inject NavigationManager Navigation
+@rendermode InteractiveServer
+
+<PageTitle>Prendre RDV</PageTitle>
+
+@if (_checkingAuth)
+{
+    <p>Chargement…</p>
+}
+else if (_error)
+{
+    <div class="alert alert-danger">Le service est momentanément indisponible. Merci de réessayer.</div>
+}
+else if (_detail is null)
+{
+    <div class="alert alert-warning">Établissement introuvable.</div>
+}
+else
+{
+    <h1>Prendre RDV — @_detail.NomEtablissement</h1>
+
+    <div class="mb-3">
+        <label class="form-label">Prestation</label>
+        <select class="form-select" @bind="_idPrestation">
+            <option value="">-- choisir --</option>
+            @foreach (var prestation in _detail.Prestations)
+            {
+                <option value="@prestation.IdPrestation">@prestation.LibellePrestation (@prestation.DureeMinutes min, @prestation.Tarif.ToString("N0") XOF)</option>
+            }
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Date</label>
+        <input type="date" class="form-control" @bind="_date" @bind:after="LoadCreneauxAsync" />
+    </div>
+
+    @if (_creneaux.Count > 0)
+    {
+        <p><strong>Créneaux déjà occupés ce jour :</strong></p>
+        <ul class="list-group mb-3">
+            @foreach (var creneau in _creneaux)
+            {
+                <li class="list-group-item list-group-item-danger">
+                    @creneau.DateHeureDebut.ToLocalTime().ToString("HH:mm") – @creneau.DateHeureFin.ToLocalTime().ToString("HH:mm") (indisponible)
+                </li>
+            }
+        </ul>
+    }
+
+    <div class="mb-3">
+        <label class="form-label">Heure souhaitée</label>
+        <input type="time" class="form-control" @bind="_heure" />
+    </div>
+
+    <button class="btn btn-success" @onclick="SubmitAsync" disabled="@_busy">Demander le RDV</button>
+
+    @if (!string.IsNullOrEmpty(_resultMessage))
+    {
+        <div class="alert @(_resultOk ? "alert-success" : "alert-danger") mt-3">@_resultMessage</div>
+    }
+
+    @if (_idRdvCree is not null)
+    {
+        <button class="btn btn-outline-secondary mt-2" @onclick="RefreshStatutAsync">Actualiser le statut</button>
+    }
+}
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+
+    private EtablissementDetail? _detail;
+    private bool _checkingAuth = true;
+    private bool _error;
+    private Guid? _idClient;
+
+    private string _idPrestation = "";
+    private DateOnly _date = DateOnly.FromDateTime(DateTime.Today);
+    private TimeOnly _heure = new(10, 0);
+    private List<CreneauOccupe> _creneaux = [];
+
+    private bool _busy;
+    private bool _resultOk;
+    private string? _resultMessage;
+    private Guid? _idRdvCree;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _idClient = await Session.GetClientIdAsync();
+        if (_idClient is null)
+        {
+            Navigation.NavigateTo($"/login?ReturnUrl=/etablissements/{Id}/rdv", forceLoad: false);
+            return;
+        }
+
+        var (success, detail) = await DirectoryApi.GetDetailAsync(Id, CancellationToken.None);
+        _error = !success;
+        _detail = detail;
+        _checkingAuth = false;
+
+        if (_detail is not null)
+        {
+            await LoadCreneauxAsync();
+        }
+    }
+
+    private async Task LoadCreneauxAsync()
+    {
+        var (success, creneaux) = await RdvApi.GetCreneauxAsync(Id, _date, CancellationToken.None);
+        _creneaux = success ? creneaux : [];
+    }
+
+    private async Task SubmitAsync()
+    {
+        if (_idClient is null || !Guid.TryParse(_idPrestation, out var idPrestation))
+        {
+            _resultOk = false;
+            _resultMessage = "Choisissez une prestation avant de continuer.";
+            return;
+        }
+
+        _busy = true;
+        var dateHeureDebut = new DateTimeOffset(_date.ToDateTime(_heure), TimeSpan.Zero);
+
+        var (success, status, rdv) = await RdvApi.RequestRdvAsync(_idClient.Value, Id, idPrestation, dateHeureDebut, CancellationToken.None);
+        _busy = false;
+
+        if (success && rdv is not null)
+        {
+            _idRdvCree = rdv.IdRdv;
+            _resultOk = true;
+            _resultMessage = $"Demande envoyée. Statut : {rdv.Statut}.";
+        }
+        else
+        {
+            _resultOk = false;
+            _resultMessage = status switch
+            {
+                "slot_unavailable" => "Ce créneau n'est plus disponible. Choisissez-en un autre.",
+                "unauthorized" => "Session expirée, merci de vous reconnecter.",
+                _ => "La demande de RDV a échoué. Merci de réessayer.",
+            };
+        }
+    }
+
+    private async Task RefreshStatutAsync()
+    {
+        if (_idClient is null || _idRdvCree is null)
+        {
+            return;
+        }
+
+        var statut = await RdvApi.GetStatutAsync(_idClient.Value, _idRdvCree.Value, CancellationToken.None);
+        _resultMessage = statut is not null ? $"Statut actuel : {statut.Statut}" : "Impossible de récupérer le statut.";
+        _resultOk = statut is not null;
+    }
+}

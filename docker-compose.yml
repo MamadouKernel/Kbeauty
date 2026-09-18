@@ -36,6 +36,19 @@ services:
     volumes:
       - kekebeauty_kyc_storage:/app/storage
 
+  web:
+    build:
+      context: .
+      dockerfile: src/KekeBeauty.Web/Dockerfile
+    container_name: kekebeauty-web
+    restart: unless-stopped
+    depends_on:
+      - api
+    environment:
+      Api__BaseUrl: "http://api:8080"
+    ports:
+      - "${WEB_PORT:-5090}:8080"
+
   pgadmin:
     image: dpage/pgadmin4:latest
     container_name: kekebeauty-pgadmin

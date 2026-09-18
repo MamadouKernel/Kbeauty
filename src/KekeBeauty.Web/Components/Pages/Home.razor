@@ -1,0 +1,57 @@
+@page "/"
+@inject DirectoryApiClient DirectoryApi
+@rendermode InteractiveServer
+
+<PageTitle>Keke Beauty — Annuaire</PageTitle>
+
+<h1>Trouvez un salon de beauté</h1>
+
+<div class="row g-2 mb-3">
+    <div class="col-auto">
+        <input class="form-control" placeholder="Catégorie" @bind="_categorie" @bind:event="oninput" />
+    </div>
+    <div class="col-auto">
+        <input class="form-control" placeholder="Commune" @bind="_commune" @bind:event="oninput" />
+    </div>
+    <div class="col-auto">
+        <button class="btn btn-primary" @onclick="SearchAsync">Rechercher</button>
+    </div>
+</div>
+
+@if (_error)
+{
+    <div class="alert alert-danger">Le service annuaire est momentanément indisponible. Merci de réessayer.</div>
+}
+else if (_searched && _results.Count == 0)
+{
+    <p>Aucun résultat pour ces critères.</p>
+}
+else
+{
+    <div class="list-group">
+        @foreach (var etablissement in _results)
+        {
+            <a class="list-group-item list-group-item-action" href="@($"/etablissements/{etablissement.IdEtablissement}")">
+                <strong>@etablissement.NomEtablissement</strong> — @etablissement.LibelleCommune
+            </a>
+        }
+    </div>
+}
+
+@code {
+    private string? _categorie;
+    private string? _commune;
+    private List<EtablissementSummary> _results = [];
+    private bool _searched;
+    private bool _error;
+
+    protected override async Task OnInitializedAsync() => await SearchAsync();
+
+    private async Task SearchAsync()
+    {
+        var (success, results) = await DirectoryApi.SearchAsync(_categorie, _commune, CancellationToken.None);
+        _error = !success;
+        _results = results;
+        _searched = true;
+    }
+}

@@ -134,4 +134,16 @@ public sealed class RdvRepository : IRdvRepository
 
         return rows > 0;
     }
+
+    public async Task<RdvStatutRow?> GetStatutAsync(Guid idRdv, Guid idUtilisateurClient, CancellationToken cancellationToken)
+    {
+        using var connection = _connectionFactory.CreateConnection();
+        await connection.OpenAsync(cancellationToken);
+
+        return await connection.QuerySingleOrDefaultAsync<RdvStatutRow>(new CommandDefinition(
+            @"SELECT id_rdv AS IdRdv, statut_rdv AS StatutRdv, date_heure_debut AS DateHeureDebut
+              FROM rdv WHERE id_rdv = @idRdv AND id_utilisateur_client = @idUtilisateurClient;",
+            new { idRdv, idUtilisateurClient },
+            cancellationToken: cancellationToken));
+    }
 }

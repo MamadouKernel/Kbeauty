@@ -174,6 +174,25 @@ suspension est orthogonale à `statutKyc` : la réactivation restaure exactement
 
 Détails : [specs/009-moderation-back-office/quickstart.md](specs/009-moderation-back-office/quickstart.md).
 
+## Frontend web (Blazor — parcours client)
+
+```bash
+docker compose up -d --build api web
+```
+
+Ouvrir `http://localhost:${WEB_PORT:-5090}` : recherche annuaire, fiche établissement (appel,
+itinéraire, prestations), connexion OTP, prise de RDV. Architecture : `KekeBeauty.Web` (Blazor Web
+App, render mode Server) appelle `KekeBeauty.Api` via `HttpClient` (config `Api:BaseUrl`, réseau
+Docker interne — pas de CORS). Session client (`idUtilisateur` après OTP) conservée en
+`ProtectedLocalStorage`, cohérent avec la dette technique déjà documentée côté API (`X-Client-Id`,
+pas de vraie session/JWT).
+
+⚠️ Le parcours OTP dépend de Zavu (même dépendance externe que le reste du projet) : sans
+`Zavu:ApiKey` configurée, la demande de code échoue de façon explicite dans l'interface (message
+d'erreur visible, jamais un écran vide).
+
+Détails : [specs/010-frontend-client-annuaire-rdv/quickstart.md](specs/010-frontend-client-annuaire-rdv/quickstart.md).
+
 ## pgAdmin (optionnel)
 
 ```bash

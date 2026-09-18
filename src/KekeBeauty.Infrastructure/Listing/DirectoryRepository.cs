@@ -71,7 +71,7 @@ public sealed class DirectoryRepository : IDirectoryRepository
         await connection.OpenAsync(cancellationToken);
 
         var rows = await connection.QueryAsync<PrestationDto>(new CommandDefinition(
-            @"SELECT libelle_prestation AS LibellePrestation, tarif AS Tarif, duree_minutes AS DureeMinutes
+            @"SELECT id_prestation AS IdPrestation, libelle_prestation AS LibellePrestation, tarif AS Tarif, duree_minutes AS DureeMinutes
               FROM prestation WHERE id_etablissement = @idEtablissement ORDER BY libelle_prestation;",
             new { idEtablissement },
             cancellationToken: cancellationToken));
