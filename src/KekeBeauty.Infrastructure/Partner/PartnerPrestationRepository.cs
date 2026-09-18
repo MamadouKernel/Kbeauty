@@ -23,6 +23,22 @@ public sealed class PartnerPrestationRepository : IPartnerPrestationRepository
             cancellationToken: cancellationToken));
     }
 
+    public async Task<IReadOnlyList<EtablissementGereRow>> GetEtablissementsByGerantAsync(Guid idGerant, CancellationToken cancellationToken)
+    {
+        using var connection = _connectionFactory.CreateConnection();
+        await connection.OpenAsync(cancellationToken);
+
+        var rows = await connection.QueryAsync<EtablissementGereRow>(new CommandDefinition(
+            @"SELECT id_etablissement AS IdEtablissement, nom_etablissement AS NomEtablissement,
+                     statut_kyc AS StatutKyc, est_suspendu AS EstSuspendu
+              FROM etablissement WHERE id_utilisateur_gerant = @idGerant
+              ORDER BY nom_etablissement;",
+            new { idGerant },
+            cancellationToken: cancellationToken));
+
+        return rows.AsList();
+    }
+
     public async Task<Guid> AddAsync(Guid idEtablissement, string libelle, decimal tarif, short dureeMinutes, CancellationToken cancellationToken)
     {
         using var connection = _connectionFactory.CreateConnection();

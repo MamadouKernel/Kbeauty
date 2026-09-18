@@ -146,4 +146,23 @@ public sealed class RdvRepository : IRdvRepository
             new { idRdv, idUtilisateurClient },
             cancellationToken: cancellationToken));
     }
+
+    public async Task<IReadOnlyList<RdvPartenaireRow>> ListByEtablissementAsync(Guid idEtablissement, CancellationToken cancellationToken)
+    {
+        using var connection = _connectionFactory.CreateConnection();
+        await connection.OpenAsync(cancellationToken);
+
+        var rows = await connection.QueryAsync<RdvPartenaireRow>(new CommandDefinition(
+            @"SELECT r.id_rdv AS IdRdv, r.statut_rdv AS StatutRdv, r.date_heure_debut AS DateHeureDebut,
+                     p.libelle_prestation AS LibellePrestation, u.telephone AS TelephoneClient
+              FROM rdv r
+              JOIN prestation p ON p.id_prestation = r.id_prestation
+              JOIN utilisateur u ON u.id_utilisateur = r.id_utilisateur_client
+              WHERE r.id_etablissement = @idEtablissement
+              ORDER BY r.date_heure_debut DESC;",
+            new { idEtablissement },
+            cancellationToken: cancellationToken));
+
+        return rows.AsList();
+    }
 }

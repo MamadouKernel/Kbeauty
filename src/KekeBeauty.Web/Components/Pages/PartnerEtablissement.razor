@@ -1,0 +1,192 @@
+@page "/partenaire/etablissements/{Id:guid}"
+@inject PartnerApiClient PartnerApi
+@inject PartnerSessionService Session
+@inject NavigationManager Navigation
+@rendermode InteractiveServer
+
+<PageTitle>Gestion établissement</PageTitle>
+
+@if (_checkingAuth)
+{
+    <p>Chargement…</p>
+}
+else if (_error)
+{
+    <div class="alert alert-danger">Le service est momentanément indisponible. Merci de réessayer.</div>
+}
+else
+{
+    <h1>@(_detail?.NomEtablissement ?? "Établissement")</h1>
+    <p><a href="@($"/partenaire/etablissements/{Id}/rdv")">Voir les demandes de RDV</a></p>
+
+    <h2>Prestations</h2>
+    @if (_detail is not null)
+    {
+        <ul class="list-group mb-3">
+            @foreach (var prestation in _detail.Prestations)
+            {
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <span>@prestation.LibellePrestation — @prestation.Tarif.ToString("N0") XOF (@prestation.DureeMinutes min)</span>
+                    <span>
+                        <button class="btn btn-sm btn-outline-secondary" @onclick="() => StartEdit(prestation)">Modifier</button>
+                        <button class="btn btn-sm btn-outline-danger" @onclick="() => DeletePrestationAsync(prestation.IdPrestation)">Supprimer</button>
+                    </span>
+                </li>
+            }
+        </ul>
+    }
+
+    <div class="row g-2 mb-3">
+        <div class="col-auto"><input class="form-control" placeholder="Libellé" @bind="_libelle" /></div>
+        <div class="col-auto"><input class="form-control" type="number" placeholder="Tarif" @bind="_tarif" /></div>
+        <div class="col-auto"><input class="form-control" type="number" placeholder="Durée (min)" @bind="_duree" /></div>
+        @if (_idPrestationEnEdition is null)
+        {
+            <div class="col-auto"><button class="btn btn-primary" @onclick="AddPrestationAsync">Ajouter</button></div>
+        }
+        else
+        {
+            <div class="col-auto"><button class="btn btn-success" @onclick="UpdatePrestationAsync">Enregistrer</button></div>
+            <div class="col-auto"><button class="btn btn-link" @onclick="CancelEdit">Annuler</button></div>
+        }
+    </div>
+
+    <h2>Catégorie</h2>
+    <div class="row g-2 mb-3">
+        <div class="col-auto"><input class="form-control" placeholder="Libellé catégorie" @bind="_categorie" /></div>
+        <div class="col-auto"><button class="btn btn-primary" @onclick="AssignCategoryAsync">Assigner</button></div>
+    </div>
+
+    @if (!string.IsNullOrEmpty(_message))
+    {
+        <div class="alert @(_success ? "alert-success" : "alert-danger")">@_message</div>
+    }
+}
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+
+    private Guid? _idPartner;
+    private EtablissementDetail? _detail;
+    private bool _checkingAuth = true;
+    private bool _error;
+
+    private string _libelle = "";
+    private decimal _tarif;
+    private short _duree;
+    private string _categorie = "";
+    private bool _success;
+    private string? _message;
+    private Guid? _idPrestationEnEdition;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _idPartner = await Session.GetPartnerIdAsync();
+        if (_idPartner is null)
+        {
+            Navigation.NavigateTo("/partenaire/login");
+            return;
+        }
+
+        await LoadDetailAsync();
+        _checkingAuth = false;
+    }
+
+    private async Task LoadDetailAsync()
+    {
+        var (success, detail) = await PartnerApi.GetDetailAsync(Id, CancellationToken.None);
+        _error = !success;
+        _detail = detail;
+    }
+
+    private async Task AddPrestationAsync()
+    {
+        if (_idPartner is null || string.IsNullOrWhiteSpace(_libelle))
+        {
+            return;
+        }
+
+        var (success, status) = await PartnerApi.AddPrestationAsync(_idPartner.Value, Id, _libelle, _tarif, _duree, CancellationToken.None);
+        _success = success;
+        _message = success ? "Prestation ajoutée." : DecrireErreur(status);
+        if (success)
+        {
+            _libelle = "";
+            _tarif = 0;
+            _duree = 0;
+            await LoadDetailAsync();
+        }
+    }
+
+    private void StartEdit(PrestationDto prestation)
+    {
+        _idPrestationEnEdition = prestation.IdPrestation;
+        _libelle = prestation.LibellePrestation;
+        _tarif = prestation.Tarif;
+        _duree = prestation.DureeMinutes;
+    }
+
+    private void CancelEdit()
+    {
+        _idPrestationEnEdition = null;
+        _libelle = "";
+        _tarif = 0;
+        _duree = 0;
+    }
+
+    private async Task UpdatePrestationAsync()
+    {
+        if (_idPartner is null || _idPrestationEnEdition is null || string.IsNullOrWhiteSpace(_libelle))
+        {
+            return;
+        }
+
+        var (success, status) = await PartnerApi.UpdatePrestationAsync(_idPartner.Value, Id, _idPrestationEnEdition.Value, _libelle, _tarif, _duree, CancellationToken.None);
+        _success = success;
+        _message = success ? "Prestation modifiée." : DecrireErreur(status);
+        if (success)
+        {
+            CancelEdit();
+            await LoadDetailAsync();
+        }
+    }
+
+    private async Task DeletePrestationAsync(Guid idPrestation)
+    {
+        if (_idPartner is null)
+        {
+            return;
+        }
+
+        var (success, status) = await PartnerApi.DeletePrestationAsync(_idPartner.Value, Id, idPrestation, CancellationToken.None);
+        _success = success;
+        _message = success ? "Prestation supprimée." : DecrireErreur(status);
+        if (success)
+        {
+            await LoadDetailAsync();
+        }
+    }
+
+    private async Task AssignCategoryAsync()
+    {
+        if (_idPartner is null || string.IsNullOrWhiteSpace(_categorie))
+        {
+            return;
+        }
+
+        var (success, status) = await PartnerApi.AssignCategoryAsync(_idPartner.Value, Id, _categorie, CancellationToken.None);
+        _success = success;
+        _message = success ? "Catégorie assignée." : DecrireErreur(status);
+        if (success)
+        {
+            _categorie = "";
+        }
+    }
+
+    private static string DecrireErreur(string? status) => status switch
+    {
+        "forbidden" => "Cet établissement ne vous appartient pas.",
+        "unauthorized" => "Session expirée, merci de vous reconnecter.",
+        _ => "L'action a échoué. Merci de réessayer.",
+    };
+}

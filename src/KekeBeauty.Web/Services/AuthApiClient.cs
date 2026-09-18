@@ -12,11 +12,13 @@ public sealed class AuthApiClient
         _httpClient = httpClient;
     }
 
-    public async Task<(bool Success, string Status, string? Message)> RequestOtpAsync(string telephone, CancellationToken cancellationToken)
+    /// <summary>typeCompte : 0=Client, 1=Partenaire, 2=Admin (KekeBeauty.Domain.Entities.TypeCompte,
+    /// serialise en numerique par defaut par System.Text.Json cote API).</summary>
+    public async Task<(bool Success, string Status, string? Message)> RequestOtpAsync(string telephone, int typeCompte, CancellationToken cancellationToken)
     {
         try
         {
-            var response = await _httpClient.PostAsJsonAsync("auth/otp/request", new { telephone }, cancellationToken);
+            var response = await _httpClient.PostAsJsonAsync("auth/otp/request", new { telephone, typeCompte }, cancellationToken);
             var body = await response.Content.ReadFromJsonAsync<RequestOtpResponse>(cancellationToken);
             return response.IsSuccessStatusCode
                 ? (true, body?.Status ?? "sent", body?.Message)
@@ -29,11 +31,11 @@ public sealed class AuthApiClient
     }
 
     public async Task<(bool Success, string Status, Guid? IdUtilisateur)> VerifyOtpAsync(
-        string telephone, string code, CancellationToken cancellationToken)
+        string telephone, string code, int typeCompte, CancellationToken cancellationToken)
     {
         try
         {
-            var response = await _httpClient.PostAsJsonAsync("auth/otp/verify", new { telephone, code }, cancellationToken);
+            var response = await _httpClient.PostAsJsonAsync("auth/otp/verify", new { telephone, code, typeCompte }, cancellationToken);
             var body = await response.Content.ReadFromJsonAsync<VerifyOtpResponse>(cancellationToken);
             return response.IsSuccessStatusCode
                 ? (true, body?.Status ?? "verified", body?.IdUtilisateur)

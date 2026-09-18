@@ -198,6 +198,20 @@ d'erreur visible, jamais un écran vide).
 
 Détails : [specs/010-frontend-client-annuaire-rdv/quickstart.md](specs/010-frontend-client-annuaire-rdv/quickstart.md).
 
+## Frontend web (Blazor — parcours partenaire)
+
+Toujours dans `KekeBeauty.Web`. Ouvrir `http://localhost:${WEB_PORT:-5090}/partenaire/login` :
+connexion OTP (type PARTENAIRE), tableau de bord listant les établissements du gérant, gestion des
+prestations (ajout/modification/suppression) et catégories, consultation et traitement des
+demandes de RDV (confirmer/refuser).
+
+Deux endpoints backend minimaux ont été ajoutés pour ce parcours (aucun n'existait) :
+`GET /partenaire/etablissements` (découverte "mes établissements") et
+`GET /partenaire/etablissements/{id}/rdv` (liste des RDV, protégé par `PartnerOwnershipFilter`
+existant). Même dette technique que le reste du projet (`X-Partner-Id`, pas de session/JWT).
+
+Détails : [specs/011-frontend-partenaire/quickstart.md](specs/011-frontend-partenaire/quickstart.md).
+
 ## pgAdmin (optionnel)
 
 ```bash

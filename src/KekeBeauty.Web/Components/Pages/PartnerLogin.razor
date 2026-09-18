@@ -1,12 +1,12 @@
-@page "/login"
+@page "/partenaire/login"
 @inject AuthApiClient AuthApi
-@inject ClientSessionService Session
+@inject PartnerSessionService Session
 @inject NavigationManager Navigation
 @rendermode InteractiveServer
 
-<PageTitle>Connexion</PageTitle>
+<PageTitle>Connexion gérant</PageTitle>
 
-<h1>Connexion</h1>
+<h1>Connexion gérant</h1>
 
 @if (!_codeSent)
 {
@@ -32,8 +32,7 @@ else
 }
 
 @code {
-    [SupplyParameterFromQuery]
-    public string? ReturnUrl { get; set; }
+    private const int TypeComptePartenaire = 1;
 
     private string _telephone = "";
     private string _code = "";
@@ -45,7 +44,7 @@ else
     private async Task RequestOtpAsync()
     {
         _busy = true;
-        var (success, status, message) = await AuthApi.RequestOtpAsync(_telephone, typeCompte: 0, CancellationToken.None);
+        var (success, status, message) = await AuthApi.RequestOtpAsync(_telephone, TypeComptePartenaire, CancellationToken.None);
         _busy = false;
 
         if (success)
@@ -69,13 +68,13 @@ else
     private async Task VerifyOtpAsync()
     {
         _busy = true;
-        var (success, status, idUtilisateur) = await AuthApi.VerifyOtpAsync(_telephone, _code, typeCompte: 0, CancellationToken.None);
+        var (success, status, idUtilisateur) = await AuthApi.VerifyOtpAsync(_telephone, _code, TypeComptePartenaire, CancellationToken.None);
         _busy = false;
 
         if (success && idUtilisateur is not null)
         {
-            await Session.SetClientIdAsync(idUtilisateur.Value);
-            Navigation.NavigateTo(string.IsNullOrWhiteSpace(ReturnUrl) ? "/" : ReturnUrl);
+            await Session.SetPartnerIdAsync(idUtilisateur.Value);
+            Navigation.NavigateTo("/partenaire");
             return;
         }
 

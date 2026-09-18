@@ -22,6 +22,10 @@ public interface IRdvRepository
     /// Retourne null si introuvable ou si idUtilisateurClient n'est pas le proprietaire (meme
     /// reponse pour les deux cas au niveau controleur - pas de fuite d'information).</summary>
     Task<RdvStatutRow?> GetStatutAsync(Guid idRdv, Guid idUtilisateurClient, CancellationToken cancellationToken);
+
+    /// <summary>Feature 011 (frontend partenaire) : liste toutes les demandes de RDV d'un
+    /// etablissement, tous statuts, pour que le gerant puisse les traiter.</summary>
+    Task<IReadOnlyList<RdvPartenaireRow>> ListByEtablissementAsync(Guid idEtablissement, CancellationToken cancellationToken);
 }
 
 public sealed class RdvStatutRow
@@ -29,4 +33,13 @@ public sealed class RdvStatutRow
     public Guid IdRdv { get; set; }
     public string StatutRdv { get; set; } = string.Empty;
     public DateTimeOffset DateHeureDebut { get; set; }
+}
+
+public sealed class RdvPartenaireRow
+{
+    public Guid IdRdv { get; set; }
+    public string StatutRdv { get; set; } = string.Empty;
+    public DateTimeOffset DateHeureDebut { get; set; }
+    public string LibellePrestation { get; set; } = string.Empty;
+    public string TelephoneClient { get; set; } = string.Empty;
 }

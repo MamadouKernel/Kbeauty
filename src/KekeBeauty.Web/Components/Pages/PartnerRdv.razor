@@ -1,0 +1,109 @@
+@page "/partenaire/etablissements/{Id:guid}/rdv"
+@inject PartnerRdvApiClient PartnerRdvApi
+@inject PartnerSessionService Session
+@inject NavigationManager Navigation
+@rendermode InteractiveServer
+
+<PageTitle>Demandes de RDV</PageTitle>
+
+@if (_checkingAuth)
+{
+    <p>Chargement…</p>
+}
+else if (_error)
+{
+    <div class="alert alert-danger">Le service est momentanément indisponible. Merci de réessayer.</div>
+}
+else
+{
+    <h1>Demandes de RDV</h1>
+
+    @if (_rdvs.Count == 0)
+    {
+        <p>Aucune demande de RDV pour cet établissement.</p>
+    }
+    else
+    {
+        <table class="table">
+            <thead>
+                <tr><th>Date/heure</th><th>Prestation</th><th>Client</th><th>Statut</th><th>Actions</th></tr>
+            </thead>
+            <tbody>
+                @foreach (var rdv in _rdvs)
+                {
+                    <tr>
+                        <td>@rdv.DateHeureDebut.ToLocalTime().ToString("g")</td>
+                        <td>@rdv.LibellePrestation</td>
+                        <td>@rdv.TelephoneClient</td>
+                        <td>@rdv.StatutRdv</td>
+                        <td>
+                            @if (rdv.StatutRdv == "DEMANDE")
+                            {
+                                <button class="btn btn-sm btn-success" @onclick="() => ConfirmerAsync(rdv.IdRdv)">Confirmer</button>
+                                <button class="btn btn-sm btn-outline-danger" @onclick="() => RefuserAsync(rdv.IdRdv)">Refuser</button>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+
+    @if (!string.IsNullOrEmpty(_message))
+    {
+        <div class="alert @(_success ? "alert-success" : "alert-danger")">@_message</div>
+    }
+}
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+
+    private Guid? _idPartner;
+    private List<RdvPartenaire> _rdvs = [];
+    private bool _checkingAuth = true;
+    private bool _error;
+    private bool _success;
+    private string? _message;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _idPartner = await Session.GetPartnerIdAsync();
+        if (_idPartner is null)
+        {
+            Navigation.NavigateTo("/partenaire/login");
+            return;
+        }
+
+        await LoadAsync();
+        _checkingAuth = false;
+    }
+
+    private async Task LoadAsync()
+    {
+        var (success, rdvs) = await PartnerRdvApi.ListAsync(_idPartner!.Value, Id, CancellationToken.None);
+        _error = !success;
+        _rdvs = rdvs;
+    }
+
+    private async Task ConfirmerAsync(Guid idRdv)
+    {
+        var (success, status) = await PartnerRdvApi.ConfirmerAsync(_idPartner!.Value, Id, idRdv, CancellationToken.None);
+        _success = success;
+        _message = success ? "RDV confirmé." : "Action impossible (RDV introuvable ou déjà traité).";
+        if (success)
+        {
+            await LoadAsync();
+        }
+    }
+
+    private async Task RefuserAsync(Guid idRdv)
+    {
+        var (success, status) = await PartnerRdvApi.RefuserAsync(_idPartner!.Value, Id, idRdv, CancellationToken.None);
+        _success = success;
+        _message = success ? "RDV refusé." : "Action impossible (RDV introuvable ou déjà traité).";
+        if (success)
+        {
+            await LoadAsync();
+        }
+    }
+}

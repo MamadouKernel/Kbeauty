@@ -1,0 +1,58 @@
+@page "/partenaire"
+@inject PartnerApiClient PartnerApi
+@inject PartnerSessionService Session
+@inject NavigationManager Navigation
+@rendermode InteractiveServer
+
+<PageTitle>Mes établissements</PageTitle>
+
+@if (_checkingAuth)
+{
+    <p>Chargement…</p>
+}
+else if (_error)
+{
+    <div class="alert alert-danger">Le service est momentanément indisponible. Merci de réessayer.</div>
+}
+else if (_etablissements.Count == 0)
+{
+    <p>Aucun établissement associé à ce compte.</p>
+}
+else
+{
+    <h1>Mes établissements</h1>
+    <div class="list-group">
+        @foreach (var etablissement in _etablissements)
+        {
+            <a class="list-group-item list-group-item-action" href="@($"/partenaire/etablissements/{etablissement.IdEtablissement}")">
+                <strong>@etablissement.NomEtablissement</strong>
+                — KYC: @etablissement.StatutKyc
+                @if (etablissement.EstSuspendu)
+                {
+                    <span class="badge bg-danger ms-2">Suspendu</span>
+                }
+            </a>
+        }
+    </div>
+}
+
+@code {
+    private bool _checkingAuth = true;
+    private bool _error;
+    private List<EtablissementGere> _etablissements = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        var idPartner = await Session.GetPartnerIdAsync();
+        if (idPartner is null)
+        {
+            Navigation.NavigateTo("/partenaire/login");
+            return;
+        }
+
+        var (success, etablissements) = await PartnerApi.GetMesEtablissementsAsync(idPartner.Value, CancellationToken.None);
+        _error = !success;
+        _etablissements = etablissements;
+        _checkingAuth = false;
+    }
+}

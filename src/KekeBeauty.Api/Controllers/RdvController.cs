@@ -60,6 +60,14 @@ public sealed class RdvController : ControllerBase
         return rdv is null ? NotFound() : Ok(new { idRdv = rdv.IdRdv, statut = rdv.StatutRdv, dateHeureDebut = rdv.DateHeureDebut });
     }
 
+    [HttpGet("partenaire/etablissements/{id:guid}/rdv")]
+    [ServiceFilter(typeof(PartnerOwnershipFilter))]
+    public async Task<IActionResult> ListerRdvEtablissement(Guid id, CancellationToken cancellationToken)
+    {
+        var rdvs = await _rdvRepository.ListByEtablissementAsync(id, cancellationToken);
+        return Ok(rdvs);
+    }
+
     [HttpPost("partenaire/etablissements/{id:guid}/rdv/{idRdv:guid}/confirmer")]
     [ServiceFilter(typeof(PartnerOwnershipFilter))]
     public async Task<IActionResult> Confirmer(Guid id, Guid idRdv, CancellationToken cancellationToken)

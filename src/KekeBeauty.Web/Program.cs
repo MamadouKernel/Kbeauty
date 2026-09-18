@@ -11,7 +11,10 @@ var apiBaseUrl = builder.Configuration["Api:BaseUrl"] ?? "http://localhost:5080"
 builder.Services.AddHttpClient<DirectoryApiClient>(client => client.BaseAddress = new Uri(apiBaseUrl));
 builder.Services.AddHttpClient<AuthApiClient>(client => client.BaseAddress = new Uri(apiBaseUrl));
 builder.Services.AddHttpClient<RdvApiClient>(client => client.BaseAddress = new Uri(apiBaseUrl));
+builder.Services.AddHttpClient<PartnerApiClient>(client => client.BaseAddress = new Uri(apiBaseUrl));
+builder.Services.AddHttpClient<PartnerRdvApiClient>(client => client.BaseAddress = new Uri(apiBaseUrl));
 builder.Services.AddScoped<ClientSessionService>();
+builder.Services.AddScoped<PartnerSessionService>();
 
 var app = builder.Build();
 
