@@ -17,28 +17,28 @@ description: "Task list template for feature implementation"
 
 ## Phase 1: Setup
 
-- [ ] T001 Créer `db/migrations/0004_geo_seed_minimal.sql` : seed minimal `pays`/`region`/`ville`/`commune`
+- [x] T001 Créer `db/migrations/0004_geo_seed_minimal.sql` : seed minimal `pays`/`region`/`ville`/`commune`
   (voir `data-model.md`)
-- [ ] T002 Appliquer la migration via `./scripts/db/migrate.sh` et récupérer l'`id_commune` généré
-- [ ] T003 [P] Ajouter dans `.env.example`/`.env` : `ADMIN_API_KEY` (placeholder) ; dans
+- [x] T002 Appliquer la migration via `./scripts/db/migrate.sh` et récupérer l'`id_commune` généré
+- [x] T003 [P] Ajouter dans `.env.example`/`.env` : `ADMIN_API_KEY` (placeholder) ; dans
   `src/KekeBeauty.Api/appsettings.json` : `Admin:ApiKey` (vide)
 
 ## Phase 2: Foundational (bloquant pour toutes les User Stories)
 
-- [ ] T004 [P] Créer `src/KekeBeauty.Application/Onboarding/Dtos.cs` (résultats de soumission, résumé
+- [x] T004 [P] Créer `src/KekeBeauty.Application/Onboarding/Dtos.cs` (résultats de soumission, résumé
   et détail de dossier)
-- [ ] T005 [P] Créer `src/KekeBeauty.Application/Onboarding/IEtablissementRepository.cs` (créer,
+- [x] T005 [P] Créer `src/KekeBeauty.Application/Onboarding/IEtablissementRepository.cs` (créer,
   lister par statut, obtenir par id, mettre à jour le statut)
-- [ ] T006 [P] Créer `src/KekeBeauty.Application/Onboarding/IFileStorage.cs` (sauvegarder un flux,
+- [x] T006 [P] Créer `src/KekeBeauty.Application/Onboarding/IFileStorage.cs` (sauvegarder un flux,
   ouvrir un flux en lecture, par chemin relatif)
-- [ ] T007 [P] Créer `src/KekeBeauty.Application/Onboarding/IPartnerNotifier.cs` (notifier un rejet)
-- [ ] T008 Créer `src/KekeBeauty.Infrastructure/Onboarding/EtablissementRepository.cs` (Dapper,
+- [x] T007 [P] Créer `src/KekeBeauty.Application/Onboarding/IPartnerNotifier.cs` (notifier un rejet)
+- [x] T008 Créer `src/KekeBeauty.Infrastructure/Onboarding/EtablissementRepository.cs` (Dapper,
   utilise l'`id_commune` du seed T002)
-- [ ] T009 Créer `src/KekeBeauty.Infrastructure/Onboarding/LocalFileStorage.cs` (écrit sous
+- [x] T009 Créer `src/KekeBeauty.Infrastructure/Onboarding/LocalFileStorage.cs` (écrit sous
   `/app/storage/kyc/{id}/`, voir `research.md` Décision 1)
-- [ ] T010 Créer `src/KekeBeauty.Infrastructure/Onboarding/ZavuWhatsAppPartnerNotifier.cs` (même
+- [x] T010 Créer `src/KekeBeauty.Infrastructure/Onboarding/ZavuWhatsAppPartnerNotifier.cs` (même
   garantie d'échec explicite que `ZavuWhatsAppOtpSender` si Zavu non configuré)
-- [ ] T011 Créer un filtre d'action `AdminApiKeyFilter` (ou middleware) vérifiant le header
+- [x] T011 Créer un filtre d'action `AdminApiKeyFilter` (ou middleware) vérifiant le header
   `X-Admin-Api-Key` contre `Admin:ApiKey` — `401` explicite si absent/incorrect (voir `research.md`
   Décision 4)
 
@@ -48,18 +48,18 @@ description: "Task list template for feature implementation"
 
 **Independent Test**: Scénarios 1 et 2 de `quickstart.md`.
 
-- [ ] T012 [US1] Créer `src/KekeBeauty.Application/Onboarding/SubmitPartnerApplicationUseCase.cs` :
+- [x] T012 [US1] Créer `src/KekeBeauty.Application/Onboarding/SubmitPartnerApplicationUseCase.cs` :
   valide les champs obligatoires et les fichiers (FR-003), réutilise `IUtilisateurRepository`
   (déjà générique, feature 003) pour créer/trouver l'utilisateur PARTENAIRE (FR-002, RG-ID-04), crée
   l'établissement `EN_ATTENTE` (FR-004) rattaché à l'`id_commune` du seed, stocke les fichiers via
   `IFileStorage`
-- [ ] T013 [US1] Créer `src/KekeBeauty.Api/Controllers/PartnersController.cs` : `POST
+- [x] T013 [US1] Créer `src/KekeBeauty.Api/Controllers/PartnersController.cs` : `POST
   /partners/applications` (multipart), mappé selon `contracts/onboarding-api.md` (201/400)
-- [ ] T014 [US1] Enregistrer les services dans le DI (`Program.cs`) : `IEtablissementRepository`,
+- [x] T014 [US1] Enregistrer les services dans le DI (`Program.cs`) : `IEtablissementRepository`,
   `IFileStorage`, `IPartnerNotifier`, `SubmitPartnerApplicationUseCase`
-- [ ] T015 [US1] Ajouter un volume nommé `/app/storage` au service `api` dans `docker-compose.yml`
-- [ ] T016 [US1] Exécuter le Scénario 1 de `quickstart.md` (soumission complète) et confirmer le `201`
-- [ ] T017 [US1] Exécuter le Scénario 2 de `quickstart.md` (soumission incomplète) et confirmer le `400`
+- [x] T015 [US1] Ajouter un volume nommé `/app/storage` au service `api` dans `docker-compose.yml`
+- [x] T016 [US1] Exécuter le Scénario 1 de `quickstart.md` (soumission complète) et confirmer le `201`
+- [x] T017 [US1] Exécuter le Scénario 2 de `quickstart.md` (soumission incomplète) et confirmer le `400`
 
 **Checkpoint**: US1 livrable et testable de façon autonome.
 
@@ -69,15 +69,15 @@ description: "Task list template for feature implementation"
 
 **Independent Test**: Scénarios 3, 4 et 5 de `quickstart.md`.
 
-- [ ] T018 [US2] Créer `ListPendingApplicationsUseCase.cs` (filtre par statut, FR-005)
-- [ ] T019 [US2] Créer `ValidateApplicationUseCase.cs` (refuse si photo ou pièce d'identité absente,
+- [x] T018 [US2] Créer `ListPendingApplicationsUseCase.cs` (filtre par statut, FR-005)
+- [x] T019 [US2] Créer `ValidateApplicationUseCase.cs` (refuse si photo ou pièce d'identité absente,
   FR-007, Edge Case)
-- [ ] T020 [US2] Créer `RejectApplicationUseCase.cs` (appelle `IPartnerNotifier`, FR-008/FR-009)
-- [ ] T021 [US2] Créer `src/KekeBeauty.Api/Controllers/AdminController.cs` : les 4 endpoints
+- [x] T020 [US2] Créer `RejectApplicationUseCase.cs` (appelle `IPartnerNotifier`, FR-008/FR-009)
+- [x] T021 [US2] Créer `src/KekeBeauty.Api/Controllers/AdminController.cs` : les 4 endpoints
   `/admin/applications/*` protégés par `AdminApiKeyFilter` (T011), mappés selon `contracts/onboarding-api.md`
-- [ ] T022 [US2] Exécuter le Scénario 3 de `quickstart.md` (liste, détail, fichier, validation)
-- [ ] T023 [US2] Exécuter le Scénario 4 de `quickstart.md` (rejet + notification)
-- [ ] T024 [US2] Exécuter le Scénario 5 de `quickstart.md` (401 sans clé admin)
+- [x] T022 [US2] Exécuter le Scénario 3 de `quickstart.md` (liste, détail, fichier, validation)
+- [x] T023 [US2] Exécuter le Scénario 4 de `quickstart.md` (rejet + notification)
+- [x] T024 [US2] Exécuter le Scénario 5 de `quickstart.md` (401 sans clé admin)
 
 **Checkpoint**: US1 + US2 livrées.
 
@@ -87,7 +87,8 @@ description: "Task list template for feature implementation"
 
 **Independent Test**: Scénario 6 de `quickstart.md`.
 
-- [ ] T025 [US3] Exécuter le Scénario 6 de `quickstart.md` (vérification SQL du statut) ; documenter
+- [x] T025 [US3] Exécuté (via requêtes SQL réelles ci-dessus : statut `EN_ATTENTE` → `VALIDE` sur le
+  premier dossier, `EN_ATTENTE` → `REJETE` sur le second) ; documenter
   explicitement que le filtrage effectif dans les résultats de recherche sera appliqué par la future
   feature `005-recherche-annuaire` (US-06/US-07), qui MUST filtrer sur `statut_kyc = 'VALIDE'` —
   dépendance à ne pas oublier lors de sa spécification
@@ -97,9 +98,9 @@ feature plutôt qu'un comportement observable dans celle-ci (aucune recherche cl
 
 ## Phase 6: Polish & Cross-Cutting Concerns
 
-- [ ] T026 [P] Mettre à jour `README.md` (section API backend) : endpoints partenaire/admin, note sur
+- [x] T026 [P] Mettre à jour `README.md` (section API backend) : endpoints partenaire/admin, note sur
   la clé admin temporaire et la dépendance Zavu pour la notification de rejet
-- [ ] T027 Mettre à jour `docs/scrum/product-backlog.md` (US-04/US-05 → `004-onboarding-partenaire`)
+- [x] T027 Mettre à jour `docs/scrum/product-backlog.md` (US-04/US-05 → `004-onboarding-partenaire`)
   et créer `docs/scrum/sprint-3.md`
 
 ## Dependencies & Execution Order

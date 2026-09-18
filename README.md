@@ -63,6 +63,25 @@ retourne `502 send_failed` de façon explicite — comportement attendu, pas un 
 
 Détails : [specs/003-auth-client/quickstart.md](specs/003-auth-client/quickstart.md).
 
+### Inscription et validation KYC des établissements partenaires
+
+```bash
+curl -X POST http://localhost:${API_PORT:-5080}/partners/applications \
+  -F "telephone=+225XXXXXXXXXX" -F "nomEtablissement=..." -F "gpsLatitude=..." -F "gpsLongitude=..." \
+  -F "numeroServiceClient=..." -F "photoDevanture=@./devanture.jpg" -F "pieceIdentite=@./piece.jpg"
+
+# Endpoints admin (proteges par cle temporaire, voir Assumptions)
+curl -H "X-Admin-Api-Key: $ADMIN_API_KEY" "http://localhost:${API_PORT:-5080}/admin/applications?statut=EN_ATTENTE"
+curl -X POST -H "X-Admin-Api-Key: $ADMIN_API_KEY" "http://localhost:${API_PORT:-5080}/admin/applications/<id>/validate"
+```
+
+⚠️ **Dette technique documentée** : les endpoints `/admin/*` sont protégés par une simple clé d'API
+statique (`ADMIN_API_KEY`), en attendant une vraie feature d'authentification administrateur (aucune
+n'existe encore dans le projet). Ne jamais exposer cette clé publiquement. La notification de rejet
+au gérant dépend de Zavu (même comportement que l'OTP client : échec explicite si non configuré).
+
+Détails : [specs/004-onboarding-partenaire/quickstart.md](specs/004-onboarding-partenaire/quickstart.md).
+
 ## pgAdmin (optionnel)
 
 ```bash

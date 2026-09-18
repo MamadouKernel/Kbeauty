@@ -30,8 +30,11 @@ services:
     environment:
       ConnectionStrings__Default: "Host=postgres;Port=5432;Database=${POSTGRES_DB:-kekebeauty};Username=${POSTGRES_USER:-kekebeauty};Password=${POSTGRES_PASSWORD:-kekebeauty}"
       Zavu__ApiKey: "${ZAVU_API_KEY:-}"
+      Admin__ApiKey: "${ADMIN_API_KEY:-}"
     ports:
       - "${API_PORT:-5080}:8080"
+    volumes:
+      - kekebeauty_kyc_storage:/app/storage
 
   pgadmin:
     image: dpage/pgadmin4:latest
@@ -50,3 +53,4 @@ services:
 volumes:
   kekebeauty_postgres_data:
   kekebeauty_pgadmin_data:
+  kekebeauty_kyc_storage:

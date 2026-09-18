@@ -1,8 +1,11 @@
+using KekeBeauty.Api.Auth;
 using KekeBeauty.Application.Auth;
 using KekeBeauty.Application.Health;
+using KekeBeauty.Application.Onboarding;
 using KekeBeauty.Infrastructure;
 using KekeBeauty.Infrastructure.Auth;
 using KekeBeauty.Infrastructure.Health;
+using KekeBeauty.Infrastructure.Onboarding;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,6 +30,19 @@ builder.Services.AddScoped<IOtpChallengeRepository, OtpChallengeRepository>();
 builder.Services.AddScoped<IUtilisateurRepository, UtilisateurRepository>();
 builder.Services.AddScoped<RequestOtpUseCase>();
 builder.Services.AddScoped<VerifyOtpUseCase>();
+
+builder.Services.AddHttpClient<IPartnerNotifier, ZavuWhatsAppPartnerNotifier>(client =>
+{
+    var baseUrl = builder.Configuration["Zavu:BaseUrl"] ?? "https://api.zavu.dev";
+    client.BaseAddress = new Uri(baseUrl);
+});
+builder.Services.AddScoped<IEtablissementRepository, EtablissementRepository>();
+builder.Services.AddSingleton<IFileStorage, LocalFileStorage>();
+builder.Services.AddScoped<SubmitPartnerApplicationUseCase>();
+builder.Services.AddScoped<ListPendingApplicationsUseCase>();
+builder.Services.AddScoped<ValidateApplicationUseCase>();
+builder.Services.AddScoped<RejectApplicationUseCase>();
+builder.Services.AddScoped<AdminApiKeyFilter>();
 
 var app = builder.Build();
 

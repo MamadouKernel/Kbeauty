@@ -14,8 +14,8 @@ de son entrée en Sprint Backlog (Principe IV de la constitution).
 | ID | User Story | Priorité | Feature Spec Kit |
 |---|---|---|---|
 | US-03 | En tant que client, je veux créer un compte par téléphone + OTP WhatsApp (Zavu) | Must | `003-auth-client` |
-| US-04 | En tant que partenaire, je veux m'inscrire avec upload photo devanture + pièce d'identité (KYC) | Must | `003-onboarding-partenaire` |
-| US-05 | En tant qu'administrateur, je veux valider ou rejeter un dossier KYC | Must | `003-onboarding-partenaire` |
+| US-04 | En tant que partenaire, je veux m'inscrire avec upload photo devanture + pièce d'identité (KYC) | Must | `004-onboarding-partenaire` |
+| US-05 | En tant qu'administrateur, je veux valider ou rejeter un dossier KYC | Must | `004-onboarding-partenaire` |
 
 ## Epic 3 — Annuaire & Recherche
 | ID | User Story | Priorité | Feature Spec Kit |
