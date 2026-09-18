@@ -14,4 +14,5 @@ public class Utilisateur
     public string Nom { get; set; } = string.Empty;
     public TypeCompte TypeCompte { get; set; }
     public DateTimeOffset DateCreation { get; set; }
+    public bool EstSuspendu { get; set; }
 }

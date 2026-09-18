@@ -26,7 +26,7 @@ public sealed class DirectoryRepository : IDirectoryRepository
               INNER JOIN etablissement_categorie ec ON ec.id_etablissement = e.id_etablissement
               INNER JOIN categorie cat ON cat.id_categorie = ec.id_categorie
               INNER JOIN commune c ON c.id_commune = e.id_commune
-              WHERE e.statut_kyc = 'VALIDE'
+              WHERE e.statut_kyc = 'VALIDE' AND e.est_suspendu = false
                 AND (@categorie IS NULL OR cat.libelle_categorie = @categorie)
                 AND (@commune IS NULL OR c.libelle_commune = @commune)
               ORDER BY e.nom_etablissement;",
@@ -46,7 +46,7 @@ public sealed class DirectoryRepository : IDirectoryRepository
                      description AS Description, numero_service_client AS NumeroServiceClient,
                      gps_latitude AS GpsLatitude, gps_longitude AS GpsLongitude
               FROM etablissement
-              WHERE id_etablissement = @idEtablissement AND statut_kyc = 'VALIDE';",
+              WHERE id_etablissement = @idEtablissement AND statut_kyc = 'VALIDE' AND est_suspendu = false;",
             new { idEtablissement },
             cancellationToken: cancellationToken));
     }

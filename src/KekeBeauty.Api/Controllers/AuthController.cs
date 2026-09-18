@@ -30,9 +30,17 @@ public sealed class AuthController : ControllerBase
             return Accepted(new { status = result.Status });
         }
 
-        return result.Status == "invalid_phone"
-            ? BadRequest(new { status = result.Status, message = result.Message })
-            : StatusCode(StatusCodes.Status502BadGateway, new { status = result.Status, message = result.Message });
+        if (result.Status == "invalid_phone")
+        {
+            return BadRequest(new { status = result.Status, message = result.Message });
+        }
+
+        if (result.Status == "account_suspended")
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, new { status = result.Status, message = result.Message });
+        }
+
+        return StatusCode(StatusCodes.Status502BadGateway, new { status = result.Status, message = result.Message });
     }
 
     [HttpPost("verify")]

@@ -45,7 +45,7 @@ de son entrée en Sprint Backlog (Principe IV de la constitution).
 ## Epic 6 — Back-office & Modération
 | ID | User Story | Priorité | Feature Spec Kit |
 |---|---|---|---|
-| US-19 | En tant qu'administrateur, je veux modérer (suspendre/réactiver) clients et établissements | Should | `006-back-office-referentiels` |
+| US-19 | En tant qu'administrateur, je veux modérer (suspendre/réactiver) clients et établissements | Should | `009-moderation-back-office` |
 
 ## Notes de priorisation Sprint 0
 Ordre indicatif : US-01/US-02 (fondations) → US-03/US-04/US-05 (identité/KYC) →

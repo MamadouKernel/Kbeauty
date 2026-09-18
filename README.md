@@ -161,6 +161,19 @@ modification du tarif standard n'affecte que les souscriptions futures.
 
 Détails : [specs/008-abonnement-paiement/quickstart.md](specs/008-abonnement-paiement/quickstart.md).
 
+### Modération back-office (suspension/réactivation)
+
+```bash
+curl -X POST -H "X-Admin-Api-Key: $ADMIN_API_KEY" "http://localhost:${API_PORT:-5080}/admin/utilisateurs/<id>/suspendre"
+curl -X POST -H "X-Admin-Api-Key: $ADMIN_API_KEY" "http://localhost:${API_PORT:-5080}/admin/etablissements/<id>/suspendre"
+```
+
+Un compte suspendu ne peut plus demander de code OTP (`403`). Un établissement suspendu disparaît de
+l'annuaire et ne peut plus recevoir de nouvelle demande de RDV ni de souscription d'abonnement. La
+suspension est orthogonale à `statutKyc` : la réactivation restaure exactement l'état antérieur.
+
+Détails : [specs/009-moderation-back-office/quickstart.md](specs/009-moderation-back-office/quickstart.md).
+
 ## pgAdmin (optionnel)
 
 ```bash

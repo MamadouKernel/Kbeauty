@@ -43,7 +43,7 @@ public sealed class RdvRepository : IRdvRepository
         var prestationValid = await connection.ExecuteScalarAsync<int>(new CommandDefinition(
             @"SELECT count(*) FROM prestation p
               JOIN etablissement e ON e.id_etablissement = p.id_etablissement
-              WHERE p.id_prestation = @idPrestation AND e.id_etablissement = @idEtablissement AND e.statut_kyc = 'VALIDE';",
+              WHERE p.id_prestation = @idPrestation AND e.id_etablissement = @idEtablissement AND e.statut_kyc = 'VALIDE' AND e.est_suspendu = false;",
             new { idPrestation, idEtablissement },
             cancellationToken: cancellationToken));
 

@@ -20,7 +20,7 @@ public sealed class UtilisateurRepository : IUtilisateurRepository
 
         return await connection.QuerySingleOrDefaultAsync<Utilisateur>(new CommandDefinition(
             @"SELECT id_utilisateur AS IdUtilisateur, telephone AS Telephone, nom AS Nom,
-                     type_compte AS TypeCompte, date_creation AS DateCreation
+                     type_compte AS TypeCompte, date_creation AS DateCreation, est_suspendu AS EstSuspendu
               FROM utilisateur
               WHERE telephone = @telephone AND type_compte = @typeCompte::type_compte_enum;",
             new { telephone, typeCompte = typeCompte.ToString().ToUpperInvariant() },

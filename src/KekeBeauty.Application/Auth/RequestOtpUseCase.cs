@@ -11,11 +11,13 @@ public sealed partial class RequestOtpUseCase
 
     private readonly IOtpChallengeRepository _challengeRepository;
     private readonly IOtpSender _otpSender;
+    private readonly IUtilisateurRepository _utilisateurRepository;
 
-    public RequestOtpUseCase(IOtpChallengeRepository challengeRepository, IOtpSender otpSender)
+    public RequestOtpUseCase(IOtpChallengeRepository challengeRepository, IOtpSender otpSender, IUtilisateurRepository utilisateurRepository)
     {
         _challengeRepository = challengeRepository;
         _otpSender = otpSender;
+        _utilisateurRepository = utilisateurRepository;
     }
 
     public async Task<RequestOtpResult> ExecuteAsync(string telephone, CancellationToken cancellationToken) =>
@@ -27,6 +29,14 @@ public sealed partial class RequestOtpUseCase
         if (!IsValidE164(telephone))
         {
             return new RequestOtpResult(false, "invalid_phone", "Format de numero invalide (E.164 attendu).");
+        }
+
+        // FR-005 (009-moderation-back-office) : un compte suspendu ne peut plus s'authentifier.
+        // Un compte inexistant (premiere inscription) n'est jamais suspendu, donc laisse passer.
+        var utilisateur = await _utilisateurRepository.FindByTelephoneAsync(telephone, typeCompte, cancellationToken);
+        if (utilisateur is { EstSuspendu: true })
+        {
+            return new RequestOtpResult(false, "account_suspended", "Ce compte est suspendu.");
         }
 
         var code = GenerateSixDigitCode();

@@ -11,9 +11,11 @@ using KekeBeauty.Infrastructure.Onboarding;
 using KekeBeauty.Application.Partner;
 using KekeBeauty.Application.Rdv;
 using KekeBeauty.Application.Billing;
+using KekeBeauty.Application.Moderation;
 using KekeBeauty.Infrastructure.Partner;
 using KekeBeauty.Infrastructure.Rdv;
 using KekeBeauty.Infrastructure.Billing;
+using KekeBeauty.Infrastructure.Moderation;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -89,6 +91,10 @@ builder.Services.AddScoped<SubscribeUseCase>();
 builder.Services.AddScoped<AdminListAbonnementsUseCase>();
 builder.Services.AddScoped<RelanceUseCase>();
 builder.Services.AddScoped<UpdateTarifUseCase>();
+
+builder.Services.AddScoped<IModerationRepository, ModerationRepository>();
+builder.Services.AddScoped<SuspendUtilisateurUseCase>();
+builder.Services.AddScoped<SuspendEtablissementUseCase>();
 
 var app = builder.Build();
 

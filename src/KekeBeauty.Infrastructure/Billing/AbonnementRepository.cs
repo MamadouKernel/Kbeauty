@@ -38,7 +38,8 @@ public sealed class AbonnementRepository : IAbonnementRepository
         var idAbonnement = await connection.ExecuteScalarAsync<Guid?>(new CommandDefinition(
             @"INSERT INTO abonnement (id_etablissement, periodicite, date_debut_engagement, montant, statut_abonnement)
               SELECT @idEtablissement, @periodicite::periodicite_enum, CURRENT_DATE, @montant, @statutAbonnement::statut_abonnement_enum
-              WHERE NOT EXISTS (
+              WHERE EXISTS (SELECT 1 FROM etablissement WHERE id_etablissement = @idEtablissement AND est_suspendu = false)
+                AND NOT EXISTS (
                 SELECT 1 FROM abonnement WHERE id_etablissement = @idEtablissement AND statut_abonnement = 'ACTIF'
               )
               RETURNING id_abonnement;",
