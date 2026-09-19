@@ -1,0 +1,97 @@
+@page "/admin/dossiers/{Id:guid}"
+@inject AdminApiClient AdminApi
+@inject AdminSessionService Session
+@inject NavigationManager Navigation
+@* prerender:false : voir AdminDossiers.razor pour le detail du bug de prerendering evite. *@
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+
+<PageTitle>Dossier KYC</PageTitle>
+
+@if (_checkingAuth)
+{
+    <p>Chargement…</p>
+}
+else if (_error)
+{
+    <div class="alert alert-danger">Le service est momentanément indisponible. Merci de réessayer.</div>
+}
+else if (_dossier is null)
+{
+    <div class="alert alert-warning">Dossier introuvable.</div>
+}
+else
+{
+    <h1>@_dossier.NomEtablissement</h1>
+    <p>Statut KYC : <strong>@_dossier.StatutKyc</strong></p>
+    <p>Numéro service client : @_dossier.NumeroServiceClient</p>
+    <p>Position : @_dossier.GpsLatitude, @_dossier.GpsLongitude</p>
+    <p>
+        Photo devanture : @(_dossier.HasPhotoDevanture ? "fournie" : "manquante") —
+        Pièce d'identité : @(_dossier.HasPieceIdentite ? "fournie" : "manquante")
+    </p>
+
+    <button class="btn btn-success" @onclick="ValiderAsync">Valider</button>
+    <button class="btn btn-outline-danger" @onclick="RejeterAsync">Rejeter</button>
+
+    @if (!string.IsNullOrEmpty(_message))
+    {
+        <div class="alert @(_success ? "alert-success" : "alert-danger") mt-3">@_message</div>
+    }
+}
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+
+    private string? _apiKey;
+    private ApplicationDetail? _dossier;
+    private bool _checkingAuth = true;
+    private bool _error;
+    private bool _success;
+    private string? _message;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _apiKey = await Session.GetApiKeyAsync();
+        if (_apiKey is null)
+        {
+            Navigation.NavigateTo("/admin/login");
+            return;
+        }
+
+        await LoadAsync();
+        _checkingAuth = false;
+    }
+
+    private async Task LoadAsync()
+    {
+        var (success, detail) = await AdminApi.GetDossierAsync(_apiKey!, Id, CancellationToken.None);
+        _error = !success;
+        _dossier = detail;
+    }
+
+    private async Task ValiderAsync()
+    {
+        var (success, status) = await AdminApi.ValiderDossierAsync(_apiKey!, Id, CancellationToken.None);
+        _success = success;
+        _message = success
+            ? "Dossier validé."
+            : status == "missing_documents"
+                ? "Documents manquants : validation impossible."
+                : "Action impossible.";
+        if (success)
+        {
+            await LoadAsync();
+        }
+    }
+
+    private async Task RejeterAsync()
+    {
+        var (success, status) = await AdminApi.RejeterDossierAsync(_apiKey!, Id, CancellationToken.None);
+        _success = success;
+        _message = success ? "Dossier rejeté." : "Action impossible.";
+        if (success)
+        {
+            await LoadAsync();
+        }
+    }
+}

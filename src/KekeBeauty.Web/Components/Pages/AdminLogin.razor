@@ -1,0 +1,47 @@
+@page "/admin/login"
+@inject AdminApiClient AdminApi
+@inject AdminSessionService Session
+@inject NavigationManager Navigation
+@rendermode InteractiveServer
+
+<PageTitle>Connexion admin</PageTitle>
+
+<h1>Connexion admin</h1>
+
+<div class="mb-3">
+    <label class="form-label">Clé API admin</label>
+    <input class="form-control" type="password" @bind="_apiKey" />
+</div>
+<button class="btn btn-primary" @onclick="LoginAsync" disabled="@_busy">Se connecter</button>
+
+@if (!string.IsNullOrEmpty(_message))
+{
+    <div class="alert alert-danger mt-3">@_message</div>
+}
+
+@code {
+    private string _apiKey = "";
+    private bool _busy;
+    private string? _message;
+
+    private async Task LoginAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_apiKey))
+        {
+            return;
+        }
+
+        _busy = true;
+        var valid = await AdminApi.VerifyApiKeyAsync(_apiKey, CancellationToken.None);
+        _busy = false;
+
+        if (valid)
+        {
+            await Session.SetApiKeyAsync(_apiKey);
+            Navigation.NavigateTo("/admin/dossiers");
+            return;
+        }
+
+        _message = "Clé invalide ou service momentanément indisponible.";
+    }
+}

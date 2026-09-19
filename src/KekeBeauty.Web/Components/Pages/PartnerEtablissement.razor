@@ -2,7 +2,8 @@
 @inject PartnerApiClient PartnerApi
 @inject PartnerSessionService Session
 @inject NavigationManager Navigation
-@rendermode InteractiveServer
+@* prerender:false : voir PartnerDashboard.razor pour le detail du bug de prerendering evite. *@
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
 
 <PageTitle>Gestion établissement</PageTitle>
 

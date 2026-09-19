@@ -3,7 +3,10 @@
 @inject RdvApiClient RdvApi
 @inject ClientSessionService Session
 @inject NavigationManager Navigation
-@rendermode InteractiveServer
+@* prerender:false : la session client (ProtectedLocalStorage) n'est lisible qu'apres l'attache
+   du circuit interactif - la lire pendant le prerender statique echoue silencieusement et
+   provoque une redirection immediate vers login (bug decouvert lors des tests reels de 012). *@
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
 
 <PageTitle>Prendre RDV</PageTitle>
 

@@ -212,6 +212,21 @@ existant). Même dette technique que le reste du projet (`X-Partner-Id`, pas de 
 
 Détails : [specs/011-frontend-partenaire/quickstart.md](specs/011-frontend-partenaire/quickstart.md).
 
+## Frontend web (Blazor — parcours admin)
+
+Toujours dans `KekeBeauty.Web`. Ouvrir `http://localhost:${WEB_PORT:-5090}/admin/login` :
+connexion par clé API admin, gestion des dossiers KYC (liste/détail/validation/rejet), modération
+(suspension/réactivation par identifiant), suivi et tarification des abonnements. Aucun ajout
+backend n'a été nécessaire — l'API admin existante (004/008/009) couvre tous les besoins.
+
+⚠️ **Bug de prerendering corrigé** : toute page Blazor qui lit une session (`ProtectedLocalStorage`)
+dans `OnInitializedAsync` doit désactiver le prerendering statique
+(`@rendermode @(new InteractiveServerRenderMode(prerender: false))`), sinon la lecture échoue
+silencieusement pendant le rendu statique et provoque une redirection immédiate vers la page de
+connexion. Appliqué à toutes les pages concernées (client, partenaire, admin).
+
+Détails : [specs/012-frontend-admin/quickstart.md](specs/012-frontend-admin/quickstart.md).
+
 ## pgAdmin (optionnel)
 
 ```bash

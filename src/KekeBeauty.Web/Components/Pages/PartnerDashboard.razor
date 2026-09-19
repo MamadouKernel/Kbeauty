@@ -2,7 +2,10 @@
 @inject PartnerApiClient PartnerApi
 @inject PartnerSessionService Session
 @inject NavigationManager Navigation
-@rendermode InteractiveServer
+@* prerender:false : la session (ProtectedLocalStorage) n'est lisible qu'apres l'attache du
+   circuit interactif - la lire pendant le prerender statique echoue silencieusement et provoque
+   une redirection immediate vers login (bug decouvert lors des tests reels de 012). *@
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
 
 <PageTitle>Mes établissements</PageTitle>
 

@@ -1,0 +1,77 @@
+@page "/admin/dossiers"
+@inject AdminApiClient AdminApi
+@inject AdminSessionService Session
+@inject NavigationManager Navigation
+@* prerender:false necessaire : la session (ProtectedLocalStorage) n'est lisible qu'apres
+   l'attache du circuit interactif - la lire pendant le prerender statique echoue silencieusement
+   et provoque une redirection immediate vers login (bug decouvert lors des tests reels de 012). *@
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+
+<PageTitle>Dossiers KYC</PageTitle>
+
+@if (_checkingAuth)
+{
+    <p>Chargement…</p>
+}
+else if (_error)
+{
+    <div class="alert alert-danger">Le service est momentanément indisponible. Merci de réessayer.</div>
+}
+else
+{
+    <h1>Dossiers KYC</h1>
+
+    <div class="row g-2 mb-3">
+        <div class="col-auto">
+            <select class="form-select" @bind="_statut" @bind:after="LoadAsync">
+                <option value="EN_ATTENTE">En attente</option>
+                <option value="VALIDE">Validés</option>
+                <option value="REJETE">Rejetés</option>
+            </select>
+        </div>
+    </div>
+
+    @if (_dossiers.Count == 0)
+    {
+        <p>Aucun dossier pour ce statut.</p>
+    }
+    else
+    {
+        <div class="list-group">
+            @foreach (var dossier in _dossiers)
+            {
+                <a class="list-group-item list-group-item-action" href="@($"/admin/dossiers/{dossier.IdEtablissement}")">
+                    <strong>@dossier.NomEtablissement</strong> — @dossier.DateCreation.ToLocalTime().ToString("g")
+                </a>
+            }
+        </div>
+    }
+}
+
+@code {
+    private string? _apiKey;
+    private bool _checkingAuth = true;
+    private bool _error;
+    private string _statut = "EN_ATTENTE";
+    private List<ApplicationSummary> _dossiers = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        _apiKey = await Session.GetApiKeyAsync();
+        if (_apiKey is null)
+        {
+            Navigation.NavigateTo("/admin/login");
+            return;
+        }
+
+        await LoadAsync();
+        _checkingAuth = false;
+    }
+
+    private async Task LoadAsync()
+    {
+        var (success, dossiers) = await AdminApi.ListDossiersAsync(_apiKey!, _statut, CancellationToken.None);
+        _error = !success;
+        _dossiers = dossiers;
+    }
+}

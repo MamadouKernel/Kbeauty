@@ -1,0 +1,159 @@
+@page "/admin/abonnements"
+@inject AdminApiClient AdminApi
+@inject AdminSessionService Session
+@inject NavigationManager Navigation
+@* prerender:false : voir AdminDossiers.razor pour le detail du bug de prerendering evite. *@
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+
+<PageTitle>Abonnements</PageTitle>
+
+@if (_checkingAuth)
+{
+    <p>Chargement…</p>
+}
+else if (_error)
+{
+    <div class="alert alert-danger">Le service est momentanément indisponible. Merci de réessayer.</div>
+}
+else
+{
+    <h1>Abonnements</h1>
+
+    <div class="row g-2 mb-3">
+        <div class="col-auto">
+            <select class="form-select" @bind="_statut" @bind:after="LoadAsync">
+                <option value="">Tous</option>
+                <option value="ACTIF">Actifs</option>
+                <option value="IMPAYE">Impayés</option>
+                <option value="RESILIE">Résiliés</option>
+            </select>
+        </div>
+    </div>
+
+    @if (_abonnements.Count == 0)
+    {
+        <p>Aucun abonnement pour ce filtre.</p>
+    }
+    else
+    {
+        <table class="table">
+            <thead><tr><th>Établissement</th><th>Périodicité</th><th>Montant</th><th>Statut</th><th>Actions</th></tr></thead>
+            <tbody>
+                @foreach (var abonnement in _abonnements)
+                {
+                    <tr>
+                        <td>@abonnement.IdEtablissement</td>
+                        <td>@abonnement.Periodicite</td>
+                        <td>@abonnement.Montant.ToString("N0") XOF</td>
+                        <td>@abonnement.StatutAbonnement</td>
+                        <td>
+                            @if (abonnement.StatutAbonnement == "IMPAYE")
+                            {
+                                <button class="btn btn-sm btn-outline-warning" @onclick="() => RelancerAsync(abonnement.IdAbonnement)">Relancer</button>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+
+    <h2>Tarif standard</h2>
+    @if (_tarifs.Count > 0)
+    {
+        <ul class="list-group mb-3" style="max-width:400px">
+            @foreach (var tarif in _tarifs)
+            {
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    @tarif.Periodicite — @tarif.Montant.ToString("N0") XOF
+                </li>
+            }
+        </ul>
+    }
+    <div class="row g-2 mb-3">
+        <div class="col-auto">
+            <select class="form-select" @bind="_periodiciteTarif">
+                <option value="MENSUEL">Mensuel</option>
+                <option value="ANNUEL">Annuel</option>
+            </select>
+        </div>
+        <div class="col-auto"><input class="form-control" type="number" placeholder="Nouveau montant" @bind="_nouveauMontant" /></div>
+        <div class="col-auto"><button class="btn btn-primary" @onclick="UpdateTarifAsync">Modifier</button></div>
+    </div>
+
+    @if (!string.IsNullOrEmpty(_message))
+    {
+        <div class="alert @(_success ? "alert-success" : "alert-danger")">@_message</div>
+    }
+}
+
+@code {
+    private string? _apiKey;
+    private bool _checkingAuth = true;
+    private bool _error;
+    private string _statut = "";
+    private List<AbonnementResume> _abonnements = [];
+    private List<TarifStandard> _tarifs = [];
+    private string _periodiciteTarif = "MENSUEL";
+    private decimal _nouveauMontant;
+    private bool _success;
+    private string? _message;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _apiKey = await Session.GetApiKeyAsync();
+        if (_apiKey is null)
+        {
+            Navigation.NavigateTo("/admin/login");
+            return;
+        }
+
+        await LoadAsync();
+        await LoadTarifsAsync();
+        _checkingAuth = false;
+    }
+
+    private async Task LoadAsync()
+    {
+        var (success, abonnements) = await AdminApi.ListAbonnementsAsync(_apiKey!, string.IsNullOrEmpty(_statut) ? null : _statut, CancellationToken.None);
+        _error = !success;
+        _abonnements = abonnements;
+    }
+
+    private async Task LoadTarifsAsync()
+    {
+        var (success, tarifs) = await AdminApi.ListerTarifsAsync(_apiKey!, CancellationToken.None);
+        if (success)
+        {
+            _tarifs = tarifs;
+        }
+    }
+
+    private async Task RelancerAsync(Guid idAbonnement)
+    {
+        var (success, notificationEnvoyee) = await AdminApi.RelancerAsync(_apiKey!, idAbonnement, CancellationToken.None);
+        _success = success;
+        _message = success
+            ? notificationEnvoyee ? "Relance envoyée." : "Relance tentée, notification non envoyée (Zavu non configuré)."
+            : "Action impossible.";
+    }
+
+    private async Task UpdateTarifAsync()
+    {
+        if (_nouveauMontant <= 0)
+        {
+            _success = false;
+            _message = "Montant invalide.";
+            return;
+        }
+
+        var (success, status) = await AdminApi.UpdateTarifAsync(_apiKey!, _periodiciteTarif, _nouveauMontant, CancellationToken.None);
+        _success = success;
+        _message = success ? "Tarif modifié." : "Action impossible.";
+        if (success)
+        {
+            _nouveauMontant = 0;
+            await LoadTarifsAsync();
+        }
+    }
+}

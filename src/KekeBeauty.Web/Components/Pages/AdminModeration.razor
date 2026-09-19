@@ -1,0 +1,90 @@
+@page "/admin/moderation"
+@inject AdminApiClient AdminApi
+@inject AdminSessionService Session
+@inject NavigationManager Navigation
+@* prerender:false : voir AdminDossiers.razor pour le detail du bug de prerendering evite. *@
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+
+<PageTitle>Modération</PageTitle>
+
+@if (_checkingAuth)
+{
+    <p>Chargement…</p>
+}
+else
+{
+    <h1>Modération</h1>
+
+    <h2>Compte utilisateur (client/partenaire)</h2>
+    <div class="row g-2 mb-3">
+        <div class="col-auto"><input class="form-control" placeholder="Identifiant utilisateur (guid)" @bind="_idUtilisateur" style="width:320px" /></div>
+        <div class="col-auto"><button class="btn btn-outline-danger" @onclick="SuspendreUtilisateurAsync">Suspendre</button></div>
+        <div class="col-auto"><button class="btn btn-outline-success" @onclick="ReactiverUtilisateurAsync">Réactiver</button></div>
+    </div>
+
+    <h2>Établissement</h2>
+    <div class="row g-2 mb-3">
+        <div class="col-auto"><input class="form-control" placeholder="Identifiant établissement (guid)" @bind="_idEtablissement" style="width:320px" /></div>
+        <div class="col-auto"><button class="btn btn-outline-danger" @onclick="SuspendreEtablissementAsync">Suspendre</button></div>
+        <div class="col-auto"><button class="btn btn-outline-success" @onclick="ReactiverEtablissementAsync">Réactiver</button></div>
+    </div>
+
+    @if (!string.IsNullOrEmpty(_message))
+    {
+        <div class="alert @(_success ? "alert-success" : "alert-danger")">@_message</div>
+    }
+}
+
+@code {
+    private string? _apiKey;
+    private bool _checkingAuth = true;
+    private string _idUtilisateur = "";
+    private string _idEtablissement = "";
+    private bool _success;
+    private string? _message;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _apiKey = await Session.GetApiKeyAsync();
+        if (_apiKey is null)
+        {
+            Navigation.NavigateTo("/admin/login");
+            return;
+        }
+
+        _checkingAuth = false;
+    }
+
+    private async Task SuspendreUtilisateurAsync() => await RunUtilisateurAsync(AdminApi.SuspendreUtilisateurAsync, "suspendu");
+    private async Task ReactiverUtilisateurAsync() => await RunUtilisateurAsync(AdminApi.ReactiverUtilisateurAsync, "réactivé");
+    private async Task SuspendreEtablissementAsync() => await RunEtablissementAsync(AdminApi.SuspendreEtablissementAsync, "suspendu");
+    private async Task ReactiverEtablissementAsync() => await RunEtablissementAsync(AdminApi.ReactiverEtablissementAsync, "réactivé");
+
+    private async Task RunUtilisateurAsync(Func<string, Guid, CancellationToken, Task<(bool Success, string? Status)>> action, string libelleAction)
+    {
+        if (!Guid.TryParse(_idUtilisateur, out var id))
+        {
+            _success = false;
+            _message = "Identifiant invalide.";
+            return;
+        }
+
+        var (success, status) = await action(_apiKey!, id, CancellationToken.None);
+        _success = success;
+        _message = success ? $"Compte {libelleAction}." : status == "not_found" ? "Compte introuvable." : "Action impossible.";
+    }
+
+    private async Task RunEtablissementAsync(Func<string, Guid, CancellationToken, Task<(bool Success, string? Status)>> action, string libelleAction)
+    {
+        if (!Guid.TryParse(_idEtablissement, out var id))
+        {
+            _success = false;
+            _message = "Identifiant invalide.";
+            return;
+        }
+
+        var (success, status) = await action(_apiKey!, id, CancellationToken.None);
+        _success = success;
+        _message = success ? $"Établissement {libelleAction}." : status == "not_found" ? "Établissement introuvable." : "Action impossible.";
+    }
+}

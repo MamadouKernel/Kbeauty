@@ -13,8 +13,10 @@ builder.Services.AddHttpClient<AuthApiClient>(client => client.BaseAddress = new
 builder.Services.AddHttpClient<RdvApiClient>(client => client.BaseAddress = new Uri(apiBaseUrl));
 builder.Services.AddHttpClient<PartnerApiClient>(client => client.BaseAddress = new Uri(apiBaseUrl));
 builder.Services.AddHttpClient<PartnerRdvApiClient>(client => client.BaseAddress = new Uri(apiBaseUrl));
+builder.Services.AddHttpClient<AdminApiClient>(client => client.BaseAddress = new Uri(apiBaseUrl));
 builder.Services.AddScoped<ClientSessionService>();
 builder.Services.AddScoped<PartnerSessionService>();
+builder.Services.AddScoped<AdminSessionService>();
 
 var app = builder.Build();
 
