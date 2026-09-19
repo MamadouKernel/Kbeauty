@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+
+<html lang="fr"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "surface-container-low": "#f6f3f1", "surface-dim": "#dcd9d8", "on-secondary-fixed-variant": "#6700b5", "on-primary-fixed-variant": "#672889", "primary-fixed": "#f6d9ff", "on-tertiary-container": "#b19fc6", "tertiary": "#2d203f", "on-tertiary-fixed": "#221534", "surface-variant": "#e5e2e0", "error": "#ba1a1a", "surface-bright": "#fcf9f7", "on-background": "#1b1c1b", "surface-container": "#f0edeb", "on-primary": "#ffffff", "error-container": "#ffdad6", "surface-container-highest": "#e5e2e0", "status-available": "#1B8755", "surface-cream": "#FFFDF9", "surface-tint": "#8142a3", "outline": "#7f7381", "outline-variant": "#d0c2d1", "secondary-container": "#9c42f4", "background": "#fcf9f7", "secondary-fixed-dim": "#dcb8ff", "secondary": "#821dda", "inverse-on-surface": "#f3f0ee", "primary": "#410060", "on-error": "#ffffff", "tertiary-container": "#433556", "status-unavailable": "#D32F2F", "on-secondary-container": "#fffbff", "text-primary": "#241032", "on-tertiary": "#ffffff", "on-surface": "#1b1c1b", "secondary-fixed": "#efdbff", "surface": "#fcf9f7", "lavender-subtle": "#F4EEFB", "tertiary-fixed-dim": "#d2bfe8", "inverse-surface": "#30302f", "on-secondary": "#ffffff", "primary-fixed-dim": "#e7b3ff", "surface-container-high": "#eae8e6", "on-secondary-fixed": "#2c0051", "on-primary-fixed": "#310049", "on-tertiary-fixed-variant": "#4f4062", "on-surface-variant": "#4d4450", "primary-container": "#5b1b7d", "on-error-container": "#93000a", "on-primary-container": "#cf8bf2", "plum-deep": "#3A0D52", "inverse-primary": "#e7b3ff", "surface-container-lowest": "#ffffff", "tertiary-fixed": "#eddcff" }, "borderRadius": { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, "spacing": { "space-xs": "0.25rem", "margin-desktop": "2.5rem", "gutter": "1rem", "space-lg": "1.5rem", "gutter-mobile": "0.75rem", "space-xl": "2.25rem", "space-sm": "0.5rem", "space-md": "1rem", "margin": "1.25rem" }, "fontFamily": { "label-md": ["Plus Jakarta Sans"], "body-md": ["Plus Jakarta Sans"], "body-lg": ["Plus Jakarta Sans"], "label-sm": ["Plus Jakarta Sans"], "label-lg": ["Plus Jakarta Sans"], "body-sm": ["Plus Jakarta Sans"], "headline-sm": ["Plus Jakarta Sans"], "headline-md": ["Plus Jakarta Sans"], "display-lg": ["Plus Jakarta Sans"], "display-lg-mobile": ["Plus Jakarta Sans"], "headline-lg": ["Plus Jakarta Sans"] }, "fontSize": { "label-md": ["12px", { "lineHeight": "16px", "fontWeight": "600" }], "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }], "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }], "label-sm": ["11px", { "lineHeight": "14px", "fontWeight": "700" }], "label-lg": ["14px", { "lineHeight": "18px", "fontWeight": "600" }], "body-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }], "headline-sm": ["18px", { "lineHeight": "24px", "fontWeight": "600" }], "headline-md": ["20px", { "lineHeight": "28px", "fontWeight": "600" }], "display-lg": ["36px", { "lineHeight": "44px", "fontWeight": "700" }], "display-lg-mobile": ["28px", { "lineHeight": "36px", "fontWeight": "700" }], "headline-lg": ["24px", { "lineHeight": "32px", "fontWeight": "700" }] } } } }</script></head><body class="bg-surface font-body-md text-on-surface antialiased"><aside class="fixed left-0 top-0 h-full w-72 bg-surface-cream z-50 flex flex-col shadow-[0_1px_8px_rgba(0,0,0,0.04)] justify-between"><div class="flex flex-col"><div class="h-20 px-space-lg flex items-center gap-space-sm"><img alt="logo_keke_beauty_option4.png" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuANcCTgTGWP_N30lVLn59c1DP03i0OqjY76Irod4Jvdx--QhlSRZJEKihGqHEyOIVHzNB6LnhdqzgsMCVASP1ey3MNY_3ETQIqBrNcgmhcox2bZr3pqwO_Eo5vz1XHrVp0yHJy1llJd0GvdLrYnvdqWAQZprIUibVF6rsOqPAaH2ViipIaYZbIXnu8VINtwQwPgxnw_46fZD2LhVWFk3QxbuXJrvS5jBb5GmMPqIPA"/><div class="flex flex-col"><span class="font-headline-sm text-headline-sm text-plum-deep tracking-tight">Keke Beauty</span><span class="font-label-sm text-label-sm text-outline tracking-wider uppercase">Super-Admin Portal</span></div></div><div class="px-space-md py-space-xs"><div class="bg-lavender-subtle rounded-xl p-space-sm flex items-center justify-between"><div class="flex items-center gap-space-xs"><span class="w-2 h-2 rounded-full bg-status-available animate-pulse"></span><span class="font-label-sm text-label-sm text-primary font-bold uppercase tracking-wider">Super-Admin Actif</span></div><span class="font-label-sm text-label-sm bg-primary text-on-primary px-space-xs py-0.5 rounded-full">Abidjan HQ</span></div></div><nav class="flex flex-col gap-1 px-space-md mt-space-sm" data-active-classes="bg-primary-container text-on-primary font-bold shadow-sm rounded-xl"><a aria-current="page" class="flex items-center gap-space-sm px-space-md py-space-sm transition-all bg-primary-container text-on-primary font-bold shadow-sm rounded-xl" data-path="tableau-de-bord-global" href="#"><span class="material-symbols-outlined text-outline">monitoring</span><span class="font-label-lg text-label-lg">Tableau de bord Global</span></a><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded-xl text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all" data-path="validation-audit-kyc" href="#"><span class="material-symbols-outlined text-outline">verified_user</span><span class="font-label-lg text-label-lg flex-1">Validation &amp; Audit KYC</span><span class="font-label-sm text-label-sm bg-secondary-fixed text-on-secondary-fixed px-1.5 py-0.5 rounded-full">7</span></a><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded-xl text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all" data-path="gestion-des-salons-abonnements" href="#"><span class="material-symbols-outlined text-outline">storefront</span><span class="font-label-lg text-label-lg">Salons &amp; Abonnements</span></a><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded-xl text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all" data-path="litiges-acomptes-conciergerie" href="#"><span class="material-symbols-outlined text-outline">balance</span><span class="font-label-lg text-label-lg flex-1">Litiges &amp; Acomptes</span><span class="font-label-sm text-label-sm bg-error-container text-on-error-container px-1.5 py-0.5 rounded-full">3</span></a><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded-xl text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all" data-path="parametres-securite-plateforme" href="#"><span class="material-symbols-outlined text-outline">admin_panel_settings</span><span class="font-label-lg text-label-lg">Paramètres &amp; Sécurité</span></a></nav></div><div class="p-space-md flex flex-col gap-space-sm"><div class="bg-surface-container-low rounded-xl p-space-sm flex flex-col gap-space-xs"><div class="flex items-center justify-between text-outline"><span class="font-label-sm text-label-sm uppercase tracking-wider">Passerelles Pay</span><span class="font-label-sm text-label-sm text-status-available font-bold">Opérationnel</span></div><div class="flex items-center justify-between font-body-sm text-body-sm text-on-surface-variant"><span>Wave &amp; OM CI</span><span class="font-label-sm text-label-sm text-plum-deep font-semibold">99.98%</span></div></div><div class="flex items-center justify-between pt-space-xs"><div class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-outline text-[18px]">lock</span><span class="font-label-sm text-label-sm text-outline">Console V2.4 Strict</span></div><a class="text-outline hover:text-error transition-colors" data-path="connexion-securisee" href="#"><span class="material-symbols-outlined text-[20px]">logout</span></a></div></div></aside><div class="pl-72"><header class="fixed top-0 left-72 right-0 h-20 bg-surface-cream/90 backdrop-blur-xl z-40 flex items-center justify-between px-space-lg shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="flex items-center gap-space-md flex-1 max-w-xl"><div class="relative w-full flex items-center"><span class="material-symbols-outlined absolute left-3 text-outline text-[20px]">search</span><input class="w-full bg-surface-container-low font-body-md text-body-md text-on-surface placeholder:text-outline pl-10 pr-space-md py-2 rounded-full focus:outline-none focus:bg-surface-container-lowest focus:ring-1 focus:ring-secondary transition-all" placeholder="Rechercher salon, gérant, transaction Wave, ID dossier KYC..." type="text"/></div></div><div class="flex items-center gap-space-lg"><div class="hidden xl:flex items-center gap-space-sm bg-surface-container-low px-space-md py-1.5 rounded-full"><span class="material-symbols-outlined text-secondary text-[20px]">payments</span><div class="flex items-center gap-1.5"><span class="font-label-sm text-label-sm text-outline uppercase">GMV Aujourd'hui :</span><span class="font-label-lg text-label-lg text-plum-deep font-bold">4,820,000 FCFA</span></div><span class="font-label-sm text-label-sm text-status-available font-bold">+14%</span></div><div class="flex items-center gap-space-sm"><button aria-label="Notifications Super-Admin" class="relative w-10 h-10 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" type="button"><span class="material-symbols-outlined text-[22px]">notifications</span><span class="absolute top-2 right-2 w-2 h-2 rounded-full bg-error ring-2 ring-surface-cream"></span></button><button aria-label="Journal de bord audité" class="w-10 h-10 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" type="button"><span class="material-symbols-outlined text-[22px]">history_edu</span></button></div><div class="flex items-center gap-space-sm pl-space-sm"><div class="flex flex-col text-right"><span class="font-label-lg text-label-lg text-plum-deep font-bold leading-none">Amina Kouassi</span><span class="font-label-sm text-label-sm text-outline">Lead Auditeur CI</span></div><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center shadow-sm"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="w-full pt-20 px-space-lg py-space-lg bg-surface min-h-screen"><div class="flex flex-col w-full gap-space-lg">
+<!-- Operational Context Header Bar -->
+<div class="flex flex-col xl:flex-row xl:items-center justify-between gap-space-md bg-surface-cream p-space-md rounded-xl shadow-sm">
+<div class="flex flex-wrap items-center gap-space-sm">
+<div class="flex items-center gap-space-xs bg-lavender-subtle px-space-md py-1.5 rounded-full">
+<span class="material-symbols-outlined text-secondary text-[18px]">location_on</span>
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-primary">Périmètre Actif:</span>
+<span class="font-label-md text-label-md text-plum-deep font-bold">District d'Abidjan (Cocody, Plateau, Marcory, Riviera, Deux-Plateaux)</span>
+</div>
+<div class="flex items-center gap-space-xs px-space-sm py-1 bg-surface-container-low rounded-full">
+<span class="w-2 h-2 rounded-full bg-status-available"></span>
+<span class="font-label-sm text-label-sm text-outline">API Gateway Mobile Money: En direct</span>
+</div>
+</div>
+<!-- Time Period Filter Tabs -->
+<div class="flex items-center bg-surface-container-low p-1 rounded-full self-start xl:self-auto">
+<button class="px-space-md py-1 rounded-full font-label-md text-label-md text-outline hover:text-on-surface transition-all" type="button">Aujourd'hui</button>
+<button class="px-space-md py-1 rounded-full font-label-md text-label-md text-outline hover:text-on-surface transition-all" type="button">7 Jours</button>
+<button class="px-space-md py-1 rounded-full font-label-md text-label-md bg-primary-container text-on-primary shadow-sm transition-all" type="button">Ce Mois</button>
+<button class="px-space-md py-1 rounded-full font-label-md text-label-md text-outline hover:text-on-surface transition-all" type="button">Année 2025</button>
+<div class="ml-1 pl-2 border-l border-outline-variant/30 flex items-center">
+<button class="w-8 h-8 rounded-full flex items-center justify-center text-outline hover:text-primary transition-colors" type="button">
+<span class="material-symbols-outlined text-[20px]">file_download</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Priority Operational Banner (Dual Attention Triggers) -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-space-md">
+<!-- KYC Processing Alert -->
+<div class="bg-gradient-to-r from-lavender-subtle to-surface-container-lowest p-space-md rounded-xl flex items-center justify-between shadow-sm">
+<div class="flex items-center gap-space-md">
+<div class="w-12 h-12 rounded-xl bg-secondary-fixed flex items-center justify-center text-on-secondary-fixed">
+<span class="material-symbols-outlined text-[24px]">verified_user</span>
+</div>
+<div class="flex flex-col">
+<div class="flex items-center gap-space-xs">
+<span class="font-headline-sm text-headline-sm text-plum-deep font-bold">12 Dossiers KYC en Attente</span>
+<span class="w-2 h-2 rounded-full bg-secondary animate-ping"></span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Vérification de registre CNI, enseigne et devantures de salons</span>
+</div>
+</div>
+<a class="px-space-md py-2 rounded-full bg-primary font-label-md text-label-md text-on-primary hover:bg-primary-container transition-all flex items-center gap-1 shadow-sm whitespace-nowrap" href="#">
+<span>Traiter la File</span>
+<span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</a>
+</div>
+<!-- Escrow & Disputes Alert -->
+<div class="bg-surface-container-lowest p-space-md rounded-xl flex items-center justify-between shadow-sm">
+<div class="flex items-center gap-space-md">
+<div class="w-12 h-12 rounded-xl bg-error-container flex items-center justify-center text-on-error-container">
+<span class="material-symbols-outlined text-[24px]">balance</span>
+</div>
+<div class="flex flex-col">
+<div class="flex items-center gap-space-xs">
+<span class="font-headline-sm text-headline-sm text-error font-bold">3 Litiges d'Acomptes en Cours</span>
+<span class="font-label-sm text-label-sm bg-error-container text-on-error-container px-2 py-0.5 rounded-full font-bold">Wave CI</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Remboursements et annulations tardives non réclamées</span>
+</div>
+</div>
+<a class="px-space-md py-2 rounded-full bg-surface-container-low font-label-md text-label-md text-primary hover:bg-lavender-subtle transition-all flex items-center gap-1 whitespace-nowrap" href="#">
+<span>Résoudre</span>
+<span class="material-symbols-outlined text-[16px]">open_in_new</span>
+</a>
+</div>
+</div>
+<!-- Primary Metric Bento Grid (4 Cards) -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-space-md">
+<!-- GMV Card -->
+<div class="bg-surface-cream p-space-lg rounded-xl shadow-sm flex flex-col justify-between relative overflow-hidden group hover:shadow-md transition-all">
+<div class="flex items-start justify-between">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Volume d'Affaires Brut (GMV)</span>
+<span class="font-headline-lg text-headline-lg text-plum-deep font-bold mt-1 tracking-tight">48 750 000 <span class="font-label-md text-label-md font-semibold text-outline">FCFA</span></span>
+</div>
+<div class="w-10 h-10 rounded-full bg-lavender-subtle flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[20px]">monetization_on</span>
+</div>
+</div>
+<div class="mt-space-md flex items-end justify-between pt-space-xs">
+<div class="flex items-center gap-1 text-status-available font-label-md text-label-md font-bold">
+<span class="material-symbols-outlined text-[16px]">trending_up</span>
+<span>+18.4%</span>
+<span class="text-outline font-body-sm text-body-sm font-normal ml-1">vs M-1</span>
+</div>
+<!-- Micro Sparkline SVG -->
+<svg class="w-24 h-8 text-secondary stroke-current fill-none" viewbox="0 0 100 32">
+<path d="M0,28 Q15,24 30,26 T60,14 T85,18 T100,4" stroke-linecap="round" stroke-width="2.5"></path>
+</svg>
+</div>
+</div>
+<!-- Platform Net Revenue & Subscriptions -->
+<div class="bg-surface-cream p-space-lg rounded-xl shadow-sm flex flex-col justify-between relative overflow-hidden group hover:shadow-md transition-all">
+<div class="flex items-start justify-between">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Commissions &amp; Abonnements</span>
+<span class="font-headline-lg text-headline-lg text-plum-deep font-bold mt-1 tracking-tight">6 420 000 <span class="font-label-md text-label-md font-semibold text-outline">FCFA</span></span>
+</div>
+<div class="w-10 h-10 rounded-full bg-secondary-fixed flex items-center justify-center text-on-secondary-fixed">
+<span class="material-symbols-outlined text-[20px]">receipt_long</span>
+</div>
+</div>
+<div class="mt-space-md flex items-end justify-between pt-space-xs">
+<div class="flex items-center gap-1 text-status-available font-label-md text-label-md font-bold">
+<span class="material-symbols-outlined text-[16px]">arrow_upward</span>
+<span>+12.1%</span>
+<span class="text-outline font-body-sm text-body-sm font-normal ml-1">84 Abos Elite</span>
+</div>
+<!-- Mini Progress Pill -->
+<div class="flex flex-col items-end">
+<span class="font-label-sm text-label-sm text-secondary font-bold">91% Obj.</span>
+<div class="w-16 h-1.5 bg-surface-container rounded-full overflow-hidden mt-1">
+<div class="h-full bg-secondary rounded-full" style="width: 91%"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Total Bookings -->
+<div class="bg-surface-cream p-space-lg rounded-xl shadow-sm flex flex-col justify-between relative overflow-hidden group hover:shadow-md transition-all">
+<div class="flex items-start justify-between">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Réservations Totales</span>
+<span class="font-headline-lg text-headline-lg text-plum-deep font-bold mt-1 tracking-tight">3 840 <span class="font-label-md text-label-md font-semibold text-outline">soins</span></span>
+</div>
+<div class="w-10 h-10 rounded-full bg-lavender-subtle flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[20px]">calendar_month</span>
+</div>
+</div>
+<div class="mt-space-md flex items-center justify-between pt-space-xs">
+<div class="flex items-center gap-1">
+<span class="font-label-md text-label-md font-bold text-status-available">94.2%</span>
+<span class="text-outline font-body-sm text-body-sm">honorées</span>
+</div>
+<span class="font-label-sm text-label-sm px-2 py-0.5 rounded-full bg-surface-container text-on-surface-variant">No-show: 5.8%</span>
+</div>
+</div>
+<!-- Partner Salons Active -->
+<div class="bg-surface-cream p-space-lg rounded-xl shadow-sm flex flex-col justify-between relative overflow-hidden group hover:shadow-md transition-all">
+<div class="flex items-start justify-between">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Salons Partenaires Actifs</span>
+<span class="font-headline-lg text-headline-lg text-plum-deep font-bold mt-1 tracking-tight">142 <span class="font-label-md text-label-md font-semibold text-outline">certifiés</span></span>
+</div>
+<div class="w-10 h-10 rounded-full bg-lavender-subtle flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[20px]">storefront</span>
+</div>
+</div>
+<div class="mt-space-md flex items-center justify-between pt-space-xs">
+<div class="flex items-center gap-1 text-primary font-label-md text-label-md font-bold">
+<span class="material-symbols-outlined text-[16px]">add_circle</span>
+<span>+9</span>
+<span class="text-outline font-body-sm text-body-sm font-normal">ce mois</span>
+</div>
+<span class="font-label-sm text-label-sm text-status-available font-semibold flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-status-available"></span> 98% Actifs
+        </span>
+</div>
+</div>
+</div>
+<!-- Deep Analytics Section: Payment Gateways CI & High Performance Salons -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg">
+<!-- Left Column (5 Cols): CI Mobile Money Distribution Matrix -->
+<div class="lg:col-span-5 bg-surface-cream p-space-lg rounded-xl shadow-sm flex flex-col justify-between">
+<div class="flex flex-col gap-space-xs">
+<div class="flex items-center justify-between">
+<span class="font-headline-sm text-headline-sm text-plum-deep font-bold">Passerelles Mobile Money CI</span>
+<span class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Temps Réel</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Acomptes de réservation &amp; règlements instantanés collectés en Côte d'Ivoire</p>
+</div>
+<!-- Donut Visual Summary Breakdown -->
+<div class="my-space-md flex items-center justify-center gap-space-lg py-space-sm bg-surface-container-low rounded-xl px-space-md">
+<div class="relative w-28 h-28 flex items-center justify-center">
+<svg class="w-full h-full transform -rotate-90" viewbox="0 0 36 36">
+<!-- Background Ring -->
+<path class="text-surface-container stroke-current" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke-width="4.5"></path>
+<!-- Wave CI (68%) -->
+<path class="text-secondary stroke-current" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke-dasharray="68, 100" stroke-linecap="round" stroke-width="4.5"></path>
+<!-- Orange Money CI (22%) -->
+<path class="text-primary stroke-current" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke-dasharray="22, 100" stroke-dashoffset="-68" stroke-width="4.5"></path>
+<!-- MTN & CB (10%) -->
+<path class="text-outline stroke-current" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke-dasharray="10, 100" stroke-dashoffset="-90" stroke-width="4.5"></path>
+</svg>
+<div class="absolute flex flex-col items-center">
+<span class="font-headline-md text-headline-md text-plum-deep font-bold leading-none">68%</span>
+<span class="font-label-sm text-label-sm text-secondary font-semibold mt-0.5">Wave CI</span>
+</div>
+</div>
+<div class="flex flex-col gap-space-xs">
+<div class="flex items-center gap-2">
+<span class="w-3 h-3 rounded-full bg-secondary"></span>
+<span class="font-label-md text-label-md text-on-surface">Wave CI : <strong>33.15M FCFA</strong></span>
+</div>
+<div class="flex items-center gap-2">
+<span class="w-3 h-3 rounded-full bg-primary"></span>
+<span class="font-label-md text-label-md text-on-surface">Orange Money : <strong>10.72M FCFA</strong></span>
+</div>
+<div class="flex items-center gap-2">
+<span class="w-3 h-3 rounded-full bg-outline"></span>
+<span class="font-label-md text-label-md text-on-surface">MTN MoMo &amp; CB : <strong>4.88M FCFA</strong></span>
+</div>
+</div>
+</div>
+<!-- Linear Breakdown Detail Bars -->
+<div class="flex flex-col gap-space-sm">
+<!-- Wave CI Item -->
+<div class="flex flex-col gap-1">
+<div class="flex items-center justify-between font-label-md text-label-md">
+<div class="flex items-center gap-space-xs">
+<span class="font-bold text-plum-deep">1. Wave Côte d'Ivoire</span>
+<span class="font-label-sm text-label-sm px-1.5 py-0.2 bg-lavender-subtle text-primary rounded">0% frais client</span>
+</div>
+<span class="text-plum-deep font-bold">68% (33 150 000 FCFA)</span>
+</div>
+<div class="w-full h-2 bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-secondary rounded-full" style="width: 68%"></div>
+</div>
+</div>
+<!-- Orange Money CI -->
+<div class="flex flex-col gap-1">
+<div class="flex items-center justify-between font-label-md text-label-md">
+<div class="flex items-center gap-space-xs">
+<span class="font-bold text-plum-deep">2. Orange Money CI (OM)</span>
+</div>
+<span class="text-plum-deep font-bold">22% (10 725 000 FCFA)</span>
+</div>
+<div class="w-full h-2 bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-primary rounded-full" style="width: 22%"></div>
+</div>
+</div>
+<!-- MTN Mobile Money CI -->
+<div class="flex flex-col gap-1">
+<div class="flex items-center justify-between font-label-md text-label-md">
+<div class="flex items-center gap-space-xs">
+<span class="font-bold text-plum-deep">3. MTN MoMo CI</span>
+</div>
+<span class="text-plum-deep font-bold">8% (3 900 000 FCFA)</span>
+</div>
+<div class="w-full h-2 bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-outline rounded-full" style="width: 8%"></div>
+</div>
+</div>
+<!-- Visa / Mastercard -->
+<div class="flex flex-col gap-1">
+<div class="flex items-center justify-between font-label-md text-label-md">
+<div class="flex items-center gap-space-xs">
+<span class="font-bold text-plum-deep">4. Cartes Bancaires (Visa / MC)</span>
+</div>
+<span class="text-plum-deep font-bold">2% (975 000 FCFA)</span>
+</div>
+<div class="w-full h-2 bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-outline-variant rounded-full" style="width: 2%"></div>
+</div>
+</div>
+</div>
+<div class="mt-space-md pt-space-sm flex items-center justify-between">
+<span class="font-body-sm text-body-sm text-outline">Taux d'échec passerelle global : <strong class="text-status-available">0.02%</strong></span>
+<button class="font-label-md text-label-md text-secondary hover:underline flex items-center gap-1" type="button">
+<span>Journal d'audit API</span>
+<span class="material-symbols-outlined text-[14px]">chevron_right</span>
+</button>
+</div>
+</div>
+<!-- Right Column (7 Cols): Top Performing Salons & Districts in Abidjan -->
+<div class="lg:col-span-7 bg-surface-cream p-space-lg rounded-xl shadow-sm flex flex-col justify-between">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-space-xs mb-space-sm">
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm text-plum-deep font-bold">Top Salons &amp; Communes Stars</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Classement basé sur le GMV, la fidélisation et le taux d'occupation</span>
+</div>
+<div class="flex items-center gap-1 bg-surface-container-low px-space-sm py-1 rounded-full self-start">
+<span class="font-label-sm text-label-sm text-outline">District :</span>
+<span class="font-label-sm text-label-sm text-primary font-bold">Abidjan Nord &amp; Sud</span>
+</div>
+</div>
+<!-- Rich Table Representation -->
+<div class="overflow-x-auto w-full">
+<table class="w-full text-left">
+<thead>
+<tr class="bg-surface-container-low text-outline font-label-sm text-label-sm uppercase tracking-wider rounded-lg">
+<th class="py-2.5 px-3 rounded-l-lg">Établissement &amp; Commune</th>
+<th class="py-2.5 px-3">Satisfaction</th>
+<th class="py-2.5 px-3">Occupation</th>
+<th class="py-2.5 px-3">GMV Généré</th>
+<th class="py-2.5 px-3 text-right rounded-r-lg">Statut</th>
+</tr>
+</thead>
+<tbody class="font-body-md text-body-md text-on-surface">
+<!-- Salon 1 -->
+<tr class="hover:bg-surface-container-low/50 transition-colors">
+<td class="py-3 px-3">
+<div class="flex items-center gap-space-sm">
+<div class="w-9 h-9 rounded-lg bg-surface-container flex items-center justify-center text-primary font-bold overflow-hidden shadow-sm">
+<img class="w-full h-full object-cover" data-alt="Modern upscale hair salon interior in Cocody Abidjan with gold and deep plum velvet armchairs, marble styling stations and lush indoor tropical plants" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBUFcfjVlcMxngMBhpRXhbYFV6fKjIE8zEjIVcd92yOW4kv4YoQTvX4YAya5MJExM4ScRIMmvy-A1Cfb-QEq5xxt1SqmaOUDiH7MDphLPcTNm9VLxlhlptHmTUAP0KN5_R3z1JFNQHMgBTFd8yhyhWLLAwoqt869A2Y634JAtz2G4lkZAT8RZek39PJQu05Vp6hhIs_0eF4GUADvjMRXa3wc9otA1Vc6Ql5IkmH6QI"/>
+</div>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md font-bold text-plum-deep">L'Impératrice Spa &amp; Coiffure</span>
+<span class="font-body-sm text-body-sm text-outline">Cocody, Riviera Golf</span>
+</div>
+</div>
+</td>
+<td class="py-3 px-3">
+<div class="flex items-center gap-1 text-primary">
+<span class="material-symbols-outlined text-[16px] text-secondary" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="font-label-md text-label-md font-bold">4.95</span>
+<span class="font-body-sm text-body-sm text-outline">(412)</span>
+</div>
+</td>
+<td class="py-3 px-3">
+<span class="font-label-md text-label-md text-status-available font-semibold">96%</span>
+</td>
+<td class="py-3 px-3">
+<span class="font-label-md text-label-md font-bold text-plum-deep">5 840 000 F</span>
+</td>
+<td class="py-3 px-3 text-right">
+<span class="font-label-sm text-label-sm bg-lavender-subtle text-primary font-bold px-2 py-0.5 rounded-full">Élite Partenaire</span>
+</td>
+</tr>
+<!-- Salon 2 -->
+<tr class="hover:bg-surface-container-low/50 transition-colors">
+<td class="py-3 px-3">
+<div class="flex items-center gap-space-sm">
+<div class="w-9 h-9 rounded-lg bg-surface-container flex items-center justify-center text-primary font-bold overflow-hidden shadow-sm">
+<img class="w-full h-full object-cover" data-alt="Chic nail salon in Marcory Zone 4 Abidjan with lavender lighting, minimal white manicure stations and luxury beauty products displayed" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD1uW70xQxctYxvuUCx_WpZCEgIZPC2OheoJk876QwxERdUpJHMQQBYA7DPSES2McJqur4aD585XLI1X7kQtGSlYANPtWx0dpNSzPgACDIKB7zkV4cxQPwveSPz_XkHBJIWLLbgc_KI9qXGmEZxUGKK9Cxa2dZZH96w-YQP-PJNU5JwBtSnY-jmLb_NwO15blkmN53XK3kjnO5uxq9fxYYqmZHqUcGSySNepsDsaho"/>
+</div>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md font-bold text-plum-deep">Maison K - Onglerie &amp; Regard</span>
+<span class="font-body-sm text-body-sm text-outline">Marcory, Zone 4C</span>
+</div>
+</div>
+</td>
+<td class="py-3 px-3">
+<div class="flex items-center gap-1 text-primary">
+<span class="material-symbols-outlined text-[16px] text-secondary" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="font-label-md text-label-md font-bold">4.91</span>
+<span class="font-body-sm text-body-sm text-outline">(389)</span>
+</div>
+</td>
+<td class="py-3 px-3">
+<span class="font-label-md text-label-md text-status-available font-semibold">92%</span>
+</td>
+<td class="py-3 px-3">
+<span class="font-label-md text-label-md font-bold text-plum-deep">4 210 000 F</span>
+</td>
+<td class="py-3 px-3 text-right">
+<span class="font-label-sm text-label-sm bg-lavender-subtle text-primary font-bold px-2 py-0.5 rounded-full">Élite Partenaire</span>
+</td>
+</tr>
+<!-- Salon 3 -->
+<tr class="hover:bg-surface-container-low/50 transition-colors">
+<td class="py-3 px-3">
+<div class="flex items-center gap-space-sm">
+<div class="w-9 h-9 rounded-lg bg-surface-container flex items-center justify-center text-primary font-bold overflow-hidden shadow-sm">
+<img class="w-full h-full object-cover" data-alt="Sophisticated African hair braiding and wellness lounge in Cocody Deux Plateaux with serene bamboo dividers and violet accents" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCuB6_pkjOFWBOJyC9bElOrd0pct-h-NSvAhWkZM0bo2L2bWcsy4oYYN5DHiaf_QaBv2AWe_n0EUU9bf2b7ZNukaW_CfUFnuJvi-ltEVJAlDkrytQ8JcWPRAHlCYc-hT6jKNWSRfiHqVUp-AEis70zjHp0m3Lb1sCJVX0sw56-svNEMVe8b5B6tANxDMW7CERiOqBJj4SdCveRIBJfh4jOalbKIMDxkjZySrpNK79I"/>
+</div>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md font-bold text-plum-deep">Royal Afro Spa &amp; Locks</span>
+<span class="font-body-sm text-body-sm text-outline">Cocody, Deux-Plateaux Vallons</span>
+</div>
+</div>
+</td>
+<td class="py-3 px-3">
+<div class="flex items-center gap-1 text-primary">
+<span class="material-symbols-outlined text-[16px] text-secondary" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="font-label-md text-label-md font-bold">4.88</span>
+<span class="font-body-sm text-body-sm text-outline">(290)</span>
+</div>
+</td>
+<td class="py-3 px-3">
+<span class="font-label-md text-label-md text-status-available font-semibold">89%</span>
+</td>
+<td class="py-3 px-3">
+<span class="font-label-md text-label-md font-bold text-plum-deep">3 980 000 F</span>
+</td>
+<td class="py-3 px-3 text-right">
+<span class="font-label-sm text-label-sm bg-surface-container-high text-on-surface font-semibold px-2 py-0.5 rounded-full">Certifié</span>
+</td>
+</tr>
+<!-- Salon 4 -->
+<tr class="hover:bg-surface-container-low/50 transition-colors">
+<td class="py-3 px-3">
+<div class="flex items-center gap-space-sm">
+<div class="w-9 h-9 rounded-lg bg-surface-container flex items-center justify-center text-primary font-bold overflow-hidden shadow-sm">
+<img class="w-full h-full object-cover" data-alt="Minimalist men and women aesthetic grooming studio in Plateau Abidjan with modern leather seats and soft natural daylight" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBKYbEpxwo5M3A_6qOm0aZpnrIeLXNFFvcED6q1ZHmrxOOnztu1v2q3F4JZg-Lo5-WB4MTT8grFowq2yQ86oCa0ElILM34L3KrG8W1NGFXRlHC2gyweLM6MrVIM2kbn6waiMYfuQC8O30J2DYHNPmN_Me8bhpxflRf0MGzkB1MrXSHhqF86imVlBxl4vq1GqS7620EV5LsurWON7PPHXuEFGdN-yZLfvi6msj3Zbz0"/>
+</div>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md font-bold text-plum-deep">Atelier Beauté du Plateau</span>
+<span class="font-body-sm text-body-sm text-outline">Plateau, Rue du Commerce</span>
+</div>
+</div>
+</td>
+<td class="py-3 px-3">
+<div class="flex items-center gap-1 text-primary">
+<span class="material-symbols-outlined text-[16px] text-secondary" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="font-label-md text-label-md font-bold">4.84</span>
+<span class="font-body-sm text-body-sm text-outline">(215)</span>
+</div>
+</td>
+<td class="py-3 px-3">
+<span class="font-label-md text-label-md text-status-available font-semibold">84%</span>
+</td>
+<td class="py-3 px-3">
+<span class="font-label-md text-label-md font-bold text-plum-deep">3 120 000 F</span>
+</td>
+<td class="py-3 px-3 text-right">
+<span class="font-label-sm text-label-sm bg-surface-container-high text-on-surface font-semibold px-2 py-0.5 rounded-full">Certifié</span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="mt-space-md pt-space-sm flex items-center justify-between">
+<span class="font-body-sm text-body-sm text-outline">Affichage des 4 salons sur 142 partenaires</span>
+<button class="font-label-md text-label-md text-primary font-bold hover:text-secondary flex items-center gap-1" type="button">
+<span>Voir le répertoire complet des salons</span>
+<span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Real-Time Activity Feed & Escrow Flow Supervision -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg">
+<!-- Live Platform Transactions Stream (7 Cols) -->
+<div class="lg:col-span-7 bg-surface-cream p-space-lg rounded-xl shadow-sm flex flex-col">
+<div class="flex items-center justify-between mb-space-md">
+<div class="flex items-center gap-space-xs">
+<span class="w-2.5 h-2.5 rounded-full bg-status-available animate-pulse"></span>
+<span class="font-headline-sm text-headline-sm text-plum-deep font-bold">Flux Opérationnel en Direct</span>
+</div>
+<span class="font-label-sm text-label-sm text-outline">Synchronisé Wave &amp; OM il y a 8s</span>
+</div>
+<div class="flex flex-col gap-space-sm">
+<!-- Event 1: Booking confirmation -->
+<div class="flex items-center justify-between p-space-sm bg-surface-container-low rounded-xl hover:bg-surface-container transition-colors">
+<div class="flex items-center gap-space-md">
+<div class="w-10 h-10 rounded-full bg-status-available/10 text-status-available flex items-center justify-center">
+<span class="material-symbols-outlined text-[20px]">check_circle</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md font-bold text-plum-deep">Réservation confirmée &amp; acompte payé</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Soin Visage Hydrafacial • L'Impératrice Spa (Client: Michelle D.)</span>
+</div>
+</div>
+<div class="flex flex-col items-end">
+<span class="font-label-md text-label-md text-status-available font-bold">+12 500 FCFA</span>
+<span class="font-label-sm text-label-sm text-outline">Wave CI • Il y a 2 min</span>
+</div>
+</div>
+<!-- Event 2: Payout to Salon -->
+<div class="flex items-center justify-between p-space-sm bg-surface-container-low rounded-xl hover:bg-surface-container transition-colors">
+<div class="flex items-center gap-space-md">
+<div class="w-10 h-10 rounded-full bg-secondary-fixed text-on-secondary-fixed flex items-center justify-center">
+<span class="material-symbols-outlined text-[20px]">outbox</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md font-bold text-plum-deep">Reversement Acompte Automatique</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Virement hebdomadaire Wave Business vers Salon Maison K</span>
+</div>
+</div>
+<div class="flex flex-col items-end">
+<span class="font-label-md text-label-md text-plum-deep font-bold">1 420 000 FCFA</span>
+<span class="font-label-sm text-label-sm text-outline">Executé • Il y a 14 min</span>
+</div>
+</div>
+<!-- Event 3: New KYC submission -->
+<div class="flex items-center justify-between p-space-sm bg-surface-container-low rounded-xl hover:bg-surface-container transition-colors">
+<div class="flex items-center gap-space-md">
+<div class="w-10 h-10 rounded-full bg-lavender-subtle text-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-[20px]">document_scanner</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md font-bold text-plum-deep">Nouveau dossier KYC soumis</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">"Divine Coiffure &amp; Make-Up" • Cocody Angré 8ème Tranche</span>
+</div>
+</div>
+<div class="flex flex-col items-end">
+<span class="font-label-sm text-label-sm bg-secondary-fixed text-on-secondary-fixed font-bold px-2 py-0.5 rounded-full">À auditer</span>
+<span class="font-label-sm text-label-sm text-outline mt-1">Il y a 32 min</span>
+</div>
+</div>
+<!-- Event 4: Dispute flag -->
+<div class="flex items-center justify-between p-space-sm bg-surface-container-low rounded-xl hover:bg-surface-container transition-colors">
+<div class="flex items-center gap-space-md">
+<div class="w-10 h-10 rounded-full bg-error-container text-on-error-container flex items-center justify-center">
+<span class="material-symbols-outlined text-[20px]">report</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md font-bold text-error">Signalement non-présentation client (No-show)</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Demande de libération d'acompte par "Royal Afro Spa"</span>
+</div>
+</div>
+<div class="flex flex-col items-end">
+<span class="font-label-md text-label-md text-error font-bold">7 500 FCFA</span>
+<span class="font-label-sm text-label-sm text-outline">En arbitrage • 1h</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Column (5 Cols): Abidjan Geographical Coverage & Concierge Dispatch -->
+<div class="lg:col-span-5 bg-surface-cream p-space-lg rounded-xl shadow-sm flex flex-col justify-between">
+<div class="flex flex-col gap-space-xs mb-space-sm">
+<div class="flex items-center justify-between">
+<span class="font-headline-sm text-headline-sm text-plum-deep font-bold">Maillage Abidjanais &amp; Conciergerie</span>
+<span class="font-label-sm text-label-sm bg-status-available/15 text-status-available font-bold px-2 py-0.5 rounded-full">5 Communes</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Répartition géographique des salons conventionnés Keke Beauty</p>
+</div>
+<!-- District breakdown badges with visual density -->
+<div class="grid grid-cols-2 gap-space-sm mb-space-md">
+<div class="p-space-sm rounded-xl bg-surface-container-low flex flex-col">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md font-bold text-plum-deep">Cocody</span>
+<span class="font-label-sm text-label-sm text-secondary font-bold">48 salons</span>
+</div>
+<span class="font-body-sm text-body-sm text-outline mt-0.5">Riviera, Angré, Danga</span>
+<div class="w-full h-1.5 bg-surface-container rounded-full mt-2 overflow-hidden">
+<div class="h-full bg-secondary rounded-full" style="width: 78%"></div>
+</div>
+</div>
+<div class="p-space-sm rounded-xl bg-surface-container-low flex flex-col">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md font-bold text-plum-deep">Marcory</span>
+<span class="font-label-sm text-label-sm text-primary font-bold">34 salons</span>
+</div>
+<span class="font-body-sm text-body-sm text-outline mt-0.5">Zone 4, Biétry, Residentiel</span>
+<div class="w-full h-1.5 bg-surface-container rounded-full mt-2 overflow-hidden">
+<div class="h-full bg-primary rounded-full" style="width: 58%"></div>
+</div>
+</div>
+<div class="p-space-sm rounded-xl bg-surface-container-low flex flex-col">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md font-bold text-plum-deep">Plateau</span>
+<span class="font-label-sm text-label-sm text-outline font-bold">22 salons</span>
+</div>
+<span class="font-body-sm text-body-sm text-outline mt-0.5">Centres VIP &amp; Hôtels</span>
+<div class="w-full h-1.5 bg-surface-container rounded-full mt-2 overflow-hidden">
+<div class="h-full bg-outline rounded-full" style="width: 42%"></div>
+</div>
+</div>
+<div class="p-space-sm rounded-xl bg-surface-container-low flex flex-col">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md font-bold text-plum-deep">Yopougon</span>
+<span class="font-label-sm text-label-sm text-outline font-bold">38 salons</span>
+</div>
+<span class="font-body-sm text-body-sm text-outline mt-0.5">Siporex, Maroc, Selmer</span>
+<div class="w-full h-1.5 bg-surface-container rounded-full mt-2 overflow-hidden">
+<div class="h-full bg-outline rounded-full" style="width: 65%"></div>
+</div>
+</div>
+</div>
+<!-- Static Map trigger for Abidjan Hub -->
+<div class="w-full h-36 bg-surface-container rounded-xl flex items-center justify-center relative overflow-hidden shadow-inner" data-location="Abidjan, Cote d'Ivoire" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAfOp4Nv2HukF163wERctVa353Ha9JjcqsUi6ntbDBUASf8Ul-v9zASjoCU86VXTuEHQIdA32PbLfpZwsfXgGpKQeBA744wQ0fqNZ8ui22P5CPFspOfzgaljKPDpX_PX-FwTla7Amgw0kyhlVzak1iJ1s2buYdn51S8RGptfBAMVmWrEoLuvmLDeYF4DFfgwTTtZU7p9F6zK2HRDPzDm8JPIK466a1pKMuUJjIl1t4')">
+<div class="absolute inset-0 bg-primary/20 backdrop-blur-[1px]"></div>
+<div class="relative z-10 flex flex-col items-center bg-surface-cream/90 px-space-md py-2 rounded-xl shadow-md">
+<div class="flex items-center gap-1.5 text-plum-deep font-label-md text-label-md font-bold">
+<span class="material-symbols-outlined text-secondary text-[18px]">share_location</span>
+<span>Console Cartographique Abidjan</span>
+</div>
+<span class="font-body-sm text-body-sm text-outline">Voir tous les points de service géolocalisés</span>
+</div>
+</div>
+<!-- Quick Platform Health Footer -->
+<div class="mt-space-md pt-space-xs flex items-center justify-between font-label-sm text-label-sm text-outline">
+<span>Serveur Cloud : <strong>Abidjan Orange DataCenter</strong></span>
+<span class="text-status-available font-bold flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-status-available"></span> Latence 18ms
+        </span>
+</div>
+</div>
+</div>
+</div></main></div></body></html>

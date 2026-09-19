@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+
+<html lang="fr"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = {
+  darkMode: "class",
+  theme: {
+    extend: {
+      "colors": {
+        "surface-container-lowest": "#ffffff",
+        "primary-container": "#5b1b7d",
+        "outline-variant": "#d0c2d1",
+        "tertiary": "#2d203f",
+        "on-tertiary-container": "#b19fc6",
+        "primary-fixed": "#f6d9ff",
+        "on-primary-container": "#cf8bf2",
+        "surface-container-high": "#eae8e6",
+        "background": "#fcf9f7",
+        "inverse-on-surface": "#f3f0ee",
+        "surface-bright": "#fcf9f7",
+        "surface-container": "#f0edeb",
+        "on-tertiary-fixed-variant": "#4f4062",
+        "inverse-surface": "#30302f",
+        "on-surface-variant": "#4d4450",
+        "on-primary-fixed-variant": "#672889",
+        "tertiary-fixed-dim": "#d2bfe8",
+        "outline": "#7f7381",
+        "secondary-fixed": "#efdbff",
+        "surface": "#fcf9f7",
+        "status-available": "#1B8755",
+        "inverse-primary": "#e7b3ff",
+        "on-primary-fixed": "#310049",
+        "on-primary": "#ffffff",
+        "surface-variant": "#e5e2e0",
+        "tertiary-container": "#433556",
+        "on-error": "#ffffff",
+        "lavender-subtle": "#F4EEFB",
+        "on-secondary": "#ffffff",
+        "on-tertiary-fixed": "#221534",
+        "on-surface": "#1b1c1b",
+        "status-unavailable": "#D32F2F",
+        "on-secondary-fixed": "#2c0051",
+        "surface-tint": "#8142a3",
+        "secondary": "#821dda",
+        "primary": "#410060",
+        "surface-container-highest": "#e5e2e0",
+        "primary-fixed-dim": "#e7b3ff",
+        "on-background": "#1b1c1b",
+        "text-primary": "#241032",
+        "plum-deep": "#3A0D52",
+        "on-secondary-container": "#fffbff",
+        "secondary-container": "#9c42f4",
+        "on-error-container": "#93000a",
+        "surface-container-low": "#f6f3f1",
+        "secondary-fixed-dim": "#dcb8ff",
+        "on-secondary-fixed-variant": "#6700b5",
+        "error": "#ba1a1a",
+        "error-container": "#ffdad6",
+        "surface-dim": "#dcd9d8",
+        "surface-cream": "#FFFDF9",
+        "tertiary-fixed": "#eddcff",
+        "on-tertiary": "#ffffff"
+      },
+      "borderRadius": {
+        "DEFAULT": "0.25rem",
+        "lg": "0.5rem",
+        "xl": "0.75rem",
+        "full": "9999px"
+      },
+      "spacing": {
+        "space-sm": "0.5rem",
+        "gutter": "1rem",
+        "space-md": "1rem",
+        "space-xl": "2.25rem",
+        "margin-desktop": "2.5rem",
+        "gutter-mobile": "0.75rem",
+        "space-xs": "0.25rem",
+        "margin": "1.25rem",
+        "space-lg": "1.5rem"
+      },
+      "fontFamily": {
+        "label-lg": ["Plus Jakarta Sans"],
+        "display-lg": ["Plus Jakarta Sans"],
+        "label-sm": ["Plus Jakarta Sans"],
+        "body-md": ["Plus Jakarta Sans"],
+        "headline-md": ["Plus Jakarta Sans"],
+        "headline-lg": ["Plus Jakarta Sans"],
+        "body-lg": ["Plus Jakarta Sans"],
+        "body-sm": ["Plus Jakarta Sans"],
+        "display-lg-mobile": ["Plus Jakarta Sans"],
+        "headline-sm": ["Plus Jakarta Sans"],
+        "label-md": ["Plus Jakarta Sans"]
+      },
+      "fontSize": {
+        "label-lg": ["14px", {"lineHeight": "18px", "fontWeight": "600"}],
+        "display-lg": ["36px", {"lineHeight": "44px", "fontWeight": "700"}],
+        "label-sm": ["11px", {"lineHeight": "14px", "fontWeight": "700"}],
+        "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+        "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+        "headline-lg": ["24px", {"lineHeight": "32px", "fontWeight": "700"}],
+        "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+        "body-sm": ["12px", {"lineHeight": "16px", "fontWeight": "400"}],
+        "display-lg-mobile": ["28px", {"lineHeight": "36px", "fontWeight": "700"}],
+        "headline-sm": ["18px", {"lineHeight": "24px", "fontWeight": "600"}],
+        "label-md": ["12px", {"lineHeight": "16px", "fontWeight": "600"}]
+      }
+    }
+  }
+}</script></head><body class="bg-surface text-on-surface font-body-md text-body-md"><aside class="fixed left-0 top-0 h-full w-72 bg-surface-cream shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-50 flex flex-col justify-between py-6"><div class="flex flex-col gap-6 px-4"><div class="flex items-center gap-3 px-3"><img alt="logo_keke_beauty_option4.png" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1XKFZ-Kobzg0maYp0W59kfVRX5pjJGWi6p0HkyDZBYOaQr8Ht9DFtD7UxYDqwPgEGHDZIF3HREwXwC8uA8-sDTD5_4JgNJ3zph0F_lnpCuvezNBEFLMPOCgHEcrtsw-KILka7oPpKfyMJNaeqXEMWjbP35rcsI7okFR6bDFsbmNa0MSAgVowER7I_mxt72dJdVx--dKGxB4Td0X0qx1MYgXDkBq-BQocXmzdLw0Ypc4SYAfwYIFmbd6nVO2AlUNm9UsRfBmilHj2w"/><div class="flex flex-col"><span class="font-headline-sm text-headline-sm text-plum-deep leading-tight font-bold">Keke Pro</span><span class="font-label-sm text-label-sm text-outline tracking-wider uppercase">Espace Partenaire</span></div></div><nav class="flex flex-col gap-1" data-active-classes="bg-primary text-on-primary rounded-xl font-label-lg"><a aria-current="page" class="flex items-center gap-3 px-4 py-3 transition-all bg-primary text-on-primary rounded-xl font-label-lg" data-path="agenda-multi-fauteuils" href="#"><span class="material-symbols-outlined text-[20px]">calendar_month</span><span>Agenda Multi-Fauteuils</span></a><a class="flex items-center gap-3 px-4 py-3 rounded-xl text-on-surface-variant hover:bg-lavender-subtle hover:text-plum-deep transition-all font-body-md text-body-md" data-path="reservations-walk-ins" href="#"><span class="material-symbols-outlined text-[20px]">book_online</span><span>Réservations &amp; Walk-ins</span></a><a class="flex items-center gap-3 px-4 py-3 rounded-xl text-on-surface-variant hover:bg-lavender-subtle hover:text-plum-deep transition-all font-body-md text-body-md" data-path="gestion-equipe-praticiennes" href="#"><span class="material-symbols-outlined text-[20px]">groups</span><span>Gestion d'Équipe &amp; Praticiennes</span></a><a class="flex items-center gap-3 px-4 py-3 rounded-xl text-on-surface-variant hover:bg-lavender-subtle hover:text-plum-deep transition-all font-body-md text-body-md" data-path="catalogue-soins-tarifs" href="#"><span class="material-symbols-outlined text-[20px]">spa</span><span>Catalogue Soins &amp; Tarifs</span></a><a class="flex items-center gap-3 px-4 py-3 rounded-xl text-on-surface-variant hover:bg-lavender-subtle hover:text-plum-deep transition-all font-body-md text-body-md" data-path="finances-acomptes-wave" href="#"><span class="material-symbols-outlined text-[20px]">account_balance_wallet</span><span>Finances, Acomptes &amp; Wave</span></a><a class="flex items-center gap-3 px-4 py-3 rounded-xl text-on-surface-variant hover:bg-lavender-subtle hover:text-plum-deep transition-all font-body-md text-body-md" data-path="vitrine-keke-gold-avis" href="#"><span class="material-symbols-outlined text-[20px]">hotel_class</span><span>Vitrine Keke Gold &amp; Avis</span></a><a class="flex items-center gap-3 px-4 py-3 rounded-xl text-on-surface-variant hover:bg-lavender-subtle hover:text-plum-deep transition-all font-body-md text-body-md" data-path="parametres-du-salon" href="#"><span class="material-symbols-outlined text-[20px]">settings</span><span>Paramètres du Salon</span></a></nav></div><div class="flex flex-col gap-3 px-4"><div class="bg-lavender-subtle p-3 rounded-xl flex items-center justify-between"><div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-status-available"></span><span class="font-label-sm text-label-sm text-plum-deep">Passerelle Wave Active</span></div><span class="material-symbols-outlined text-[16px] text-primary">verified</span></div><a class="flex items-center justify-center gap-2 w-full py-2.5 px-3 rounded-xl bg-surface-container hover:bg-surface-container-high text-plum-deep font-label-md text-label-md transition-colors" href="#"><span class="material-symbols-outlined text-[18px]">storefront</span><span>Voir ma vitrine en ligne</span></a></div></aside><div class="pl-72"><header class="fixed top-0 left-72 right-0 h-16 bg-surface-cream/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-40 flex items-center justify-between px-8"><div class="flex items-center gap-4"><button class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface-container text-text-primary hover:bg-surface-container-high transition-colors"><span class="material-symbols-outlined text-[18px] text-primary">store</span><span class="font-label-lg text-label-lg font-bold">L'Impératrice Spa &amp; Coiffure • Cocody Riviera Golf</span><span class="material-symbols-outlined text-[18px] text-outline">arrow_drop_down</span></button><div class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-status-available/10 text-status-available"><span class="w-2 h-2 rounded-full bg-status-available animate-pulse"></span><span class="font-label-sm text-label-sm font-bold">En service / Ouvert</span></div></div><div class="flex items-center gap-5"><div class="hidden xl:flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-lavender-subtle text-plum-deep"><span class="material-symbols-outlined text-[18px] text-primary">payments</span><span class="font-label-sm text-label-sm text-outline uppercase">Aujourd'hui :</span><span class="font-label-lg text-label-lg font-bold">425 000 FCFA</span></div><button class="relative p-2 rounded-full hover:bg-surface-container transition-colors text-on-surface-variant"><span class="material-symbols-outlined text-[22px]">notifications</span><span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-status-unavailable"></span></button><div class="flex items-center gap-3 pl-3 border-l-0"><div class="flex flex-col text-right"><span class="font-label-lg text-label-lg text-text-primary leading-tight">Chantal Touré</span><span class="font-label-sm text-label-sm text-outline">Directrice Générale</span></div><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="relative pt-16 bg-surface min-h-screen w-full px-8"><div class="flex flex-col w-full gap-6 pb-12">
+<!-- En-tête de vue de planning & Contrôles temporels -->
+<div class="flex flex-col gap-5">
+<div class="flex flex-wrap items-center justify-between gap-4">
+<div class="flex flex-col">
+<div class="flex items-center gap-2">
+<span class="font-label-sm text-label-sm uppercase tracking-widest text-primary font-bold">Pilotage Temps Réel</span>
+<span class="w-1.5 h-1.5 rounded-full bg-status-available"></span>
+<span class="font-label-sm text-label-sm text-outline">Directrice Connectée • Riviera Golf</span>
+</div>
+<h1 class="font-display-lg text-display-lg text-text-primary tracking-tight">Agenda Multi-Fauteuils &amp; Cabines</h1>
+</div>
+<div class="flex flex-wrap items-center gap-3">
+<!-- Date Navigator -->
+<div class="flex items-center bg-surface-cream rounded-xl p-1.5 shadow-sm">
+<button class="p-1.5 rounded-lg text-on-surface-variant hover:bg-surface-container transition-colors" title="Jour précédent">
+<span class="material-symbols-outlined text-[18px]">chevron_left</span>
+</button>
+<div class="flex items-center gap-2 px-3">
+<span class="material-symbols-outlined text-[18px] text-primary">calendar_today</span>
+<span class="font-label-lg text-label-lg text-text-primary font-bold">Samedi 19 Octobre 2025</span>
+</div>
+<button class="p-1.5 rounded-lg text-on-surface-variant hover:bg-surface-container transition-colors" title="Jour suivant">
+<span class="material-symbols-outlined text-[18px]">chevron_right</span>
+</button>
+<button class="ml-1 px-3 py-1 text-label-sm font-label-sm rounded-lg bg-lavender-subtle text-primary font-bold hover:bg-primary hover:text-on-primary transition-all">
+            Aujourd'hui
+          </button>
+</div>
+<!-- View Switcher -->
+<div class="flex items-center bg-surface-container p-1 rounded-xl">
+<button class="px-3.5 py-1.5 rounded-lg bg-surface-cream text-plum-deep font-label-md text-label-md shadow-sm font-bold">Jour</button>
+<button class="px-3.5 py-1.5 rounded-lg text-on-surface-variant font-label-md text-label-md hover:text-text-primary transition-colors">3 Jours</button>
+<button class="px-3.5 py-1.5 rounded-lg text-on-surface-variant font-label-md text-label-md hover:text-text-primary transition-colors">Semaine</button>
+</div>
+<!-- Quick Action CTAs -->
+<div class="flex items-center gap-2">
+<button class="flex items-center gap-2 px-4 py-2.5 rounded-full bg-primary hover:bg-plum-deep text-on-primary font-label-lg text-label-lg shadow-md hover:scale-[0.98] transition-all">
+<span class="material-symbols-outlined text-[18px]">add_circle</span>
+<span>+ Nouveau RDV</span>
+</button>
+<button class="flex items-center gap-2 px-3.5 py-2.5 rounded-full bg-surface-cream hover:bg-lavender-subtle text-plum-deep font-label-lg text-label-lg shadow-sm transition-all">
+<span class="material-symbols-outlined text-[18px] text-secondary">person_pin</span>
+<span>Walk-in (Sans RDV)</span>
+</button>
+<button class="p-2.5 rounded-full bg-surface-cream text-on-surface-variant hover:bg-surface-container transition-colors" title="Bloquer un créneau / Pause">
+<span class="material-symbols-outlined text-[20px]">event_busy</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Quick Category Filter Chips -->
+<div class="flex flex-wrap items-center justify-between gap-3 pt-1">
+<div class="flex flex-wrap items-center gap-2">
+<button class="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-primary text-on-primary font-label-md text-label-md shadow-sm">
+<span class="material-symbols-outlined text-[16px]">done</span>
+<span>Tous les postes (8)</span>
+</button>
+<button class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-surface-cream hover:bg-lavender-subtle text-plum-deep font-label-md text-label-md transition-colors">
+<span class="material-symbols-outlined text-[16px] text-primary">face_3</span>
+<span>Coiffure &amp; Tresses (4)</span>
+</button>
+<button class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-surface-cream hover:bg-lavender-subtle text-plum-deep font-label-md text-label-md transition-colors">
+<span class="material-symbols-outlined text-[16px] text-primary">water_drop</span>
+<span>Bacs &amp; Lavage (2)</span>
+</button>
+<button class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-surface-cream hover:bg-lavender-subtle text-plum-deep font-label-md text-label-md transition-colors">
+<span class="material-symbols-outlined text-[16px] text-primary">spa</span>
+<span>Cabines Spa &amp; Soins (2)</span>
+</button>
+</div>
+<div class="flex items-center gap-3">
+<div class="flex items-center gap-1.5 text-label-sm font-label-sm text-outline">
+<span class="w-2.5 h-2.5 rounded-full bg-status-available"></span> Terminé
+        </div>
+<div class="flex items-center gap-1.5 text-label-sm font-label-sm text-outline">
+<span class="w-2.5 h-2.5 rounded-full bg-secondary"></span> En cours
+        </div>
+<div class="flex items-center gap-1.5 text-label-sm font-label-sm text-outline">
+<span class="w-2.5 h-2.5 rounded-full bg-outline-variant"></span> Confirmé
+        </div>
+<div class="flex items-center gap-1.5 text-label-sm font-label-sm text-outline">
+<span class="w-2.5 h-2.5 rounded-full bg-status-unavailable/40"></span> Indisponible
+        </div>
+</div>
+</div>
+<!-- Synthèse d'activité du jour en temps réel -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+<div class="bg-surface-cream rounded-xl p-4 shadow-sm flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Planning Confirmé</span>
+<div class="flex items-baseline gap-2 mt-1">
+<span class="font-display-lg text-display-lg text-text-primary font-bold">28</span>
+<span class="font-label-md text-label-md text-status-available font-semibold">100% alloués</span>
+</div>
+<span class="font-body-sm text-body-sm text-outline mt-0.5">+4 réservations via Wave ce matin</span>
+</div>
+<div class="w-12 h-12 rounded-xl bg-lavender-subtle flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[24px]">event_available</span>
+</div>
+</div>
+<div class="bg-surface-cream rounded-xl p-4 shadow-sm flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Walk-ins en Salon</span>
+<div class="flex items-baseline gap-2 mt-1">
+<span class="font-display-lg text-display-lg text-plum-deep font-bold">4</span>
+<span class="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 font-label-sm text-label-sm font-bold">Attente salon</span>
+</div>
+<span class="font-body-sm text-body-sm text-outline mt-0.5">Temps moyen attente: 12 min</span>
+</div>
+<div class="w-12 h-12 rounded-xl bg-amber-50 flex items-center justify-center text-amber-700">
+<span class="material-symbols-outlined text-[24px]">directions_walk</span>
+</div>
+</div>
+<div class="bg-surface-cream rounded-xl p-4 shadow-sm flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Occupation Globale</span>
+<div class="flex items-baseline gap-2 mt-1">
+<span class="font-display-lg text-display-lg text-status-available font-bold">88%</span>
+<span class="font-label-md text-label-md text-outline">Max 94% à 15h</span>
+</div>
+<div class="w-32 bg-surface-container rounded-full h-1.5 mt-2 overflow-hidden">
+<div class="bg-status-available h-full rounded-full" style="width: 88%"></div>
+</div>
+</div>
+<div class="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center text-status-available">
+<span class="material-symbols-outlined text-[24px]">pie_chart</span>
+</div>
+</div>
+<div class="bg-surface-cream rounded-xl p-4 shadow-sm flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-outline uppercase tracking-wider">CA Prévisionnel</span>
+<div class="flex items-baseline gap-1.5 mt-1">
+<span class="font-headline-lg text-headline-lg text-plum-deep font-bold">640 000</span>
+<span class="font-label-sm text-label-sm text-outline">FCFA</span>
+</div>
+<span class="font-body-sm text-body-sm text-primary font-semibold mt-0.5">Wave direct : 320 000 F (50%)</span>
+</div>
+<div class="w-12 h-12 rounded-xl bg-lavender-subtle flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined text-[24px]">account_balance_wallet</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Main Multi-Chair Board + Collapsible Right Flyout -->
+<div class="grid grid-cols-12 gap-6 items-start">
+<!-- Zone Calendrier & Colonnes Multi-Fauteuils (Col 1-9) -->
+<div class="col-span-12 xl:col-span-8 2xl:col-span-9 bg-surface-cream rounded-2xl shadow-sm p-4 overflow-hidden flex flex-col">
+<!-- En-tête des Praticiennes & Postes -->
+<div class="grid grid-cols-12 gap-3 pb-4 border-b-0">
+<div class="col-span-2 flex flex-col justify-end px-2">
+<div class="flex items-center gap-1.5 text-outline">
+<span class="material-symbols-outlined text-[16px]">schedule</span>
+<span class="font-label-sm text-label-sm uppercase tracking-wider">Horaires</span>
+</div>
+<span class="font-label-xs text-[10px] text-outline-variant">GMT / Abidjan</span>
+</div>
+<!-- Praticienne 1 -->
+<div class="col-span-10 grid grid-cols-4 gap-3">
+<!-- Col 1 -->
+<div class="bg-surface-container-low rounded-xl p-2.5 flex items-center justify-between shadow-sm">
+<div class="flex items-center gap-2.5 min-w-0">
+<div class="relative">
+<img class="w-9 h-9 rounded-full object-cover shadow-sm" data-alt="Portrait studio professionnel d'une coiffeuse ivoirienne élégante souriante en tablier violet foncé dans un salon chic à Abidjan" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCq82wRaM6gfoocw5a8FCs9PT9GOhdfkSV64cPha7zo8L4n-O_TkJku7ezTMWe974NkowiEs97-fyO2tXUwA7k9Bn-KRM2mKsdAVfYGee0SMVIzgaIyEVEjj8nCBrXY1P_e8iek-OLXiT90hahy6OOGZnP7FULeMrbjLELJWyzIMG9jrIQ1bigWWKZ1t6t1Koii9Zx4aXYml8DVI1QGmptjB8JKyZ5YCsSXbKVsmV1Q0Ynegnevn2b3"/>
+<span class="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-status-available ring-2 ring-surface-cream"></span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-label-md text-label-md text-text-primary font-bold truncate">Aïcha Kouamé</span>
+<span class="font-label-sm text-label-sm text-primary truncate">Fauteuil VIP #1</span>
+</div>
+</div>
+<span class="px-2 py-0.5 rounded-full bg-secondary-fixed text-on-secondary-fixed text-[10px] font-bold">Occ.</span>
+</div>
+<!-- Col 2 -->
+<div class="bg-surface-container-low rounded-xl p-2.5 flex items-center justify-between shadow-sm">
+<div class="flex items-center gap-2.5 min-w-0">
+<div class="relative">
+<img class="w-9 h-9 rounded-full object-cover shadow-sm" data-alt="Portrait d'une coloriste et coiffeuse africaine aux cheveux stylisés souriante dans un salon de beauté de luxe à Cocody" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDORlg1vTT9LIrrEq92Xw7ctgdtFFXHIw98VVQea7rxmAm6_1gaUUs9ik9bGmcpyy5E-_471CYyZDdMpwXUmRmQnOQ4LvI-r1pr93-xrvUkPCE1ZLif_mnjKY9V6-XZtsfGi6dOFn8bClBGmxgyqkPNFpMVhBtEGrfKPfXFHw02O7VtbYQvDCRzka8qsnWT1YlGtcedBsa6VvWJzro4e0D3mf0hMBgeCPLqW5mClAi85nnbj5fV6DSx"/>
+<span class="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-status-available ring-2 ring-surface-cream"></span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-label-md text-label-md text-text-primary font-bold truncate">Sarah M.</span>
+<span class="font-label-sm text-label-sm text-outline truncate">Fauteuil #2 Color</span>
+</div>
+</div>
+<span class="px-2 py-0.5 rounded-full bg-secondary-fixed text-on-secondary-fixed text-[10px] font-bold">Occ.</span>
+</div>
+<!-- Col 3 -->
+<div class="bg-surface-container-low rounded-xl p-2.5 flex items-center justify-between shadow-sm">
+<div class="flex items-center gap-2.5 min-w-0">
+<div class="relative">
+<img class="w-9 h-9 rounded-full object-cover shadow-sm" data-alt="Portrait d'une praticienne nail artist et manucure soignée dans une ambiance salon de beauté moderne aux tons lilas" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC-GKoU3qBIP1SHUT37Wg2pdzWc0vpUR0KqvPbZOTBZNjIbPfB-RObiIfXjzd0L3RQ4JlUhhnUL_Jk1NEJ8eZ8jX7FUwMWj7Bi8rZGhGRw2VVcIZYRJbO2CUlYKiSO0Zx1DmgeknV193qzIVIjjD2_zNqeonsjp4mn1qkjF24kaXclBy9w7qpynC5iJtXXcJQEpO6giSM87z0dVKY5LaBaQeZWPns7GaMPERQByHCm6SrZ1faQUokj3"/>
+<span class="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-status-available ring-2 ring-surface-cream"></span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-label-md text-label-md text-text-primary font-bold truncate">Patricia D.</span>
+<span class="font-label-sm text-label-sm text-outline truncate">Nail Bar #1</span>
+</div>
+</div>
+<span class="px-2 py-0.5 rounded-full bg-status-available/10 text-status-available text-[10px] font-bold">Dispo 12h</span>
+</div>
+<!-- Col 4 -->
+<div class="bg-surface-container-low rounded-xl p-2.5 flex items-center justify-between shadow-sm">
+<div class="flex items-center gap-2.5 min-w-0">
+<div class="relative">
+<img class="w-9 h-9 rounded-full object-cover shadow-sm" data-alt="Portrait d'une thérapeute spa et masseuse professionnelle en tenue bien-être lin blanc et violet dans une cabine tamisée" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBu6b0qvjst2pIU0XSunpDooc8ROkAzahcDF0YXbXWfu3C5HORas0VTCed3a5WLZpk6syxhGI6O1wtORbL7ZWhuzKkSzPb19qWyrAsDhYAQFyAVY2CintxovvE9DssnNGNFq0PIcomQNIIVwkodsf-Z52ykoNMYFbom1uAj_B0YwuWVM2WSO5bmfCXzLMW-vn_g9c6TqUxRbA1-D0-IDowzCt0QuRd3JWezoVtt656aF7I5RYTq0s-9"/>
+<span class="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-status-available ring-2 ring-surface-cream"></span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-label-md text-label-md text-text-primary font-bold truncate">Mireille O.</span>
+<span class="font-label-sm text-label-sm text-outline truncate">Cabine Orchidée</span>
+</div>
+</div>
+<span class="px-2 py-0.5 rounded-full bg-secondary-fixed text-on-secondary-fixed text-[10px] font-bold">Occ.</span>
+</div>
+</div>
+</div>
+<!-- Grille horaire dynamique avec fil temporel -->
+<div class="relative flex flex-col gap-3 pt-3 overflow-y-auto max-h-[820px] pr-1">
+<!-- Horodatage : 09:00 -->
+<div class="grid grid-cols-12 gap-3 min-h-[96px] items-start">
+<div class="col-span-2 pt-1 flex flex-col">
+<span class="font-label-md text-label-md font-bold text-text-primary">09:00</span>
+<span class="font-label-sm text-label-sm text-outline">09:30</span>
+</div>
+<div class="col-span-10 grid grid-cols-4 gap-3 h-full">
+<!-- Aïcha : Marie-Estelle K. (Terminé) -->
+<div class="bg-status-available/10 rounded-xl p-3 flex flex-col justify-between shadow-sm hover:shadow-md transition-shadow cursor-pointer">
+<div class="flex items-start justify-between gap-1">
+<div class="flex flex-col min-w-0">
+<span class="font-label-md text-label-md font-bold text-text-primary truncate">Marie-Estelle K.</span>
+<span class="font-body-sm text-body-sm text-outline truncate">Brushing &amp; Soin Karité</span>
+</div>
+<span class="material-symbols-outlined text-[16px] text-status-available">check_circle</span>
+</div>
+<div class="flex items-center justify-between text-[11px] font-label-sm text-status-available font-semibold mt-2">
+<span>09:00 - 10:30</span>
+<span>Terminé • 22k F</span>
+</div>
+</div>
+<!-- Sarah : 09:30 Botox -->
+<div class="bg-status-available/10 rounded-xl p-3 flex flex-col justify-between shadow-sm hover:shadow-md transition-shadow cursor-pointer">
+<div class="flex items-start justify-between gap-1">
+<div class="flex flex-col min-w-0">
+<span class="font-label-md text-label-md font-bold text-text-primary truncate">Yasmine B.</span>
+<span class="font-body-sm text-body-sm text-outline truncate">Botox Capillaire &amp; Brushing</span>
+</div>
+<span class="material-symbols-outlined text-[16px] text-status-available">check_circle</span>
+</div>
+<div class="flex items-center justify-between text-[11px] font-label-sm text-status-available font-semibold mt-2">
+<span>09:30 - 11:30</span>
+<span>Terminé • 45k F</span>
+</div>
+</div>
+<!-- Patricia : Préparation poste -->
+<div class="bg-surface-container/50 rounded-xl p-2.5 flex flex-col justify-center items-center text-center">
+<span class="font-label-sm text-label-sm text-outline">Nettoyage &amp; stérilisation instruments</span>
+</div>
+<!-- Mireille : Pause matinale ou dispo -->
+<div class="bg-surface-container-low rounded-xl p-2.5 flex flex-col justify-between group hover:bg-lavender-subtle/60 transition-colors">
+<span class="font-label-sm text-label-sm text-outline">Créneau libre</span>
+<button class="text-primary font-label-sm text-label-sm flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-[14px]">add</span> Assigner
+              </button>
+</div>
+</div>
+</div>
+<!-- Horodatage : 10:00 - 11:00 -->
+<div class="grid grid-cols-12 gap-3 min-h-[105px] items-start">
+<div class="col-span-2 pt-1 flex flex-col">
+<span class="font-label-md text-label-md font-bold text-text-primary">10:00</span>
+<span class="font-label-sm text-label-sm text-outline">10:30</span>
+</div>
+<div class="col-span-10 grid grid-cols-4 gap-3 h-full">
+<!-- Aïcha : Suite soin + transition -->
+<div class="bg-surface-container-low rounded-xl p-2.5 flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-outline">Fin &amp; rinçage bac</span>
+<span class="font-label-sm text-label-sm text-status-available">OK</span>
+</div>
+<span class="text-[11px] text-outline">Désinfection Fauteuil VIP</span>
+</div>
+<!-- Sarah : En cours Botox -->
+<div class="bg-lavender-subtle/60 rounded-xl p-3 flex flex-col justify-between">
+<span class="font-label-sm text-label-sm text-primary font-semibold">Sous casque à vapeur</span>
+<span class="text-[11px] text-outline">Soin actif</span>
+</div>
+<!-- Patricia : Chloé V. (En cours) -->
+<div class="bg-primary/10 rounded-xl p-3 flex flex-col justify-between shadow-sm hover:shadow-md transition-shadow">
+<div class="flex items-start justify-between gap-1">
+<div class="flex flex-col min-w-0">
+<span class="font-label-md text-label-md font-bold text-plum-deep truncate">Chloé V.</span>
+<span class="font-body-sm text-body-sm text-primary truncate">Pose Gel &amp; Nail Art Chromé</span>
+</div>
+<span class="w-2 h-2 rounded-full bg-secondary animate-pulse"></span>
+</div>
+<div class="flex items-center justify-between text-[11px] font-label-sm text-primary font-bold mt-2">
+<span>10:00 - 11:15</span>
+<span>Solde réglé</span>
+</div>
+</div>
+<!-- Mireille : Reine A. Massage -->
+<div class="bg-status-available/10 rounded-xl p-3 flex flex-col justify-between shadow-sm">
+<div class="flex items-start justify-between gap-1">
+<div class="flex flex-col min-w-0">
+<span class="font-label-md text-label-md font-bold text-text-primary truncate">Reine A.</span>
+<span class="font-body-sm text-body-sm text-outline truncate">Massage Pochons Chauds</span>
+</div>
+<span class="material-symbols-outlined text-[16px] text-status-available">check_circle</span>
+</div>
+<div class="flex items-center justify-between text-[11px] font-label-sm text-status-available font-semibold mt-2">
+<span>10:00 - 11:30</span>
+<span>Terminé • 38k F</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Indicator Current Time : 11:45 Direct Indicator -->
+<div class="relative py-1 my-1">
+<div class="flex items-center gap-2">
+<span class="px-2 py-0.5 rounded-full bg-secondary text-on-secondary font-label-sm text-[11px] font-bold shadow-sm">11:45 Direct</span>
+<div class="flex-1 h-[2px] bg-secondary/80 rounded-full"></div>
+</div>
+</div>
+<!-- Horodatage : 11:00 - 14:00 (Créneaux Longs VIP & En cours) -->
+<div class="grid grid-cols-12 gap-3 min-h-[220px] items-start">
+<div class="col-span-2 pt-1 flex flex-col">
+<span class="font-label-md text-label-md font-bold text-secondary">11:00</span>
+<span class="font-label-sm text-label-sm text-outline">12:00</span>
+<span class="font-label-sm text-label-sm text-outline mt-8">13:00</span>
+<span class="font-label-sm text-label-sm text-outline mt-8">14:00</span>
+</div>
+<div class="col-span-10 grid grid-cols-4 gap-3 h-full">
+<!-- Aïcha : Fatoumata Konaté (Actif Surligné Keke VIP) -->
+<div class="bg-primary text-on-primary rounded-xl p-3.5 flex flex-col justify-between shadow-xl ring-4 ring-primary/20 cursor-pointer transform hover:scale-[1.01] transition-transform">
+<div class="flex flex-col gap-2">
+<div class="flex items-start justify-between gap-1">
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-1.5">
+<span class="font-headline-sm text-headline-sm font-bold text-on-primary truncate">Fatoumata Konaté</span>
+<span class="material-symbols-outlined text-amber-300 text-[18px]">verified</span>
+</div>
+<span class="text-on-primary-container text-[12px] font-semibold">Knotless Braids Taille L (3h00)</span>
+</div>
+<span class="px-2 py-0.5 rounded-full bg-on-primary/20 text-on-primary text-[10px] uppercase font-bold tracking-wider">En direct</span>
+</div>
+<div class="flex flex-wrap gap-1.5 mt-1">
+<span class="px-2 py-0.5 rounded-md bg-plum-deep text-primary-fixed text-[10px] font-bold">Fauteuil VIP #1</span>
+<span class="px-2 py-0.5 rounded-md bg-emerald-500/30 text-emerald-200 text-[10px] font-bold flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px]">payments</span> Acompte Wave 50%
+                  </span>
+</div>
+<div class="p-2 rounded-lg bg-plum-deep/60 mt-1">
+<div class="flex items-center gap-1 text-amber-300 text-[11px] font-bold">
+<span class="material-symbols-outlined text-[14px]">warning</span>
+<span>Note d'attention cliente :</span>
+</div>
+<p class="text-[11px] text-on-tertiary-container leading-tight mt-0.5">Cuir chevelu sensible aux tempes. Tressage ultra souple sans traction.</p>
+</div>
+</div>
+<div class="flex flex-col gap-1.5 pt-2 border-t border-on-primary/10">
+<div class="flex items-center justify-between text-[11px] text-on-primary-container font-semibold">
+<span>Temps écoulé : 1h45 / 3h00</span>
+<span class="text-on-primary font-bold">58%</span>
+</div>
+<div class="w-full bg-on-primary/20 h-1.5 rounded-full overflow-hidden">
+<div class="bg-amber-300 h-full rounded-full" style="width: 58%"></div>
+</div>
+</div>
+</div>
+<!-- Sarah : Estelle D. (Coloration Végétale) -->
+<div class="flex flex-col gap-2 h-full">
+<div class="bg-secondary/15 rounded-xl p-3 flex flex-col justify-between shadow-sm min-h-[120px]">
+<div class="flex items-start justify-between">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md font-bold text-text-primary">Estelle D.</span>
+<span class="font-body-sm text-body-sm text-secondary font-medium">Coloration Végétale Marron Chaud</span>
+</div>
+<span class="w-2 h-2 rounded-full bg-secondary animate-pulse"></span>
+</div>
+<div class="flex items-center justify-between text-[11px] text-outline font-semibold">
+<span>11:45 - 13:00</span>
+<span class="text-primary font-bold">28 000 FCFA</span>
+</div>
+</div>
+<!-- Sarah : Pause Déjeuner Déclarée -->
+<div class="bg-surface-container/60 rounded-xl p-3 flex items-center justify-between flex-1">
+<div class="flex items-center gap-2 text-outline">
+<span class="material-symbols-outlined text-[18px]">restaurant</span>
+<span class="font-label-sm text-label-sm">Pause Déjeuner Équipe</span>
+</div>
+<span class="text-[11px] text-outline">14:00 - 15:30</span>
+</div>
+</div>
+<!-- Patricia : Créneau Disponible Immédiat (Surbrillance verte d'appel) -->
+<div class="flex flex-col gap-2 h-full">
+<div class="bg-emerald-50 rounded-xl p-3.5 flex flex-col justify-between shadow-sm min-h-[120px] transition-all hover:bg-emerald-100/70">
+<div class="flex items-center justify-between">
+<span class="px-2 py-0.5 rounded-full bg-status-available text-on-primary font-label-sm text-[10px] font-bold">Créneau Libre</span>
+<span class="font-label-sm text-label-sm text-status-available font-bold">11:30 - 13:00</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md font-bold text-status-available">Bar à Ongles Libre</span>
+<span class="text-[11px] text-outline">Idéal pour Walk-in ou pose vernis express</span>
+</div>
+<button class="w-full py-1.5 px-3 rounded-lg bg-status-available text-on-primary font-label-sm text-label-sm font-bold flex items-center justify-center gap-1 shadow-sm hover:scale-[0.98] transition-transform">
+<span class="material-symbols-outlined text-[14px]">add</span>
+<span>+ Assigner Walk-in</span>
+</button>
+</div>
+<!-- Patricia : Aminata T. -->
+<div class="bg-surface-container-low rounded-xl p-3 flex flex-col justify-between flex-1 shadow-sm">
+<div class="flex items-start justify-between">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md font-bold text-text-primary">Aminata T.</span>
+<span class="font-body-sm text-body-sm text-outline">Spa des Pieds &amp; Balnéo</span>
+</div>
+<span class="material-symbols-outlined text-[16px] text-outline">schedule</span>
+</div>
+<div class="flex items-center justify-between text-[11px] text-outline font-semibold">
+<span>13:30 - 15:00</span>
+<span class="text-plum-deep font-bold">18 500 FCFA</span>
+</div>
+</div>
+</div>
+<!-- Mireille : Bintou S. Rituel Hammam -->
+<div class="flex flex-col gap-2 h-full">
+<div class="bg-secondary/15 rounded-xl p-3 flex flex-col justify-between shadow-sm min-h-[130px]">
+<div class="flex items-start justify-between">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md font-bold text-text-primary">Bintou S.</span>
+<span class="font-body-sm text-body-sm text-secondary font-semibold">Rituel Hammam &amp; Gommage</span>
+</div>
+<span class="w-2 h-2 rounded-full bg-secondary animate-pulse"></span>
+</div>
+<div class="flex items-center justify-between text-[11px] text-outline font-semibold">
+<span>12:00 - 13:30</span>
+<span class="text-primary font-bold">35 000 FCFA</span>
+</div>
+</div>
+<!-- Mireille : Duo Relaxant Couple -->
+<div class="bg-surface-container-low rounded-xl p-3 flex flex-col justify-between flex-1 shadow-sm">
+<div class="flex items-start justify-between">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md font-bold text-text-primary">Duo Relaxant Couple</span>
+<span class="font-body-sm text-body-sm text-outline">Massage Huiles Précieuses</span>
+</div>
+<span class="material-symbols-outlined text-[16px] text-outline">alarm</span>
+</div>
+<div class="flex items-center justify-between text-[11px] text-outline font-semibold">
+<span>14:30 - 16:00</span>
+<span class="text-plum-deep font-bold">60 000 FCFA</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Horodatage : Après-Midi (14:30 - 18:30) -->
+<div class="grid grid-cols-12 gap-3 min-h-[120px] items-start pt-2">
+<div class="col-span-2 pt-1 flex flex-col">
+<span class="font-label-md text-label-md font-bold text-text-primary">14:30</span>
+<span class="font-label-sm text-label-sm text-outline">16:30</span>
+<span class="font-label-sm text-label-sm text-outline mt-6">17:00</span>
+</div>
+<div class="col-span-10 grid grid-cols-4 gap-3 h-full">
+<!-- Aïcha : Sali Coulibaly puis Christiane Brou -->
+<div class="flex flex-col gap-2">
+<div class="bg-surface-container-low rounded-xl p-2.5 flex flex-col justify-between shadow-sm">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md font-bold text-text-primary truncate">Sali Coulibaly</span>
+<span class="text-[10px] px-1.5 py-0.5 rounded bg-surface-container text-outline font-bold">14:30</span>
+</div>
+<span class="font-body-sm text-body-sm text-outline truncate">Lavage &amp; Tissage Ouvert</span>
+<span class="text-[11px] text-primary font-semibold mt-1">Acompte Wave validé</span>
+</div>
+<div class="bg-surface-container-low rounded-xl p-2.5 flex flex-col justify-between shadow-sm">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md font-bold text-text-primary truncate">Christiane Brou</span>
+<span class="text-[10px] px-1.5 py-0.5 rounded bg-surface-container text-outline font-bold">17:00</span>
+</div>
+<span class="font-body-sm text-body-sm text-outline truncate">Pose Perruque Lace Frontal</span>
+<span class="text-[11px] text-status-available font-semibold mt-1">30 000 FCFA</span>
+</div>
+</div>
+<!-- Sarah : Nadège K. -->
+<div class="bg-surface-container-low rounded-xl p-3 flex flex-col justify-between shadow-sm">
+<div class="flex items-start justify-between">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md font-bold text-text-primary">Nadège K.</span>
+<span class="font-body-sm text-body-sm text-outline">Soin Profond Vapeur &amp; Brush</span>
+</div>
+<span class="material-symbols-outlined text-[16px] text-outline">event</span>
+</div>
+<div class="flex items-center justify-between text-[11px] text-outline font-semibold">
+<span>15:30 - 17:30</span>
+<span class="text-plum-deep font-bold">25 000 FCFA</span>
+</div>
+</div>
+<!-- Patricia : Créneau Soirée -->
+<div class="bg-surface-container-low rounded-xl p-3 flex flex-col justify-between shadow-sm">
+<div class="flex items-start justify-between">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md font-bold text-text-primary">Awa Diop</span>
+<span class="font-body-sm text-body-sm text-outline">Pose Capsule Américaine</span>
+</div>
+<span class="material-symbols-outlined text-[16px] text-outline">event</span>
+</div>
+<div class="flex items-center justify-between text-[11px] text-outline font-semibold">
+<span>16:00 - 17:30</span>
+<span class="text-plum-deep font-bold">20 000 FCFA</span>
+</div>
+</div>
+<!-- Mireille : Préparation rituel soir -->
+<div class="bg-surface-container-low rounded-xl p-3 flex flex-col justify-between shadow-sm">
+<div class="flex items-start justify-between">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md font-bold text-text-primary">Clôture Cabine</span>
+<span class="font-body-sm text-body-sm text-outline">Désinfection &amp; Aromathérapie</span>
+</div>
+<span class="material-symbols-outlined text-[16px] text-outline">cleaning_services</span>
+</div>
+<div class="text-[11px] text-outline">
+<span>17:00 - 18:30</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Volet Latéral Droit : Fiche Détaillée du Rendez-Vous Actif (Col 10-12) -->
+<div class="col-span-12 xl:col-span-4 2xl:col-span-3 flex flex-col gap-4">
+<!-- Fiche Client en Cours -->
+<div class="bg-surface-cream rounded-2xl p-5 shadow-sm flex flex-col gap-4">
+<div class="flex items-center justify-between pb-3 border-b-0">
+<div class="flex items-center gap-2">
+<span class="w-2.5 h-2.5 rounded-full bg-secondary animate-ping"></span>
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-plum-deep font-bold">En cabine actuellement</span>
+</div>
+<span class="px-2.5 py-0.5 rounded-full bg-lavender-subtle text-primary font-label-sm text-label-sm font-bold">Fauteuil VIP #1</span>
+</div>
+<!-- Profil Cliente -->
+<div class="flex items-center gap-3.5">
+<img class="w-14 h-14 rounded-2xl object-cover shadow-sm" data-alt="Portrait rapproché élégant d'une jeune femme ivoirienne raffinée souriante cliente d'un spa de luxe à Abidjan" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCehB-t-ONg6mnEWP7o6b_765VQaWgO8ZkKMvX4VuBRgsPgJ7untfFYoQxRH7ho7Bw1YAATtudXo-pWb8YY6qg-taBJGWD_z7o7wP1VdfrfimLBXq6JTpPILvpjaoBqq0mYksVvwIfSIdf6gkz8H1ht0Fn-yXYSpsj69tjFoWftBC5ToqXmBjY7ldVvfnXOaFc6K3T59AwYRwru1NHdwky5mEzyN9B_pc5warHfRstii9BEYqGNWbg0"/>
+<div class="flex flex-col">
+<div class="flex items-center gap-1.5">
+<h3 class="font-headline-sm text-headline-sm text-text-primary font-bold">Fatoumata Konaté</h3>
+<span class="material-symbols-outlined text-amber-500 text-[18px]" title="Cliente Gold Keke">workspace_premium</span>
+</div>
+<span class="font-label-sm text-label-sm text-outline">Membre VIP Keke Gold • 14ème RDV</span>
+<span class="font-label-sm text-label-sm text-primary font-semibold">+225 07 88 99 11 20</span>
+</div>
+</div>
+<!-- Minuteur en direct -->
+<div class="bg-lavender-subtle rounded-xl p-3.5 flex flex-col gap-2">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-1.5 text-primary">
+<span class="material-symbols-outlined text-[18px]">timelapse</span>
+<span class="font-label-md text-label-md font-bold">Chronomètre Prestation</span>
+</div>
+<span class="font-headline-sm text-headline-sm font-bold text-plum-deep font-mono">01:45:12</span>
+</div>
+<div class="w-full bg-surface-container-high h-2 rounded-full overflow-hidden">
+<div class="bg-primary h-full rounded-full transition-all" style="width: 58%"></div>
+</div>
+<div class="flex justify-between text-[11px] text-outline">
+<span>Début : 11:00</span>
+<span>Fin estimée : 14:00 (Reste ~1h15)</span>
+</div>
+</div>
+<!-- Détail Financier & Acompte Wave -->
+<div class="bg-surface-container-low rounded-xl p-3.5 flex flex-col gap-2.5">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-outline font-bold">Règlement &amp; Acomptes</span>
+<div class="flex justify-between items-center text-body-sm text-body-sm">
+<span class="text-on-surface-variant">Soin : Knotless Braids Taille L</span>
+<span class="font-bold text-text-primary">36 000 FCFA</span>
+</div>
+<div class="flex justify-between items-center text-body-sm text-body-sm text-status-available">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">verified</span>
+<span>Acompte Wave perçu (50%)</span>
+</div>
+<span class="font-bold">- 18 000 FCFA</span>
+</div>
+<div class="h-[1px] bg-outline-variant/30 my-0.5"></div>
+<div class="flex justify-between items-center">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-outline">Solde à encaisser au comptoir</span>
+<span class="font-label-xs text-[10px] text-outline">Wave, Orange Money ou Espèces</span>
+</div>
+<span class="font-headline-sm text-headline-sm font-bold text-plum-deep">18 000 FCFA</span>
+</div>
+</div>
+<!-- Alertes de Stock & Fiche Technique -->
+<div class="bg-amber-50 rounded-xl p-3 flex flex-col gap-1.5">
+<div class="flex items-center gap-1.5 text-amber-800 font-label-sm text-label-sm font-bold">
+<span class="material-symbols-outlined text-[16px]">inventory_2</span>
+<span>Consommables &amp; Stock Déstocké</span>
+</div>
+<p class="font-body-sm text-body-sm text-amber-900 leading-snug">
+            3x Paquets Mèches X-pression N°1B prélevés automatiquement de la réserve salon pour ce soin.
+          </p>
+</div>
+<!-- Boutons d'Action Rapides Gérant -->
+<div class="flex flex-col gap-2 pt-2">
+<button class="w-full py-2.5 px-4 rounded-xl bg-primary hover:bg-plum-deep text-on-primary font-label-lg text-label-lg font-bold flex items-center justify-center gap-2 shadow-md hover:scale-[0.99] transition-all">
+<span class="material-symbols-outlined text-[18px]">point_of_sale</span>
+<span>Encaisser le solde (18 000 FCFA)</span>
+</button>
+<div class="grid grid-cols-2 gap-2">
+<a class="py-2 px-3 rounded-xl bg-emerald-100 hover:bg-emerald-200 text-emerald-900 font-label-sm text-label-sm font-bold flex items-center justify-center gap-1.5 transition-colors" href="https://wa.me/2250788991120" target="_blank">
+<span class="material-symbols-outlined text-[16px]">chat</span>
+<span>WhatsApp</span>
+</a>
+<button class="py-2 px-3 rounded-xl bg-surface-container hover:bg-surface-container-high text-plum-deep font-label-sm text-label-sm font-bold flex items-center justify-center gap-1.5 transition-colors">
+<span class="material-symbols-outlined text-[16px]">receipt_long</span>
+<span>Imprimer Ticket</span>
+</button>
+</div>
+<button class="w-full py-2 px-3 rounded-xl text-on-surface-variant hover:text-text-primary hover:bg-surface-container text-label-sm font-label-sm transition-colors text-center">
+            Modifier la prestation ou réassigner la praticienne
+          </button>
+</div>
+</div>
+<!-- File d'Attente Walk-in Immédiate -->
+<div class="bg-surface-cream rounded-2xl p-4 shadow-sm flex flex-col gap-3">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[20px] text-secondary">groups</span>
+<span class="font-label-lg text-label-lg font-bold text-text-primary">File Walk-in Salon (4)</span>
+</div>
+<span class="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[11px] font-bold">En attente</span>
+</div>
+<div class="flex flex-col gap-2">
+<!-- Walk-in 1 -->
+<div class="bg-surface-container-low rounded-xl p-2.5 flex items-center justify-between hover:bg-lavender-subtle/50 transition-colors">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md font-bold text-text-primary">Kady C.</span>
+<span class="text-[11px] text-outline">Pose Vernis Simple • Attente : 8 min</span>
+</div>
+<button class="px-2.5 py-1 rounded-lg bg-status-available text-on-primary font-label-sm text-label-sm font-bold shadow-sm">
+              Placer (11h30)
+            </button>
+</div>
+<!-- Walk-in 2 -->
+<div class="bg-surface-container-low rounded-xl p-2.5 flex items-center justify-between hover:bg-lavender-subtle/50 transition-colors">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md font-bold text-text-primary">Josiane G.</span>
+<span class="text-[11px] text-outline">Lavage &amp; Séchage • Attente : 15 min</span>
+</div>
+<button class="px-2.5 py-1 rounded-lg bg-surface-container text-primary font-label-sm text-label-sm font-bold hover:bg-lavender-subtle">
+              Bac #2
+            </button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div></main></div></body></html>

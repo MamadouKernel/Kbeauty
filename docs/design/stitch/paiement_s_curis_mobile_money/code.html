@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+
+<html class="h-full" lang="fr"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/><meta content="mobile_stack" name="shell-type"/><title>Paiement Sécurisé Mobile Money - Keke Beauty</title><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: 'class', theme: { extend: { colors: { 'inverse-surface': '#30302f', 'status-unavailable': '#D32F2F', 'text-primary': '#241032', 'on-secondary-fixed': '#2c0051', 'on-primary-container': '#cf8bf2', 'on-error-container': '#93000a', 'inverse-on-surface': '#f3f0ee', 'inverse-primary': '#e7b3ff', 'on-tertiary-container': '#b19fc6', 'on-error': '#ffffff', 'secondary': '#821dda', 'status-available': '#1B8755', 'on-tertiary-fixed': '#221534', 'surface-variant': '#e5e2e0', 'primary-fixed': '#f6d9ff', 'on-primary-fixed': '#310049', 'surface-container-low': '#f6f3f1', 'tertiary-fixed': '#eddcff', 'surface-container': '#f0edeb', 'primary-container': '#5b1b7d', 'secondary-fixed-dim': '#dcb8ff', 'surface': '#fcf9f7', 'on-background': '#1b1c1b', 'on-surface-variant': '#4d4450', 'outline-variant': '#d0c2d1', 'lavender-subtle': '#F4EEFB', 'surface-container-lowest': '#ffffff', 'on-secondary-fixed-variant': '#6700b5', 'surface-container-highest': '#e5e2e0', 'on-surface': '#1b1c1b', 'secondary-container': '#9c42f4', 'tertiary-container': '#433556', 'surface-bright': '#fcf9f7', 'tertiary': '#2d203f', 'secondary-fixed': '#efdbff', 'on-primary-fixed-variant': '#672889', 'error': '#ba1a1a', 'on-tertiary-fixed-variant': '#4f4062', 'on-secondary-container': '#fffbff', 'on-tertiary': '#ffffff', 'surface-cream': '#FFFDF9', 'background': '#fcf9f7', 'surface-dim': '#dcd9d8', 'error-container': '#ffdad6', 'on-secondary': '#ffffff', 'tertiary-fixed-dim': '#d2bfe8', 'primary': '#410060', 'plum-deep': '#3A0D52', 'on-primary': '#ffffff', 'outline': '#7f7381', 'primary-fixed-dim': '#e7b3ff', 'surface-tint': '#8142a3', 'surface-container-high': '#eae8e6' }, borderRadius: { 'DEFAULT': '0.25rem', 'lg': '0.5rem', 'xl': '0.75rem', 'full': '9999px' }, spacing: { 'gutter': '1rem', 'space-xl': '2.25rem', 'space-sm': '0.5rem', 'space-lg': '1.5rem', 'margin-desktop': '2.5rem', 'gutter-mobile': '0.75rem', 'margin': '1.25rem', 'space-xs': '0.25rem', 'space-md': '1rem' }, fontFamily: { 'body-sm': ['Plus Jakarta Sans'], 'display-lg': ['Plus Jakarta Sans'], 'display-lg-mobile': ['Plus Jakarta Sans'], 'headline-sm': ['Plus Jakarta Sans'], 'body-md': ['Plus Jakarta Sans'], 'label-sm': ['Plus Jakarta Sans'], 'headline-md': ['Plus Jakarta Sans'], 'headline-lg': ['Plus Jakarta Sans'], 'body-lg': ['Plus Jakarta Sans'], 'label-lg': ['Plus Jakarta Sans'], 'label-md': ['Plus Jakarta Sans'] }, fontSize: { 'body-sm': ['12px', { lineHeight: '16px', fontWeight: '400' }], 'display-lg': ['36px', { lineHeight: '44px', fontWeight: '700' }], 'display-lg-mobile': ['28px', { lineHeight: '36px', fontWeight: '700' }], 'headline-sm': ['18px', { lineHeight: '24px', fontWeight: '600' }], 'body-md': ['14px', { lineHeight: '20px', fontWeight: '400' }], 'label-sm': ['11px', { lineHeight: '14px', fontWeight: '700' }], 'headline-md': ['20px', { lineHeight: '28px', fontWeight: '600' }], 'headline-lg': ['24px', { lineHeight: '32px', fontWeight: '700' }], 'body-lg': ['16px', { lineHeight: '24px', fontWeight: '400' }], 'label-lg': ['14px', { lineHeight: '18px', fontWeight: '600' }], 'label-md': ['12px', { lineHeight: '16px', fontWeight: '600' }] } } } };</script><style>@layer base { html, body { margin: 0; padding: 0; min-height: 100%; -webkit-tap-highlight-color: transparent; } .pb-safe { padding-bottom: env(safe-area-inset-bottom, 0px); } .pt-safe { padding-top: env(safe-area-inset-top, 0px); } } .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }</style><style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head><body class="bg-surface font-body-md text-body-md text-on-surface antialiased flex flex-col min-h-screen"><header class="fixed top-0 w-full z-50 pt-safe bg-surface-cream/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="h-16 px-gutter flex items-center justify-between gap-space-sm"><div class="flex items-center gap-space-xs min-w-0"><button aria-label="Retour" class="w-11 h-11 -ml-space-xs flex items-center justify-center rounded-full text-text-primary hover:bg-lavender-subtle active:scale-95 transition-all" onclick="history.back()"><span class="material-symbols-outlined text-[22px]">arrow_back_ios_new</span></button><h1 class="font-headline-sm text-headline-sm text-text-primary font-semibold truncate">Paiement Sécurisé Mobile Money</h1></div><div class="flex items-center gap-space-xs shrink-0"><div class="flex items-center gap-1 px-2.5 py-1 rounded-full bg-lavender-subtle text-primary border border-primary/10 shadow-sm"><span class="material-symbols-outlined text-[16px] text-status-available">verified_user</span><span class="font-label-sm text-label-sm text-primary font-bold uppercase tracking-wider">100% Sécurisé</span></div></div></div></header><main class="flex-1 flex flex-col relative w-full pt-16 bg-surface"><div class="flex flex-col w-full pb-safe">
+<!-- Progress Bar (Compact & Reassuring) -->
+<div class="px-margin pt-space-sm pb-space-xs">
+<div class="flex items-center justify-between font-label-sm text-label-sm text-on-surface-variant mb-1.5">
+<span class="text-primary font-bold">Étape 3 sur 3 • Finalisation</span>
+<span class="flex items-center gap-1 text-status-available font-bold">
+<span class="w-1.5 h-1.5 rounded-full bg-status-available animate-pulse"></span>
+        Réservation verrouillée (14:48)
+      </span>
+</div>
+<div class="w-full h-1.5 bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-primary-container rounded-full w-full"></div>
+</div>
+</div>
+<!-- Booking Summary Card -->
+<div class="px-margin my-space-sm">
+<div class="bg-surface-cream rounded-xl p-space-md shadow-sm">
+<div class="flex items-start justify-between gap-space-sm pb-space-sm">
+<div class="flex items-center gap-space-sm min-w-0">
+<div class="w-12 h-12 rounded-xl overflow-hidden shrink-0 shadow-inner bg-surface-container">
+<img class="w-full h-full object-cover" data-alt="Intérieur chic et luxueux d'un salon de beauté et spa moderne à Abidjan Cocody avec fauteuils capitonnés velours violet, miroirs ovales dorés et plantes tropicales baignées de lumière douce naturelle" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAegGeBNA6BG26Iv4YVmYnxY_Sf473F9oJWS2rTp7m_SKEdOsCUj2UX4gb4FDMP_v1kYewIoXYIyJRPx4b5jQKBI7UNfCbjrjWgX7gNgqW5ezqv7trKZ49N82k91vmdyZLO74RbUVuRu1w8IHpFvqJ3hNNSc3Ov5Was4oOe3yqxH5yytxnB6VPVtkBBXl-wuRH_rKZt3Gi6jedCmwE81stsa1pqRqCaJqjVtCrTsjxB8HPZ10-YWhVK"/>
+</div>
+<div class="min-w-0">
+<div class="flex items-center gap-1">
+<span class="font-label-md text-label-md text-primary font-bold truncate">L'Impératrice Spa &amp; Salon</span>
+<span class="material-symbols-outlined text-[16px] text-secondary shrink-0" style="font-variation-settings: 'FILL' 1;">verified</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant truncate">Cocody Riviera 3, Abidjan</p>
+</div>
+</div>
+<span class="px-2 py-0.5 rounded-full bg-lavender-subtle text-primary font-label-sm text-label-sm shrink-0">Boutique Spa</span>
+</div>
+<!-- Service Meta Details -->
+<div class="bg-surface-container-low rounded-lg p-space-sm mt-space-xs space-y-2">
+<div class="flex items-start gap-space-xs">
+<span class="material-symbols-outlined text-[18px] text-primary-container shrink-0 mt-0.5">spa</span>
+<div class="min-w-0 flex-1">
+<p class="font-label-md text-label-md text-text-primary font-semibold">Tresses Knotless Braids Taille L</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Mèches premium incluses • ~3h30</p>
+</div>
+</div>
+<div class="flex items-center justify-between pt-1 text-on-surface-variant font-body-sm text-body-sm">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px] text-primary">calendar_today</span>
+<span>Mar. 15 Avril 2025 à 11h30</span>
+</div>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px] text-secondary">face_retouching_natural</span>
+<span class="font-medium text-text-primary">Aïcha (Spécialiste)</span>
+</div>
+</div>
+</div>
+<!-- Price Breakdown Highlight Box -->
+<div class="mt-space-sm p-3.5 rounded-xl bg-primary-container text-on-primary flex items-center justify-between shadow-md">
+<div>
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-primary-fixed opacity-90 block">Montant à régler maintenant</span>
+<span class="font-display-lg-mobile text-display-lg-mobile font-bold tracking-tight">18 000 FCFA</span>
+</div>
+<div class="text-right">
+<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-surface-cream text-primary font-label-sm text-label-sm font-bold shadow-sm">
+<span class="material-symbols-outlined text-[14px]">check_circle</span>
+            Totalité
+          </span>
+<span class="block font-label-sm text-label-sm text-primary-fixed mt-1">Zéro frais masqué</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Payment Method Toggle / Navigation Tabs -->
+<div class="px-margin pt-space-xs">
+<div class="flex items-center justify-between mb-space-xs">
+<h2 class="font-headline-sm text-headline-sm text-text-primary font-bold">Moyen de paiement</h2>
+<span class="font-label-sm text-label-sm text-primary font-medium flex items-center gap-1">
+<span class="material-symbols-outlined text-[15px]">bolt</span> Instantané
+      </span>
+</div>
+<div class="grid grid-cols-2 p-1 bg-surface-container rounded-xl">
+<button class="flex items-center justify-center gap-2 py-2.5 rounded-lg bg-surface-cream text-primary font-label-md text-label-md font-bold shadow-sm transition-all" id="tab-momo" onclick="switchMethod('momo')" type="button">
+<span class="material-symbols-outlined text-[18px]">phone_android</span>
+<span>Mobile Money</span>
+<span class="w-1.5 h-1.5 rounded-full bg-status-available"></span>
+</button>
+<button class="flex items-center justify-center gap-2 py-2.5 rounded-lg text-on-surface-variant font-label-md text-label-md font-semibold transition-all hover:text-text-primary" id="tab-card" onclick="switchMethod('card')" type="button">
+<span class="material-symbols-outlined text-[18px]">credit_card</span>
+<span>Carte Bancaire</span>
+</button>
+</div>
+</div>
+<!-- Mobile Money Provider Selection -->
+<div class="px-margin pt-space-md space-y-space-sm" id="momo-section">
+<div class="grid grid-cols-2 gap-2.5">
+<!-- Wave (Selected by default) -->
+<label class="cursor-pointer relative">
+<input checked="" class="sr-only peer" name="momo_operator" onchange="selectOperator('wave', 'Wave', '#1DC3F4', '0% frais supplémentaires')" type="radio" value="wave"/>
+<div class="p-3 rounded-xl bg-surface-cream peer-checked:bg-lavender-subtle shadow-sm flex flex-col justify-between h-28 transition-all">
+<div class="flex items-start justify-between">
+<!-- Wave Penguin Brand Badge Icon -->
+<div class="w-10 h-10 rounded-xl bg-[#1DC3F4]/15 flex items-center justify-center text-[#0B7C9E] font-bold">
+<svg class="w-6 h-6" fill="none" viewbox="0 0 32 32">
+<rect fill="#1DC3F4" height="32" rx="8" width="32"></rect>
+<path d="M16 6C12.134 6 9 9.134 9 13C9 15.65 10.48 17.95 12.65 19.13L11 25H14L15.2 21H16.8L18 25H21L19.35 19.13C21.52 17.95 23 15.65 23 13C23 9.134 19.866 6 16 6Z" fill="white"></path>
+<circle cx="14" cy="12" fill="#241032" r="1.5"></circle>
+<circle cx="18" cy="12" fill="#241032" r="1.5"></circle>
+<path d="M14.5 15.5H17.5" stroke="#F59E0B" stroke-linecap="round" stroke-width="1.5"></path>
+</svg>
+</div>
+<div class="w-5 h-5 rounded-full bg-primary flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined text-[14px]">done</span>
+</div>
+</div>
+<div>
+<div class="flex items-center gap-1">
+<span class="font-label-md text-label-md font-bold text-text-primary">Wave CI</span>
+<span class="px-1 py-0.2 bg-[#1DC3F4]/20 text-[#075973] font-label-sm text-label-sm rounded text-[10px]">Direct</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant text-[11px]">0% frais • Validation Push</p>
+</div>
+</div>
+</label>
+<!-- Orange Money -->
+<label class="cursor-pointer relative">
+<input class="sr-only peer" name="momo_operator" onchange="selectOperator('orange', 'Orange Money', '#FF7900', 'Code secret ou push #144#')" type="radio" value="orange"/>
+<div class="p-3 rounded-xl bg-surface-cream peer-checked:bg-lavender-subtle shadow-sm flex flex-col justify-between h-28 transition-all">
+<div class="flex items-start justify-between">
+<!-- Orange Money Icon -->
+<div class="w-10 h-10 rounded-xl bg-[#FF7900]/15 flex items-center justify-center">
+<div class="w-7 h-7 rounded-md bg-[#FF7900] flex items-center justify-center text-white font-bold font-display-lg-mobile text-[13px]">
+                OM
+              </div>
+</div>
+<div class="w-5 h-5 rounded-full bg-surface-container flex items-center justify-center text-transparent peer-checked:bg-primary peer-checked:text-on-primary">
+<span class="material-symbols-outlined text-[14px]">done</span>
+</div>
+</div>
+<div>
+<span class="font-label-md text-label-md font-bold text-text-primary">Orange Money</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant text-[11px]">Validation via #144#</p>
+</div>
+</div>
+</label>
+<!-- MTN MoMo -->
+<label class="cursor-pointer relative">
+<input class="sr-only peer" name="momo_operator" onchange="selectOperator('mtn', 'MTN MoMo', '#FFCC00', 'Validation sécurisée *133#')" type="radio" value="mtn"/>
+<div class="p-3 rounded-xl bg-surface-cream peer-checked:bg-lavender-subtle shadow-sm flex flex-col justify-between h-28 transition-all">
+<div class="flex items-start justify-between">
+<!-- MTN Icon -->
+<div class="w-10 h-10 rounded-xl bg-[#FFCC00]/25 flex items-center justify-center">
+<span class="font-bold text-[13px] text-[#241032] tracking-tight bg-[#FFCC00] px-1.5 py-0.5 rounded">MoMo</span>
+</div>
+<div class="w-5 h-5 rounded-full bg-surface-container flex items-center justify-center text-transparent">
+<span class="material-symbols-outlined text-[14px]">done</span>
+</div>
+</div>
+<div>
+<span class="font-label-md text-label-md font-bold text-text-primary">MTN MoMo</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant text-[11px]">Validation code USSD</p>
+</div>
+</div>
+</label>
+<!-- Moov Money -->
+<label class="cursor-pointer relative">
+<input class="sr-only peer" name="momo_operator" onchange="selectOperator('moov', 'Moov Money', '#0070B8', 'Paiement instantané Flooz')" type="radio" value="moov"/>
+<div class="p-3 rounded-xl bg-surface-cream peer-checked:bg-lavender-subtle shadow-sm flex flex-col justify-between h-28 transition-all">
+<div class="flex items-start justify-between">
+<!-- Moov Icon -->
+<div class="w-10 h-10 rounded-xl bg-[#0070B8]/15 flex items-center justify-center">
+<div class="w-7 h-7 rounded-md bg-[#0070B8] flex items-center justify-center text-white font-bold text-[11px]">
+                MOOV
+              </div>
+</div>
+<div class="w-5 h-5 rounded-full bg-surface-container flex items-center justify-center text-transparent">
+<span class="material-symbols-outlined text-[14px]">done</span>
+</div>
+</div>
+<div>
+<span class="font-label-md text-label-md font-bold text-text-primary">Moov Money</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant text-[11px]">Code Flooz instantané</p>
+</div>
+</div>
+</label>
+</div>
+<!-- Dynamic Operator Input Form Card -->
+<div class="bg-surface-cream rounded-xl p-space-md shadow-sm space-y-space-sm mt-space-sm">
+<div class="flex items-center justify-between pb-1">
+<label class="font-label-md text-label-md text-text-primary font-bold flex items-center gap-1.5" for="phone-input">
+<span class="material-symbols-outlined text-[18px] text-primary">dialpad</span>
+<span>Numéro associé au compte <span class="text-primary" id="selected-op-name">Wave</span></span>
+</label>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Côte d'Ivoire</span>
+</div>
+<!-- Phone Input with Country Flag + Prefix -->
+<div class="flex items-center bg-surface-container-low rounded-xl px-3 py-1 shadow-inner focus-within:bg-lavender-subtle/70 transition-colors">
+<div class="flex items-center gap-1.5 pr-3 shrink-0">
+<span aria-label="Drapeau Côte d'Ivoire" class="text-lg leading-none" role="img">🇨🇮</span>
+<span class="font-label-md text-label-md text-text-primary font-bold">+225</span>
+</div>
+<input class="w-full py-2.5 bg-transparent font-headline-sm text-headline-sm text-text-primary font-semibold tracking-wide outline-none placeholder:text-on-surface-variant/50" id="phone-input" placeholder="07 XX XX XX XX" type="tel" value="07 89 45 12 34"/>
+<button class="p-1 rounded-full text-on-surface-variant hover:bg-surface-container transition-colors" onclick="document.getElementById('phone-input').value=''" type="button">
+<span class="material-symbols-outlined text-[18px]">cancel</span>
+</button>
+</div>
+<!-- Dynamic Step Guidance -->
+<div class="p-3 rounded-lg bg-lavender-subtle text-text-primary flex items-start gap-2.5">
+<span class="material-symbols-outlined text-[20px] text-primary shrink-0 mt-0.5">notifications_active</span>
+<div class="text-body-sm font-body-sm leading-snug">
+<p class="text-text-primary" id="operator-instruction">
+            Une <strong>notification de débit sécurisée de 18 000 FCFA</strong> sera immédiatement envoyée vers votre application <strong>Wave CI</strong>. Validez simplement avec votre empreinte ou code secret.
+          </p>
+</div>
+</div>
+<!-- Save Number Switch Toggle -->
+<div class="flex items-center justify-between pt-1">
+<div class="min-w-0 pr-2">
+<p class="font-label-md text-label-md text-text-primary font-semibold">Mémoriser ce numéro</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant text-[12px]">Paiement en 1 clic pour vos prochains soins</p>
+</div>
+<label class="relative inline-flex items-center cursor-pointer shrink-0">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-surface-container peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</div>
+</div>
+</div>
+<!-- Bank Card Section (Hidden by Default) -->
+<div class="hidden px-margin pt-space-md space-y-space-sm" id="card-section">
+<div class="bg-surface-cream rounded-xl p-space-md shadow-sm space-y-space-sm">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md text-text-primary font-bold">Carte Visa / Mastercard</span>
+<div class="flex gap-1.5">
+<span class="px-2 py-0.5 rounded bg-surface-container font-label-sm text-label-sm font-bold text-primary">VISA</span>
+<span class="px-2 py-0.5 rounded bg-surface-container font-label-sm text-label-sm font-bold text-secondary">Mastercard</span>
+</div>
+</div>
+<div>
+<label class="font-label-sm text-label-sm text-on-surface-variant block mb-1">Numéro de carte</label>
+<div class="flex items-center bg-surface-container-low rounded-xl px-3 py-2.5">
+<span class="material-symbols-outlined text-[20px] text-on-surface-variant mr-2">credit_card</span>
+<input class="w-full bg-transparent font-headline-sm text-headline-sm text-text-primary outline-none" placeholder="4123 •••• •••• 8901" type="text"/>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-2.5">
+<div>
+<label class="font-label-sm text-label-sm text-on-surface-variant block mb-1">Expiration</label>
+<input class="w-full bg-surface-container-low rounded-xl px-3 py-2.5 font-headline-sm text-headline-sm text-text-primary outline-none" placeholder="MM/AA" type="text"/>
+</div>
+<div>
+<label class="font-label-sm text-label-sm text-on-surface-variant block mb-1">CVV</label>
+<input class="w-full bg-surface-container-low rounded-xl px-3 py-2.5 font-headline-sm text-headline-sm text-text-primary outline-none" maxlength="4" placeholder="123" type="password"/>
+</div>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant text-[11px] flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px] text-status-available">lock</span>
+        Protégé par 3D Secure v2 (OTP SMS de votre banque)
+      </p>
+</div>
+</div>
+<!-- Trust & Guarantees Badges (BCEAO & Safety) -->
+<div class="px-margin pt-space-md">
+<div class="bg-surface-container-low rounded-xl p-3.5 space-y-2.5">
+<div class="flex items-center gap-2.5 text-on-surface">
+<div class="w-8 h-8 rounded-full bg-surface-cream shadow-xs flex items-center justify-center shrink-0 text-primary">
+<span class="material-symbols-outlined text-[18px]">verified_user</span>
+</div>
+<div class="min-w-0">
+<p class="font-label-md text-label-md text-text-primary font-bold">Agrégateur certifié BCEAO &amp; SSL 256-bit</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant text-[11px]">Transactions monétiques hautement chiffrées sans stockage de code secret</p>
+</div>
+</div>
+<div class="flex items-center gap-2.5 text-on-surface">
+<div class="w-8 h-8 rounded-full bg-surface-cream shadow-xs flex items-center justify-center shrink-0 text-status-available">
+<span class="material-symbols-outlined text-[18px]">history</span>
+</div>
+<div class="min-w-0">
+<p class="font-label-md text-label-md text-text-primary font-bold">Garantie remboursement Keke Serenity</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant text-[11px]">Annulation 100% remboursée en cas d'imprévu jusqu'à 4h avant le rendez-vous</p>
+</div>
+</div>
+</div>
+</div>
+<!-- 24/7 Concierge Support Row -->
+<div class="px-margin pt-space-sm pb-space-xs text-center">
+<a class="inline-flex items-center gap-1.5 font-label-sm text-label-sm text-secondary font-bold hover:underline py-1" href="#support">
+<span class="material-symbols-outlined text-[16px]">support_agent</span>
+<span>Besoin d'aide ? Conciergerie Keke Beauty 24/7 via WhatsApp</span>
+</a>
+</div>
+<!-- Sticky Bottom Confirmation CTA Tray -->
+<div class="sticky bottom-0 w-full bg-surface-cream/95 backdrop-blur-md p-space-md mt-space-sm shadow-[0_-4px_20px_rgba(36,16,50,0.08)]">
+<div class="max-w-md mx-auto flex flex-col gap-2">
+<!-- Main Pay CTA Button -->
+<button class="w-full py-4 px-space-md rounded-full bg-primary-container text-on-primary font-headline-sm text-headline-sm font-bold flex items-center justify-center gap-2.5 shadow-lg active:scale-[0.98] transition-all" id="pay-button" onclick="triggerPayment()" type="button">
+<span class="material-symbols-outlined text-[20px]">lock</span>
+<span id="cta-label">Payer 18 000 FCFA avec Wave</span>
+<span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</button>
+<!-- Terms Disclaimer -->
+<p class="text-center font-body-sm text-body-sm text-on-surface-variant text-[11px] leading-tight">
+        En confirmant ce paiement, vous acceptez les <a class="text-primary underline" href="#conditions">CGV de réservation Keke Beauty</a>.
+      </p>
+</div>
+</div>
+</div>
+<script>
+  let currentMethod = 'momo';
+  let currentOperator = 'Wave';
+
+  function switchMethod(method) {
+    currentMethod = method;
+    const momoTab = document.getElementById('tab-momo');
+    const cardTab = document.getElementById('tab-card');
+    const momoSection = document.getElementById('momo-section');
+    const cardSection = document.getElementById('card-section');
+    const ctaLabel = document.getElementById('cta-label');
+
+    if (method === 'momo') {
+      momoTab.className = 'flex items-center justify-center gap-2 py-2.5 rounded-lg bg-surface-cream text-primary font-label-md text-label-md font-bold shadow-sm transition-all';
+      cardTab.className = 'flex items-center justify-center gap-2 py-2.5 rounded-lg text-on-surface-variant font-label-md text-label-md font-semibold transition-all hover:text-text-primary';
+      momoSection.classList.remove('hidden');
+      cardSection.classList.add('hidden');
+      ctaLabel.textContent = `Payer 18 000 FCFA avec ${currentOperator}`;
+    } else {
+      cardTab.className = 'flex items-center justify-center gap-2 py-2.5 rounded-lg bg-surface-cream text-primary font-label-md text-label-md font-bold shadow-sm transition-all';
+      momoTab.className = 'flex items-center justify-center gap-2 py-2.5 rounded-lg text-on-surface-variant font-label-md text-label-md font-semibold transition-all hover:text-text-primary';
+      cardSection.classList.remove('hidden');
+      momoSection.classList.add('hidden');
+      ctaLabel.textContent = 'Payer 18 000 FCFA par Carte';
+    }
+  }
+
+  function selectOperator(key, name, color, note) {
+    currentOperator = name;
+    document.getElementById('selected-op-name').textContent = name;
+    const ctaLabel = document.getElementById('cta-label');
+    const instruction = document.getElementById('operator-instruction');
+
+    if (currentMethod === 'momo') {
+      ctaLabel.textContent = `Payer 18 000 FCFA avec ${name}`;
+    }
+
+    if (key === 'wave') {
+      instruction.innerHTML = 'Une <strong>demande de débit Push de 18 000 FCFA</strong> sera immédiatement envoyée sur votre application <strong>Wave CI</strong>. Validez avec votre empreinte ou mot de passe.';
+    } else if (key === 'orange') {
+      instruction.innerHTML = 'Une notification Push ou invite USSD s\'affichera sur votre écran Orange. Vous pouvez aussi composer <strong>#144*82#</strong> pour confirmer le code de débit sécurisé.';
+    } else if (key === 'mtn') {
+      instruction.innerHTML = 'Un message de validation <strong>MTN MoMo (*133#)</strong> va apparaître. Entrez votre code PIN secret à 4 chiffres pour autoriser le montant.';
+    } else if (key === 'moov') {
+      instruction.innerHTML = 'Un prompt <strong>Moov Money Flooz</strong> sera envoyé au numéro renseigné. Confirmez avec votre code secret pour finaliser.';
+    }
+  }
+
+  function triggerPayment() {
+    const btn = document.getElementById('pay-button');
+    btn.disabled = true;
+    btn.innerHTML = `
+      <span class="inline-block w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+      <span>Connexion sécurisée en cours...</span>
+    `;
+    setTimeout(() => {
+      btn.innerHTML = `
+        <span class="material-symbols-outlined text-[20px]">check_circle</span>
+        <span>Demande envoyée ! Vérifiez votre téléphone</span>
+      `;
+      btn.className = 'w-full py-4 px-space-md rounded-full bg-status-available text-on-primary font-headline-sm text-headline-sm font-bold flex items-center justify-center gap-2.5 shadow-lg';
+    }, 1200);
+  }
+</script></main></body></html>

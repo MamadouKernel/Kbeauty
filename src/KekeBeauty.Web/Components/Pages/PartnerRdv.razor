@@ -86,7 +86,7 @@ else
         _idPartner = await Session.GetPartnerIdAsync();
         if (_idPartner is null)
         {
-            Navigation.NavigateTo("/partenaire/login");
+            Navigation.NavigateTo("/login?role=partenaire");
             return;
         }
 

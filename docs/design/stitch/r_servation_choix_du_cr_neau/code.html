@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+
+<html class="h-full" lang="fr"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/><meta content="mobile_stack" name="shell-type"/><title>Keke Beauty</title><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: 'class', theme: { extend: { colors: { 'inverse-surface': '#30302f', 'status-unavailable': '#D32F2F', 'text-primary': '#241032', 'on-secondary-fixed': '#2c0051', 'on-primary-container': '#cf8bf2', 'on-error-container': '#93000a', 'inverse-on-surface': '#f3f0ee', 'inverse-primary': '#e7b3ff', 'on-tertiary-container': '#b19fc6', 'on-error': '#ffffff', 'secondary': '#821dda', 'status-available': '#1B8755', 'on-tertiary-fixed': '#221534', 'surface-variant': '#e5e2e0', 'primary-fixed': '#f6d9ff', 'on-primary-fixed': '#310049', 'surface-container-low': '#f6f3f1', 'tertiary-fixed': '#eddcff', 'surface-container': '#f0edeb', 'primary-container': '#5b1b7d', 'secondary-fixed-dim': '#dcb8ff', 'surface': '#fcf9f7', 'on-background': '#1b1c1b', 'on-surface-variant': '#4d4450', 'outline-variant': '#d0c2d1', 'lavender-subtle': '#F4EEFB', 'surface-container-lowest': '#ffffff', 'on-secondary-fixed-variant': '#6700b5', 'surface-container-highest': '#e5e2e0', 'on-surface': '#1b1c1b', 'secondary-container': '#9c42f4', 'tertiary-container': '#433556', 'surface-bright': '#fcf9f7', 'tertiary': '#2d203f', 'secondary-fixed': '#efdbff', 'on-primary-fixed-variant': '#672889', 'error': '#ba1a1a', 'on-tertiary-fixed-variant': '#4f4062', 'on-secondary-container': '#fffbff', 'on-tertiary': '#ffffff', 'surface-cream': '#FFFDF9', 'background': '#fcf9f7', 'surface-dim': '#dcd9d8', 'error-container': '#ffdad6', 'on-secondary': '#ffffff', 'tertiary-fixed-dim': '#d2bfe8', 'primary': '#410060', 'plum-deep': '#3A0D52', 'on-primary': '#ffffff', 'outline': '#7f7381', 'primary-fixed-dim': '#e7b3ff', 'surface-tint': '#8142a3', 'surface-container-high': '#eae8e6' }, borderRadius: { 'DEFAULT': '0.25rem', 'lg': '0.5rem', 'xl': '0.75rem', 'full': '9999px' }, spacing: { 'gutter': '1rem', 'space-xl': '2.25rem', 'space-sm': '0.5rem', 'space-lg': '1.5rem', 'margin-desktop': '2.5rem', 'gutter-mobile': '0.75rem', 'margin': '1.25rem', 'space-xs': '0.25rem', 'space-md': '1rem' }, fontFamily: { 'body-sm': ['Plus Jakarta Sans'], 'display-lg': ['Plus Jakarta Sans'], 'display-lg-mobile': ['Plus Jakarta Sans'], 'headline-sm': ['Plus Jakarta Sans'], 'body-md': ['Plus Jakarta Sans'], 'label-sm': ['Plus Jakarta Sans'], 'headline-md': ['Plus Jakarta Sans'], 'headline-lg': ['Plus Jakarta Sans'], 'body-lg': ['Plus Jakarta Sans'], 'label-lg': ['Plus Jakarta Sans'], 'label-md': ['Plus Jakarta Sans'] }, fontSize: { 'body-sm': ['12px', { lineHeight: '16px', fontWeight: '400' }], 'display-lg': ['36px', { lineHeight: '44px', fontWeight: '700' }], 'display-lg-mobile': ['28px', { lineHeight: '36px', fontWeight: '700' }], 'headline-sm': ['18px', { lineHeight: '24px', fontWeight: '600' }], 'body-md': ['14px', { lineHeight: '20px', fontWeight: '400' }], 'label-sm': ['11px', { lineHeight: '14px', fontWeight: '700' }], 'headline-md': ['20px', { lineHeight: '28px', fontWeight: '600' }], 'headline-lg': ['24px', { lineHeight: '32px', fontWeight: '700' }], 'body-lg': ['16px', { lineHeight: '24px', fontWeight: '400' }], 'label-lg': ['14px', { lineHeight: '18px', fontWeight: '600' }], 'label-md': ['12px', { lineHeight: '16px', fontWeight: '600' }] } } } };</script><style>@layer base { html, body { margin: 0; padding: 0; min-height: 100%; -webkit-tap-highlight-color: transparent; } .pb-safe { padding-bottom: env(safe-area-inset-bottom, 0px); } .pt-safe { padding-top: env(safe-area-inset-top, 0px); } } .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }</style></head><body class="bg-surface font-body-md text-body-md text-on-surface antialiased flex flex-col min-h-screen"><header class="fixed top-0 w-full z-50 pt-safe bg-surface-cream/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="h-16 px-gutter flex items-center justify-between gap-space-sm"><div class="flex items-center gap-space-xs min-w-0"><button aria-label="Retour" class="w-11 h-11 -ml-space-xs flex items-center justify-center rounded-full text-text-primary hover:bg-lavender-subtle active:scale-95 transition-all" onclick="history.back()"><span class="material-symbols-outlined text-[22px]">arrow_back_ios_new</span></button><img alt="logo_keke_beauty_option4.png" class="h-7 w-auto object-contain shrink-0" src="https://lh3.googleusercontent.com/aida/AEtjO1XKFZ-Kobzg0maYp0W59kfVRX5pjJGWi6p0HkyDZBYOaQr8Ht9DFtD7UxYDqwPgEGHDZIF3HREwXwC8uA8-sDTD5_4JgNJ3zph0F_lnpCuvezNBEFLMPOCgHEcrtsw-KILka7oPpKfyMJNaeqXEMWjbP35rcsI7okFR6bDFsbmNa0MSAgVowER7I_mxt72dJdVx--dKGxB4Td0X0qx1MYgXDkBq-BQocXmzdLw0Ypc4SYAfwYIFmbd6nVO2AlUNm9UsRfBmilHj2w"/><h1 class="font-headline-sm text-headline-sm text-text-primary font-semibold truncate">Réservation Créneau</h1></div><div class="flex items-center gap-space-xs shrink-0"><button aria-label="Partager ou Options" class="w-11 h-11 flex items-center justify-center rounded-full text-text-primary hover:bg-lavender-subtle transition-all"><span class="material-symbols-outlined text-[20px]">share</span></button><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center shadow-sm"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="flex-1 flex flex-col relative w-full pt-16 bg-surface"><div class="flex flex-col w-full pb-32">
+<!-- Prestation Spotlight Card -->
+<section class="px-gutter pt-space-md">
+<div class="bg-surface-cream rounded-xl p-space-md shadow-sm relative overflow-hidden">
+<div class="absolute -right-6 -bottom-6 w-28 h-28 bg-lavender-subtle rounded-full opacity-60 pointer-events-none"></div>
+<div class="flex items-start justify-between gap-space-sm relative z-10">
+<div class="flex items-center gap-space-sm min-w-0">
+<div class="w-14 h-14 rounded-xl overflow-hidden shrink-0 bg-surface-container">
+<img class="w-full h-full object-cover" data-alt="Close-up photograph of flawless long Knotless Braids hair styling, glossy clean hair partitions, luxurious African beauty salon setting with soft plum tones and warm salon lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA2r1JAnZThPXKI3VyD23_atdVVZR6wsAQJuYjES1LBoiMDa4BIlN87Pgxn2G6FBskQzGTcRJPMAYKJw1HEDhd8UI0ncnBz-V3HLaNAQ3YRD685hvDUzECpPB2b__7DesitSubEj9Bo1tWjEtf8eW6asoeWMZ10AyqnngMBIGwmWRrfLywg-jaM55s27g_k3N9jWawwze57_Y1p0X4IOZ0kz5fkTeOvRmDCQvSW5rJdBecgIyrIebLS"/>
+</div>
+<div class="min-w-0">
+<span class="inline-flex items-center gap-1 text-primary text-label-sm font-label-sm uppercase tracking-wider bg-lavender-subtle px-2 py-0.5 rounded-full mb-1">
+<span class="w-1.5 h-1.5 rounded-full bg-status-available animate-pulse"></span>
+              Salon Kéké Prestige Cocody
+            </span>
+<h2 class="font-headline-sm text-headline-sm text-text-primary truncate">Tresses Knotless Braids Taille L</h2>
+<div class="flex items-center gap-2 mt-0.5">
+<span class="font-label-lg text-label-lg text-primary font-bold">18 000 FCFA</span>
+<span class="w-1 h-1 rounded-full bg-outline-variant"></span>
+<span class="text-on-surface-variant font-body-sm text-body-sm flex items-center gap-1">
+<span class="material-symbols-outlined text-[15px]">schedule</span> 2h30
+              </span>
+</div>
+</div>
+</div>
+<button aria-label="Modifier la prestation" class="shrink-0 p-1.5 text-primary hover:bg-lavender-subtle rounded-lg transition-colors" type="button">
+<span class="material-symbols-outlined text-[20px]">edit</span>
+</button>
+</div>
+</div>
+</section>
+<!-- Stylist Selector -->
+<section class="mt-space-lg">
+<div class="px-gutter flex items-center justify-between mb-space-sm">
+<h3 class="font-headline-sm text-headline-sm text-text-primary">Choisir votre experte</h3>
+<span class="text-on-surface-variant text-label-sm font-label-sm">Optionnel</span>
+</div>
+<!-- Stylists Scrollable Track -->
+<div class="flex gap-space-sm overflow-x-auto px-gutter no-scrollbar py-1">
+<!-- Option 1: Any stylist (Selected) -->
+<button class="stylist-chip shrink-0 flex flex-col items-center p-space-sm rounded-xl bg-primary text-on-primary shadow-sm min-w-[104px] transition-all transform active:scale-95 text-center" onclick="selectStylist(this, 'Sans préférence')" type="button">
+<div class="relative w-13 h-13 mb-1.5">
+<div class="w-12 h-12 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center mx-auto shadow-inner">
+<span class="material-symbols-outlined text-[24px]">arrow_back_ios_new</span>
+</div>
+<span class="check-badge absolute -bottom-1 -right-1 w-5 h-5 bg-secondary text-on-secondary rounded-full flex items-center justify-center shadow">
+<span class="material-symbols-outlined text-[13px]">check</span>
+</span>
+</div>
+<span class="font-label-md text-label-md font-semibold line-clamp-1">Sans préf.</span>
+<span class="text-primary-fixed text-label-sm font-label-sm">Dispo max</span>
+</button>
+<!-- Option 2: Aïcha -->
+<button class="stylist-chip shrink-0 flex flex-col items-center p-space-sm rounded-xl bg-surface-cream text-text-primary shadow-sm min-w-[104px] transition-all transform active:scale-95 text-center" onclick="selectStylist(this, 'Aïcha')" type="button">
+<div class="relative w-13 h-13 mb-1.5">
+<img class="w-12 h-12 rounded-full object-cover mx-auto" data-alt="Portrait of Aïcha, a smiling African professional hair stylist with an artistic braided updo, wearing elegant salon attire in a warm lavender tone aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCFqZ2Fvjkp-fi8AiIymwBF3Yuwd14F0XAjBbQ8buduPqn7eK08_eMhxzYeYdliA4GG8gU3GhzaCuq2DJ6-X1l4gDRiToYogQvySyo5WpgdGs5kUok0H0wLBM16iyUvv1s6CjvvdLYPFYW2MmP7IA9-T3BFv_ZxxQ2xN-68bTsdNsc565u_4mYBRMfOPVjR_A4l0zG6Wtw7ZXDdH-uuZejUKaq-p2A-1SbuX2oH0-V4k2F1s1T442tG"/>
+<span class="check-badge hidden absolute -bottom-1 -right-1 w-5 h-5 bg-secondary text-on-secondary rounded-full items-center justify-center shadow">
+<span class="material-symbols-outlined text-[13px]">check</span>
+</span>
+</div>
+<span class="font-label-md text-label-md font-semibold line-clamp-1">Aïcha</span>
+<span class="text-on-surface-variant text-label-sm font-label-sm">Spécialiste</span>
+</button>
+<!-- Option 3: Fatou -->
+<button class="stylist-chip shrink-0 flex flex-col items-center p-space-sm rounded-xl bg-surface-cream text-text-primary shadow-sm min-w-[104px] transition-all transform active:scale-95 text-center" onclick="selectStylist(this, 'Fatou')" type="button">
+<div class="relative w-13 h-13 mb-1.5">
+<img class="w-12 h-12 rounded-full object-cover mx-auto" data-alt="Portrait of Fatou, senior hairstylist with elegant warm smile, modern studio lighting, gentle purple accent background, dressed in stylish black and plum uniform." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCyHgQoxFY5X4anNMS4GUpdvv1Yf3fQe3QAfKRquVZkBnWDOggXFDKJZ5FnjGpWrb0jN62m5GvdVJ-shDwhFxHvJlGqj-koL5_KuAXuX3JVHDoBi9p_xchCc1MsqhY3aWEtEZIgMd4UJa2w-reZ6s9eySN1wafp5MY7PTUPyF5XUKQkz1-h8yE4yWoIimGskFj-g_-fN4S3_ztgw_7EwGvad3qaIQ6f2ev8R2qoVoggP3i0Sf9mU2gj"/>
+<span class="check-badge hidden absolute -bottom-1 -right-1 w-5 h-5 bg-secondary text-on-secondary rounded-full items-center justify-center shadow">
+<span class="material-symbols-outlined text-[13px]">check</span>
+</span>
+</div>
+<span class="font-label-md text-label-md font-semibold line-clamp-1">Fatou</span>
+<span class="text-on-surface-variant text-label-sm font-label-sm">Senior (9 ans)</span>
+</button>
+<!-- Option 4: Mariam -->
+<button class="stylist-chip shrink-0 flex flex-col items-center p-space-sm rounded-xl bg-surface-cream text-text-primary shadow-sm min-w-[104px] transition-all transform active:scale-95 text-center" onclick="selectStylist(this, 'Mariam')" type="button">
+<div class="relative w-13 h-13 mb-1.5">
+<img class="w-12 h-12 rounded-full object-cover mx-auto" data-alt="Portrait of Mariam, youthful talented braider with creative hairdo, glowing skin, soft ambient daylight with violet and cream tones." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCZgnUUZmMgCxwawZVrbC1_FWXCPRAxdssPq-j1j5zhzK4rTBH8q4UlIsL4otxroVFPGaJ7hb74kCWVx5iv_VGBDff_kFJpp6nElSMAybhNRt4uBrFo3mWgR8X1gtkfbqHj9ZNsO1XFfDRSUW8y-d2s17qrdC4A1CG_td2CnX9EpRo49Wa7bJuXeO2yArl3lB8SOnio3u52Piwf44-h7irU4GFDZK78HkeIK4zYVfSBk3LRN0CyhjWX"/>
+<span class="check-badge hidden absolute -bottom-1 -right-1 w-5 h-5 bg-secondary text-on-secondary rounded-full items-center justify-center shadow">
+<span class="material-symbols-outlined text-[13px]">check</span>
+</span>
+</div>
+<span class="font-label-md text-label-md font-semibold line-clamp-1">Mariam</span>
+<span class="text-on-surface-variant text-label-sm font-label-sm">Artiste Tresses</span>
+</button>
+</div>
+</section>
+<!-- Interactive Dynamic Week Calendar -->
+<section class="mt-space-lg px-gutter">
+<div class="flex items-center justify-between mb-space-sm">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-primary text-[20px]">calendar_month</span>
+<h3 class="font-headline-sm text-headline-sm text-text-primary">Avril 2025</h3>
+</div>
+<div class="flex items-center gap-1 bg-surface-container rounded-full p-0.5">
+<button aria-label="Semaine précédente" class="w-7 h-7 flex items-center justify-center text-text-primary rounded-full hover:bg-surface-cream transition-colors" type="button">
+<span class="material-symbols-outlined text-[16px]">chevron_left</span>
+</button>
+<span class="text-label-sm font-label-sm px-1.5 text-text-primary">Sem. 16</span>
+<button aria-label="Semaine suivante" class="w-7 h-7 flex items-center justify-center text-text-primary rounded-full hover:bg-surface-cream transition-colors" type="button">
+<span class="material-symbols-outlined text-[16px]">chevron_right</span>
+</button>
+</div>
+</div>
+<!-- Horizontal Days Ribbon -->
+<div class="grid grid-cols-7 gap-1.5 bg-surface-cream p-2 rounded-xl shadow-sm">
+<!-- Lun 14 -->
+<button class="day-btn flex flex-col items-center py-2 px-1 rounded-lg text-text-primary hover:bg-lavender-subtle transition-all" onclick="selectDay(this, 'Lundi 14 Avril')" type="button">
+<span class="text-label-sm font-label-sm opacity-70">Lun</span>
+<span class="text-label-lg font-label-lg font-bold my-0.5">14</span>
+<span class="w-1.5 h-1.5 rounded-full bg-status-available"></span>
+</button>
+<!-- Mar 15 (Active Day) -->
+<button class="day-btn flex flex-col items-center py-2 px-1 rounded-lg bg-primary text-on-primary shadow-sm transition-all" onclick="selectDay(this, 'Mardi 15 Avril')" type="button">
+<span class="text-label-sm font-label-sm text-primary-fixed">Mar</span>
+<span class="text-label-lg font-label-lg font-bold my-0.5">15</span>
+<span class="w-1.5 h-1.5 rounded-full bg-secondary-fixed-dim"></span>
+</button>
+<!-- Mer 16 -->
+<button class="day-btn flex flex-col items-center py-2 px-1 rounded-lg text-text-primary hover:bg-lavender-subtle transition-all" onclick="selectDay(this, 'Mercredi 16 Avril')" type="button">
+<span class="text-label-sm font-label-sm opacity-70">Mer</span>
+<span class="text-label-lg font-label-lg font-bold my-0.5">16</span>
+<span class="w-1.5 h-1.5 rounded-full bg-status-available"></span>
+</button>
+<!-- Jeu 17 -->
+<button class="day-btn flex flex-col items-center py-2 px-1 rounded-lg text-text-primary hover:bg-lavender-subtle transition-all" onclick="selectDay(this, 'Jeudi 17 Avril')" type="button">
+<span class="text-label-sm font-label-sm opacity-70">Jeu</span>
+<span class="text-label-lg font-label-lg font-bold my-0.5">17</span>
+<span class="w-1.5 h-1.5 rounded-full bg-status-available"></span>
+</button>
+<!-- Ven 18 -->
+<button class="day-btn flex flex-col items-center py-2 px-1 rounded-lg text-text-primary hover:bg-lavender-subtle transition-all" onclick="selectDay(this, 'Vendredi 18 Avril')" type="button">
+<span class="text-label-sm font-label-sm opacity-70">Ven</span>
+<span class="text-label-lg font-label-lg font-bold my-0.5">18</span>
+<span class="w-1.5 h-1.5 rounded-full bg-status-available"></span>
+</button>
+<!-- Sam 19 -->
+<button class="day-btn flex flex-col items-center py-2 px-1 rounded-lg text-text-primary hover:bg-lavender-subtle transition-all" onclick="selectDay(this, 'Samedi 19 Avril')" type="button">
+<span class="text-label-sm font-label-sm opacity-70">Sam</span>
+<span class="text-label-lg font-label-lg font-bold my-0.5">19</span>
+<span class="w-1.5 h-1.5 rounded-full bg-status-unavailable"></span>
+</button>
+<!-- Dim 20 -->
+<button class="day-btn flex flex-col items-center py-2 px-1 rounded-lg text-on-surface-variant opacity-40 cursor-not-allowed" disabled="" type="button">
+<span class="text-label-sm font-label-sm">Dim</span>
+<span class="text-label-lg font-label-lg font-bold my-0.5">20</span>
+<span class="text-[10px] text-on-surface-variant">Fermé</span>
+</button>
+</div>
+</section>
+<!-- Time Slots Grid -->
+<section class="mt-space-lg px-gutter">
+<div class="flex items-center justify-between mb-space-sm">
+<div>
+<h3 class="font-headline-sm text-headline-sm text-text-primary">Créneaux horaires</h3>
+<p class="text-on-surface-variant text-body-sm font-body-sm" id="selected-day-label">Mardi 15 Avril • Disponibilités en direct</p>
+</div>
+<!-- Quick Legend -->
+<div class="flex items-center gap-3">
+<span class="inline-flex items-center gap-1 text-label-sm font-label-sm text-primary">
+<span class="w-2 h-2 rounded-full bg-lavender-subtle border-none"></span> Libre
+        </span>
+<span class="inline-flex items-center gap-1 text-label-sm font-label-sm text-error">
+<span class="w-2 h-2 rounded-full bg-error-container"></span> Complet
+        </span>
+</div>
+</div>
+<!-- Morning Slots -->
+<div class="mb-space-md">
+<div class="flex items-center gap-1.5 mb-2 text-primary font-label-md text-label-md">
+<span class="material-symbols-outlined text-[16px]">wb_sunny</span>
+<span>Matinée</span>
+</div>
+<div class="grid grid-cols-3 gap-2.5">
+<!-- 09:00 Available -->
+<button class="slot-btn relative bg-surface-cream text-primary p-3 rounded-xl shadow-sm hover:bg-lavender-subtle active:scale-95 transition-all text-center flex flex-col items-center justify-center" onclick="selectSlot(this, '09:00')" type="button">
+<span class="font-headline-sm text-headline-sm font-bold">09:00</span>
+<span class="text-label-sm font-label-sm text-status-available mt-0.5">Disponible</span>
+</button>
+<!-- 10:00 Occupied / Distinct Red -->
+<div class="relative bg-error-container/40 text-error p-3 rounded-xl opacity-80 cursor-not-allowed flex flex-col items-center justify-center text-center select-none">
+<span class="font-headline-sm text-headline-sm font-bold line-through text-status-unavailable">10:00</span>
+<span class="text-label-sm font-label-sm text-on-error-container font-semibold mt-0.5 inline-flex items-center gap-0.5">
+<span class="material-symbols-outlined text-[12px]">lock</span> Complet
+          </span>
+</div>
+<!-- 11:30 Selected (Default State) -->
+<button class="slot-btn is-selected relative bg-primary-container text-on-primary p-3 rounded-xl shadow-md active:scale-95 transition-all text-center flex flex-col items-center justify-center" onclick="selectSlot(this, '11:30')" type="button">
+<span class="font-headline-sm text-headline-sm font-bold">11:30</span>
+<span class="slot-badge inline-flex items-center gap-1 text-label-sm font-label-sm text-on-primary-container font-semibold mt-0.5">
+<span class="material-symbols-outlined text-[13px]">check_circle</span> Sélectionné
+          </span>
+</button>
+</div>
+</div>
+<!-- Afternoon Slots -->
+<div>
+<div class="flex items-center gap-1.5 mb-2 text-primary font-label-md text-label-md">
+<span class="material-symbols-outlined text-[16px]">wb_twilight</span>
+<span>Après-midi</span>
+</div>
+<div class="grid grid-cols-3 gap-2.5">
+<!-- 14:00 Occupied Red -->
+<div class="relative bg-error-container/40 text-error p-3 rounded-xl opacity-80 cursor-not-allowed flex flex-col items-center justify-center text-center select-none">
+<span class="font-headline-sm text-headline-sm font-bold line-through text-status-unavailable">14:00</span>
+<span class="text-label-sm font-label-sm text-on-error-container font-semibold mt-0.5 inline-flex items-center gap-0.5">
+<span class="material-symbols-outlined text-[12px]">lock</span> Complet
+          </span>
+</div>
+<!-- 15:00 Available -->
+<button class="slot-btn relative bg-surface-cream text-primary p-3 rounded-xl shadow-sm hover:bg-lavender-subtle active:scale-95 transition-all text-center flex flex-col items-center justify-center" onclick="selectSlot(this, '15:00')" type="button">
+<span class="font-headline-sm text-headline-sm font-bold">15:00</span>
+<span class="text-label-sm font-label-sm text-status-available mt-0.5">Disponible</span>
+</button>
+<!-- 16:30 Available -->
+<button class="slot-btn relative bg-surface-cream text-primary p-3 rounded-xl shadow-sm hover:bg-lavender-subtle active:scale-95 transition-all text-center flex flex-col items-center justify-center" onclick="selectSlot(this, '16:30')" type="button">
+<span class="font-headline-sm text-headline-sm font-bold">16:30</span>
+<span class="text-label-sm font-label-sm text-status-available mt-0.5">Disponible</span>
+</button>
+<!-- 18:00 Occupied Red -->
+<div class="relative bg-error-container/40 text-error p-3 rounded-xl opacity-80 cursor-not-allowed flex flex-col items-center justify-center text-center select-none">
+<span class="font-headline-sm text-headline-sm font-bold line-through text-status-unavailable">18:00</span>
+<span class="text-label-sm font-label-sm text-on-error-container font-semibold mt-0.5 inline-flex items-center gap-0.5">
+<span class="material-symbols-outlined text-[12px]">lock</span> Complet
+          </span>
+</div>
+<!-- 19:15 Available -->
+<button class="slot-btn relative bg-surface-cream text-primary p-3 rounded-xl shadow-sm hover:bg-lavender-subtle active:scale-95 transition-all text-center flex flex-col items-center justify-center" onclick="selectSlot(this, '19:15')" type="button">
+<span class="font-headline-sm text-headline-sm font-bold">19:15</span>
+<span class="text-label-sm font-label-sm text-status-available mt-0.5">Disponible</span>
+</button>
+</div>
+</div>
+</section>
+<!-- Options & Special Instructions -->
+<section class="mt-space-lg px-gutter">
+<div class="bg-surface-cream p-space-md rounded-xl shadow-sm">
+<div class="flex items-center gap-2 mb-2 text-text-primary">
+<span class="material-symbols-outlined text-primary text-[20px]">edit_note</span>
+<h3 class="font-headline-sm text-headline-sm">Instructions &amp; Préférences</h3>
+</div>
+<p class="text-on-surface-variant font-body-sm text-body-sm mb-3">Longueur particulière, mèches fournies ou sensibilité du cuir chevelu ? Précisez-le à l'équipe.</p>
+<div class="relative">
+<textarea class="w-full rounded-lg bg-surface-container-low p-3 font-body-sm text-body-sm text-text-primary placeholder:text-on-surface-variant/60 focus:outline-none focus:bg-surface-container transition-all resize-none" placeholder="Ex: Mèches couleur #1B déjà achetées, cuir chevelu sensible..." rows="2"></textarea>
+</div>
+<!-- Quick toggle badges -->
+<div class="flex flex-wrap gap-2 mt-3">
+<label class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-lavender-subtle text-primary font-label-sm text-label-sm cursor-pointer select-none">
+<input checked="" class="accent-primary rounded w-3.5 h-3.5" type="checkbox"/>
+<span>Shampoing doux avant tresses</span>
+</label>
+<label class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-lavender-subtle text-primary font-label-sm text-label-sm cursor-pointer select-none">
+<input class="accent-primary rounded w-3.5 h-3.5" type="checkbox"/>
+<span>Conseil hydratation cuir chevelu</span>
+</label>
+</div>
+</div>
+</section>
+<!-- Reservation Summary Recapitulative Card -->
+<section class="mt-space-lg px-gutter">
+<div class="bg-lavender-subtle rounded-xl p-space-md shadow-sm">
+<h3 class="font-headline-sm text-headline-sm text-text-primary mb-3 flex items-center justify-between">
+<span>Récapitulatif de votre RDV</span>
+<span class="material-symbols-outlined text-primary text-[18px]">verified</span>
+</h3>
+<div class="space-y-2.5 text-body-sm font-body-sm">
+<div class="flex items-center justify-between text-on-surface-variant">
+<span>Prestation</span>
+<span class="font-semibold text-text-primary">Tresses Knotless Braids L</span>
+</div>
+<div class="flex items-center justify-between text-on-surface-variant">
+<span>Date &amp; Heure</span>
+<span class="font-semibold text-primary" id="recap-datetime">Mar. 15 Avril à 11:30</span>
+</div>
+<div class="flex items-center justify-between text-on-surface-variant">
+<span>Coiffeuse</span>
+<span class="font-semibold text-text-primary" id="recap-stylist">Sans préférence</span>
+</div>
+<div class="flex items-center justify-between text-on-surface-variant">
+<span>Mode de règlement</span>
+<span class="font-semibold text-text-primary">Paiement sur place (Salon)</span>
+</div>
+<div class="flex items-center justify-between pt-2 text-text-primary font-headline-sm text-headline-sm">
+<span>Total à régler</span>
+<span class="text-primary font-bold">18 000 FCFA</span>
+</div>
+</div>
+<!-- Trust Notification Guarantee -->
+<div class="mt-space-md pt-space-sm flex items-center gap-2.5 text-status-available font-label-sm text-label-sm bg-surface-cream/80 p-2.5 rounded-lg">
+<span class="material-symbols-outlined text-[20px] shrink-0">mark_email_read</span>
+<span>Confirmation instantanée et rappel par SMS &amp; notification push 2h avant.</span>
+</div>
+</div>
+</section>
+<!-- Sticky Bottom Conversion Action Bar -->
+<aside aria-label="Confirmation et réservation" class="fixed bottom-0 inset-x-0 bg-surface-cream/95 backdrop-blur-md p-space-md pb-safe shadow-[0_-4px_24px_rgba(58,13,82,0.08)] z-40">
+<div class="max-w-md mx-auto flex flex-col gap-2">
+<button class="w-full py-3.5 px-space-lg rounded-full bg-primary-container text-on-primary font-headline-sm text-headline-sm font-bold shadow-lg shadow-primary-container/25 flex items-center justify-center gap-2 active:scale-98 transition-all hover:bg-primary" onclick="confirmBooking()" type="button">
+<span class="material-symbols-outlined text-[22px]">event_available</span>
+<span>Confirmer mon rendez-vous (18 000 FCFA)</span>
+</button>
+<div class="flex items-center justify-center gap-1.5 text-label-sm font-label-sm text-on-surface-variant text-center">
+<span class="material-symbols-outlined text-[14px] text-status-available">check_circle</span>
+<span>Annulation gratuite jusqu'à 4 heures avant le rendez-vous</span>
+</div>
+</div>
+</aside>
+<!-- Interactive Toast Notification -->
+<div class="fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-primary text-on-primary px-4 py-2.5 rounded-full shadow-xl flex items-center gap-2 opacity-0 pointer-events-none transition-all duration-300 transform -translate-y-2" id="booking-toast">
+<span class="material-symbols-outlined text-secondary-fixed text-[20px]">celebration</span>
+<span class="font-label-md text-label-md">Rendez-vous confirmé avec succès !</span>
+</div>
+</div>
+<script>
+  let currentSelectedSlot = '11:30';
+  let currentSelectedDay = 'Mardi 15 Avril';
+  let currentSelectedStylist = 'Sans préférence';
+
+  function updateRecap() {
+    const recapDateTime = document.getElementById('recap-datetime');
+    const recapStylist = document.getElementById('recap-stylist');
+    if (recapDateTime) {
+      recapDateTime.textContent = currentSelectedDay.replace(' Avril', '') + ' à ' + currentSelectedSlot;
+    }
+    if (recapStylist) {
+      recapStylist.textContent = currentSelectedStylist;
+    }
+  }
+
+  function selectSlot(button, time) {
+    // Reset previous selected slot
+    const slots = document.querySelectorAll('.slot-btn');
+    slots.forEach(btn => {
+      btn.className = 'slot-btn relative bg-surface-cream text-primary p-3 rounded-xl shadow-sm hover:bg-lavender-subtle active:scale-95 transition-all text-center flex flex-col items-center justify-center';
+      btn.innerHTML = `
+        <span class="font-headline-sm text-headline-sm font-bold">${btn.querySelector('.font-headline-sm').textContent}</span>
+        <span class="text-label-sm font-label-sm text-status-available mt-0.5">Disponible</span>
+      `;
+    });
+
+    // Mark clicked button as active
+    button.className = 'slot-btn is-selected relative bg-primary-container text-on-primary p-3 rounded-xl shadow-md active:scale-95 transition-all text-center flex flex-col items-center justify-center';
+    button.innerHTML = `
+      <span class="font-headline-sm text-headline-sm font-bold">${time}</span>
+      <span class="slot-badge inline-flex items-center gap-1 text-label-sm font-label-sm text-on-primary-container font-semibold mt-0.5">
+        <span class="material-symbols-outlined text-[13px]">check_circle</span> Sélectionné
+      </span>
+    `;
+
+    currentSelectedSlot = time;
+    updateRecap();
+  }
+
+  function selectDay(button, dayString) {
+    const days = document.querySelectorAll('.day-btn:not([disabled])');
+    days.forEach(btn => {
+      btn.classList.remove('bg-primary', 'text-on-primary', 'shadow-sm');
+      btn.classList.add('text-text-primary', 'hover:bg-lavender-subtle');
+      const firstSpan = btn.querySelector('span:first-child');
+      if (firstSpan) {
+        firstSpan.className = 'text-label-sm font-label-sm opacity-70';
+      }
+    });
+
+    button.classList.remove('text-text-primary', 'hover:bg-lavender-subtle');
+    button.classList.add('bg-primary', 'text-on-primary', 'shadow-sm');
+    const activeFirstSpan = button.querySelector('span:first-child');
+    if (activeFirstSpan) {
+      activeFirstSpan.className = 'text-label-sm font-label-sm text-primary-fixed';
+    }
+
+    currentSelectedDay = dayString;
+    const dayLabel = document.getElementById('selected-day-label');
+    if (dayLabel) {
+      dayLabel.textContent = dayString + ' • Disponibilités en direct';
+    }
+    updateRecap();
+  }
+
+  function selectStylist(button, stylistName) {
+    const chips = document.querySelectorAll('.stylist-chip');
+    chips.forEach(chip => {
+      chip.classList.remove('bg-primary', 'text-on-primary');
+      chip.classList.add('bg-surface-cream', 'text-text-primary');
+      const badge = chip.querySelector('.check-badge');
+      if (badge) badge.classList.add('hidden');
+    });
+
+    button.classList.remove('bg-surface-cream', 'text-text-primary');
+    button.classList.add('bg-primary', 'text-on-primary');
+    const activeBadge = button.querySelector('.check-badge');
+    if (activeBadge) activeBadge.classList.remove('hidden');
+
+    currentSelectedStylist = stylistName;
+    updateRecap();
+  }
+
+  function confirmBooking() {
+    const toast = document.getElementById('booking-toast');
+    if (toast) {
+      toast.classList.remove('opacity-0', 'pointer-events-none', '-translate-y-2');
+      toast.classList.add('opacity-100', 'translate-y-0');
+
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'pointer-events-none', '-translate-y-2');
+        toast.classList.remove('opacity-100', 'translate-y-0');
+      }, 3500);
+    }
+  }
+</script></main></body></html>

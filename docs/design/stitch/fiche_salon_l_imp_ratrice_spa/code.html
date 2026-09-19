@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+
+<html class="h-full" lang="fr"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/><meta content="mobile_stack" name="shell-type"/><title>Keke Beauty</title><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: 'class', theme: { extend: { colors: { 'inverse-surface': '#30302f', 'status-unavailable': '#D32F2F', 'text-primary': '#241032', 'on-secondary-fixed': '#2c0051', 'on-primary-container': '#cf8bf2', 'on-error-container': '#93000a', 'inverse-on-surface': '#f3f0ee', 'inverse-primary': '#e7b3ff', 'on-tertiary-container': '#b19fc6', 'on-error': '#ffffff', 'secondary': '#821dda', 'status-available': '#1B8755', 'on-tertiary-fixed': '#221534', 'surface-variant': '#e5e2e0', 'primary-fixed': '#f6d9ff', 'on-primary-fixed': '#310049', 'surface-container-low': '#f6f3f1', 'tertiary-fixed': '#eddcff', 'surface-container': '#f0edeb', 'primary-container': '#5b1b7d', 'secondary-fixed-dim': '#dcb8ff', 'surface': '#fcf9f7', 'on-background': '#1b1c1b', 'on-surface-variant': '#4d4450', 'outline-variant': '#d0c2d1', 'lavender-subtle': '#F4EEFB', 'surface-container-lowest': '#ffffff', 'on-secondary-fixed-variant': '#6700b5', 'surface-container-highest': '#e5e2e0', 'on-surface': '#1b1c1b', 'secondary-container': '#9c42f4', 'tertiary-container': '#433556', 'surface-bright': '#fcf9f7', 'tertiary': '#2d203f', 'secondary-fixed': '#efdbff', 'on-primary-fixed-variant': '#672889', 'error': '#ba1a1a', 'on-tertiary-fixed-variant': '#4f4062', 'on-secondary-container': '#fffbff', 'on-tertiary': '#ffffff', 'surface-cream': '#FFFDF9', 'background': '#fcf9f7', 'surface-dim': '#dcd9d8', 'error-container': '#ffdad6', 'on-secondary': '#ffffff', 'tertiary-fixed-dim': '#d2bfe8', 'primary': '#410060', 'plum-deep': '#3A0D52', 'on-primary': '#ffffff', 'outline': '#7f7381', 'primary-fixed-dim': '#e7b3ff', 'surface-tint': '#8142a3', 'surface-container-high': '#eae8e6' }, borderRadius: { 'DEFAULT': '0.25rem', 'lg': '0.5rem', 'xl': '0.75rem', 'full': '9999px' }, spacing: { 'gutter': '1rem', 'space-xl': '2.25rem', 'space-sm': '0.5rem', 'space-lg': '1.5rem', 'margin-desktop': '2.5rem', 'gutter-mobile': '0.75rem', 'margin': '1.25rem', 'space-xs': '0.25rem', 'space-md': '1rem' }, fontFamily: { 'body-sm': ['Plus Jakarta Sans'], 'display-lg': ['Plus Jakarta Sans'], 'display-lg-mobile': ['Plus Jakarta Sans'], 'headline-sm': ['Plus Jakarta Sans'], 'body-md': ['Plus Jakarta Sans'], 'label-sm': ['Plus Jakarta Sans'], 'headline-md': ['Plus Jakarta Sans'], 'headline-lg': ['Plus Jakarta Sans'], 'body-lg': ['Plus Jakarta Sans'], 'label-lg': ['Plus Jakarta Sans'], 'label-md': ['Plus Jakarta Sans'] }, fontSize: { 'body-sm': ['12px', { lineHeight: '16px', fontWeight: '400' }], 'display-lg': ['36px', { lineHeight: '44px', fontWeight: '700' }], 'display-lg-mobile': ['28px', { lineHeight: '36px', fontWeight: '700' }], 'headline-sm': ['18px', { lineHeight: '24px', fontWeight: '600' }], 'body-md': ['14px', { lineHeight: '20px', fontWeight: '400' }], 'label-sm': ['11px', { lineHeight: '14px', fontWeight: '700' }], 'headline-md': ['20px', { lineHeight: '28px', fontWeight: '600' }], 'headline-lg': ['24px', { lineHeight: '32px', fontWeight: '700' }], 'body-lg': ['16px', { lineHeight: '24px', fontWeight: '400' }], 'label-lg': ['14px', { lineHeight: '18px', fontWeight: '600' }], 'label-md': ['12px', { lineHeight: '16px', fontWeight: '600' }] } } } };</script><style>@layer base { html, body { margin: 0; padding: 0; min-height: 100%; -webkit-tap-highlight-color: transparent; } .pb-safe { padding-bottom: env(safe-area-inset-bottom, 0px); } .pt-safe { padding-top: env(safe-area-inset-top, 0px); } } .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }</style></head><body class="bg-surface font-body-md text-body-md text-on-surface antialiased flex flex-col min-h-screen"><header class="fixed top-0 w-full z-50 pt-safe bg-surface-cream/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="h-16 px-gutter flex items-center justify-between gap-space-sm"><div class="flex items-center gap-space-xs min-w-0"><button aria-label="Retour" class="w-11 h-11 -ml-space-xs flex items-center justify-center rounded-full text-text-primary hover:bg-lavender-subtle active:scale-95 transition-all" onclick="history.back()"><span class="material-symbols-outlined text-[22px]">arrow_back_ios_new</span></button><img alt="logo_keke_beauty_option4.png" class="h-7 w-auto object-contain shrink-0" src="https://lh3.googleusercontent.com/aida/AEtjO1XKFZ-Kobzg0maYp0W59kfVRX5pjJGWi6p0HkyDZBYOaQr8Ht9DFtD7UxYDqwPgEGHDZIF3HREwXwC8uA8-sDTD5_4JgNJ3zph0F_lnpCuvezNBEFLMPOCgHEcrtsw-KILka7oPpKfyMJNaeqXEMWjbP35rcsI7okFR6bDFsbmNa0MSAgVowER7I_mxt72dJdVx--dKGxB4Td0X0qx1MYgXDkBq-BQocXmzdLw0Ypc4SYAfwYIFmbd6nVO2AlUNm9UsRfBmilHj2w"/><h1 class="font-headline-sm text-headline-sm text-text-primary font-semibold truncate">Fiche Salon Détail</h1></div><div class="flex items-center gap-space-xs shrink-0"><button aria-label="Partager ou Options" class="w-11 h-11 flex items-center justify-center rounded-full text-text-primary hover:bg-lavender-subtle transition-all"><span class="material-symbols-outlined text-[20px]">share</span></button><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center shadow-sm"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="flex-1 flex flex-col relative w-full pt-16 bg-surface"><div class="flex flex-col w-full pb-32">
+<!-- Visual Hero & Gallery Peek -->
+<div class="relative w-full overflow-hidden bg-surface-container-low">
+<div class="flex w-full overflow-x-auto snap-x snap-mandatory scrollbar-none scroll-smooth" id="gallery-scroller">
+<div class="w-full shrink-0 snap-center relative aspect-[4/3]">
+<img alt="Vue intérieure du salon L'Impératrice Spa" class="w-full h-full object-cover" data-alt="Luxurious, serene beauty salon interior in Abidjan featuring velvet violet and cream plush armchairs, minimalist gold mirrors, marble styling stations, soft ambient spa lighting, and lush indoor tropical palms." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB3xEmtkcJbdRZnWNut5Ji5iuHvoCPbQ8fx-HPEythSR5OHLX6_2etQusaX1hvbx0Kcs4uNsXBC8h6NAG-jnF2OYjD75m_On25zI98IYeUDgv9juApqkLHYeRi67yc0mkpozbNTdwxpaCd6nEh6EoemlsFG8KxbLIz39nOUfvJGCJtiIzsWVby8HKi_etH7d95Ycu8J9VfXMimbjJSvRhTGD5UmfdqVkMng1zUAB43Imi9OtRlYq-G1"/>
+<div class="absolute inset-0 bg-gradient-to-t from-plum-deep/80 via-transparent to-black/30"></div>
+</div>
+<div class="w-full shrink-0 snap-center relative aspect-[4/3]">
+<img alt="Coiffure Knotless Braids" class="w-full h-full object-cover" data-alt="Detailed close up of flawless knotless braids hairstyle on an elegant African woman, glossy sheen, perfectly parted scalp pattern, warm golden salon lighting, professional beauty photography." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDpKDDVMIkMip5zjqjnibzfmI3ry_X3AbqsMx8OqK0Z1lrJQrOEiezCpq9XlXOX30ToI7XhD3-wZrOI4zFoO484zJdxIcoXhdWMwXWqrAZ8oeGWo8-Nhzjn7xEoHXMmE9FrzEiigLsItg8llSmPfmrm9kZvIKfXXL-4Cc1laR5itw76VfHegPhbTf2IXZZOMPvv8gjMx0K_KqurkDNrERla_ZJ6BJdKUvGbP0Lb3CkBMnykStt0rDYJ"/>
+<div class="absolute inset-0 bg-gradient-to-t from-plum-deep/80 via-transparent to-black/30"></div>
+</div>
+<div class="w-full shrink-0 snap-center relative aspect-[4/3]">
+<img alt="Onglerie gel et nail art" class="w-full h-full object-cover" data-alt="Intricate royal purple and gold accent nail art manicure on well-groomed hands resting over a soft silk cloth in a high-end luxury nail bar setting, soft daylight." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA-bcnJPpbjwl5rMF7BjXerltyBBXfU4kNJYxdaIe2jxstUTDAyV3LwYeIBj7zHYi5XpCnY55VxT9GaZfjKYtBGpfbqIJKoJakHrkuXFeGwkA8sS5rjyVcEKaKsl3Df4t3prNLcvWbaTUnxBgDWGv6_jpSh1IkAPghdDoCYYPdoLreloHOEMUvA8TwnNbuAtQCdeJT2UVLWog5XB4h-bpw3dRHfzvUCM_pPTk_RbKprNQLFv7rRRZfp"/>
+<div class="absolute inset-0 bg-gradient-to-t from-plum-deep/80 via-transparent to-black/30"></div>
+</div>
+</div>
+<!-- Floating Top Badges inside Hero -->
+<div class="absolute top-4 left-4 right-4 flex items-center justify-between pointer-events-none">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-cream/90 backdrop-blur-md text-primary font-label-md text-label-md shadow-sm pointer-events-auto">
+<span class="material-symbols-outlined text-[16px] text-secondary" style="font-variation-settings: 'FILL' 1;">verified</span>
+        Certifié Keke Beauty
+      </span>
+<button aria-label="Ajouter aux favoris" class="w-10 h-10 rounded-full bg-surface-cream/90 backdrop-blur-md flex items-center justify-center text-primary shadow-sm pointer-events-auto transition-transform active:scale-90" id="favorite-btn" onclick="toggleFavorite()">
+<span class="material-symbols-outlined text-[20px] text-text-primary" id="favorite-icon">favorite_border</span>
+</button>
+</div>
+<!-- Pagination Dots & Photo Count Indicator -->
+<div class="absolute bottom-4 left-4 right-4 flex items-center justify-between pointer-events-none">
+<div class="flex items-center gap-1.5 bg-text-primary/40 backdrop-blur-md px-2.5 py-1 rounded-full pointer-events-auto">
+<div class="w-2 h-2 rounded-full bg-surface-cream transition-all" id="dot-0"></div>
+<div class="w-1.5 h-1.5 rounded-full bg-surface-cream/50 transition-all" id="dot-1"></div>
+<div class="w-1.5 h-1.5 rounded-full bg-surface-cream/50 transition-all" id="dot-2"></div>
+</div>
+<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-text-primary/60 backdrop-blur-md text-surface-cream font-label-sm text-label-sm pointer-events-auto">
+<span class="material-symbols-outlined text-[14px]">photo_library</span>
+        1/14 photos
+      </span>
+</div>
+</div>
+<!-- Salon Primary Identity Card -->
+<div class="px-margin pt-space-lg flex flex-col gap-space-sm">
+<div class="flex items-start justify-between gap-space-sm">
+<div class="flex-1 min-w-0">
+<div class="flex items-center gap-1.5 mb-1">
+<span class="px-2 py-0.5 rounded-full bg-lavender-subtle text-primary font-label-sm text-label-sm">Coiffure • Spa • Onglerie</span>
+<span class="px-2 py-0.5 rounded-full bg-status-available/10 text-status-available font-label-sm text-label-sm flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-status-available animate-pulse"></span>
+            Ouvert
+          </span>
+</div>
+<h1 class="font-headline-md text-headline-md text-text-primary tracking-tight truncate">L'Impératrice Spa &amp; Salon</h1>
+</div>
+<div class="flex flex-col items-end shrink-0">
+<div class="flex items-center gap-1 bg-surface-cream px-2.5 py-1 rounded-xl shadow-sm">
+<span class="material-symbols-outlined text-[18px] text-secondary" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="font-headline-sm text-headline-sm text-text-primary font-bold">4.9</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant mt-0.5">128 avis certifiés</span>
+</div>
+</div>
+<!-- Location and Hours Meta Row -->
+<div class="flex flex-col gap-1.5 pt-1">
+<div class="flex items-center gap-2 text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px] text-secondary shrink-0">location_on</span>
+<span class="font-body-md text-body-md truncate">Cocody Riviera Palmeraie, Rue Ministre, Abidjan</span>
+</div>
+<div class="flex items-center gap-2 text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px] text-primary shrink-0">schedule</span>
+<span class="font-body-md text-body-md"><strong class="font-label-md text-text-primary">Ferme à 20h00</strong> • Dès 08h30 mar-dim</span>
+</div>
+</div>
+<!-- Interactive Transport & Quick Actions Strip -->
+<div class="grid grid-cols-3 gap-2.5 pt-space-sm">
+<a class="flex flex-col items-center justify-center py-2.5 px-2 rounded-2xl bg-surface-cream text-text-primary shadow-sm hover:bg-lavender-subtle active:scale-95 transition-all text-center" href="tel:+2250700000000">
+<div class="w-9 h-9 rounded-full bg-lavender-subtle flex items-center justify-center mb-1 text-primary">
+<span class="material-symbols-outlined text-[20px]">call</span>
+</div>
+<span class="font-label-md text-label-md text-text-primary">Appeler</span>
+</a>
+<button class="flex flex-col items-center justify-center py-2.5 px-2 rounded-2xl bg-surface-cream text-text-primary shadow-sm hover:bg-lavender-subtle active:scale-95 transition-all text-center" onclick="openNavigationDrawer()">
+<div class="w-9 h-9 rounded-full bg-lavender-subtle flex items-center justify-center mb-1 text-secondary">
+<span class="material-symbols-outlined text-[20px]">near_me</span>
+</div>
+<span class="font-label-md text-label-md text-text-primary">S'y rendre</span>
+</button>
+<button class="flex flex-col items-center justify-center py-2.5 px-2 rounded-2xl bg-surface-cream text-text-primary shadow-sm hover:bg-lavender-subtle active:scale-95 transition-all text-center" onclick="shareSalon()">
+<div class="w-9 h-9 rounded-full bg-lavender-subtle flex items-center justify-center mb-1 text-text-primary">
+<span class="material-symbols-outlined text-[20px]">ios_share</span>
+</div>
+<span class="font-label-md text-label-md text-text-primary">Partager</span>
+</button>
+</div>
+</div>
+<!-- Content Navigation Tabs -->
+<div class="mt-space-lg px-margin">
+<div class="flex items-center gap-1.5 p-1 bg-surface-container rounded-2xl overflow-x-auto scrollbar-none">
+<button class="tab-btn flex-1 py-2 px-3.5 rounded-xl font-label-md text-label-md transition-all text-center whitespace-nowrap bg-surface-cream text-primary shadow-sm" id="tab-prestations" onclick="switchTab('prestations')">
+        Prestations &amp; Tarifs
+      </button>
+<button class="tab-btn flex-1 py-2 px-3.5 rounded-xl font-label-md text-label-md transition-all text-center whitespace-nowrap text-on-surface-variant hover:text-text-primary" id="tab-galerie" onclick="switchTab('galerie')">
+        Réalisations
+      </button>
+<button class="tab-btn flex-1 py-2 px-3.5 rounded-xl font-label-md text-label-md transition-all text-center whitespace-nowrap text-on-surface-variant hover:text-text-primary" id="tab-avis" onclick="switchTab('avis')">
+        Avis (128)
+      </button>
+<button class="tab-btn flex-1 py-2 px-3.5 rounded-xl font-label-md text-label-md transition-all text-center whitespace-nowrap text-on-surface-variant hover:text-text-primary" id="tab-infos" onclick="switchTab('infos')">
+        À propos
+      </button>
+</div>
+</div>
+<!-- TAB PANEL 1: Prestations & Tarifs (Default Active) -->
+<div class="tab-panel px-margin mt-space-md flex flex-col gap-space-md" id="panel-prestations">
+<!-- Category Sub-Filters -->
+<div class="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none -mx-margin px-margin">
+<button class="px-3.5 py-1.5 rounded-full bg-primary text-on-primary font-label-md text-label-md shrink-0 flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">check</span>
+        Toutes (16)
+      </button>
+<button class="px-3.5 py-1.5 rounded-full bg-surface-container text-on-surface-variant font-label-md text-label-md shrink-0">
+        Tresses &amp; Nattes
+      </button>
+<button class="px-3.5 py-1.5 rounded-full bg-surface-container text-on-surface-variant font-label-md text-label-md shrink-0">
+        Soins &amp; Spa
+      </button>
+<button class="px-3.5 py-1.5 rounded-full bg-surface-container text-on-surface-variant font-label-md text-label-md shrink-0">
+        Ongles &amp; Manucure
+      </button>
+</div>
+<!-- Service Card 1 -->
+<div class="p-space-md bg-surface-cream rounded-2xl shadow-sm flex flex-col gap-space-sm">
+<div class="flex items-start justify-between gap-space-sm">
+<div class="flex-1 min-w-0">
+<div class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-lavender-subtle text-secondary font-label-sm text-label-sm mb-1.5">
+<span class="material-symbols-outlined text-[14px]">local_fire_department</span>
+            Populaire
+          </div>
+<h2 class="font-headline-sm text-headline-sm text-text-primary font-bold">Tresses Knotless Braids Taille L</h2>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1 line-clamp-2">Finitions soignées ultra-légères sans tiraillement de cuir chevelu. Mèches premium fournies.</p>
+</div>
+</div>
+<div class="flex items-center justify-between pt-2">
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm text-primary font-bold">18 000 FCFA</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">timer</span>
+            Durée: 2h30
+          </span>
+</div>
+<button class="px-4 py-2 rounded-full bg-primary-container text-on-primary font-label-md text-label-md hover:opacity-95 active:scale-95 transition-all shadow-sm" onclick="selectService('Tresses Knotless Braids', '18 000 FCFA')">
+          Réserver
+        </button>
+</div>
+</div>
+<!-- Service Card 2 -->
+<div class="p-space-md bg-surface-cream rounded-2xl shadow-sm flex flex-col gap-space-sm">
+<div class="flex items-start justify-between gap-space-sm">
+<div class="flex-1 min-w-0">
+<h2 class="font-headline-sm text-headline-sm text-text-primary font-bold">Pose Ongles Gel &amp; Nail Art Royal</h2>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1 line-clamp-2">Pose complète capsules ou chablon, cuticules impeccables et motifs personnalisés aux détails dorés.</p>
+</div>
+</div>
+<div class="flex items-center justify-between pt-2">
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm text-primary font-bold">12 000 FCFA</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">timer</span>
+            Durée: 1h15
+          </span>
+</div>
+<button class="px-4 py-2 rounded-full bg-primary-container text-on-primary font-label-md text-label-md hover:opacity-95 active:scale-95 transition-all shadow-sm" onclick="selectService('Pose Ongles Gel &amp; Nail Art Royal', '12 000 FCFA')">
+          Réserver
+        </button>
+</div>
+</div>
+<!-- Service Card 3 -->
+<div class="p-space-md bg-surface-cream rounded-2xl shadow-sm flex flex-col gap-space-sm">
+<div class="flex items-start justify-between gap-space-sm">
+<div class="flex-1 min-w-0">
+<div class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-primary-fixed text-primary font-label-sm text-label-sm mb-1.5">
+            Détente absolue
+          </div>
+<h2 class="font-headline-sm text-headline-sm text-text-primary font-bold">Soin Visage Éclat &amp; Massage Relaxant</h2>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1 line-clamp-2">Rituel purifiant vapeur, gommage doux hibiscus, masque éclat vitaminé suivi d'un modelage dos &amp; nuque.</p>
+</div>
+</div>
+<div class="flex items-center justify-between pt-2">
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm text-primary font-bold">25 000 FCFA</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">timer</span>
+            Durée: 1h00
+          </span>
+</div>
+<button class="px-4 py-2 rounded-full bg-primary-container text-on-primary font-label-md text-label-md hover:opacity-95 active:scale-95 transition-all shadow-sm" onclick="selectService('Soin Visage Éclat &amp; Massage Relaxant', '25 000 FCFA')">
+          Réserver
+        </button>
+</div>
+</div>
+<!-- Service Card 4 -->
+<div class="p-space-md bg-surface-cream rounded-2xl shadow-sm flex flex-col gap-space-sm">
+<div class="flex items-start justify-between gap-space-sm">
+<div class="flex-1 min-w-0">
+<h2 class="font-headline-sm text-headline-sm text-text-primary font-bold">Lissage Brésilien Protéine</h2>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1 line-clamp-2">Formule enrichie sans formol garantissant une brillance miroir et une souplesse soyeuse durable 4 mois.</p>
+</div>
+</div>
+<div class="flex items-center justify-between pt-2">
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm text-primary font-bold">35 000 FCFA</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">timer</span>
+            Durée: 3h00
+          </span>
+</div>
+<button class="px-4 py-2 rounded-full bg-primary-container text-on-primary font-label-md text-label-md hover:opacity-95 active:scale-95 transition-all shadow-sm" onclick="selectService('Lissage Brésilien Protéine', '35 000 FCFA')">
+          Réserver
+        </button>
+</div>
+</div>
+</div>
+<!-- TAB PANEL 2: Galerie & Réalisations (Hidden initially) -->
+<div class="tab-panel hidden px-margin mt-space-md" id="panel-galerie">
+<div class="grid grid-cols-2 gap-2.5">
+<div class="relative aspect-square rounded-2xl overflow-hidden bg-surface-container shadow-sm">
+<img alt="Tresses créatives" class="w-full h-full object-cover" data-alt="Intricate golden blonde box braids on an elegant African woman posing in natural sunlight with flawless finish." src="https://lh3.googleusercontent.com/aida-public/AB6AXuANovE4QnLlrd4gbsuXUxfOKEZ6wTZeXCmrIABbbM9_3JwZ7UXtLDafCHzwkeP-GUAGgS8tNRiOac1f-NejVffyL39I8q8ZNbOHq2HGSepjL2MIJZ1ax2ne4ahVNT1C5cb8QPnmqcVVlg2sjD4Hv1dAeYmKKWE509JQC6o-h5AXmySoaU4HjdGgDrvDfP4JwGv_-bmax4EQHcCZdDKlQfeTCY0mOhBR7K0YeBJnbJo9iIVE3GEE0dGZ"/>
+</div>
+<div class="relative aspect-square rounded-2xl overflow-hidden bg-surface-container shadow-sm">
+<img alt="Nail art violet et or" class="w-full h-full object-cover" data-alt="Pastel purple acrylic nails with delicate gold leaf styling and glossy top coat photographed closely." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBhuLzjmQneQEtj-uslTx6ZVHrsflXRHec-kDezI2fI5BeTJM3et79VKSILSm5amOenkl7kYcNzNksYsZNt5et0xNmko9fhmKMwd7a5mYtxTgsUjxYQsDpkJ4b1tLyaWxO45hYJczW6AzyeTLvFTOHLwFKmtvHijH8HFj7vlzbdx2fzkhkT0sFBG0fG8Be8kGGuscVjDodfj8pPKrpYFrfsn3jOTmRIru2JUTPVKc59E_wti67STN3i"/>
+</div>
+<div class="relative aspect-square rounded-2xl overflow-hidden bg-surface-container shadow-sm">
+<img alt="Soin du visage spa" class="w-full h-full object-cover" data-alt="Woman receiving a relaxing botanical facial mask application at a luxury spa lounge, soft warm candlelight." src="https://lh3.googleusercontent.com/aida-public/AB6AXuABUFPvzLBzeCrWPGMLt3KefcGVDuZpC-CEXic0zrCD79oR8ndloV0tVZxYdpuYhyODf_p0LxXXnLKSIBNCXZaM0QYlAs_ksEY8DCNSLujygTOaMAOIAGidfxAkRTwUlyyhKKNf84LhJQN5f9GJ_T2HOlfPIHc0UsagSQSqf32wpV7S1irT_M_-E12z3CjrSp1eTdwducn0XIPwU_LOomfji8u-25Gy1t1JdU4FqvA_e4HvJ12spKVv"/>
+</div>
+<div class="relative aspect-square rounded-2xl overflow-hidden bg-surface-container shadow-sm">
+<img alt="Silk Press Coiffure" class="w-full h-full object-cover" data-alt="Silk press hair transformation showing ultra glossy black hair with fluid movement inside the beauty salon." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAnLIC0vUapBNpK0cKHYMmlOloPHakERy35yEs3O8FADI85dIjWkjREwsro80kLuIVLVmJ7C1IqcJSoeOb6LOHSWYpVV3ImL-d2pHlWjuwPWNeIHxXawDSLZ4eaH9TYIrhfeXN75jOhVmvxTed3SRT74bJfMrwLRaBVE7NQbpBOYviuOP62qCHUvE4lOztwcrOu_7XohduI8i7ZocKi0tA1-d2xAA1kBAXH8nyL4IHBLf__T9BB5muW"/>
+</div>
+</div>
+</div>
+<!-- TAB PANEL 3: Avis Clients (Hidden initially) -->
+<div class="tab-panel hidden px-margin mt-space-md flex flex-col gap-3" id="panel-avis">
+<div class="p-space-md bg-surface-cream rounded-2xl shadow-sm flex items-center gap-space-md">
+<div class="flex flex-col items-center justify-center pr-space-md">
+<span class="font-display-lg-mobile text-display-lg-mobile text-primary font-extrabold leading-none">4.9</span>
+<div class="flex text-secondary my-1">
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">128 avis</span>
+</div>
+<div class="flex-1 min-w-0 flex flex-col gap-1">
+<div class="flex items-center gap-2">
+<span class="font-label-sm text-label-sm w-3">5</span>
+<div class="flex-1 h-1.5 bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-secondary w-[92%] rounded-full"></div>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<span class="font-label-sm text-label-sm w-3">4</span>
+<div class="flex-1 h-1.5 bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-secondary w-[6%] rounded-full"></div>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<span class="font-label-sm text-label-sm w-3">3</span>
+<div class="flex-1 h-1.5 bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-secondary w-[2%] rounded-full"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Review Item -->
+<div class="p-space-md bg-surface-cream rounded-2xl shadow-sm flex flex-col gap-1.5">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md text-text-primary">Aïcha K.</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Il y a 3 jours</span>
+</div>
+<div class="flex text-secondary">
+<span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant">Accueil royal dès mon arrivée avec une boisson fraîche ! Mes knotless braids sont super légères, aucune douleur aux tempes. Je recommande à 100%.</p>
+</div>
+</div>
+<!-- TAB PANEL 4: À Propos (Hidden initially) -->
+<div class="tab-panel hidden px-margin mt-space-md flex flex-col gap-space-md" id="panel-infos">
+<div class="p-space-md bg-surface-cream rounded-2xl shadow-sm flex flex-col gap-space-sm">
+<h3 class="font-headline-sm text-headline-sm text-text-primary font-bold">L'Esprit de la Maison</h3>
+<p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+        Niché au cœur de la Palmeraie, L'Impératrice est une oasis dédiée à l'art capillaire africain et au bien-être haut de gamme. Nos artisanes et coiffeuses expertes combinent techniques contemporaines et soins botaniques pour sublimer chaque cliente.
+      </p>
+<div class="pt-2 flex flex-col gap-2">
+<div class="flex items-center gap-2.5 text-text-primary">
+<span class="material-symbols-outlined text-[20px] text-secondary">wifi</span>
+<span class="font-body-md text-body-md">Wi-Fi haut débit offert &amp; Rafraîchissements</span>
+</div>
+<div class="flex items-center gap-2.5 text-text-primary">
+<span class="material-symbols-outlined text-[20px] text-secondary">local_parking</span>
+<span class="font-body-md text-body-md">Parking privé sécurisé avec gardiennage</span>
+</div>
+<div class="flex items-center gap-2.5 text-text-primary">
+<span class="material-symbols-outlined text-[20px] text-secondary">credit_card</span>
+<span class="font-body-md text-body-md">Paiement Wave, Orange Money, Moov &amp; Carte</span>
+</div>
+</div>
+</div>
+<!-- Map preview container -->
+<div class="overflow-hidden rounded-2xl shadow-sm">
+<div class="w-full h-44 bg-cover bg-center" data-location="Cocody Riviera Palmeraie, Rue Ministre, Abidjan" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuD_MlGk6Jn0AoT_DwiPITA4qymTecNdgtPfVxywPmVunJIeVjKCJvgjjUuePb7c8ZUuV86D7P-MU9SOG671MF4ejPCJjuwevTKRiP78YDy50BsOXiQhSGGvlMDRjIyqhP-7ySoSi38KBnej6pLzaBMcJeX5co0ukmND6C5oUYA1wCxi6xrivtpTt7JhKT4NMs7p-snysnVoMj7qUQgLSUa_JRGqjqndLzLrN8zq7b8lc01tvrjLMfb0')"></div>
+</div>
+</div>
+<!-- MODAL / DRAWER: Itinéraires & Deep Links vers Yango / Maps -->
+<div class="fixed inset-0 z-50 pointer-events-none opacity-0 transition-opacity duration-300 flex items-end" id="navigation-drawer">
+<div class="fixed inset-0 bg-plum-deep/50 backdrop-blur-sm pointer-events-auto" onclick="closeNavigationDrawer()"></div>
+<div class="relative w-full bg-surface-cream rounded-t-3xl p-space-lg shadow-xl pointer-events-auto flex flex-col gap-space-md z-10 pb-safe">
+<div class="w-12 h-1.5 bg-surface-variant rounded-full mx-auto -mt-2"></div>
+<div class="flex items-center justify-between">
+<div class="flex flex-col">
+<h3 class="font-headline-sm text-headline-sm text-text-primary font-bold">Choisir un itinéraire</h3>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Cocody Riviera Palmeraie, Rue Ministre</span>
+</div>
+<button aria-label="Fermer le menu de transport" class="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center text-text-primary" onclick="closeNavigationDrawer()">
+<span class="material-symbols-outlined text-[18px]">close</span>
+</button>
+</div>
+<div class="flex flex-col gap-2 pt-1">
+<!-- Option Yango -->
+<a class="flex items-center justify-between p-3 rounded-2xl bg-surface-container hover:bg-lavender-subtle transition-colors" href="https://yango.com" rel="noopener noreferrer" target="_blank">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined text-[22px]">local_taxi</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-lg text-label-lg text-text-primary font-bold">Commander un Yango</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Arrivée estimée en 4 min</span>
+</div>
+</div>
+<span class="material-symbols-outlined text-[20px] text-primary">arrow_forward_ios</span>
+</a>
+<!-- Option Google Maps -->
+<a class="flex items-center justify-between p-3 rounded-2xl bg-surface-container hover:bg-lavender-subtle transition-colors" href="https://maps.google.com/?q=Cocody+Riviera+Palmeraie+Abidjan" rel="noopener noreferrer" target="_blank">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-xl bg-status-available flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined text-[22px]">map</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-lg text-label-lg text-text-primary font-bold">Google Maps</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Itinéraire à pied ou voiture</span>
+</div>
+</div>
+<span class="material-symbols-outlined text-[20px] text-primary">arrow_forward_ios</span>
+</a>
+<!-- Option Apple Maps -->
+<a class="flex items-center justify-between p-3 rounded-2xl bg-surface-container hover:bg-lavender-subtle transition-colors" href="http://maps.apple.com/?q=Cocody+Riviera+Palmeraie+Abidjan" rel="noopener noreferrer" target="_blank">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-xl bg-tertiary-container flex items-center justify-center text-on-tertiary">
+<span class="material-symbols-outlined text-[22px]">explore</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-lg text-label-lg text-text-primary font-bold">Apple Plans</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Navigation guidée iOS</span>
+</div>
+</div>
+<span class="material-symbols-outlined text-[20px] text-primary">arrow_forward_ios</span>
+</a>
+</div>
+</div>
+</div>
+<!-- STICKY CONVERSION BAR (Bottom CTA) -->
+<div class="fixed bottom-0 left-0 right-0 z-40 bg-surface-cream/95 backdrop-blur-lg shadow-[0_-4px_24px_rgba(58,13,82,0.08)] px-margin py-3 pb-safe">
+<div class="flex items-center gap-3 max-w-md mx-auto">
+<div class="flex flex-col min-w-0 hidden xs:flex">
+<span class="font-label-sm text-label-sm text-on-surface-variant truncate">Premier créneau</span>
+<span class="font-label-md text-label-md text-text-primary font-bold">Aujourd'hui 14h30</span>
+</div>
+<button class="flex-1 h-12 rounded-full bg-gradient-to-r from-primary via-primary-container to-secondary text-on-primary font-label-lg text-label-lg font-semibold flex items-center justify-center gap-2 shadow-md active:scale-[0.98] transition-all" onclick="triggerBooking()">
+<span class="material-symbols-outlined text-[20px]">calendar_month</span>
+<span>Prendre Rendez-vous</span>
+</button>
+</div>
+</div>
+</div>
+<script>
+  function switchTab(tabId) {
+    const tabs = ['prestations', 'galerie', 'avis', 'infos'];
+    tabs.forEach(id => {
+      const panel = document.getElementById('panel-' + id);
+      const btn = document.getElementById('tab-' + id);
+      if (id === tabId) {
+        panel.classList.remove('hidden');
+        btn.classList.add('bg-surface-cream', 'text-primary', 'shadow-sm');
+        btn.classList.remove('text-on-surface-variant');
+      } else {
+        panel.classList.add('hidden');
+        btn.classList.remove('bg-surface-cream', 'text-primary', 'shadow-sm');
+        btn.classList.add('text-on-surface-variant');
+      }
+    });
+  }
+
+  function toggleFavorite() {
+    const icon = document.getElementById('favorite-icon');
+    const btn = document.getElementById('favorite-btn');
+    if (icon.textContent === 'favorite_border') {
+      icon.textContent = 'favorite';
+      icon.classList.remove('text-text-primary');
+      icon.classList.add('text-error');
+      btn.classList.add('scale-110');
+      setTimeout(() => btn.classList.remove('scale-110'), 200);
+    } else {
+      icon.textContent = 'favorite_border';
+      icon.classList.add('text-text-primary');
+      icon.classList.remove('text-error');
+    }
+  }
+
+  function openNavigationDrawer() {
+    const drawer = document.getElementById('navigation-drawer');
+    drawer.classList.remove('pointer-events-none', 'opacity-0');
+    drawer.classList.add('pointer-events-auto', 'opacity-100');
+  }
+
+  function closeNavigationDrawer() {
+    const drawer = document.getElementById('navigation-drawer');
+    drawer.classList.add('pointer-events-none', 'opacity-0');
+    drawer.classList.remove('pointer-events-auto', 'opacity-100');
+  }
+
+  function shareSalon() {
+    if (navigator.share) {
+      navigator.share({
+        title: "L'Impératrice Spa & Salon de Coiffure - Keke Beauty",
+        text: "Découvre ce sublime salon certifié à la Palmeraie sur Keke Beauty !",
+        url: window.location.href
+      }).catch(() => {});
+    } else {
+      navigator.clipboard?.writeText(window.location.href);
+      alert("Lien du salon copié dans le presse-papiers !");
+    }
+  }
+
+  function selectService(name, price) {
+    alert("Prestation sélectionnée : " + name + " (" + price + "). Redirection vers le choix du créneau horaire...");
+  }
+
+  function triggerBooking() {
+    alert("Ouverture du calendrier des disponibilités pour L'Impératrice Spa...");
+  }
+
+  // Gallery Dot Tracking
+  const scroller = document.getElementById('gallery-scroller');
+  if (scroller) {
+    scroller.addEventListener('scroll', () => {
+      const width = scroller.offsetWidth;
+      const index = Math.round(scroller.scrollLeft / width);
+      [0, 1, 2].forEach(i => {
+        const dot = document.getElementById('dot-' + i);
+        if (dot) {
+          if (i === index) {
+            dot.classList.add('w-2', 'h-2', 'bg-surface-cream');
+            dot.classList.remove('w-1.5', 'h-1.5', 'bg-surface-cream/50');
+          } else {
+            dot.classList.remove('w-2', 'h-2', 'bg-surface-cream');
+            dot.classList.add('w-1.5', 'h-1.5', 'bg-surface-cream/50');
+          }
+        }
+      });
+    });
+  }
+</script></main></body></html>

@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+
+<html lang="fr"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = {
+  darkMode: "class",
+  theme: {
+    extend: {
+      "colors": {
+        "surface-container-lowest": "#ffffff",
+        "primary-container": "#5b1b7d",
+        "outline-variant": "#d0c2d1",
+        "tertiary": "#2d203f",
+        "on-tertiary-container": "#b19fc6",
+        "primary-fixed": "#f6d9ff",
+        "on-primary-container": "#cf8bf2",
+        "surface-container-high": "#eae8e6",
+        "background": "#fcf9f7",
+        "inverse-on-surface": "#f3f0ee",
+        "surface-bright": "#fcf9f7",
+        "surface-container": "#f0edeb",
+        "on-tertiary-fixed-variant": "#4f4062",
+        "inverse-surface": "#30302f",
+        "on-surface-variant": "#4d4450",
+        "on-primary-fixed-variant": "#672889",
+        "tertiary-fixed-dim": "#d2bfe8",
+        "outline": "#7f7381",
+        "secondary-fixed": "#efdbff",
+        "surface": "#fcf9f7",
+        "status-available": "#1B8755",
+        "inverse-primary": "#e7b3ff",
+        "on-primary-fixed": "#310049",
+        "on-primary": "#ffffff",
+        "surface-variant": "#e5e2e0",
+        "tertiary-container": "#433556",
+        "on-error": "#ffffff",
+        "lavender-subtle": "#F4EEFB",
+        "on-secondary": "#ffffff",
+        "on-tertiary-fixed": "#221534",
+        "on-surface": "#1b1c1b",
+        "status-unavailable": "#D32F2F",
+        "on-secondary-fixed": "#2c0051",
+        "surface-tint": "#8142a3",
+        "secondary": "#821dda",
+        "primary": "#410060",
+        "surface-container-highest": "#e5e2e0",
+        "primary-fixed-dim": "#e7b3ff",
+        "on-background": "#1b1c1b",
+        "text-primary": "#241032",
+        "plum-deep": "#3A0D52",
+        "on-secondary-container": "#fffbff",
+        "secondary-container": "#9c42f4",
+        "on-error-container": "#93000a",
+        "surface-container-low": "#f6f3f1",
+        "secondary-fixed-dim": "#dcb8ff",
+        "on-secondary-fixed-variant": "#6700b5",
+        "error": "#ba1a1a",
+        "error-container": "#ffdad6",
+        "surface-dim": "#dcd9d8",
+        "surface-cream": "#FFFDF9",
+        "tertiary-fixed": "#eddcff",
+        "on-tertiary": "#ffffff"
+      },
+      "borderRadius": {
+        "DEFAULT": "0.25rem",
+        "lg": "0.5rem",
+        "xl": "0.75rem",
+        "full": "9999px"
+      },
+      "spacing": {
+        "space-sm": "0.5rem",
+        "gutter": "1rem",
+        "space-md": "1rem",
+        "space-xl": "2.25rem",
+        "margin-desktop": "2.5rem",
+        "gutter-mobile": "0.75rem",
+        "space-xs": "0.25rem",
+        "margin": "1.25rem",
+        "space-lg": "1.5rem"
+      },
+      "fontFamily": {
+        "label-lg": ["Plus Jakarta Sans"],
+        "display-lg": ["Plus Jakarta Sans"],
+        "label-sm": ["Plus Jakarta Sans"],
+        "body-md": ["Plus Jakarta Sans"],
+        "headline-md": ["Plus Jakarta Sans"],
+        "headline-lg": ["Plus Jakarta Sans"],
+        "body-lg": ["Plus Jakarta Sans"],
+        "body-sm": ["Plus Jakarta Sans"],
+        "display-lg-mobile": ["Plus Jakarta Sans"],
+        "headline-sm": ["Plus Jakarta Sans"],
+        "label-md": ["Plus Jakarta Sans"]
+      },
+      "fontSize": {
+        "label-lg": ["14px", {"lineHeight": "18px", "fontWeight": "600"}],
+        "display-lg": ["36px", {"lineHeight": "44px", "fontWeight": "700"}],
+        "label-sm": ["11px", {"lineHeight": "14px", "fontWeight": "700"}],
+        "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+        "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+        "headline-lg": ["24px", {"lineHeight": "32px", "fontWeight": "700"}],
+        "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+        "body-sm": ["12px", {"lineHeight": "16px", "fontWeight": "400"}],
+        "display-lg-mobile": ["28px", {"lineHeight": "36px", "fontWeight": "700"}],
+        "headline-sm": ["18px", {"lineHeight": "24px", "fontWeight": "600"}],
+        "label-md": ["12px", {"lineHeight": "16px", "fontWeight": "600"}]
+      }
+    }
+  }
+}</script></head><body class="bg-surface text-on-surface font-body-md text-body-md"><aside class="fixed left-0 top-0 h-full w-72 bg-surface-cream shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-50 flex flex-col justify-between py-6"><div class="flex flex-col gap-6 px-4"><div class="flex items-center gap-3 px-3"><img alt="logo_keke_beauty_option4.png" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1XKFZ-Kobzg0maYp0W59kfVRX5pjJGWi6p0HkyDZBYOaQr8Ht9DFtD7UxYDqwPgEGHDZIF3HREwXwC8uA8-sDTD5_4JgNJ3zph0F_lnpCuvezNBEFLMPOCgHEcrtsw-KILka7oPpKfyMJNaeqXEMWjbP35rcsI7okFR6bDFsbmNa0MSAgVowER7I_mxt72dJdVx--dKGxB4Td0X0qx1MYgXDkBq-BQocXmzdLw0Ypc4SYAfwYIFmbd6nVO2AlUNm9UsRfBmilHj2w"/><div class="flex flex-col"><span class="font-headline-sm text-headline-sm text-plum-deep leading-tight font-bold">Keke Pro</span><span class="font-label-sm text-label-sm text-outline tracking-wider uppercase">Espace Partenaire</span></div></div><nav class="flex flex-col gap-1" data-active-classes="bg-primary text-on-primary rounded-xl font-label-lg"><a class="flex items-center gap-3 px-4 py-3 rounded-xl text-on-surface-variant hover:bg-lavender-subtle hover:text-plum-deep transition-all font-body-md text-body-md" data-path="agenda-multi-fauteuils" href="#"><span class="material-symbols-outlined text-[20px]">calendar_month</span><span>Agenda Multi-Fauteuils</span></a><a class="flex items-center gap-3 px-4 py-3 rounded-xl text-on-surface-variant hover:bg-lavender-subtle hover:text-plum-deep transition-all font-body-md text-body-md" data-path="reservations-walk-ins" href="#"><span class="material-symbols-outlined text-[20px]">book_online</span><span>Réservations &amp; Walk-ins</span></a><a class="flex items-center gap-3 px-4 py-3 rounded-xl text-on-surface-variant hover:bg-lavender-subtle hover:text-plum-deep transition-all font-body-md text-body-md" data-path="gestion-equipe-praticiennes" href="#"><span class="material-symbols-outlined text-[20px]">groups</span><span>Gestion d'Équipe &amp; Praticiennes</span></a><a class="flex items-center gap-3 px-4 py-3 rounded-xl text-on-surface-variant hover:bg-lavender-subtle hover:text-plum-deep transition-all font-body-md text-body-md" data-path="catalogue-soins-tarifs" href="#"><span class="material-symbols-outlined text-[20px]">spa</span><span>Catalogue Soins &amp; Tarifs</span></a><a class="flex items-center gap-3 px-4 py-3 rounded-xl text-on-surface-variant hover:bg-lavender-subtle hover:text-plum-deep transition-all font-body-md text-body-md" data-path="finances-acomptes-wave" href="#"><span class="material-symbols-outlined text-[20px]">account_balance_wallet</span><span>Finances, Acomptes &amp; Wave</span></a><a class="flex items-center gap-3 px-4 py-3 rounded-xl text-on-surface-variant hover:bg-lavender-subtle hover:text-plum-deep transition-all font-body-md text-body-md" data-path="vitrine-keke-gold-avis" href="#"><span class="material-symbols-outlined text-[20px]">hotel_class</span><span>Vitrine Keke Gold &amp; Avis</span></a><a class="flex items-center gap-3 px-4 py-3 rounded-xl text-on-surface-variant hover:bg-lavender-subtle hover:text-plum-deep transition-all font-body-md text-body-md" data-path="parametres-du-salon" href="#"><span class="material-symbols-outlined text-[20px]">settings</span><span>Paramètres du Salon</span></a></nav></div><div class="flex flex-col gap-3 px-4"><div class="bg-lavender-subtle p-3 rounded-xl flex items-center justify-between"><div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-status-available"></span><span class="font-label-sm text-label-sm text-plum-deep">Passerelle Wave Active</span></div><span class="material-symbols-outlined text-[16px] text-primary">verified</span></div><a class="flex items-center justify-center gap-2 w-full py-2.5 px-3 rounded-xl bg-surface-container hover:bg-surface-container-high text-plum-deep font-label-md text-label-md transition-colors" href="#"><span class="material-symbols-outlined text-[18px]">storefront</span><span>Voir ma vitrine en ligne</span></a></div></aside><div class="pl-72"><header class="fixed top-0 left-72 right-0 h-16 bg-surface-cream/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-40 flex items-center justify-between px-8"><div class="flex items-center gap-4"><button class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface-container text-text-primary hover:bg-surface-container-high transition-colors"><span class="material-symbols-outlined text-[18px] text-primary">store</span><span class="font-label-lg text-label-lg font-bold">L'Impératrice Spa &amp; Coiffure • Cocody Riviera Golf</span><span class="material-symbols-outlined text-[18px] text-outline">arrow_drop_down</span></button><div class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-status-available/10 text-status-available"><span class="w-2 h-2 rounded-full bg-status-available animate-pulse"></span><span class="font-label-sm text-label-sm font-bold">En service / Ouvert</span></div></div><div class="flex items-center gap-5"><div class="hidden xl:flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-lavender-subtle text-plum-deep"><span class="material-symbols-outlined text-[18px] text-primary">payments</span><span class="font-label-sm text-label-sm text-outline uppercase">Aujourd'hui :</span><span class="font-label-lg text-label-lg font-bold">425 000 FCFA</span></div><button class="relative p-2 rounded-full hover:bg-surface-container transition-colors text-on-surface-variant"><span class="material-symbols-outlined text-[22px]">notifications</span><span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-status-unavailable"></span></button><div class="flex items-center gap-3 pl-3 border-l-0"><div class="flex flex-col text-right"><span class="font-label-lg text-label-lg text-text-primary leading-tight">Chantal Touré</span><span class="font-label-sm text-label-sm text-outline">Directrice Générale</span></div><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="relative pt-16 bg-surface min-h-screen w-full px-8"><div class="flex flex-col w-full gap-6 pb-12">
+<!-- Top Navigation & Global Page Header -->
+<div class="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
+<div class="flex flex-col">
+<div class="flex items-center gap-2 mb-1">
+<span class="px-2.5 py-0.5 rounded-full bg-lavender-subtle text-primary font-label-sm text-label-sm uppercase tracking-wider">Réception · Salon Direct</span>
+<span class="text-outline font-label-sm text-label-sm">•</span>
+<span class="text-outline font-label-sm text-label-sm flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">schedule</span> 12:42 GMT · Jeudi 24 Octobre
+        </span>
+</div>
+<h1 class="font-headline-lg text-headline-lg text-plum-deep tracking-tight">Réservations, Accueil Comptoir &amp; Walk-ins</h1>
+<p class="font-body-md text-body-md text-on-surface-variant">Gestion des flux clientes en temps réel, pointage instantané des présences et encaissement des soldes.</p>
+</div>
+<!-- Top Action Toolbar -->
+<div class="flex items-center gap-3">
+<button class="group relative flex items-center gap-2.5 px-5 py-3 rounded-full bg-primary hover:bg-plum-deep text-on-primary font-label-lg text-label-lg shadow-md hover:shadow-xl transition-all duration-200 cursor-pointer" onclick="document.getElementById('walkin-modal').classList.remove('hidden')">
+<span class="material-symbols-outlined text-[20px] transition-transform group-hover:rotate-90">add</span>
+<span>+ Enregistrer une cliente Walk-in immédiate</span>
+</button>
+<button class="flex items-center justify-center p-3 rounded-full bg-surface-cream hover:bg-surface-container-high text-plum-deep shadow-sm transition-colors" title="Synchroniser l'agenda">
+<span class="material-symbols-outlined text-[20px]">sync</span>
+</button>
+</div>
+</div>
+<!-- Key Metrics Row (4 Cards Bento) -->
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+<!-- Metric 1 -->
+<div class="bg-surface-cream rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden flex flex-col justify-between">
+<div class="flex items-start justify-between mb-3">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-outline">Clientes Attendues Aujourd'hui</span>
+<div class="flex items-baseline gap-2 mt-1">
+<span class="font-display-lg text-display-lg text-plum-deep font-bold leading-none">32</span>
+<span class="font-label-md text-label-md text-status-available flex items-center">
+<span class="material-symbols-outlined text-[14px]">north_east</span> +14% vs hier
+            </span>
+</div>
+</div>
+<div class="w-10 h-10 rounded-full bg-lavender-subtle text-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-[20px]">person_pin</span>
+</div>
+</div>
+<div class="flex items-center justify-between pt-3 text-outline">
+<div class="flex items-center gap-1.5 font-label-sm text-label-sm">
+<span class="w-2 h-2 rounded-full bg-status-available"></span>
+<span class="text-plum-deep font-semibold">24</span> accueillies
+        </div>
+<div class="flex items-center gap-1.5 font-label-sm text-label-sm">
+<span class="w-2 h-2 rounded-full bg-secondary"></span>
+<span class="text-plum-deep font-semibold">6</span> en soins
+        </div>
+<div class="flex items-center gap-1.5 font-label-sm text-label-sm">
+<span class="w-2 h-2 rounded-full bg-status-unavailable"></span>
+<span class="text-error font-semibold">2</span> en retard
+        </div>
+</div>
+<!-- Subtle bottom progress bar -->
+<div class="w-full bg-surface-container h-1.5 rounded-full mt-3 overflow-hidden flex">
+<div class="bg-status-available h-full" style="width: 75%;"></div>
+<div class="bg-secondary h-full" style="width: 19%;"></div>
+<div class="bg-error h-full" style="width: 6%;"></div>
+</div>
+</div>
+<!-- Metric 2 -->
+<div class="bg-surface-cream rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between">
+<div class="flex items-start justify-between mb-3">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-outline">Walk-ins du Jour</span>
+<div class="flex items-baseline gap-2 mt-1">
+<span class="font-display-lg text-display-lg text-primary font-bold leading-none">5</span>
+<span class="px-2 py-0.5 rounded-full bg-lavender-subtle text-plum-deep font-label-sm text-label-sm font-semibold">Sans RDV</span>
+</div>
+</div>
+<div class="w-10 h-10 rounded-full bg-lavender-subtle text-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-[20px]">door_open</span>
+</div>
+</div>
+<div class="flex items-center gap-2 pt-2">
+<span class="material-symbols-outlined text-[16px] text-status-available">check_circle</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">100% intégrées sans saturation des fauteuils</span>
+</div>
+</div>
+<!-- Metric 3 -->
+<div class="bg-surface-cream rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between">
+<div class="flex items-start justify-between mb-3">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-outline">Taux de No-Show</span>
+<div class="flex items-baseline gap-2 mt-1">
+<span class="font-display-lg text-display-lg text-status-available font-bold leading-none">0%</span>
+<span class="font-label-sm text-label-sm text-outline">Aucun désistement</span>
+</div>
+</div>
+<div class="w-10 h-10 rounded-full bg-status-available/10 text-status-available flex items-center justify-center">
+<span class="material-symbols-outlined text-[20px]">shield</span>
+</div>
+</div>
+<div class="flex items-center gap-2 pt-2">
+<span class="w-2 h-2 rounded-full bg-status-available animate-ping"></span>
+<span class="font-body-sm text-body-sm text-plum-deep font-medium">Acomptes 50% Wave séquestrés et actifs</span>
+</div>
+</div>
+<!-- Metric 4 -->
+<div class="bg-gradient-to-br from-primary via-plum-deep to-tertiary rounded-xl p-5 shadow-md text-on-primary flex flex-col justify-between relative overflow-hidden">
+<div class="absolute -right-6 -bottom-6 w-24 h-24 rounded-full bg-primary-fixed/10 pointer-events-none"></div>
+<div class="flex items-start justify-between mb-2">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-on-tertiary-container">Solde à encaisser comptoir</span>
+<div class="mt-1">
+<span class="font-display-lg text-display-lg font-bold leading-tight">285 000</span>
+<span class="font-headline-sm text-headline-sm text-on-primary-container font-semibold ml-1">FCFA</span>
+</div>
+</div>
+<div class="w-10 h-10 rounded-full bg-primary-fixed/20 text-on-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-[20px]">point_of_sale</span>
+</div>
+</div>
+<div class="flex items-center justify-between text-on-tertiary-container font-label-sm text-label-sm pt-2">
+<span>Wave QR · Cash · TPE</span>
+<span class="text-primary-fixed font-bold">14 clientes restantes</span>
+</div>
+</div>
+</div>
+<!-- Search & Filter Controls -->
+<div class="bg-surface-cream rounded-xl p-4 shadow-sm flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
+<!-- Fast Search Input -->
+<div class="relative flex-1 max-w-xl">
+<span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[20px] text-outline">search</span>
+<input class="w-full pl-10 pr-4 py-2.5 rounded-full bg-surface font-body-md text-body-md text-plum-deep placeholder:text-outline focus:outline-none focus:ring-2 focus:ring-secondary/40 shadow-inner" placeholder="Rechercher par cliente, téléphone (+225...), ou réf RDV (#KB-9421)..." type="text"/>
+<button class="absolute right-3 top-1/2 -translate-y-1/2 px-2 py-0.5 rounded-full bg-surface-container text-outline font-label-sm text-label-sm hover:text-plum-deep">
+        Esc
+      </button>
+</div>
+<!-- Status Tabs -->
+<div class="flex items-center gap-1.5 overflow-x-auto pb-1 lg:pb-0">
+<button class="px-3.5 py-1.5 rounded-full bg-primary text-on-primary font-label-md text-label-md whitespace-nowrap shadow-sm">
+        Toutes (32)
+      </button>
+<button class="px-3.5 py-1.5 rounded-full bg-lavender-subtle text-plum-deep hover:bg-surface-container font-label-md text-label-md whitespace-nowrap transition-colors flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-outline"></span>
+<span>En attente (4)</span>
+</button>
+<button class="px-3.5 py-1.5 rounded-full bg-lavender-subtle text-plum-deep hover:bg-surface-container font-label-md text-label-md whitespace-nowrap transition-colors flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-secondary animate-pulse"></span>
+<span>En soin / Bac (6)</span>
+</button>
+<button class="px-3.5 py-1.5 rounded-full bg-lavender-subtle text-plum-deep hover:bg-surface-container font-label-md text-label-md whitespace-nowrap transition-colors flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-status-available"></span>
+<span>Prêtes encaissement (3)</span>
+</button>
+<button class="px-3.5 py-1.5 rounded-full bg-lavender-subtle text-plum-deep hover:bg-surface-container font-label-md text-label-md whitespace-nowrap transition-colors">
+        Facturées (19)
+      </button>
+</div>
+</div>
+<!-- Main Split Canvas: Master Reservation Grid & Right Express Checkout Panel -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+<!-- Left / Center: Interactive Reservations Table (8 Cols) -->
+<div class="lg:col-span-8 flex flex-col bg-surface-cream rounded-xl shadow-sm overflow-hidden">
+<!-- Section Header -->
+<div class="p-4 flex items-center justify-between bg-surface-cream">
+<div class="flex items-center gap-2.5">
+<span class="material-symbols-outlined text-primary text-[20px]">calendar_today</span>
+<h2 class="font-headline-sm text-headline-sm text-plum-deep">Flux d'accueil du jour en direct</h2>
+<span class="px-2 py-0.5 rounded-full bg-status-available/15 text-status-available font-label-sm text-label-sm font-bold">Mise à jour en temps réel</span>
+</div>
+<div class="flex items-center gap-2">
+<button class="flex items-center gap-1 px-3 py-1 rounded-full bg-surface text-on-surface-variant hover:text-plum-deep font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[16px]">filter_list</span> Filtrer
+          </button>
+<button class="flex items-center gap-1 px-3 py-1 rounded-full bg-surface text-on-surface-variant hover:text-plum-deep font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[16px]">view_column</span> Colonnes
+          </button>
+</div>
+</div>
+<!-- Table Container -->
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead class="bg-surface-container text-on-surface-variant font-label-sm text-label-sm uppercase tracking-wider">
+<tr>
+<th class="py-3 px-4">Réf &amp; Heure</th>
+<th class="py-3 px-4">Cliente &amp; Profil</th>
+<th class="py-3 px-4">Prestation</th>
+<th class="py-3 px-4">Artisane Assignée</th>
+<th class="py-3 px-4">Statut d'Accueil</th>
+<th class="py-3 px-4 text-right">Solde Dû</th>
+<th class="py-3 px-4 text-center">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y-0 text-body-md font-body-md">
+<!-- Row 1: Active In Care / Urgent Checkout Soon -->
+<tr class="hover:bg-lavender-subtle/50 transition-colors group">
+<td class="py-4 px-4 align-middle">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md font-bold text-plum-deep">#KB-9482</span>
+<div class="flex items-center gap-1 mt-0.5 text-secondary">
+<span class="material-symbols-outlined text-[14px]">alarm</span>
+<span class="font-label-sm text-label-sm font-semibold">11:30 GMT</span>
+</div>
+</div>
+</td>
+<td class="py-4 px-4 align-middle">
+<div class="flex items-center gap-3">
+<div class="relative">
+<img class="w-10 h-10 rounded-full object-cover" data-alt="Portrait of an elegant West African woman in Abidjan with braided hair and glowing skin smiling gently" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBDTtcQlzaR5iiJYOuyRxy_9CKBxw08FSOwHikRGJb60joVnRBz0ByMdXkxjPjrENBkFMzOMH8t8Zfi1C3dObB3j6HDDKvUKBwKWZiDFh2Y0fpGl-36prlhvsPVbBt4ZuOUNS-Pp4iDmSUGF4XgErpMOXLaM7Hf4LfsnQ6ooypG5LX2B-5b3BnWm0c8eEv6H1SHSvYbwxhfzcx0Dq2dTQ9DfYCpwnseUuEdoECD3F6Sj_3vFlOZ5RLJ"/>
+<span class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-primary-fixed text-primary flex items-center justify-center text-[10px] font-bold" title="Membre VIP Keke Gold">★</span>
+</div>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-1.5">
+<span class="font-label-lg text-label-lg text-plum-deep font-bold truncate">Fatoumata Konaté</span>
+<span class="px-1.5 py-0.2 rounded bg-lavender-subtle text-primary font-label-sm text-label-sm">VIP Gold</span>
+</div>
+<span class="font-body-sm text-body-sm text-outline">+225 07 88 99 11</span>
+</div>
+</div>
+</td>
+<td class="py-4 px-4 align-middle">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-plum-deep font-semibold">Knotless Braids Taille L</span>
+<span class="font-body-sm text-body-sm text-outline">Durée · 3h00</span>
+</div>
+</td>
+<td class="py-4 px-4 align-middle">
+<div class="flex items-center gap-2">
+<div class="w-7 h-7 rounded-full bg-surface-container flex items-center justify-center text-primary font-label-sm text-label-sm font-bold">AK</div>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-plum-deep">Aïcha Kouamé</span>
+<span class="font-label-sm text-label-sm text-outline">Fauteuil VIP #1</span>
+</div>
+</div>
+</td>
+<td class="py-4 px-4 align-middle">
+<div class="flex flex-col gap-1">
+<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-secondary/10 text-secondary font-label-sm text-label-sm font-semibold w-fit">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary animate-pulse"></span>
+                    En soin · Fin 14h00
+                  </span>
+<span class="font-label-sm text-label-sm text-status-available flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px]">done_all</span> Arrivée pointée 11:22
+                  </span>
+</div>
+</td>
+<td class="py-4 px-4 align-middle text-right">
+<div class="flex flex-col items-end">
+<span class="font-label-lg text-label-lg text-plum-deep font-bold">18 000 FCFA</span>
+<div class="flex items-center gap-1 font-label-sm text-label-sm text-status-available">
+<span class="material-symbols-outlined text-[13px]">verified</span>
+<span>Wave 50% reçu</span>
+</div>
+<span class="font-body-sm text-body-sm text-outline">Total : 36 000 FCFA</span>
+</div>
+</td>
+<td class="py-4 px-4 align-middle text-center">
+<div class="flex items-center justify-center gap-1">
+<button class="px-3 py-1.5 rounded-full bg-primary hover:bg-plum-deep text-on-primary font-label-sm text-label-sm shadow-sm transition-all flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">payments</span>
+<span>Encaisser</span>
+</button>
+<button class="p-1.5 rounded-full text-outline hover:text-plum-deep hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 2: Walk-In Client in progress (Ready for checkout!) -->
+<tr class="bg-lavender-subtle/30 hover:bg-lavender-subtle transition-colors">
+<td class="py-4 px-4 align-middle">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md font-bold text-plum-deep">#WK-0418</span>
+<div class="flex items-center gap-1 mt-0.5 text-primary">
+<span class="material-symbols-outlined text-[14px]">flash_on</span>
+<span class="font-label-sm text-label-sm font-bold uppercase">Walk-in direct</span>
+</div>
+</div>
+</td>
+<td class="py-4 px-4 align-middle">
+<div class="flex items-center gap-3">
+<img class="w-10 h-10 rounded-full object-cover" data-alt="Portrait of an Ivorian young woman in a chic salon with styled short hair wearing silk attire in soft warm tones" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDdCXj7fnA0cjJsqiZL72dLQxSRhVTU1SPwL8v5EUr6_uESXNk4qaO30dZbVK84e5QH-UwkDHq_AuS-c1e9vE9_XYP8o818GT7ucKXwAX2RKpt7gKWUoYjKDeyu48IN6SB9cQIcP2qxNNHjXxD9KVT4Y1cvyVnERyPp209LQbYWvqBfuk9K4X7EJkHQ6p0wFiHpauMNbaVUAzX_1oelOEnNHMcjFG0Ma8RB8kk_qNidnuEUv37zknFv"/>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-1.5">
+<span class="font-label-lg text-label-lg text-plum-deep font-bold truncate">Marie-Estelle K.</span>
+<span class="px-1.5 py-0.2 rounded bg-status-available/10 text-status-available font-label-sm text-label-sm">Comptoir</span>
+</div>
+<span class="font-body-sm text-body-sm text-outline">+225 05 44 21 90</span>
+</div>
+</div>
+</td>
+<td class="py-4 px-4 align-middle">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-plum-deep font-semibold">Brushing Soin Karité &amp; Sérum</span>
+<span class="font-body-sm text-body-sm text-outline">Prestation + Produit Keke</span>
+</div>
+</td>
+<td class="py-4 px-4 align-middle">
+<div class="flex items-center gap-2">
+<div class="w-7 h-7 rounded-full bg-surface-container flex items-center justify-center text-primary font-label-sm text-label-sm font-bold">SO</div>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-plum-deep">Salimata Ouattara</span>
+<span class="font-label-sm text-label-sm text-outline">Poste Bac &amp; Coiffure</span>
+</div>
+</div>
+</td>
+<td class="py-4 px-4 align-middle">
+<div class="flex flex-col gap-1">
+<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-status-available/15 text-status-available font-label-sm text-label-sm font-bold w-fit">
+<span class="material-symbols-outlined text-[13px]">check_circle</span>
+                    Prête pour Encaissement
+                  </span>
+<span class="font-label-sm text-label-sm text-outline">Terminé à 12:35</span>
+</div>
+</td>
+<td class="py-4 px-4 align-middle text-right">
+<div class="flex flex-col items-end">
+<span class="font-label-lg text-label-lg text-error font-bold">16 500 FCFA</span>
+<span class="font-label-sm text-label-sm text-outline">Aucun acompte (Walk-in)</span>
+<span class="font-body-sm text-body-sm text-primary font-medium">+ Sérum 8 500 F inclus</span>
+</div>
+</td>
+<td class="py-4 px-4 align-middle text-center">
+<div class="flex items-center justify-center gap-1">
+<button class="px-3 py-1.5 rounded-full bg-secondary hover:bg-plum-deep text-on-primary font-label-sm text-label-sm shadow-md transition-all flex items-center gap-1 animate-bounce">
+<span class="material-symbols-outlined text-[14px]">qr_code_2</span>
+<span>Encaisser</span>
+</button>
+<button class="p-1.5 rounded-full text-outline hover:text-plum-deep hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 3: Late Customer (En Retard) -->
+<tr class="hover:bg-lavender-subtle/50 transition-colors">
+<td class="py-4 px-4 align-middle">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md font-bold text-plum-deep">#KB-9503</span>
+<div class="flex items-center gap-1 mt-0.5 text-status-unavailable">
+<span class="material-symbols-outlined text-[14px]">schedule</span>
+<span class="font-label-sm text-label-sm font-semibold">12:15 GMT</span>
+</div>
+</div>
+</td>
+<td class="py-4 px-4 align-middle">
+<div class="flex items-center gap-3">
+<img class="w-10 h-10 rounded-full object-cover" data-alt="Sophisticated African woman looking chic with sunglasses over hair in front of a modern Abidjan luxury clinic" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC4GvjzseUkc9uKkTSS_lSA-UcfzHoZWMSLGmZO3ajRsD_7NSC1d4sxOFBr9AkVvNCmZ5ZYqNuXuv0NhkBnV_QsMGoWcNjQEmTcmHLwhdaRGV5lr-6xfR1dmSxyB-0zlyKnjFBZ6-lAoDIGcvFeEq-aPJxGTlUFNfBgjS4Pl78Qj8f7lIlSmMDs0FEOSGq9yoNDbOu_r2PQAXOToT6wr40C5SyaAhN8aQzBwmvMntCeI0X8VCVEd4v6"/>
+<div class="flex flex-col min-w-0">
+<span class="font-label-lg text-label-lg text-plum-deep font-bold truncate">Yasmine Bamba</span>
+<span class="font-body-sm text-body-sm text-outline">+225 01 02 77 44</span>
+</div>
+</div>
+</td>
+<td class="py-4 px-4 align-middle">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-plum-deep font-semibold">Pose Gel &amp; Nail Art Floral</span>
+<span class="font-body-sm text-body-sm text-outline">Durée · 1h15</span>
+</div>
+</td>
+<td class="py-4 px-4 align-middle">
+<div class="flex items-center gap-2">
+<div class="w-7 h-7 rounded-full bg-surface-container flex items-center justify-center text-primary font-label-sm text-label-sm font-bold">GB</div>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-plum-deep">Grace Bahi</span>
+<span class="font-label-sm text-label-sm text-outline">Table Manucure #2</span>
+</div>
+</div>
+</td>
+<td class="py-4 px-4 align-middle">
+<div class="flex flex-col gap-1">
+<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-status-unavailable/10 text-status-unavailable font-label-sm text-label-sm font-bold w-fit">
+<span class="material-symbols-outlined text-[13px]">warning</span>
+                    Retard · +27 min
+                  </span>
+<span class="font-body-sm text-body-sm text-outline">Prévenue par WhatsApp</span>
+</div>
+</td>
+<td class="py-4 px-4 align-middle text-right">
+<div class="flex flex-col items-end">
+<span class="font-label-lg text-label-lg text-plum-deep font-bold">12 500 FCFA</span>
+<div class="flex items-center gap-1 font-label-sm text-label-sm text-status-available">
+<span class="material-symbols-outlined text-[13px]">check</span>
+<span>Acompte 12 500 F sécurisé</span>
+</div>
+<span class="font-body-sm text-body-sm text-outline">Total : 25 000 FCFA</span>
+</div>
+</td>
+<td class="py-4 px-4 align-middle text-center">
+<div class="flex items-center justify-center gap-1">
+<button class="px-2.5 py-1.5 rounded-full bg-surface-container hover:bg-surface-container-high text-plum-deep font-label-sm text-label-sm transition-colors flex items-center gap-1">
+<span class="material-symbols-outlined text-[15px] text-status-available">chat</span>
+<span>Relancer</span>
+</button>
+<button class="p-1.5 rounded-full text-outline hover:text-plum-deep hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 4: Arrived & Waiting in Lounge -->
+<tr class="hover:bg-lavender-subtle/50 transition-colors">
+<td class="py-4 px-4 align-middle">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md font-bold text-plum-deep">#KB-9511</span>
+<div class="flex items-center gap-1 mt-0.5 text-plum-deep">
+<span class="material-symbols-outlined text-[14px]">schedule</span>
+<span class="font-label-sm text-label-sm font-semibold">13:00 GMT</span>
+</div>
+</div>
+</td>
+<td class="py-4 px-4 align-middle">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-secondary-fixed text-primary flex items-center justify-center font-bold">
+                    ED
+                  </div>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-1">
+<span class="font-label-lg text-label-lg text-plum-deep font-bold truncate">Esther Danho</span>
+</div>
+<span class="font-body-sm text-body-sm text-outline">+225 07 19 33 00</span>
+</div>
+</div>
+</td>
+<td class="py-4 px-4 align-middle">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-plum-deep font-semibold">Massage Relaxant Huile de Baobab</span>
+<span class="font-body-sm text-body-sm text-outline">Cabine Sérénité · 1h00</span>
+</div>
+</td>
+<td class="py-4 px-4 align-middle">
+<div class="flex items-center gap-2">
+<div class="w-7 h-7 rounded-full bg-surface-container flex items-center justify-center text-primary font-label-sm text-label-sm font-bold">CT</div>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-plum-deep">Clarisse Traoré</span>
+<span class="font-label-sm text-label-sm text-outline">Spa Thérapeute</span>
+</div>
+</div>
+</td>
+<td class="py-4 px-4 align-middle">
+<div class="flex flex-col gap-1">
+<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-status-available/10 text-status-available font-label-sm text-label-sm font-semibold w-fit">
+<span class="material-symbols-outlined text-[13px]">4g_mobiledata</span>
+                    Au salon d'attente (Infusion servie)
+                  </span>
+<span class="font-label-sm text-label-sm text-outline">Arrivée à 12:38 (+ en avance)</span>
+</div>
+</td>
+<td class="py-4 px-4 align-middle text-right">
+<div class="flex flex-col items-end">
+<span class="font-label-lg text-label-lg text-plum-deep font-bold">20 000 FCFA</span>
+<div class="flex items-center gap-1 font-label-sm text-label-sm text-status-available">
+<span class="material-symbols-outlined text-[13px]">verified</span>
+<span>Wave 50% payé</span>
+</div>
+<span class="font-body-sm text-body-sm text-outline">Total : 40 000 FCFA</span>
+</div>
+</td>
+<td class="py-4 px-4 align-middle text-center">
+<div class="flex items-center justify-center gap-1">
+<button class="px-3 py-1.5 rounded-full bg-lavender-subtle hover:bg-primary hover:text-on-primary text-plum-deep font-label-sm text-label-sm transition-all flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">chair</span>
+<span>Installer</span>
+</button>
+<button class="p-1.5 rounded-full text-outline hover:text-plum-deep hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 5: Completed & Paid (Facturée) -->
+<tr class="opacity-80 hover:opacity-100 hover:bg-lavender-subtle/50 transition-all">
+<td class="py-4 px-4 align-middle">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md font-semibold text-outline">#KB-9460</span>
+<span class="font-label-sm text-label-sm text-outline">10:00 GMT</span>
+</div>
+</td>
+<td class="py-4 px-4 align-middle">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center text-outline font-bold">
+                    SA
+                  </div>
+<div class="flex flex-col min-w-0">
+<span class="font-label-lg text-label-lg text-plum-deep font-medium truncate">Sonia Aman</span>
+<span class="font-body-sm text-body-sm text-outline">+225 07 41 82 19</span>
+</div>
+</div>
+</td>
+<td class="py-4 px-4 align-middle">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-plum-deep">Pédicure Spa Paraffine</span>
+<span class="font-body-sm text-body-sm text-outline">Durée · 45 min</span>
+</div>
+</td>
+<td class="py-4 px-4 align-middle">
+<div class="flex items-center gap-2">
+<div class="w-7 h-7 rounded-full bg-surface-container flex items-center justify-center text-outline font-label-sm text-label-sm">AK</div>
+<span class="font-label-md text-label-md text-on-surface-variant">Aïcha Kouamé</span>
+</div>
+</td>
+<td class="py-4 px-4 align-middle">
+<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-surface-container text-outline font-label-sm text-label-sm font-semibold">
+<span class="material-symbols-outlined text-[13px]">task_alt</span>
+                  Terminé &amp; Sortie
+                </span>
+</td>
+<td class="py-4 px-4 align-middle text-right">
+<div class="flex flex-col items-end">
+<span class="font-label-sm text-label-sm text-status-available font-bold flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">check_circle</span> Soldé intégralement
+                  </span>
+<span class="font-body-sm text-body-sm text-outline">15 000 FCFA reçu (Wave)</span>
+</div>
+</td>
+<td class="py-4 px-4 align-middle text-center">
+<button class="p-1.5 rounded-full text-outline hover:text-plum-deep hover:bg-surface-container transition-colors" title="Imprimer reçu ou facture">
+<span class="material-symbols-outlined text-[18px]">receipt_long</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Table Footer & Quick Legend -->
+<div class="p-4 bg-surface-cream flex flex-col sm:flex-row items-center justify-between gap-3 text-on-surface-variant font-body-sm text-body-sm">
+<div class="flex items-center gap-4">
+<span class="flex items-center gap-1.5">
+<span class="w-2.5 h-2.5 rounded-full bg-status-available"></span> Acompte Wave Sécurisé
+          </span>
+<span class="flex items-center gap-1.5">
+<span class="w-2.5 h-2.5 rounded-full bg-secondary"></span> En Cabine / En Prestation
+          </span>
+<span class="flex items-center gap-1.5">
+<span class="w-2.5 h-2.5 rounded-full bg-status-unavailable"></span> Retard signalé
+          </span>
+</div>
+<div class="flex items-center gap-1">
+<span class="text-outline">Affichage 1-5 sur 32 réservations</span>
+</div>
+</div>
+</div>
+<!-- Right: Express Checkout & Counter POS Panel (4 Cols) -->
+<div class="lg:col-span-4 flex flex-col gap-4">
+<!-- Checkout Box Card -->
+<div class="bg-surface-cream rounded-xl p-5 shadow-lg relative overflow-hidden flex flex-col">
+<!-- Top status bar -->
+<div class="flex items-center justify-between pb-3">
+<div class="flex items-center gap-2">
+<div class="w-2.5 h-2.5 rounded-full bg-secondary animate-pulse"></div>
+<h3 class="font-headline-sm text-headline-sm text-plum-deep">Encaissement Express</h3>
+</div>
+<span class="px-2 py-0.5 rounded-full bg-lavender-subtle text-primary font-label-sm text-label-sm font-bold">Comptoir C1</span>
+</div>
+<!-- Selected Client Preview -->
+<div class="bg-surface rounded-xl p-3.5 mb-4 flex items-center justify-between">
+<div class="flex items-center gap-3">
+<img class="w-12 h-12 rounded-xl object-cover shadow-sm" data-alt="Close-up portrait of an Ivorian woman client smiling elegantly at checkout desk" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD4e-NB0BUIOXhPucqZoFV84gXjdQXmq4LwqSermrqrYOz6c_mG7rRcUWJwKIZpNF1apcZWqIzyD8V4aE74jeuIcwzXG-GDMBBLo0XuBDpooA6nYqe6-N-TmniDoh0ExO2I5nBTUGBLH_5D3aJroaRGroSa1q0gZ8FR4QG4m0Y_s9ef7R0d7tumyP5EF8KDLvcFCLwSM5k9GJShIxdFEMt6vWCq2ci0ZHw98m905pcHa9hPP0tNFtEv"/>
+<div class="flex flex-col">
+<span class="font-label-lg text-label-lg text-plum-deep font-bold leading-tight">Marie-Estelle K.</span>
+<span class="font-label-sm text-label-sm text-outline mt-0.5">Réf: #WK-0418 · Walk-in direct</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant font-medium">Artisane : Salimata O.</span>
+</div>
+</div>
+<button class="p-1.5 rounded-full text-outline hover:text-plum-deep hover:bg-surface-container" title="Changer de cliente">
+<span class="material-symbols-outlined text-[18px]">sync_alt</span>
+</button>
+</div>
+<!-- Detailed Breakdown of services & retail cross-sell -->
+<div class="flex flex-col gap-2.5 mb-4">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-outline">Détail des prestations &amp; articles</span>
+<div class="flex items-center justify-between text-body-md font-body-md py-1">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px] text-primary">content_cut</span>
+<span class="text-plum-deep">Brushing Soin Karité Fondant</span>
+</div>
+<span class="font-semibold text-plum-deep">8 000 F</span>
+</div>
+<div class="flex items-center justify-between text-body-md font-body-md py-1">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px] text-primary">shopping_bag</span>
+<span class="text-plum-deep">Sérum Capillaire Keke Care (100ml)</span>
+<span class="px-1.5 py-0.2 rounded bg-lavender-subtle text-primary text-[10px] font-bold">Vente</span>
+</div>
+<span class="font-semibold text-plum-deep">8 500 F</span>
+</div>
+<!-- Quick Add Article / Extra Service -->
+<button class="flex items-center justify-center gap-1 py-1.5 px-3 rounded-lg bg-surface hover:bg-surface-container text-primary font-label-sm text-label-sm transition-colors mt-1">
+<span class="material-symbols-outlined text-[16px]">add_circle</span>
+<span>+ Ajouter boisson, perruque ou accessoire</span>
+</button>
+</div>
+<!-- Total Box -->
+<div class="bg-lavender-subtle/70 rounded-xl p-4 mb-4 flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm uppercase text-outline font-semibold">Total Net à Régler</span>
+<span class="font-label-sm text-label-sm text-secondary font-medium">Acompte déduit : 0 FCFA</span>
+</div>
+<div class="text-right">
+<span class="font-display-lg text-display-lg text-primary font-bold">16 500</span>
+<span class="font-headline-sm text-headline-sm text-plum-deep font-semibold">FCFA</span>
+</div>
+</div>
+<!-- Real-time Commission Split Indicator -->
+<div class="bg-surface rounded-xl p-3 mb-4 flex flex-col gap-2">
+<div class="flex items-center justify-between font-label-sm text-label-sm">
+<span class="text-outline flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">pie_chart</span> Répartition calculée en direct :
+            </span>
+<span class="text-plum-deep font-semibold">Règle B2B Salon</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="flex-1 bg-surface-container h-2 rounded-full overflow-hidden flex">
+<div class="bg-primary h-full" style="width: 65%;"></div>
+<div class="bg-secondary-container h-full" style="width: 35%;"></div>
+</div>
+</div>
+<div class="flex items-center justify-between text-[11px] font-medium text-plum-deep">
+<span>Part Salon (65%) : <strong>10 725 FCFA</strong></span>
+<span class="text-secondary font-bold">Salimata (35%) : 5 775 FCFA</span>
+</div>
+</div>
+<!-- Payment Channels Tabs -->
+<div class="flex flex-col gap-2.5 mb-5">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-outline">Mode de Règlement</span>
+<div class="grid grid-cols-3 gap-2">
+<!-- Wave (Default Highlight) -->
+<button class="flex flex-col items-center justify-center p-2.5 rounded-xl bg-primary text-on-primary shadow-sm hover:opacity-95 transition-all text-center">
+<span class="material-symbols-outlined text-[22px] mb-1">qr_code_scanner</span>
+<span class="font-label-sm text-label-sm font-bold">Wave QR</span>
+<span class="text-[10px] opacity-80">Instant · 0% frais</span>
+</button>
+<!-- Cash / POS -->
+<button class="flex flex-col items-center justify-center p-2.5 rounded-xl bg-surface hover:bg-surface-container text-plum-deep transition-all text-center">
+<span class="material-symbols-outlined text-[22px] mb-1 text-outline">payments</span>
+<span class="font-label-sm text-label-sm font-semibold">Espèces</span>
+<span class="text-[10px] text-outline">Comptoir cash</span>
+</button>
+<!-- Orange / MTN MoMo -->
+<button class="flex flex-col items-center justify-center p-2.5 rounded-xl bg-surface hover:bg-surface-container text-plum-deep transition-all text-center">
+<span class="material-symbols-outlined text-[22px] mb-1 text-outline">smartphone</span>
+<span class="font-label-sm text-label-sm font-semibold">MoMo / OM</span>
+<span class="text-[10px] text-outline">Push USSD</span>
+</button>
+</div>
+<!-- Dynamic Wave QR Screen Mockup -->
+<div class="p-3.5 bg-surface rounded-xl flex items-center gap-3">
+<!-- Simulated QR code via clean SVG -->
+<div class="w-16 h-16 bg-surface-cream rounded-lg p-1.5 flex items-center justify-center shadow-inner flex-shrink-0">
+<svg class="w-full h-full text-plum-deep" fill="currentColor" viewbox="0 0 40 40">
+<rect height="12" rx="2" width="12" x="2" y="2"></rect>
+<rect fill="#FFFDF9" height="8" width="8" x="4" y="4"></rect>
+<rect height="4" width="4" x="6" y="6"></rect>
+<rect height="12" rx="2" width="12" x="26" y="2"></rect>
+<rect fill="#FFFDF9" height="8" width="8" x="28" y="4"></rect>
+<rect height="4" width="4" x="30" y="6"></rect>
+<rect height="12" rx="2" width="12" x="2" y="26"></rect>
+<rect fill="#FFFDF9" height="8" width="8" x="4" y="28"></rect>
+<rect height="4" width="4" x="6" y="30"></rect>
+<rect height="4" width="4" x="18" y="4"></rect>
+<rect height="4" width="4" x="18" y="12"></rect>
+<rect height="6" width="6" x="22" y="18"></rect>
+<rect height="8" width="4" x="16" y="26"></rect>
+<rect height="8" width="8" x="28" y="28"></rect>
+</svg>
+</div>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-plum-deep font-bold">Faire scanner la cliente avec Wave</span>
+<span class="font-body-sm text-body-sm text-outline">Montant exact pré-rempli : <strong>16 500 FCFA</strong>. Notification automatique au bip.</span>
+</div>
+</div>
+</div>
+<!-- Primary Confirm Button -->
+<button class="w-full py-3.5 px-4 rounded-full bg-primary hover:bg-plum-deep text-on-primary font-label-lg text-label-lg shadow-md hover:shadow-xl transition-all flex items-center justify-center gap-2 cursor-pointer">
+<span class="material-symbols-outlined text-[20px]">check_circle</span>
+<span>Valider l'Encaissement (16 500 FCFA)</span>
+</button>
+<div class="flex items-center justify-center gap-4 mt-3 text-on-surface-variant font-label-sm text-label-sm">
+<label class="flex items-center gap-1.5 cursor-pointer">
+<input checked="" class="rounded text-primary focus:ring-0" type="checkbox"/>
+<span>Ticket SMS WhatsApp</span>
+</label>
+<label class="flex items-center gap-1.5 cursor-pointer">
+<input class="rounded text-primary focus:ring-0" type="checkbox"/>
+<span>Imprimer ticket papier</span>
+</label>
+</div>
+</div>
+<!-- Salon Occupancy Quick Status -->
+<div class="bg-surface-cream rounded-xl p-4 shadow-sm flex flex-col gap-3">
+<div class="flex items-center justify-between">
+<span class="font-headline-sm text-headline-sm text-plum-deep">Disponibilité Fauteuils</span>
+<span class="font-label-sm text-label-sm text-status-available font-bold">4 Fauteuils Libres</span>
+</div>
+<div class="grid grid-cols-4 gap-2 text-center">
+<div class="p-2 rounded-lg bg-surface text-plum-deep">
+<span class="font-label-sm text-label-sm block text-outline">VIP #1</span>
+<span class="w-2 h-2 rounded-full bg-secondary inline-block my-1"></span>
+<span class="font-label-sm text-label-sm block font-bold">Occupé</span>
+</div>
+<div class="p-2 rounded-lg bg-lavender-subtle text-primary">
+<span class="font-label-sm text-label-sm block text-outline">Poste #2</span>
+<span class="w-2 h-2 rounded-full bg-status-available inline-block my-1"></span>
+<span class="font-label-sm text-label-sm block font-bold">Libre</span>
+</div>
+<div class="p-2 rounded-lg bg-lavender-subtle text-primary">
+<span class="font-label-sm text-label-sm block text-outline">Poste #3</span>
+<span class="w-2 h-2 rounded-full bg-status-available inline-block my-1"></span>
+<span class="font-label-sm text-label-sm block font-bold">Libre</span>
+</div>
+<div class="p-2 rounded-lg bg-surface text-plum-deep">
+<span class="font-label-sm text-label-sm block text-outline">Bacs</span>
+<span class="w-2 h-2 rounded-full bg-secondary inline-block my-1"></span>
+<span class="font-label-sm text-label-sm block font-bold">Complet</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Modal Component: Fast Walk-In Quick Registration (Toggleable) -->
+<div class="hidden fixed inset-0 z-50 flex items-center justify-center bg-plum-deep/50 backdrop-blur-sm p-4" id="walkin-modal">
+<div class="bg-surface-cream rounded-2xl max-w-xl w-full p-6 shadow-2xl flex flex-col gap-5 relative">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2.5">
+<div class="w-10 h-10 rounded-full bg-lavender-subtle text-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-[22px]">how_to_reg</span>
+</div>
+<div class="flex flex-col">
+<h3 class="font-headline-md text-headline-md text-plum-deep font-bold">Enregistrer une cliente Walk-in</h3>
+<span class="font-body-sm text-body-sm text-outline">Admission immédiate sans réservation préalable</span>
+</div>
+</div>
+<button class="p-2 rounded-full text-outline hover:text-plum-deep hover:bg-surface-container transition-colors" onclick="document.getElementById('walkin-modal').classList.add('hidden')">
+<span class="material-symbols-outlined text-[22px]">close</span>
+</button>
+</div>
+<div class="flex flex-col gap-4">
+<!-- Client Identity -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+<div class="flex flex-col gap-1">
+<label class="font-label-sm text-label-sm text-plum-deep font-semibold">Nom &amp; Prénom de la cliente</label>
+<input class="w-full px-3.5 py-2 rounded-lg bg-surface font-body-md text-body-md text-plum-deep focus:outline-none focus:ring-2 focus:ring-secondary/40" placeholder="Ex: Aminata Diop" type="text"/>
+</div>
+<div class="flex flex-col gap-1">
+<label class="font-label-sm text-label-sm text-plum-deep font-semibold">Numéro WhatsApp / Téléphone</label>
+<input class="w-full px-3.5 py-2 rounded-lg bg-surface font-body-md text-body-md text-plum-deep focus:outline-none focus:ring-2 focus:ring-secondary/40" placeholder="+225 07 ..." type="tel"/>
+</div>
+</div>
+<!-- Service & Category -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+<div class="flex flex-col gap-1">
+<label class="font-label-sm text-label-sm text-plum-deep font-semibold">Prestation demandée</label>
+<select class="w-full px-3.5 py-2 rounded-lg bg-surface font-body-md text-body-md text-plum-deep focus:outline-none focus:ring-2 focus:ring-secondary/40">
+<option>Brushing Soin Karité (8 000 FCFA)</option>
+<option>Tresses / Braids Express (18 000 FCFA)</option>
+<option>Pose Gel &amp; Vernis Semi (15 000 FCFA)</option>
+<option>Shampoing &amp; Soin Traitant (6 000 FCFA)</option>
+</select>
+</div>
+<div class="flex flex-col gap-1">
+<label class="font-label-sm text-label-sm text-plum-deep font-semibold">Assigner une artisane disponible</label>
+<select class="w-full px-3.5 py-2 rounded-lg bg-surface font-body-md text-body-md text-plum-deep focus:outline-none focus:ring-2 focus:ring-secondary/40">
+<option>Salimata O. (Fauteuil #2 disponible)</option>
+<option>Grace Bahi (Table Manucure disponible)</option>
+<option>Première artisane disponible</option>
+</select>
+</div>
+</div>
+<!-- Note or VIP Request -->
+<div class="flex flex-col gap-1">
+<label class="font-label-sm text-label-sm text-plum-deep font-semibold">Notes d'accueil (Allergies, boisson souhaitée...)</label>
+<input class="w-full px-3.5 py-2 rounded-lg bg-surface font-body-md text-body-md text-plum-deep focus:outline-none focus:ring-2 focus:ring-secondary/40" placeholder="Ex: Souhaite un café, cuir chevelu sensible" type="text"/>
+</div>
+</div>
+<!-- Action Footer -->
+<div class="flex items-center justify-end gap-3 pt-2">
+<button class="px-5 py-2.5 rounded-full bg-surface hover:bg-surface-container text-plum-deep font-label-md text-label-md transition-colors" onclick="document.getElementById('walkin-modal').classList.add('hidden')">
+          Annuler
+        </button>
+<button class="px-6 py-2.5 rounded-full bg-primary hover:bg-plum-deep text-on-primary font-label-lg text-label-lg shadow-md transition-all flex items-center gap-2" onclick="document.getElementById('walkin-modal').classList.add('hidden')">
+<span class="material-symbols-outlined text-[18px]">check</span>
+<span>Installer &amp; Démarrer Prestation</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Client-side Fast Micro-Interactions -->
+<script>
+  // Close modal on Escape key
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      const modal = document.getElementById('walkin-modal');
+      if (modal && !modal.classList.contains('hidden')) {
+        modal.classList.add('hidden');
+      }
+    }
+  });
+</script></main></div></body></html>

@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+
+<html lang="fr"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = {
+  darkMode: "class",
+  theme: {
+    extend: {
+      "colors": {
+        "surface-container-lowest": "#ffffff",
+        "primary-container": "#5b1b7d",
+        "outline-variant": "#d0c2d1",
+        "tertiary": "#2d203f",
+        "on-tertiary-container": "#b19fc6",
+        "primary-fixed": "#f6d9ff",
+        "on-primary-container": "#cf8bf2",
+        "surface-container-high": "#eae8e6",
+        "background": "#fcf9f7",
+        "inverse-on-surface": "#f3f0ee",
+        "surface-bright": "#fcf9f7",
+        "surface-container": "#f0edeb",
+        "on-tertiary-fixed-variant": "#4f4062",
+        "inverse-surface": "#30302f",
+        "on-surface-variant": "#4d4450",
+        "on-primary-fixed-variant": "#672889",
+        "tertiary-fixed-dim": "#d2bfe8",
+        "outline": "#7f7381",
+        "secondary-fixed": "#efdbff",
+        "surface": "#fcf9f7",
+        "status-available": "#1B8755",
+        "inverse-primary": "#e7b3ff",
+        "on-primary-fixed": "#310049",
+        "on-primary": "#ffffff",
+        "surface-variant": "#e5e2e0",
+        "tertiary-container": "#433556",
+        "on-error": "#ffffff",
+        "lavender-subtle": "#F4EEFB",
+        "on-secondary": "#ffffff",
+        "on-tertiary-fixed": "#221534",
+        "on-surface": "#1b1c1b",
+        "status-unavailable": "#D32F2F",
+        "on-secondary-fixed": "#2c0051",
+        "surface-tint": "#8142a3",
+        "secondary": "#821dda",
+        "primary": "#410060",
+        "surface-container-highest": "#e5e2e0",
+        "primary-fixed-dim": "#e7b3ff",
+        "on-background": "#1b1c1b",
+        "text-primary": "#241032",
+        "plum-deep": "#3A0D52",
+        "on-secondary-container": "#fffbff",
+        "secondary-container": "#9c42f4",
+        "on-error-container": "#93000a",
+        "surface-container-low": "#f6f3f1",
+        "secondary-fixed-dim": "#dcb8ff",
+        "on-secondary-fixed-variant": "#6700b5",
+        "error": "#ba1a1a",
+        "error-container": "#ffdad6",
+        "surface-dim": "#dcd9d8",
+        "surface-cream": "#FFFDF9",
+        "tertiary-fixed": "#eddcff",
+        "on-tertiary": "#ffffff"
+      },
+      "borderRadius": {
+        "DEFAULT": "0.25rem",
+        "lg": "0.5rem",
+        "xl": "0.75rem",
+        "full": "9999px"
+      },
+      "spacing": {
+        "space-sm": "0.5rem",
+        "gutter": "1rem",
+        "space-md": "1rem",
+        "space-xl": "2.25rem",
+        "margin-desktop": "2.5rem",
+        "gutter-mobile": "0.75rem",
+        "space-xs": "0.25rem",
+        "margin": "1.25rem",
+        "space-lg": "1.5rem"
+      },
+      "fontFamily": {
+        "label-lg": ["Plus Jakarta Sans"],
+        "display-lg": ["Plus Jakarta Sans"],
+        "label-sm": ["Plus Jakarta Sans"],
+        "body-md": ["Plus Jakarta Sans"],
+        "headline-md": ["Plus Jakarta Sans"],
+        "headline-lg": ["Plus Jakarta Sans"],
+        "body-lg": ["Plus Jakarta Sans"],
+        "body-sm": ["Plus Jakarta Sans"],
+        "display-lg-mobile": ["Plus Jakarta Sans"],
+        "headline-sm": ["Plus Jakarta Sans"],
+        "label-md": ["Plus Jakarta Sans"]
+      },
+      "fontSize": {
+        "label-lg": ["14px", {"lineHeight": "18px", "fontWeight": "600"}],
+        "display-lg": ["36px", {"lineHeight": "44px", "fontWeight": "700"}],
+        "label-sm": ["11px", {"lineHeight": "14px", "fontWeight": "700"}],
+        "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+        "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+        "headline-lg": ["24px", {"lineHeight": "32px", "fontWeight": "700"}],
+        "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+        "body-sm": ["12px", {"lineHeight": "16px", "fontWeight": "400"}],
+        "display-lg-mobile": ["28px", {"lineHeight": "36px", "fontWeight": "700"}],
+        "headline-sm": ["18px", {"lineHeight": "24px", "fontWeight": "600"}],
+        "label-md": ["12px", {"lineHeight": "16px", "fontWeight": "600"}]
+      }
+    }
+  }
+}</script></head><body class="bg-surface text-on-surface font-body-md text-body-md"><aside class="fixed left-0 top-0 h-full w-72 bg-surface-cream shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-50 flex flex-col justify-between py-6"><div class="flex flex-col gap-6 px-4"><div class="flex items-center gap-3 px-3"><img alt="logo_keke_beauty_option4.png" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1XKFZ-Kobzg0maYp0W59kfVRX5pjJGWi6p0HkyDZBYOaQr8Ht9DFtD7UxYDqwPgEGHDZIF3HREwXwC8uA8-sDTD5_4JgNJ3zph0F_lnpCuvezNBEFLMPOCgHEcrtsw-KILka7oPpKfyMJNaeqXEMWjbP35rcsI7okFR6bDFsbmNa0MSAgVowER7I_mxt72dJdVx--dKGxB4Td0X0qx1MYgXDkBq-BQocXmzdLw0Ypc4SYAfwYIFmbd6nVO2AlUNm9UsRfBmilHj2w"/><div class="flex flex-col"><span class="font-headline-sm text-headline-sm text-plum-deep leading-tight font-bold">Keke Pro</span><span class="font-label-sm text-label-sm text-outline tracking-wider uppercase">Espace Partenaire</span></div></div><nav class="flex flex-col gap-1" data-active-classes="bg-primary text-on-primary rounded-xl font-label-lg"><a class="flex items-center gap-3 px-4 py-3 rounded-xl text-on-surface-variant hover:bg-lavender-subtle hover:text-plum-deep transition-all font-body-md text-body-md" data-path="agenda-multi-fauteuils" href="#"><span class="material-symbols-outlined text-[20px]">calendar_month</span><span>Agenda Multi-Fauteuils</span></a><a class="flex items-center gap-3 px-4 py-3 rounded-xl text-on-surface-variant hover:bg-lavender-subtle hover:text-plum-deep transition-all font-body-md text-body-md" data-path="reservations-walk-ins" href="#"><span class="material-symbols-outlined text-[20px]">book_online</span><span>Réservations &amp; Walk-ins</span></a><a class="flex items-center gap-3 px-4 py-3 rounded-xl text-on-surface-variant hover:bg-lavender-subtle hover:text-plum-deep transition-all font-body-md text-body-md" data-path="gestion-equipe-praticiennes" href="#"><span class="material-symbols-outlined text-[20px]">groups</span><span>Gestion d'Équipe &amp; Praticiennes</span></a><a class="flex items-center gap-3 px-4 py-3 rounded-xl text-on-surface-variant hover:bg-lavender-subtle hover:text-plum-deep transition-all font-body-md text-body-md" data-path="catalogue-soins-tarifs" href="#"><span class="material-symbols-outlined text-[20px]">spa</span><span>Catalogue Soins &amp; Tarifs</span></a><a class="flex items-center gap-3 px-4 py-3 rounded-xl text-on-surface-variant hover:bg-lavender-subtle hover:text-plum-deep transition-all font-body-md text-body-md" data-path="finances-acomptes-wave" href="#"><span class="material-symbols-outlined text-[20px]">account_balance_wallet</span><span>Finances, Acomptes &amp; Wave</span></a><a class="flex items-center gap-3 px-4 py-3 rounded-xl text-on-surface-variant hover:bg-lavender-subtle hover:text-plum-deep transition-all font-body-md text-body-md" data-path="vitrine-keke-gold-avis" href="#"><span class="material-symbols-outlined text-[20px]">hotel_class</span><span>Vitrine Keke Gold &amp; Avis</span></a><a class="flex items-center gap-3 px-4 py-3 rounded-xl text-on-surface-variant hover:bg-lavender-subtle hover:text-plum-deep transition-all font-body-md text-body-md" data-path="parametres-du-salon" href="#"><span class="material-symbols-outlined text-[20px]">settings</span><span>Paramètres du Salon</span></a></nav></div><div class="flex flex-col gap-3 px-4"><div class="bg-lavender-subtle p-3 rounded-xl flex items-center justify-between"><div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-status-available"></span><span class="font-label-sm text-label-sm text-plum-deep">Passerelle Wave Active</span></div><span class="material-symbols-outlined text-[16px] text-primary">verified</span></div><a class="flex items-center justify-center gap-2 w-full py-2.5 px-3 rounded-xl bg-surface-container hover:bg-surface-container-high text-plum-deep font-label-md text-label-md transition-colors" href="#"><span class="material-symbols-outlined text-[18px]">storefront</span><span>Voir ma vitrine en ligne</span></a></div></aside><div class="pl-72"><header class="fixed top-0 left-72 right-0 h-16 bg-surface-cream/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-40 flex items-center justify-between px-8"><div class="flex items-center gap-4"><button class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface-container text-text-primary hover:bg-surface-container-high transition-colors"><span class="material-symbols-outlined text-[18px] text-primary">store</span><span class="font-label-lg text-label-lg font-bold">L'Impératrice Spa &amp; Coiffure • Cocody Riviera Golf</span><span class="material-symbols-outlined text-[18px] text-outline">arrow_drop_down</span></button><div class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-status-available/10 text-status-available"><span class="w-2 h-2 rounded-full bg-status-available animate-pulse"></span><span class="font-label-sm text-label-sm font-bold">En service / Ouvert</span></div></div><div class="flex items-center gap-5"><div class="hidden xl:flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-lavender-subtle text-plum-deep"><span class="material-symbols-outlined text-[18px] text-primary">payments</span><span class="font-label-sm text-label-sm text-outline uppercase">Aujourd'hui :</span><span class="font-label-lg text-label-lg font-bold">425 000 FCFA</span></div><button class="relative p-2 rounded-full hover:bg-surface-container transition-colors text-on-surface-variant"><span class="material-symbols-outlined text-[22px]">notifications</span><span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-status-unavailable"></span></button><div class="flex items-center gap-3 pl-3 border-l-0"><div class="flex flex-col text-right"><span class="font-label-lg text-label-lg text-text-primary leading-tight">Chantal Touré</span><span class="font-label-sm text-label-sm text-outline">Directrice Générale</span></div><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="relative pt-16 bg-surface min-h-screen w-full px-8"><div class="flex flex-col w-full pb-16 space-y-8">
+<!-- Subtle decorative ambient glows -->
+<div class="relative w-full">
+<div class="absolute -top-10 -right-12 w-96 h-96 bg-primary-fixed/30 rounded-full blur-3xl pointer-events-none -z-10"></div>
+<div class="absolute top-48 left-1/3 w-80 h-80 bg-lavender-subtle/60 rounded-full blur-2xl pointer-events-none -z-10"></div>
+<!-- 1. En-tête de pilotage -->
+<div class="flex flex-col lg:flex-row lg:items-end justify-between gap-6 pt-4 pb-2">
+<div class="flex flex-col space-y-1.5 max-w-3xl">
+<div class="flex items-center gap-2.5">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-container-high text-primary font-label-sm text-label-sm uppercase tracking-wider">
+<span class="material-symbols-outlined text-[14px]">account_balance</span>
+            Abidjan • Cocody Riviera Golf
+          </span>
+<span class="text-outline font-label-sm text-label-sm">#L-IMP-2025-CI</span>
+</div>
+<h1 class="text-headline-lg font-headline-lg text-plum-deep tracking-tight">
+          Finances du Salon, Acomptes Wave &amp; Catalogue des Soins
+        </h1>
+<p class="text-body-md font-body-md text-on-surface-variant">
+          Supervision des flux de trésorerie en temps réel, ventilation automatisée des commissions praticiennes et pilotage tarifaire de votre vitrine.
+        </p>
+</div>
+<!-- Sélecteur de période & export rapide -->
+<div class="flex items-center gap-3 self-start lg:self-end shrink-0">
+<div class="flex items-center bg-surface-cream rounded-full shadow-sm px-3.5 py-1.5 gap-2">
+<span class="material-symbols-outlined text-primary text-[20px]">calendar_today</span>
+<span class="font-label-lg text-label-lg text-text-primary">Octobre 2025</span>
+<span class="text-status-available font-label-sm text-label-sm font-bold bg-status-available/10 px-2 py-0.5 rounded-full">+18.4% vs M-1</span>
+</div>
+<button class="flex items-center gap-1.5 px-4 py-2 rounded-full bg-surface-container hover:bg-surface-container-high text-plum-deep font-label-lg text-label-lg transition-colors shadow-sm">
+<span class="material-symbols-outlined text-[18px]">download</span>
+<span>Bilan PDF</span>
+</button>
+</div>
+</div>
+</div>
+<!-- 2. Cartes de trésorerie & Mobile Money instantané (Bento Grid) -->
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
+<!-- Carte 1: Solde disponible & Virement Wave instantané -->
+<div class="relative bg-surface-cream rounded-2xl p-6 shadow-sm flex flex-col justify-between overflow-hidden">
+<div class="absolute top-0 right-0 w-28 h-28 bg-primary/5 rounded-bl-full pointer-events-none"></div>
+<div>
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Solde Disponible Immédiat</span>
+<span class="p-2 rounded-xl bg-status-available/10 text-status-available">
+<span class="material-symbols-outlined text-[20px]">account_balance_wallet</span>
+</span>
+</div>
+<div class="mt-3 flex items-baseline gap-1.5">
+<span class="font-display-lg text-display-lg text-plum-deep font-bold tracking-tight">1 485 000</span>
+<span class="font-label-lg text-label-lg text-outline">FCFA</span>
+</div>
+<p class="mt-1 text-body-sm font-body-sm text-on-surface-variant flex items-center gap-1">
+<span class="w-2 h-2 rounded-full bg-status-available inline-block"></span>
+          Prêt pour déblocage sans délai
+        </p>
+</div>
+<div class="mt-6 pt-4">
+<button class="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-full bg-primary hover:bg-primary-container text-on-primary font-label-lg text-label-lg transition-all active:scale-[0.98] shadow-md hover:shadow-lg" id="btn-virement-wave">
+<span class="material-symbols-outlined text-[18px]">send_to_mobile</span>
+<span>Virer vers Wave / Ecobank</span>
+</button>
+</div>
+</div>
+<!-- Carte 2: Acomptes Keke Protect -->
+<div class="bg-surface-cream rounded-2xl p-6 shadow-sm flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Acomptes en Séquestre</span>
+<span class="p-2 rounded-xl bg-primary-fixed text-primary">
+<span class="material-symbols-outlined text-[20px]">verified_user</span>
+</span>
+</div>
+<div class="mt-3 flex items-baseline gap-1.5">
+<span class="font-display-lg text-display-lg text-plum-deep font-bold tracking-tight">620 000</span>
+<span class="font-label-lg text-label-lg text-outline">FCFA</span>
+</div>
+<div class="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-lavender-subtle text-primary font-label-sm text-label-sm font-bold">
+<span class="material-symbols-outlined text-[15px]">lock</span>
+          Keke Protect Sécurisé
+        </div>
+</div>
+<div class="mt-4 pt-3">
+<div class="flex justify-between items-center text-body-sm font-body-sm text-on-surface-variant mb-1.5">
+<span>19 RDV confirmés ce weekend</span>
+<span class="font-bold text-plum-deep">100% garanti</span>
+</div>
+<div class="w-full bg-surface-container rounded-full h-2 overflow-hidden">
+<div class="bg-primary h-full rounded-full w-[78%]"></div>
+</div>
+</div>
+</div>
+<!-- Carte 3: Chiffre d'Affaires Mensuel -->
+<div class="bg-surface-cream rounded-2xl p-6 shadow-sm flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-outline uppercase tracking-wider">C.A. Mensuel Cumulé</span>
+<span class="p-2 rounded-xl bg-secondary-fixed text-plum-deep">
+<span class="material-symbols-outlined text-[20px]">trending_up</span>
+</span>
+</div>
+<div class="mt-3 flex items-baseline gap-1.5">
+<span class="font-display-lg text-display-lg text-plum-deep font-bold tracking-tight">8 940 000</span>
+<span class="font-label-lg text-label-lg text-outline">FCFA</span>
+</div>
+<p class="mt-1 text-body-sm font-body-sm text-status-available font-bold flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">arrow_upward</span>
+          +18.4% par rapport à Septembre
+        </p>
+</div>
+<div class="mt-4 pt-3 flex items-center justify-between text-body-sm font-body-sm">
+<span class="text-on-surface-variant">Objectif mensuel :</span>
+<span class="font-label-lg text-label-lg text-plum-deep font-bold">10 000 000 FCFA</span>
+</div>
+</div>
+<!-- Carte 4: Commissions Équipe Reversées -->
+<div class="bg-surface-cream rounded-2xl p-6 shadow-sm flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Commissions Praticiennes</span>
+<span class="p-2 rounded-xl bg-tertiary-fixed text-tertiary">
+<span class="material-symbols-outlined text-[20px]">groups</span>
+</span>
+</div>
+<div class="mt-3 flex items-baseline gap-1.5">
+<span class="font-display-lg text-display-lg text-plum-deep font-bold tracking-tight">3 129 000</span>
+<span class="font-label-lg text-label-lg text-outline">FCFA</span>
+</div>
+<p class="mt-1 text-body-sm font-body-sm text-on-surface-variant">
+          Moyenne appliquée : <strong class="text-plum-deep font-bold">35% net</strong> artisane
+        </p>
+</div>
+<div class="mt-4 pt-3 flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="w-2.5 h-2.5 rounded-full bg-status-available"></span>
+<span class="text-body-sm font-body-sm text-on-surface-variant">7 Praticiennes actives</span>
+</div>
+<span class="text-label-sm font-label-sm text-primary underline cursor-pointer">Voir détail</span>
+</div>
+</div>
+</div>
+<!-- Bandeau Avantage Partenaire Wave & Sécurité -->
+<div class="rounded-2xl bg-lavender-subtle p-4 px-6 flex flex-col md:flex-row items-center justify-between gap-4 shadow-sm">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-on-primary shrink-0">
+<span class="material-symbols-outlined text-[22px]">bolt</span>
+</div>
+<div>
+<div class="flex items-center gap-2">
+<span class="font-headline-sm text-headline-sm text-plum-deep font-bold">Passerelle Wave Business Pro Active</span>
+<span class="px-2 py-0.5 rounded-full bg-primary text-on-primary font-label-sm text-label-sm">Zéro Frais</span>
+</div>
+<p class="text-body-sm font-body-sm text-on-surface-variant">
+          Tous vos retraits vers Wave CI sont exonérés de commissions d'intermédiation grâce à l'adhésion Keke Gold.
+        </p>
+</div>
+</div>
+<div class="flex items-center gap-3 shrink-0">
+<span class="text-label-sm font-label-sm text-outline">Dernière synchro : Il y a 4 min</span>
+<button class="px-3.5 py-1.5 rounded-xl bg-surface-cream text-plum-deep font-label-sm text-label-sm hover:bg-surface-container transition-colors shadow-sm">
+        Rafraîchir
+      </button>
+</div>
+</div>
+<!-- 3. Section Graphique & Analyse des encaissements (2 colonnes asymétriques) -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+<!-- Colonne Gauche (8 cols) : Graphique revenus quotidiens & affluence -->
+<div class="lg:col-span-8 bg-surface-cream rounded-2xl p-6 shadow-sm flex flex-col justify-between space-y-6">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+<div>
+<h2 class="font-headline-md text-headline-md text-plum-deep font-bold">Revenus Quotidiens &amp; Dynamique Hebdomadaire</h2>
+<p class="text-body-sm font-body-sm text-on-surface-variant">Analyse des flux réels encaissés par jour (Plein pic : Vendredis &amp; Samedis)</p>
+</div>
+<div class="flex items-center gap-3">
+<span class="flex items-center gap-1.5 text-label-sm font-label-sm text-on-surface-variant">
+<span class="w-3 h-3 rounded-full bg-primary inline-block"></span> Semaine courante
+          </span>
+<span class="flex items-center gap-1.5 text-label-sm font-label-sm text-outline">
+<span class="w-3 h-3 rounded-full bg-surface-container-highest inline-block"></span> Semaine N-1
+          </span>
+</div>
+</div>
+<!-- Graphique SVG Barres & Courbe Stylisées -->
+<div class="w-full pt-4">
+<svg class="w-full h-56 overflow-visible" preserveaspectratio="none" viewbox="0 0 760 220">
+<!-- Grilles horizontales douces -->
+<line stroke="#f0edeb" stroke-dasharray="4 4" stroke-width="1.5" x1="0" x2="760" y1="40" y2="40"></line>
+<line stroke="#f0edeb" stroke-dasharray="4 4" stroke-width="1.5" x1="0" x2="760" y1="90" y2="90"></line>
+<line stroke="#f0edeb" stroke-dasharray="4 4" stroke-width="1.5" x1="0" x2="760" y1="140" y2="140"></line>
+<line stroke="#f0edeb" stroke-width="1.5" x1="0" x2="760" y1="190" y2="190"></line>
+<!-- Lundi -->
+<rect fill="#f0edeb" height="60" rx="8" width="34" x="35" y="130"></rect>
+<rect class="hover:opacity-85 transition-opacity" fill="#5b1b7d" height="75" rx="8" width="34" x="35" y="115"></rect>
+<text fill="#7f7381" font-family="Plus Jakarta Sans" font-size="12" text-anchor="middle" x="52" y="210">Lun 20</text>
+<text fill="#410060" font-size="11" font-weight="600" text-anchor="middle" x="52" y="105">380k</text>
+<!-- Mardi -->
+<rect fill="#f0edeb" height="65" rx="8" width="34" x="140" y="125"></rect>
+<rect class="hover:opacity-85 transition-opacity" fill="#5b1b7d" height="90" rx="8" width="34" x="140" y="100"></rect>
+<text fill="#7f7381" font-family="Plus Jakarta Sans" font-size="12" text-anchor="middle" x="157" y="210">Mar 21</text>
+<text fill="#410060" font-size="11" font-weight="600" text-anchor="middle" x="157" y="90">460k</text>
+<!-- Mercredi -->
+<rect fill="#f0edeb" height="80" rx="8" width="34" x="245" y="110"></rect>
+<rect class="hover:opacity-85 transition-opacity" fill="#5b1b7d" height="95" rx="8" width="34" x="245" y="95"></rect>
+<text fill="#7f7381" font-family="Plus Jakarta Sans" font-size="12" text-anchor="middle" x="262" y="210">Mer 22</text>
+<text fill="#410060" font-size="11" font-weight="600" text-anchor="middle" x="262" y="85">520k</text>
+<!-- Jeudi -->
+<rect fill="#f0edeb" height="95" rx="8" width="34" x="350" y="95"></rect>
+<rect class="hover:opacity-85 transition-opacity" fill="#5b1b7d" height="110" rx="8" width="34" x="350" y="80"></rect>
+<text fill="#7f7381" font-family="Plus Jakarta Sans" font-size="12" text-anchor="middle" x="367" y="210">Jeu 23</text>
+<text fill="#410060" font-size="11" font-weight="600" text-anchor="middle" x="367" y="70">680k</text>
+<!-- Vendredi (Gros Pic Tresses & Coiffures) -->
+<rect fill="#f0edeb" height="130" rx="8" width="34" x="455" y="60"></rect>
+<rect class="hover:opacity-85 transition-opacity" fill="#821dda" height="158" rx="8" width="34" x="455" y="32"></rect>
+<text fill="#410060" font-family="Plus Jakarta Sans" font-size="12" font-weight="700" text-anchor="middle" x="472" y="210">Ven 24</text>
+<text fill="#821dda" font-size="12" font-weight="700" text-anchor="middle" x="472" y="22">1 420k</text>
+<!-- Samedi (Pic Mariage, Soins & Onglerie) -->
+<rect fill="#f0edeb" height="145" rx="8" width="34" x="560" y="45"></rect>
+<rect class="hover:opacity-85 transition-opacity" fill="#410060" height="172" rx="8" width="34" x="560" y="18"></rect>
+<text fill="#410060" font-family="Plus Jakarta Sans" font-size="12" font-weight="700" text-anchor="middle" x="577" y="210">Sam 25</text>
+<text fill="#410060" font-size="12" font-weight="700" text-anchor="middle" x="577" y="10">1 890k</text>
+<!-- Dimanche (Spa, Soins Détente & Hammam) -->
+<rect fill="#f0edeb" height="90" rx="8" width="34" x="665" y="100"></rect>
+<rect class="hover:opacity-85 transition-opacity" fill="#5b1b7d" height="105" rx="8" width="34" x="665" y="85"></rect>
+<text fill="#7f7381" font-family="Plus Jakarta Sans" font-size="12" text-anchor="middle" x="682" y="210">Dim 26</text>
+<text fill="#410060" font-size="11" font-weight="600" text-anchor="middle" x="682" y="75">640k</text>
+</svg>
+</div>
+<div class="flex flex-wrap items-center justify-between gap-4 pt-3 text-body-sm font-body-sm text-on-surface-variant bg-surface-container-low p-3.5 rounded-xl">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px] text-primary">tips_and_updates</span>
+<span><strong>Astuce rentabilité Keke :</strong> Le samedi affiche un taux d'occupation de 98%. Activez le tarif premium weekend (+10%) sur les Knotless.</span>
+</div>
+<span class="font-label-sm text-label-sm text-secondary font-bold cursor-pointer hover:underline">Configurer majoration</span>
+</div>
+</div>
+<!-- Colonne Droite (4 cols) : Répartition des Paiements Abidjan -->
+<div class="lg:col-span-4 bg-surface-cream rounded-2xl p-6 shadow-sm flex flex-col justify-between space-y-6">
+<div>
+<h2 class="font-headline-md text-headline-md text-plum-deep font-bold">Moyens de Paiement</h2>
+<p class="text-body-sm font-body-sm text-on-surface-variant">Répartition des encaissements à Cocody</p>
+</div>
+<!-- Donut Chart stylisé -->
+<div class="flex items-center justify-center my-2">
+<div class="relative w-44 h-44 flex items-center justify-center">
+<svg class="w-full h-full transform -rotate-90" viewbox="0 0 36 36">
+<!-- Wave CI (72%) -->
+<path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#5b1b7d" stroke-dasharray="72, 100" stroke-linecap="round" stroke-width="4.5"></path>
+<!-- Orange Money (18%) -->
+<path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#9c42f4" stroke-dasharray="18, 100" stroke-dashoffset="-72" stroke-width="4.5"></path>
+<!-- Espèces (8%) -->
+<path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#d2bfe8" stroke-dasharray="8, 100" stroke-dashoffset="-90" stroke-width="4.5"></path>
+<!-- Carte (2%) -->
+<path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#7f7381" stroke-dasharray="2, 100" stroke-dashoffset="-98" stroke-width="4.5"></path>
+</svg>
+<div class="absolute flex flex-col items-center justify-center text-center">
+<span class="font-headline-lg text-headline-lg text-plum-deep font-bold">72%</span>
+<span class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Wave CI</span>
+</div>
+</div>
+</div>
+<!-- Liste des parts -->
+<div class="space-y-2.5">
+<div class="flex items-center justify-between text-body-sm font-body-sm">
+<div class="flex items-center gap-2">
+<span class="w-3 h-3 rounded-full bg-primary-container"></span>
+<span class="text-text-primary font-medium">Wave CI (Mobile Money)</span>
+</div>
+<span class="font-bold text-plum-deep">6 436 800 FCFA <span class="text-outline font-normal text-body-sm">(72%)</span></span>
+</div>
+<div class="flex items-center justify-between text-body-sm font-body-sm">
+<div class="flex items-center gap-2">
+<span class="w-3 h-3 rounded-full bg-secondary-container"></span>
+<span class="text-text-primary font-medium">Orange Money CI</span>
+</div>
+<span class="font-bold text-plum-deep">1 609 200 FCFA <span class="text-outline font-normal text-body-sm">(18%)</span></span>
+</div>
+<div class="flex items-center justify-between text-body-sm font-body-sm">
+<div class="flex items-center gap-2">
+<span class="w-3 h-3 rounded-full bg-tertiary-fixed-dim"></span>
+<span class="text-text-primary font-medium">Espèces au comptoir</span>
+</div>
+<span class="font-bold text-plum-deep">715 200 FCFA <span class="text-outline font-normal text-body-sm">(8%)</span></span>
+</div>
+<div class="flex items-center justify-between text-body-sm font-body-sm">
+<div class="flex items-center gap-2">
+<span class="w-3 h-3 rounded-full bg-outline"></span>
+<span class="text-text-primary font-medium">Carte Bancaire / TPE</span>
+</div>
+<span class="font-bold text-plum-deep">178 800 FCFA <span class="text-outline font-normal text-body-sm">(2%)</span></span>
+</div>
+</div>
+</div>
+</div>
+<!-- 4. Section Catalogue Interactif des Prestations & Rentabilité -->
+<div class="bg-surface-cream rounded-2xl p-6 shadow-sm space-y-6">
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+<div>
+<div class="flex items-center gap-2.5">
+<h2 class="font-headline-lg text-headline-lg text-plum-deep font-bold">Catalogue des Soins, Tarifs &amp; Commissions</h2>
+<span class="px-2.5 py-0.5 rounded-full bg-lavender-subtle text-primary font-label-sm text-label-sm font-bold">24 Soins Actifs</span>
+</div>
+<p class="text-body-md font-body-md text-on-surface-variant">
+          Paramétrez vos prix publics, la part d'acompte Wave obligatoire et les rémunérations des artisanes.
+        </p>
+</div>
+<button class="flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary hover:bg-primary-container text-on-primary font-label-lg text-label-lg transition-all shadow-md active:scale-95 shrink-0" id="btn-add-soin">
+<span class="material-symbols-outlined text-[20px]">add</span>
+<span>Ajouter un nouveau soin au catalogue</span>
+</button>
+</div>
+<!-- Filtres des catégories -->
+<div class="flex flex-wrap items-center gap-2 pt-2">
+<button class="filter-pill px-4 py-2 rounded-full bg-primary text-on-primary font-label-md text-label-md flex items-center gap-1.5 shadow-sm">
+<span class="material-symbols-outlined text-[16px]">check</span>
+<span>Tous les soins (24)</span>
+</button>
+<button class="filter-pill px-4 py-2 rounded-full bg-lavender-subtle hover:bg-surface-container text-plum-deep font-label-md text-label-md transition-colors">
+        Coiffure Afro &amp; Tresses (9)
+      </button>
+<button class="filter-pill px-4 py-2 rounded-full bg-lavender-subtle hover:bg-surface-container text-plum-deep font-label-md text-label-md transition-colors">
+        Soins &amp; Spa Capillaire (6)
+      </button>
+<button class="filter-pill px-4 py-2 rounded-full bg-lavender-subtle hover:bg-surface-container text-plum-deep font-label-md text-label-md transition-colors">
+        Onglerie &amp; Cils (5)
+      </button>
+<button class="filter-pill px-4 py-2 rounded-full bg-lavender-subtle hover:bg-surface-container text-plum-deep font-label-md text-label-md transition-colors">
+        Massages &amp; Hammam (4)
+      </button>
+</div>
+<!-- Tableau Haute Définition des Soins -->
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead>
+<tr class="bg-surface-container-low text-outline font-label-sm text-label-sm uppercase tracking-wider">
+<th class="py-3.5 px-4 rounded-l-xl">Prestation &amp; Artisane Référente</th>
+<th class="py-3.5 px-4">Durée</th>
+<th class="py-3.5 px-4">Tarif Public</th>
+<th class="py-3.5 px-4">Acompte Wave (50%)</th>
+<th class="py-3.5 px-4">Commission Artisane</th>
+<th class="py-3.5 px-4">Performances Oct.</th>
+<th class="py-3.5 px-4">Vitrine B2C</th>
+<th class="py-3.5 px-4 rounded-r-xl text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y-0 space-y-2">
+<!-- Ligne 1 : Knotless Braids Taille L -->
+<tr class="group hover:bg-surface-container-low/60 transition-colors">
+<td class="py-4 px-4">
+<div class="flex items-center gap-3">
+<img class="w-12 h-12 rounded-xl object-cover shrink-0 shadow-sm" data-alt="Close-up photograph of exquisitely styled long knotless braids on a client with radiant dark skin in an elegant Abidjan luxury salon setting with soft golden backlighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCdIF3IIpINTS66Y1D9_JqpD0gWJLoFfZ8WlJaqceE4Q4DvA6YivH_p8vPpAHfDruXZ5Tdls1YfUDiEmUZng8cGbek0h4Qyr2jLMumJGLKtnmtOI67DwY70uBm4JZUQv0rE-5zJuBrUHzb6fT_NTUd735GJ1EwBTkAcgYYlmZy-g-QtYs0Sb6_OvhJgVIIh4nuZ8qxIAIxKbUxdrVX0oGSMkULUJX0HEeYPHxBYnNH8b9Vw6ZjW_R8v"/>
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm text-plum-deep font-bold">Knotless Braids Taille L</span>
+<span class="text-body-sm font-body-sm text-on-surface-variant">Praticienne dédiée : Fatou B. &amp; Aïcha K.</span>
+</div>
+</div>
+</td>
+<td class="py-4 px-4">
+<span class="inline-flex items-center gap-1 font-label-md text-label-md text-text-primary px-2.5 py-1 rounded-full bg-surface-container">
+<span class="material-symbols-outlined text-[14px] text-outline">schedule</span>
+                3h 30min
+              </span>
+</td>
+<td class="py-4 px-4 font-headline-sm text-headline-sm font-bold text-plum-deep">
+              45 000 FCFA
+            </td>
+<td class="py-4 px-4">
+<span class="font-label-lg text-label-lg text-primary font-bold">22 500 FCFA</span>
+<span class="block text-body-sm font-body-sm text-outline">Wave Séquestre</span>
+</td>
+<td class="py-4 px-4">
+<span class="font-label-md text-label-md text-text-primary font-bold">15 750 FCFA</span>
+<span class="block text-label-sm text-label-sm text-outline">35% de la prestation</span>
+</td>
+<td class="py-4 px-4">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md font-bold text-plum-deep">48 réalisations</span>
+<span class="flex items-center text-label-sm text-label-sm text-status-available font-bold gap-0.5">
+<span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">star</span>
+                  4.95 (68 avis)
+                </span>
+</div>
+</td>
+<td class="py-4 px-4">
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-surface-container peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</td>
+<td class="py-4 px-4 text-right">
+<button class="px-3 py-1.5 rounded-full bg-surface-container hover:bg-surface-container-high text-primary font-label-md text-label-md transition-colors">
+                Modifier
+              </button>
+</td>
+</tr>
+<!-- Ligne 2 : Soin Profond Karité Bio de Korhogo -->
+<tr class="group hover:bg-surface-container-low/60 transition-colors">
+<td class="py-4 px-4">
+<div class="flex items-center gap-3">
+<img class="w-12 h-12 rounded-xl object-cover shrink-0 shadow-sm" data-alt="Macro photo of artisanal organic Korhogo shea butter deep hair conditioning treatment in a luxurious ceramic bowl adorned with natural botanicals in an upscale West African wellness spa" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDu5xfJ7x2b3Y0A6gq7AqTfecHDLR7tz8qeT3-ZhHuJKXQG8lAKX2A37bqb6eiRKobQnB56dAnG05j5ZadXfT_TMs8_V2xh6679Y70s_RygGFNaarBBGny91pfUZJ28Yr1lQM_lyAsky2bwZNIbJob_bWRlJ7EJA3M_shv7OdmiNMmw-cWSjfY_xEk96LiUPSTSQTDiWnVtGlQCiNuUSrS7SXPsmS3bnGVWNkevaC5ydjCIyveo_SMi"/>
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm text-plum-deep font-bold">Soin Profond Karité Bio de Korhogo</span>
+<span class="text-body-sm font-body-sm text-on-surface-variant">Vapeur ozonée &amp; massage crânien aux huiles</span>
+</div>
+</div>
+</td>
+<td class="py-4 px-4">
+<span class="inline-flex items-center gap-1 font-label-md text-label-md text-text-primary px-2.5 py-1 rounded-full bg-surface-container">
+<span class="material-symbols-outlined text-[14px] text-outline">schedule</span>
+                1h 15min
+              </span>
+</td>
+<td class="py-4 px-4 font-headline-sm text-headline-sm font-bold text-plum-deep">
+              30 000 FCFA
+            </td>
+<td class="py-4 px-4">
+<span class="font-label-lg text-label-lg text-primary font-bold">15 000 FCFA</span>
+<span class="block text-body-sm font-body-sm text-outline">Wave Séquestre</span>
+</td>
+<td class="py-4 px-4">
+<span class="font-label-md text-label-md text-text-primary font-bold">10 500 FCFA</span>
+<span class="block text-label-sm text-label-sm text-outline">35% de la prestation</span>
+</td>
+<td class="py-4 px-4">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md font-bold text-plum-deep">56 réalisations</span>
+<span class="flex items-center text-label-sm text-label-sm text-status-available font-bold gap-0.5">
+<span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">star</span>
+                  4.98 (52 avis)
+                </span>
+</div>
+</td>
+<td class="py-4 px-4">
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-surface-container peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</td>
+<td class="py-4 px-4 text-right">
+<button class="px-3 py-1.5 rounded-full bg-surface-container hover:bg-surface-container-high text-primary font-label-md text-label-md transition-colors">
+                Modifier
+              </button>
+</td>
+</tr>
+<!-- Ligne 3 : Pose Perruque Lace Frontale HD -->
+<tr class="group hover:bg-surface-container-low/60 transition-colors">
+<td class="py-4 px-4">
+<div class="flex items-center gap-3">
+<img class="w-12 h-12 rounded-xl object-cover shrink-0 shadow-sm" data-alt="High-end HD undetectable lace frontal wig custom install on a woman in a boutique dressing room with velvet chairs and warm soft spotlight illumination" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBStwVfmMEm9RZOlQlhTVUEC-xNEQtr7NMl__NcN6dAIHdwx5HuoUkWmWJ9v5doTs3Q2m0Sn02FLmGtWssVo8NctMVmhH1fGxgOOK8sFb6chKff9OPs8hvlHeHWu_QF50TzReAr_IpSK2EkMCudTNHX42GcL8cBvE9BT8wTOTsJtaEFf2Amam9Z0X78Tkn7qc65mfHJVuIZQhSigj7WFDuqzNVrnps8tH2npDtaMbPIJTNxbrD6cbe2"/>
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm text-plum-deep font-bold">Pose Perruque Lace Frontale HD</span>
+<span class="text-body-sm font-body-sm text-on-surface-variant">Personnalisation &amp; découpe invisible</span>
+</div>
+</div>
+</td>
+<td class="py-4 px-4">
+<span class="inline-flex items-center gap-1 font-label-md text-label-md text-text-primary px-2.5 py-1 rounded-full bg-surface-container">
+<span class="material-symbols-outlined text-[14px] text-outline">schedule</span>
+                2h 00min
+              </span>
+</td>
+<td class="py-4 px-4 font-headline-sm text-headline-sm font-bold text-plum-deep">
+              55 000 FCFA
+            </td>
+<td class="py-4 px-4">
+<span class="font-label-lg text-label-lg text-primary font-bold">27 500 FCFA</span>
+<span class="block text-body-sm font-body-sm text-outline">Wave Séquestre</span>
+</td>
+<td class="py-4 px-4">
+<span class="font-label-md text-label-md text-text-primary font-bold">19 250 FCFA</span>
+<span class="block text-label-sm text-label-sm text-outline">35% de la prestation</span>
+</td>
+<td class="py-4 px-4">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md font-bold text-plum-deep">39 réalisations</span>
+<span class="flex items-center text-label-sm text-label-sm text-status-available font-bold gap-0.5">
+<span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">star</span>
+                  4.92 (44 avis)
+                </span>
+</div>
+</td>
+<td class="py-4 px-4">
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-surface-container peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</td>
+<td class="py-4 px-4 text-right">
+<button class="px-3 py-1.5 rounded-full bg-surface-container hover:bg-surface-container-high text-primary font-label-md text-label-md transition-colors">
+                Modifier
+              </button>
+</td>
+</tr>
+<!-- Ligne 4 : Rituel Hammam Vapeur & Gommage Eucalyptus -->
+<tr class="group hover:bg-surface-container-low/60 transition-colors">
+<td class="py-4 px-4">
+<div class="flex items-center gap-3">
+<img class="w-12 h-12 rounded-xl object-cover shrink-0 shadow-sm" data-alt="Serene private luxury steam hammam spa suite in Abidjan with warm marble tones, eucalyptus vapor, flickering candles and plush folded ivory towels" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCn3eXxOX_9gkpCKoVYgGNaZr8pVgCt7GWxNgnHbt_netDQ45fmH-4L2xA5VjcEp6B0KvwNkKArzD_gbXEJ0k1leil3nFZPiNp61WK4bRnER2ekJn73Q2h2n2er9N4Loskag2bK7VfnvFokgi-v5tx-ehHa4SQBcAOVR-JkDyknxoc8bAz-jTyLWTghrte-LUt7jFoXkv_5hXZKPRXe6V-VrcA4LviJaNwAjOj7SY8BUWyx2kV_tOoy"/>
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm text-plum-deep font-bold">Rituel Hammam Vapeur &amp; Gommage</span>
+<span class="text-body-sm font-body-sm text-on-surface-variant">Savon noir marocain &amp; gant kessa</span>
+</div>
+</div>
+</td>
+<td class="py-4 px-4">
+<span class="inline-flex items-center gap-1 font-label-md text-label-md text-text-primary px-2.5 py-1 rounded-full bg-surface-container">
+<span class="material-symbols-outlined text-[14px] text-outline">schedule</span>
+                1h 45min
+              </span>
+</td>
+<td class="py-4 px-4 font-headline-sm text-headline-sm font-bold text-plum-deep">
+              40 000 FCFA
+            </td>
+<td class="py-4 px-4">
+<span class="font-label-lg text-label-lg text-primary font-bold">20 000 FCFA</span>
+<span class="block text-body-sm font-body-sm text-outline">Wave Séquestre</span>
+</td>
+<td class="py-4 px-4">
+<span class="font-label-md text-label-md text-text-primary font-bold">14 000 FCFA</span>
+<span class="block text-label-sm text-label-sm text-outline">35% de la prestation</span>
+</td>
+<td class="py-4 px-4">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md font-bold text-plum-deep">31 réalisations</span>
+<span class="flex items-center text-label-sm text-label-sm text-status-available font-bold gap-0.5">
+<span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">star</span>
+                  4.97 (29 avis)
+                </span>
+</div>
+</td>
+<td class="py-4 px-4">
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-surface-container peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</td>
+<td class="py-4 px-4 text-right">
+<button class="px-3 py-1.5 rounded-full bg-surface-container hover:bg-surface-container-high text-primary font-label-md text-label-md transition-colors">
+                Modifier
+              </button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination & Total -->
+<div class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 text-body-sm font-body-sm text-outline">
+<span>Affichage de 4 sur 24 soins configurés</span>
+<div class="flex items-center gap-1.5">
+<button class="p-2 rounded-lg bg-surface-container text-text-primary hover:bg-surface-container-high">
+<span class="material-symbols-outlined text-[16px]">chevron_left</span>
+</button>
+<span class="px-3 py-1 rounded-lg bg-primary text-on-primary font-label-md text-label-md font-bold">1</span>
+<button class="px-3 py-1 rounded-lg bg-surface-container text-text-primary font-label-md text-label-md hover:bg-surface-container-high">2</button>
+<button class="px-3 py-1 rounded-lg bg-surface-container text-text-primary font-label-md text-label-md hover:bg-surface-container-high">3</button>
+<button class="p-2 rounded-lg bg-surface-container text-text-primary hover:bg-surface-container-high">
+<span class="material-symbols-outlined text-[16px]">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+<!-- 5. Bloc de conformité, Licence Pro Keke Gold & Partenariat -->
+<div class="relative overflow-hidden bg-plum-deep text-surface-cream rounded-3xl p-8 shadow-xl">
+<div class="absolute -right-16 -bottom-16 w-80 h-80 bg-secondary/30 rounded-full blur-3xl pointer-events-none"></div>
+<div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-8">
+<div class="flex flex-col space-y-3 max-w-2xl">
+<div class="flex items-center gap-3">
+<span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-surface-cream/15 text-surface-cream font-label-sm text-label-sm uppercase tracking-wider backdrop-blur-md">
+<span class="material-symbols-outlined text-[16px] text-secondary-fixed">workspace_premium</span>
+            Statut Vérifié
+          </span>
+<span class="text-secondary-fixed-dim font-label-sm text-label-sm">Licence Officielle #KP-88219</span>
+</div>
+<h3 class="font-headline-lg text-headline-lg text-surface-cream font-bold">
+          Abonnement Partenaire Pro Elite Keke Beauty
+        </h3>
+<p class="text-body-md font-body-md text-surface-cream/80">
+          Votre établissement bénéficie du label <strong class="text-secondary-fixed">Keke Gold Vérifié</strong> avec placement prioritaire garanti dans le Top 3 des recherches à Cocody Riviera Golf, Riviera 3 et Cocody Ambassades.
+        </p>
+<div class="flex flex-wrap items-center gap-6 pt-2 text-body-sm font-body-sm text-surface-cream/90">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary-fixed text-[18px]">verified</span>
+<span>Abonnement actif jusqu'au <strong>12 Mars 2026</strong></span>
+</div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary-fixed text-[18px]">security</span>
+<span>Garantie anti-désistement Keke Wave 100% active</span>
+</div>
+</div>
+</div>
+<!-- Bloc action licence -->
+<div class="flex flex-col sm:flex-row lg:flex-col gap-3 shrink-0">
+<button class="px-6 py-3 rounded-full bg-surface-cream text-plum-deep font-label-lg text-label-lg hover:bg-surface-cream/90 transition-all font-bold shadow-md">
+          Gérer ma formule Pro Elite
+        </button>
+<button class="px-6 py-3 rounded-full bg-surface-cream/10 hover:bg-surface-cream/20 text-surface-cream font-label-lg text-label-lg transition-colors border-0">
+          Télécharger l'Attestation Keke Gold
+        </button>
+</div>
+</div>
+</div>
+</div>
+<!-- Modal simulation virement Wave (Interactivité Vanilla) -->
+<div class="fixed inset-0 bg-plum-deep/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4" id="wave-modal">
+<div class="bg-surface-cream rounded-3xl p-8 max-w-lg w-full shadow-2xl space-y-6">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2.5">
+<div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined text-[20px]">send_to_mobile</span>
+</div>
+<div>
+<h3 class="font-headline-md text-headline-md text-plum-deep font-bold">Virement Wave Business</h3>
+<p class="text-body-sm font-body-sm text-outline">Exonération totale des frais de retrait</p>
+</div>
+</div>
+<button class="p-2 rounded-full hover:bg-surface-container text-outline" id="close-wave-modal">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+<div class="space-y-4">
+<div>
+<label class="block text-label-sm font-label-sm text-outline uppercase mb-1.5">Compte destinataire vérifié</label>
+<div class="flex items-center justify-between p-3.5 rounded-2xl bg-surface-container">
+<div class="flex items-center gap-2.5">
+<span class="material-symbols-outlined text-primary text-[20px]">phone_iphone</span>
+<span class="font-label-lg text-label-lg text-text-primary">+225 07 88 90 12 34 (L'Impératrice Spa)</span>
+</div>
+<span class="px-2 py-0.5 rounded-full bg-status-available/10 text-status-available font-label-sm text-label-sm font-bold">Wave CI</span>
+</div>
+</div>
+<div>
+<label class="block text-label-sm font-label-sm text-outline uppercase mb-1.5">Montant du transfert (FCFA)</label>
+<div class="relative">
+<input class="w-full py-3.5 px-4 rounded-2xl bg-surface text-plum-deep font-headline-md text-headline-md font-bold border-0 focus:ring-2 focus:ring-primary outline-none" type="text" value="1 485 000"/>
+<button class="absolute right-3 top-3 px-3 py-1 rounded-full bg-lavender-subtle text-primary font-label-sm text-label-sm font-bold">Max</button>
+</div>
+<span class="block mt-1 text-body-sm font-body-sm text-outline">Disponible immédiatement : 1 485 000 FCFA</span>
+</div>
+<div class="p-3.5 rounded-2xl bg-status-available/10 text-status-available flex items-center gap-2.5">
+<span class="material-symbols-outlined text-[20px]">check_circle</span>
+<span class="text-body-sm font-body-sm font-bold">Zéro frais Keke Pro. Réception sur votre wallet en moins de 30 secondes.</span>
+</div>
+</div>
+<div class="flex items-center gap-3 pt-2">
+<button class="w-1/2 py-3 rounded-full bg-surface-container text-plum-deep font-label-lg text-label-lg hover:bg-surface-container-high transition-colors" id="cancel-virement">
+        Annuler
+      </button>
+<button class="w-1/2 py-3 rounded-full bg-primary hover:bg-primary-container text-on-primary font-label-lg text-label-lg transition-all shadow-md active:scale-98" id="confirm-virement">
+        Confirmer le transfert
+      </button>
+</div>
+</div>
+</div>
+<script>
+  // Script d'interaction pour la démo B2B
+  const btnVirement = document.getElementById('btn-virement-wave');
+  const modal = document.getElementById('wave-modal');
+  const closeModal = document.getElementById('close-wave-modal');
+  const cancelVirement = document.getElementById('cancel-virement');
+  const confirmVirement = document.getElementById('confirm-virement');
+
+  if (btnVirement && modal) {
+    btnVirement.addEventListener('click', () => modal.classList.remove('hidden'));
+    closeModal.addEventListener('click', () => modal.classList.add('hidden'));
+    cancelVirement.addEventListener('click', () => modal.classList.add('hidden'));
+    
+    confirmVirement.addEventListener('click', () => {
+      confirmVirement.innerText = 'Transfert en cours...';
+      setTimeout(() => {
+        alert('Succès ! Le virement de 1 485 000 FCFA a été validé vers votre compte Wave Business.');
+        modal.classList.add('hidden');
+        confirmVirement.innerText = 'Confirmer le transfert';
+      }, 900);
+    });
+  }
+
+  // Filtrage rapide des onglets
+  const filterPills = document.querySelectorAll('.filter-pill');
+  filterPills.forEach(pill => {
+    pill.addEventListener('click', () => {
+      filterPills.forEach(p => {
+        p.classList.remove('bg-primary', 'text-on-primary');
+        p.classList.add('bg-lavender-subtle', 'text-plum-deep');
+      });
+      pill.classList.remove('bg-lavender-subtle', 'text-plum-deep');
+      pill.classList.add('bg-primary', 'text-on-primary');
+    });
+  });
+</script></main></div></body></html>
