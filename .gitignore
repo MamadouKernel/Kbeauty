@@ -30,3 +30,12 @@ appsettings.*.local.json
 appsettings.local.json
 
 backups/
+
+# Documents et notes (specs, CDC, docs internes) - restent en local, jamais sur le depot.
+# README.md est la seule exception (page d'accueil du depot).
+*.pdf
+*.docx
+*.doc
+*.txt
+*.md
+!README.md
