@@ -1,0 +1,48 @@
+@inject IJSRuntime JS
+@inject ClientSessionService ClientSession
+@inject PartnerSessionService PartnerSession
+@inject AdminSessionService AdminSession
+@inject StaffSessionService StaffSession
+@inject NavigationManager Navigation
+@implements IAsyncDisposable
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+
+@code {
+    private DotNetObjectReference<InactivityManager>? _reference;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+        _reference = DotNetObjectReference.Create(this);
+        var authenticated = await ClientSession.GetClientIdAsync() is not null
+            || await PartnerSession.GetPartnerIdAsync() is not null
+            || await AdminSession.GetApiKeyAsync() is not null
+            || await StaffSession.GetStaffIdAsync() is not null;
+        await JS.InvokeVoidAsync("kekeInactivity.register", _reference, authenticated);
+    }
+
+    [JSInvokable]
+    public async Task OnSessionExpired()
+    {
+        var admin = await AdminSession.GetApiKeyAsync() is not null;
+        var staff = await StaffSession.GetStaffIdAsync() is not null;
+        var partner = await PartnerSession.GetPartnerIdAsync() is not null;
+        await ClientSession.ClearAsync();
+        await PartnerSession.ClearAsync();
+        await AdminSession.ClearAsync();
+        await StaffSession.ClearAsync();
+        await JS.InvokeVoidAsync("kekeInactivity.sessionEnded");
+        var destination = admin ? "/admin/login?expired=true"
+            : staff ? "/login?role=collaboratrice&expired=true"
+            : partner ? "/login?role=partenaire&expired=true"
+            : "/login?expired=true";
+        Navigation.NavigateTo(destination, forceLoad: true);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_reference is null) return;
+        try { await JS.InvokeVoidAsync("kekeInactivity.unregister"); } catch { }
+        _reference.Dispose();
+    }
+}

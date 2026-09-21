@@ -1,0 +1,66 @@
+@inject AdminSessionService AdminSession
+@inject NavigationManager Navigation
+
+<header class="admin-header">
+    <div class="admin-header-inner">
+        <a class="brand" href="/admin"><img src="/img/logo.png" alt="" /><span>Keke Beauty<small>ADMINISTRATION</small></span></a>
+        <nav class="admin-desktop-nav" aria-label="Administration">
+            <a class="admin-overview-link @(ActivePath == "/admin" ? "is-active" : "")" href="/admin">Vue d’ensemble</a>
+            @foreach (var group in Groups)
+            {
+                <details class="admin-nav-dropdown @(IsGroupActive(group) ? "is-active" : "")">
+                    <summary aria-label="Ouvrir le menu @group.Label">
+                        <span class="material-symbols-outlined" aria-hidden="true">@group.Icon</span><span>@group.Label</span>
+                        <span class="material-symbols-outlined admin-nav-chevron" aria-hidden="true">expand_more</span>
+                    </summary>
+                    <div class="admin-nav-dropdown-panel">
+                        <div class="admin-nav-dropdown-heading"><strong>@group.Label</strong><small>@group.Description</small></div>
+                        @foreach (var item in group.Items)
+                        {
+                            <a class="@(ActivePath == item.Path ? "is-active" : "")" href="@item.Path" aria-current="@(ActivePath == item.Path ? "page" : null)">
+                                <span class="material-symbols-outlined" aria-hidden="true">@item.Icon</span>
+                                <span><strong>@item.Label</strong><small>@item.Description</small></span>
+                            </a>
+                        }
+                    </div>
+                </details>
+            }
+        </nav>
+        <div class="admin-header-actions">
+            <a class="admin-site-link" href="/" aria-label="Voir le site public"><span class="material-symbols-outlined" aria-hidden="true">open_in_new</span><span>Site public</span></a>
+            <button class="session-logout" type="button" @onclick="LogoutAsync"><span class="material-symbols-outlined" aria-hidden="true">logout</span><span>Déconnexion</span></button>
+        </div>
+        <details class="admin-mobile-menu">
+            <summary><span class="material-symbols-outlined" aria-hidden="true">menu</span> Menu</summary>
+            <nav aria-label="Administration mobile">
+                <a class="@(ActivePath == "/admin" ? "is-active" : "")" href="/admin">Vue d’ensemble</a>
+                @foreach (var group in Groups)
+                {
+                    <p class="admin-mobile-group">@group.Label</p>
+                    @foreach (var item in group.Items) { <a class="@(ActivePath == item.Path ? "is-active" : "")" href="@item.Path">@item.Label</a> }
+                }
+                <a href="/">Voir le site</a>
+                <button class="admin-mobile-logout" type="button" @onclick="LogoutAsync"><span class="material-symbols-outlined" aria-hidden="true">logout</span> Déconnexion</button>
+            </nav>
+        </details>
+    </div>
+</header>
+
+@code {
+    [Parameter] public string ActivePath { get; set; } = "";
+    private bool IsGroupActive(NavGroup group) => group.Items.Any(item => item.Path == ActivePath);
+    private async Task LogoutAsync() { await AdminSession.ClearAsync(); Navigation.NavigateTo("/admin/login", forceLoad: true); }
+    private static readonly NavGroup[] Groups =
+    [
+        new("Opérations", "task_alt", "Validation et assistance quotidienne",
+        [new("/admin/dossiers", "Dossiers KYC", "verified_user", "Contrôler les pièces et boutiques"), new("/admin/moderation", "Modération", "shield_person", "Suspendre et réactiver les comptes"), new("/admin/litiges", "Litiges", "support_agent", "Instruire les demandes clients")]),
+        new("Gestion", "storefront", "Comptes, boutiques et offres",
+        [new("/admin/gestion", "Utilisateurs & boutiques", "manage_accounts", "Rechercher et administrer les profils"), new("/admin/abonnements", "Abonnements", "workspace_premium", "Formules, tarifs et relances")]),
+        new("Finance & contrôle", "account_balance_wallet", "Suivi financier et traçabilité",
+        [new("/admin/remboursements", "Remboursements", "payments", "Traiter les remboursements clients"), new("/admin/journal", "Journal d’audit", "history", "Consulter les actions sensibles")]),
+        new("Administration", "admin_panel_settings", "Accès internes et sécurité",
+        [new("/admin/comptes", "Équipe admin", "group", "Gérer les comptes et les rôles")])
+    ];
+    private sealed record NavGroup(string Label, string Icon, string Description, NavItem[] Items);
+    private sealed record NavItem(string Path, string Label, string Icon, string Description);
+}

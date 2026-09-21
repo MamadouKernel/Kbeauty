@@ -2,27 +2,36 @@
 @inject AuthApiClient AuthApi
 @inject ClientSessionService ClientSession
 @inject PartnerSessionService PartnerSession
+@inject StaffSessionService StaffSession
 @inject NavigationManager Navigation
+@inject IConfiguration Configuration
+@inject IJSRuntime JS
+@implements IAsyncDisposable
 @* prerender:false : voir PartnerDashboard.razor pour le detail du bug de prerendering evite. *@
 @rendermode @(new InteractiveServerRenderMode(prerender: false))
 
 <PageTitle>Connexion — Keke Beauty</PageTitle>
+<a class="login-back" href="/">← Retour à la découverte</a>
 
-<main class="flex-1 flex flex-col relative w-full bg-surface min-h-screen">
+<main id="main-content" tabindex="-1" class="login-page flex-1 flex flex-col relative w-full bg-surface min-h-screen">
     <div class="flex flex-col w-full px-margin pb-space-xl max-w-md mx-auto">
         <div class="relative flex flex-col items-center pt-space-md text-center">
             <div class="absolute -top-10 w-44 h-44 rounded-full bg-secondary-fixed/40 blur-3xl pointer-events-none -z-10"></div>
             <div class="relative p-space-xs rounded-full bg-surface-cream shadow-sm mb-space-sm flex items-center justify-center">
                 <img alt="Keke Beauty" class="h-16 w-16 object-contain rounded-full" src="/img/logo.png" />
             </div>
-            <div class="inline-flex p-1 rounded-full bg-surface-container-high shadow-inner mb-space-md">
+            <div class="role-switcher inline-flex p-1 rounded-full bg-surface-container-high shadow-inner mb-space-md">
                 <button class="px-space-md py-1.5 rounded-full font-label-md text-label-md transition-all duration-200 flex items-center gap-1.5 @(_role == 0 ? "bg-primary-container text-on-primary shadow-sm" : "text-on-surface-variant hover:text-text-primary")" @onclick="() => SetRole(0)">
                     <span class="material-symbols-outlined text-[16px]">person</span>
                     <span>Client</span>
                 </button>
                 <button class="px-space-md py-1.5 rounded-full font-label-md text-label-md transition-all duration-200 flex items-center gap-1.5 @(_role == 1 ? "bg-primary-container text-on-primary shadow-sm" : "text-on-surface-variant hover:text-text-primary")" @onclick="() => SetRole(1)">
                     <span class="material-symbols-outlined text-[16px]">storefront</span>
-                    <span>Partenaire Beauté</span>
+                    <span>Partenaire</span>
+                </button>
+                <button class="px-space-md py-1.5 rounded-full font-label-md text-label-md transition-all duration-200 flex items-center gap-1.5 @(_role == 3 ? "bg-primary-container text-on-primary shadow-sm" : "text-on-surface-variant hover:text-text-primary")" @onclick="() => SetRole(3)">
+                    <span class="material-symbols-outlined text-[16px]">content_cut</span>
+                    <span>Collaboratrice</span>
                 </button>
             </div>
             <h1 class="font-headline-md text-headline-md text-text-primary tracking-tight mb-1">Bienvenue sur Keke Beauty</h1>
@@ -32,10 +41,17 @@
         </div>
 
         <div class="mt-space-lg w-full">
-            @if (!_codeSent)
+            @if (!_codeSent && _stepUpTicket is null)
             {
                 <div class="flex flex-col w-full transition-all duration-300">
                     <div class="bg-surface-cream rounded-xl p-space-md shadow-md space-y-space-md">
+                        @if (_role != 3 && !string.IsNullOrWhiteSpace(_googleClientId))
+                        {
+                            <div class="google-login-block">
+                                <div id="google-signin-button" class="google-signin-button" aria-label="Créer un compte ou continuer avec Google"></div>
+                                <div class="login-separator"><span>ou</span></div>
+                            </div>
+                        }
                         <div class="flex items-center gap-2 text-primary">
                             <span class="material-symbols-outlined text-secondary">phonelink_lock</span>
                             <span class="font-label-lg text-label-lg text-text-primary">Connexion sécurisée par WhatsApp</span>
@@ -60,6 +76,10 @@
                             <span>Continuer par WhatsApp</span>
                             <span class="material-symbols-outlined text-sm">arrow_forward</span>
                         </button>
+                        @if (_role == 1)
+                        {
+                            <a class="block text-center font-label-md text-label-md text-secondary hover:underline mt-space-sm" href="/partenaire/inscription">Pas encore de salon ? Devenir partenaire</a>
+                        }
                     </div>
                 </div>
             }
@@ -71,13 +91,22 @@
                             <span class="w-2 h-2 rounded-full bg-status-available animate-pulse"></span>
                             <span>Message envoyé avec succès</span>
                         </div>
-                        <h2 class="font-headline-sm text-headline-sm text-text-primary mb-1">Vérification du code</h2>
-                        <p class="font-body-sm text-body-sm text-on-surface-variant mb-space-sm">
-                            Entrez le code envoyé au <span class="font-semibold text-text-primary">+225 @_telephoneLocal</span>
-                        </p>
-                        <button class="font-label-sm text-label-sm text-secondary hover:underline inline-flex items-center gap-1 mb-space-md" @onclick="() => _codeSent = false">
-                            <span class="material-symbols-outlined text-xs">edit</span> Modifier le numéro
-                        </button>
+                        <h2 class="font-headline-sm text-headline-sm text-text-primary mb-1">@(_stepUpTicket is not null ? "Vérification de sécurité" : "Vérification du code")</h2>
+                        @if (_stepUpTicket is not null)
+                        {
+                            <p class="font-body-sm text-body-sm text-on-surface-variant mb-space-sm">
+                                Nouvel appareil détecté. Entrez le code envoyé par email @(_stepUpWhatsAppSent ? "et WhatsApp" : "").
+                            </p>
+                        }
+                        else
+                        {
+                            <p class="font-body-sm text-body-sm text-on-surface-variant mb-space-sm">
+                                Entrez le code envoyé au <span class="font-semibold text-text-primary">+225 @_telephoneLocal</span>
+                            </p>
+                            <button class="font-label-sm text-label-sm text-secondary hover:underline inline-flex items-center gap-1 mb-space-md" @onclick="() => _codeSent = false">
+                                <span class="material-symbols-outlined text-xs">edit</span> Modifier le numéro
+                            </button>
+                        }
                         <div class="flex items-center justify-center gap-3 w-full max-w-xs mb-space-md">
                             @for (var i = 0; i < 6; i++)
                             {
@@ -103,7 +132,7 @@
                             </button>
                         </div>
                     </div>
-                    <button class="w-full py-3.5 px-space-md rounded-full bg-primary-container text-on-primary font-label-lg text-label-lg tracking-wide shadow-md hover:bg-plum-deep active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50" disabled="@_busy" @onclick="VerifyOtpAsync">
+                    <button class="w-full py-3.5 px-space-md rounded-full bg-primary-container text-on-primary font-label-lg text-label-lg tracking-wide shadow-md hover:bg-plum-deep active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50" disabled="@_busy" @onclick="ConfirmCodeAsync">
                         <span>Confirmer &amp; Accéder</span>
                         <span class="material-symbols-outlined text-sm">check_circle</span>
                     </button>
@@ -118,10 +147,19 @@
 
         <div class="mt-space-lg flex flex-col items-center text-center space-y-2">
             <p class="font-body-sm text-body-sm text-on-surface-variant max-w-xs leading-tight">
-                En continuant, vous acceptez les <a class="font-semibold text-text-primary underline" href="#">CGU</a> et la <a class="font-semibold text-text-primary underline" href="#">Politique de confidentialité</a> de Keke Beauty.
+                En continuant, vous acceptez les <a class="font-semibold text-text-primary underline" href="/conditions-utilisation">CGU</a> et la <a class="font-semibold text-text-primary underline" href="/confidentialite">Politique de confidentialité</a> de Keke Beauty.
             </p>
         </div>
-    </div>
+
+        <div class="mt-space-md flex flex-col items-center text-center space-y-3">
+            <div class="w-full flex items-center gap-3 text-on-surface-variant" aria-hidden="true">
+                <span class="h-px bg-outline-variant flex-1"></span><span class="text-label-sm">Accès réservé</span><span class="h-px bg-outline-variant flex-1"></span>
+            </div>
+            <a class="w-full min-h-11 px-4 py-2.5 rounded-full border border-outline-variant bg-surface-cream text-primary font-label-md text-label-md shadow-sm hover:border-primary transition-colors flex items-center justify-center gap-2" href="/admin/login">
+                <span class="material-symbols-outlined text-[19px]" aria-hidden="true">admin_panel_settings</span>
+                <span>Connexion administrateur</span>
+            </a>
+        </div>    </div>
 </main>
 
 @code {
@@ -131,6 +169,12 @@
     [SupplyParameterFromQuery]
     public string? Role { get; set; }
 
+    [SupplyParameterFromQuery]
+    public bool Expired { get; set; }
+
+    [SupplyParameterFromQuery]
+    public string? Session { get; set; }
+
     private int _role;
     private string _telephoneLocal = "";
     private string _code = "";
@@ -138,13 +182,126 @@
     private bool _busy;
     private bool _success;
     private string? _message;
+    private string? _googleClientId;
+    private DotNetObjectReference<Login>? _googleReference;
+    private string? _stepUpTicket;
+    private bool _stepUpWhatsAppSent;
 
     protected override void OnInitialized()
     {
-        if (Role == "partenaire")
+        _googleClientId = Configuration["Authentication:Google:ClientId"];
+        _role = Role switch
         {
-            _role = 1;
+            "partenaire" => 1,
+            "collaboratrice" => 3,
+            _ => 0,
+        };
+        if (!string.IsNullOrWhiteSpace(Session))
+        {
+            _success = false;
+            _message = Session == "missing_token" ? "Le jeton partenaire ne peut pas etre enregistre dans le navigateur." : "Le jeton partenaire a ete refuse par l API.";
         }
+        else if (Expired)
+        {
+            _success = false;
+            _message = "Votre session a expiré après 30 minutes d’inactivité. Veuillez vous reconnecter.";
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_role == 3 || _codeSent || string.IsNullOrWhiteSpace(_googleClientId)) return;
+        _googleReference ??= DotNetObjectReference.Create(this);
+        await JS.InvokeAsync<bool>("kekeGoogle.render", _googleClientId, _googleReference, "google-signin-button");
+    }
+
+    [JSInvokable]
+    public async Task ReceiveGoogleCredential(string credential)
+    {
+        _busy = true; _message = null; await InvokeAsync(StateHasChanged);
+        var deviceTrustToken = _role == 1 ? await PartnerSession.GetDeviceTrustTokenAsync() : await ClientSession.GetDeviceTrustTokenAsync();
+        var (success, body) = await AuthApi.LoginWithGoogleDetailedAsync(credential, CancellationToken.None, _role == 1 ? "partenaire" : null, deviceTrustToken);
+        _busy = false;
+
+        if (success && body?.Status == "step_up_required" && !string.IsNullOrWhiteSpace(body.StepUpTicket))
+        {
+            _stepUpTicket = body.StepUpTicket;
+            _stepUpWhatsAppSent = body.WhatsAppSent;
+            _code = "";
+            _success = true;
+            _message = body.EmailSent || body.WhatsAppSent
+                ? "Code de vérification envoyé. Nouvel appareil détecté par mesure de sécurité."
+                : "Impossible d'envoyer le code de vérification pour le moment. Merci de réessayer plus tard.";
+            await InvokeAsync(StateHasChanged);
+            return;
+        }
+
+        if (success && body?.IdUtilisateur is not null)
+        {
+            await CompleteLoginAsync(body.IdUtilisateur.Value, body.SessionToken, body.DeviceTrustToken);
+            return;
+        }
+
+        _success = false;
+        _message = body?.Status switch
+        {
+            "account_suspended" => "Ce compte est suspendu.",
+            "google_not_configured" => "La connexion Google n’est pas encore configurée.",
+            _ => "La connexion Google a échoué. Merci de réessayer."
+        };
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task CompleteLoginAsync(Guid idUtilisateur, string? sessionToken, string? deviceTrustToken)
+    {
+        if (_role == 1)
+        {
+            if (string.IsNullOrWhiteSpace(sessionToken)) { _success = false; _message = "Aucun jeton de session partenaire reçu."; await InvokeAsync(StateHasChanged); return; }
+            await PartnerSession.SetPartnerIdAsync(idUtilisateur, sessionToken);
+            if (await PartnerSession.GetTokenAsync() is null) { _success = false; _message = "Le navigateur ne peut pas enregistrer la session partenaire."; await InvokeAsync(StateHasChanged); return; }
+            if (!string.IsNullOrWhiteSpace(deviceTrustToken)) await PartnerSession.SetDeviceTrustTokenAsync(deviceTrustToken);
+            Navigation.NavigateTo("/partenaire", forceLoad: true);
+        }
+        else
+        {
+            if (string.IsNullOrWhiteSpace(sessionToken)) { _success = false; _message = "Aucun jeton de session client reçu."; await InvokeAsync(StateHasChanged); return; }
+            await ClientSession.SetClientIdAsync(idUtilisateur, sessionToken);
+            if (!string.IsNullOrWhiteSpace(deviceTrustToken)) await ClientSession.SetDeviceTrustTokenAsync(deviceTrustToken);
+            Navigation.NavigateTo(SafeReturnUrl);
+        }
+    }
+
+    /// <summary>Bascule vers l'OTP telephone (_codeSent) ou le step-up Google (_stepUpTicket)
+    /// selon l'ecran affiche - meme pave numerique reutilise pour les deux.</summary>
+    private async Task ConfirmCodeAsync()
+    {
+        if (_stepUpTicket is not null)
+        {
+            await SubmitStepUpAsync();
+        }
+        else
+        {
+            await VerifyOtpAsync();
+        }
+    }
+
+    private async Task SubmitStepUpAsync()
+    {
+        if (_stepUpTicket is null || _code.Length != 6) return;
+        _busy = true; await InvokeAsync(StateHasChanged);
+        var (success, body) = await AuthApi.VerifyStepUpAsync(_stepUpTicket, _code, CancellationToken.None);
+        _busy = false;
+
+        if (success && body?.IdUtilisateur is not null)
+        {
+            await CompleteLoginAsync(body.IdUtilisateur.Value, body.SessionToken, body.DeviceTrustToken);
+            return;
+        }
+
+        _success = false;
+        _message = "Code invalide ou expiré. Merci de réessayer.";
+        _code = "";
+        await InvokeAsync(StateHasChanged);
     }
 
     private void SetRole(int role)
@@ -170,6 +327,10 @@
     }
 
     private string TelephoneE164 => "+225" + new string(_telephoneLocal.Where(char.IsDigit).ToArray());
+
+    private string SafeReturnUrl => !string.IsNullOrWhiteSpace(ReturnUrl) && ReturnUrl.StartsWith('/') && !ReturnUrl.StartsWith("//") && !ReturnUrl.Contains('\\')
+        ? ReturnUrl
+        : "/";
 
     private async Task RequestOtpAsync()
     {
@@ -198,20 +359,34 @@
     private async Task VerifyOtpAsync()
     {
         _busy = true;
-        var (success, status, idUtilisateur) = await AuthApi.VerifyOtpAsync(TelephoneE164, _code, _role, CancellationToken.None);
+        var (success, status, idUtilisateur, idCollaborateur, sessionToken) = await AuthApi.VerifyOtpDetailedAsync(TelephoneE164, _code, _role, CancellationToken.None);
         _busy = false;
 
         if (success && idUtilisateur is not null)
         {
-            if (_role == 1)
+            if (_role == 3)
             {
-                await PartnerSession.SetPartnerIdAsync(idUtilisateur.Value);
+                if (idCollaborateur is null)
+                {
+                    _success = false;
+                    _message = "Ce numéro n'est pas encore référencé comme collaboratrice par un salon. Demandez au gérant de vous ajouter à son équipe.";
+                    return;
+                }
+
+                if(string.IsNullOrWhiteSpace(sessionToken)){_success=false;_message="Aucun jeton de session collaboratrice reçu.";return;}
+                await StaffSession.SetStaffIdAsync(idUtilisateur.Value, sessionToken);
+                Navigation.NavigateTo("/staff");
+            }
+            else if (_role == 1)
+            {
+                await PartnerSession.SetPartnerIdAsync(idUtilisateur.Value, sessionToken);
                 Navigation.NavigateTo("/partenaire");
             }
             else
             {
-                await ClientSession.SetClientIdAsync(idUtilisateur.Value);
-                Navigation.NavigateTo(string.IsNullOrWhiteSpace(ReturnUrl) ? "/" : ReturnUrl);
+                if(string.IsNullOrWhiteSpace(sessionToken)){_success=false;_message="Aucun jeton de session client reçu.";return;}
+                await ClientSession.SetClientIdAsync(idUtilisateur.Value, sessionToken);
+                Navigation.NavigateTo(SafeReturnUrl);
             }
             return;
         }
@@ -219,4 +394,10 @@
         _success = false;
         _message = "Code invalide ou expiré. Merci de réessayer.";
     }
-}
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_googleReference is null) return;
+        try { await JS.InvokeVoidAsync("kekeGoogle.clear"); } catch { }
+        _googleReference.Dispose();
+    }}

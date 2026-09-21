@@ -10,6 +10,20 @@ public interface IUtilisateurRepository
     /// Cree l'utilisateur si absent (FR-007, applique via la contrainte UNIQUE (telephone, type_compte)
     /// deja presente en base). Retourne (utilisateur, estNouveau).
     /// </summary>
+    Task<Utilisateur?> GetProfileAsync(Guid idUtilisateur, CancellationToken cancellationToken);
+    Task<bool> UpdateProfileAsync(Guid idUtilisateur, string nom, string? email, bool notificationsRdv, bool notificationsMarketing, bool consentementDonnees, CancellationToken cancellationToken);
+    Task<bool> AnonymizeAsync(Guid idUtilisateur, CancellationToken cancellationToken);
+    Task<bool> UpdateTelephoneAsync(Guid idUtilisateur, string telephone, CancellationToken cancellationToken);
+    Task<(Utilisateur Utilisateur, bool IsNewAccount)> FindOrCreateGoogleAsync(string googleSubject, string? email, string nom, TypeCompte typeCompte, CancellationToken cancellationToken);
+    Task<bool> UpdatePartnerTelephoneAsync(Guid idUtilisateur, string telephone, CancellationToken cancellationToken);
+    Task StorePartnerOnboardingTokenAsync(Guid idUtilisateur, string tokenHash, DateTimeOffset expireLe, CancellationToken cancellationToken);
+    Task<Guid?> ConsumePartnerOnboardingTokenAsync(string tokenHash, string telephone, CancellationToken cancellationToken);
+    Task DeletePartnerOnboardingTokenAsync(Guid idUtilisateur, CancellationToken cancellationToken);
+    Task<bool> UpdatePartnerPhotoAsync(Guid idUtilisateur, string relativePath, CancellationToken cancellationToken);
+    Task<string?> GetPartnerPhotoPathAsync(Guid idUtilisateur, CancellationToken cancellationToken);
+
     Task<(Utilisateur Utilisateur, bool IsNewAccount)> FindOrCreateAsync(
         string telephone, TypeCompte typeCompte, CancellationToken cancellationToken);
+    Task<int> GetLoyaltyPointsAsync(Guid idUtilisateur, CancellationToken cancellationToken);
 }
+

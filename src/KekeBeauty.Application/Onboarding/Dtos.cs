@@ -22,7 +22,9 @@ public sealed class ApplicationDetail
     public string NumeroServiceClient { get; set; } = string.Empty;
     public string StatutKyc { get; set; } = string.Empty;
     public bool HasPhotoDevanture { get; set; }
-    public bool HasPieceIdentite { get; set; }
+    public string? TypeDocumentIdentite { get; set; }
+    public bool HasDocumentRecto { get; set; }
+    public bool HasDocumentVerso { get; set; }
     public DateTimeOffset DateCreation { get; set; }
 }
 

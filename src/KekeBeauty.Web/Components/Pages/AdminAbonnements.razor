@@ -6,6 +6,10 @@
 @rendermode @(new InteractiveServerRenderMode(prerender: false))
 
 <PageTitle>Abonnements</PageTitle>
+@using KekeBeauty.Web.Components.Layout
+<AdminHeader ActivePath="/admin/abonnements" />
+<main id="main-content" tabindex="-1" class="admin-page admin-legacy"><div class="admin-content">
+
 
 @if (_checkingAuth)
 {
@@ -30,13 +34,34 @@ else
         </div>
     </div>
 
+    <h2>Contenu des packs</h2>
+    <p class="text-muted">Laissez une limite vide pour rendre la fonctionnalité illimitée.</p>
+    <div class="row g-3 mb-4">
+        @foreach (var formule in _formules)
+        {
+            <div class="col-12 col-lg-6">
+                <div class="card h-100"><div class="card-body">
+                    <h3 class="h5">Pack @formule.Formule</h3>
+                    <label class="form-label mt-2">Nombre maximum de prestations</label>
+                    <input class="form-control" type="number" min="0" @bind="formule.LimitePrestations" />
+                    <label class="form-label mt-2">Rendez-vous maximum par mois</label>
+                    <input class="form-control" type="number" min="0" @bind="formule.LimiteRdvMensuels" />
+                    <div class="form-check mt-3"><input class="form-check-input" type="checkbox" @bind="formule.PaiementMobile" /><label class="form-check-label">Paiement mobile</label></div>
+                    <div class="form-check"><input class="form-check-input" type="checkbox" @bind="formule.GestionEquipe" /><label class="form-check-label">Gestion de l’équipe</label></div>
+                    <div class="form-check"><input class="form-check-input" type="checkbox" @bind="formule.StatistiquesAvancees" /><label class="form-check-label">Statistiques avancées</label></div>
+                    <button class="btn btn-primary mt-3" @onclick="() => SaveFormuleAsync(formule)">Enregistrer le pack @formule.Formule</button>
+                </div></div>
+            </div>
+        }
+    </div>
+
     @if (_abonnements.Count == 0)
     {
         <p>Aucun abonnement pour ce filtre.</p>
     }
     else
     {
-        <table class="table">
+        <div class="table-scroll" role="region" aria-label="Liste des abonnements" tabindex="0"><table class="table">
             <thead><tr><th>Établissement</th><th>Périodicité</th><th>Montant</th><th>Statut</th><th>Actions</th></tr></thead>
             <tbody>
                 @foreach (var abonnement in _abonnements)
@@ -55,7 +80,7 @@ else
                     </tr>
                 }
             </tbody>
-        </table>
+        </table></div>
     }
 
     <h2>Tarif standard</h2>
@@ -87,6 +112,8 @@ else
     }
 }
 
+</div></main>
+
 @code {
     private string? _apiKey;
     private bool _checkingAuth = true;
@@ -94,6 +121,7 @@ else
     private string _statut = "";
     private List<AbonnementResume> _abonnements = [];
     private List<TarifStandard> _tarifs = [];
+    private List<ConfigurationFormuleDto> _formules = [];
     private string _periodiciteTarif = "MENSUEL";
     private decimal _nouveauMontant;
     private bool _success;
@@ -110,7 +138,22 @@ else
 
         await LoadAsync();
         await LoadTarifsAsync();
+        await LoadFormulesAsync();
         _checkingAuth = false;
+    }
+
+    private async Task LoadFormulesAsync()
+    {
+        var (success, formules) = await AdminApi.ListerFormulesAsync(_apiKey!, CancellationToken.None);
+        if (success) _formules = formules;
+    }
+
+    private async Task SaveFormuleAsync(ConfigurationFormuleDto formule)
+    {
+        var (success, _) = await AdminApi.UpdateFormuleAsync(_apiKey!, formule, CancellationToken.None);
+        _success = success;
+        _message = success ? $"Pack {formule.Formule} mis à jour." : "Impossible de modifier le contenu du pack.";
+        if (success) await LoadFormulesAsync();
     }
 
     private async Task LoadAsync()

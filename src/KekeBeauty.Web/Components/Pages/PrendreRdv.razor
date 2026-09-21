@@ -2,76 +2,294 @@
 @inject DirectoryApiClient DirectoryApi
 @inject RdvApiClient RdvApi
 @inject ClientSessionService Session
+@inject ClientBookingFlowService BookingFlow
 @inject NavigationManager Navigation
 @* prerender:false : la session client (ProtectedLocalStorage) n'est lisible qu'apres l'attache
    du circuit interactif - la lire pendant le prerender statique echoue silencieusement et
    provoque une redirection immediate vers login (bug decouvert lors des tests reels de 012). *@
 @rendermode @(new InteractiveServerRenderMode(prerender: false))
+@using KekeBeauty.Web.Components.Layout
 
-<PageTitle>Prendre RDV</PageTitle>
+<PageTitle>Réservation Créneau</PageTitle>
 
-@if (_checkingAuth)
-{
-    <p>Chargement…</p>
-}
-else if (_error)
-{
-    <div class="alert alert-danger">Le service est momentanément indisponible. Merci de réessayer.</div>
-}
-else if (_detail is null)
-{
-    <div class="alert alert-warning">Établissement introuvable.</div>
-}
-else
-{
-    <h1>Prendre RDV — @_detail.NomEtablissement</h1>
+<DesktopHeader ActivePath="explorer" />
 
-    <div class="mb-3">
-        <label class="form-label">Prestation</label>
-        <select class="form-select" @bind="_idPrestation">
-            <option value="">-- choisir --</option>
-            @foreach (var prestation in _detail.Prestations)
+<header class="lg:hidden fixed top-0 w-full z-50 pt-safe bg-surface-cream/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)]">
+    <div class="h-16 px-gutter flex items-center justify-between gap-space-sm">
+        <div class="flex items-center gap-space-xs min-w-0">
+            <a aria-label="Retour" class="w-11 h-11 -ml-space-xs flex items-center justify-center rounded-full text-text-primary hover:bg-lavender-subtle active:scale-95 transition-all" href="@($"/etablissements/{Id}")">
+                <span class="material-symbols-outlined text-[22px]">arrow_back_ios_new</span>
+            </a>
+            <h1 class="font-headline-sm text-headline-sm text-text-primary font-semibold truncate">Réservation Créneau</h1>
+        </div>
+    </div>
+</header>
+
+<main id="main-content" tabindex="-1" class="flex-1 flex flex-col relative w-full pt-16 lg:pt-20 bg-surface min-h-screen">
+    @if (_checkingAuth)
+    {
+        <p class="px-gutter pt-space-md font-body-md text-body-md text-on-surface-variant">Chargement…</p>
+    }
+    else if (_error)
+    {
+        <div class="px-gutter pt-space-md">
+            <div class="rounded-xl bg-error-container text-on-error-container px-space-md py-space-sm font-body-md text-body-md">
+                Le service est momentanément indisponible. Merci de réessayer.
+            </div>
+        </div>
+    }
+    else if (_detail is null)
+    {
+        <div class="px-gutter pt-space-md">
+            <div class="rounded-xl bg-surface-container px-space-md py-space-sm font-body-md text-body-md text-on-surface-variant">
+                Établissement introuvable.
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="flex flex-col w-full pb-40 lg:max-w-3xl lg:mx-auto">
+
+            <section class="px-gutter pt-space-md">
+                <div class="bg-surface-cream rounded-xl p-space-md shadow-sm relative overflow-hidden">
+                    <div class="absolute -right-6 -bottom-6 w-28 h-28 bg-lavender-subtle rounded-full opacity-60 pointer-events-none"></div>
+                    <div class="flex items-start justify-between gap-space-sm relative z-10">
+                        <div class="min-w-0 flex-1">
+                            <span class="inline-flex items-center gap-1 text-primary text-label-sm font-label-sm uppercase tracking-wider bg-lavender-subtle px-2 py-0.5 rounded-full mb-1">
+                                <span class="w-1.5 h-1.5 rounded-full bg-status-available animate-pulse"></span>
+                                @_detail.NomEtablissement
+                            </span>
+                            <select class="w-full bg-transparent font-headline-sm text-headline-sm text-text-primary border-none outline-none" @bind="_idPrestation">
+                                <option value="">-- Choisir une prestation --</option>
+                                @foreach (var prestation in _detail.Prestations)
+                                {
+                                    <option value="@prestation.IdPrestation">@prestation.LibellePrestation</option>
+                                }
+                            </select>
+                            @if (PrestationSelectionnee is not null)
+                            {
+                                <div class="flex items-center gap-2 mt-0.5">
+                                    <span class="font-label-lg text-label-lg text-primary font-bold">@PrestationSelectionnee.Tarif.ToString("N0") FCFA</span>
+                                    <span class="w-1 h-1 rounded-full bg-outline-variant"></span>
+                                    <span class="text-on-surface-variant font-body-sm text-body-sm flex items-center gap-1">
+                                        <span class="material-symbols-outlined text-[15px]">schedule</span> @PrestationSelectionnee.DureeMinutes min
+                                    </span>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="mt-space-lg px-gutter">
+                <div class="flex items-center justify-between mb-space-sm">
+                    <div class="flex items-center gap-1.5">
+                        <span class="material-symbols-outlined text-primary text-[20px]">calendar_month</span>
+                        <h3 class="font-headline-sm text-headline-sm text-text-primary">@_date.ToString("MMMM yyyy", System.Globalization.CultureInfo.GetCultureInfo("fr-FR"))</h3>
+                    </div>
+                    <div class="flex items-center gap-1 bg-surface-container rounded-full p-0.5">
+                        <button aria-label="Semaine précédente" class="w-7 h-7 flex items-center justify-center text-text-primary rounded-full hover:bg-surface-cream transition-colors" type="button" @onclick="() => ShiftWeekAsync(-7)">
+                            <span class="material-symbols-outlined text-[16px]">chevron_left</span>
+                        </button>
+                        <button aria-label="Semaine suivante" class="w-7 h-7 flex items-center justify-center text-text-primary rounded-full hover:bg-surface-cream transition-colors" type="button" @onclick="() => ShiftWeekAsync(7)">
+                            <span class="material-symbols-outlined text-[16px]">chevron_right</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="grid grid-cols-7 gap-1.5 bg-surface-cream p-2 rounded-xl shadow-sm">
+                    @foreach (var jour in JoursSemaine)
+                    {
+                        var isActive = jour == _date;
+                        <button class="flex flex-col items-center py-2 px-1 rounded-lg transition-all @(isActive ? "bg-primary text-on-primary shadow-sm" : "text-text-primary hover:bg-lavender-subtle")" type="button" @onclick="() => SelectDateAsync(jour)">
+                            <span class="text-label-sm font-label-sm @(isActive ? "text-primary-fixed" : "opacity-70")">@jour.ToString("ddd", System.Globalization.CultureInfo.GetCultureInfo("fr-FR"))</span>
+                            <span class="text-label-lg font-label-lg font-bold my-0.5">@jour.Day</span>
+                        </button>
+                    }
+                </div>
+            </section>
+
+            <section class="mt-space-lg px-gutter">
+                <div class="flex flex-wrap gap-3 items-center justify-between mb-space-sm">
+                    <div>
+                        <h3 class="font-headline-sm text-headline-sm text-text-primary">Créneaux horaires</h3>
+                        <p class="text-on-surface-variant text-body-sm font-body-sm">@_date.ToString("dddd d MMMM", System.Globalization.CultureInfo.GetCultureInfo("fr-FR")) • Disponibilités en direct</p>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center gap-1 text-label-sm font-label-sm text-primary">
+                            <span class="w-2 h-2 rounded-full bg-lavender-subtle"></span> Libre
+                        </span>
+                        <span class="inline-flex items-center gap-1 text-label-sm font-label-sm text-error">
+                            <span class="w-2 h-2 rounded-full bg-error-container"></span> Complet
+                        </span>
+                    </div>
+                </div>
+                <div class="grid grid-cols-3 gap-2.5">
+                    @foreach (var heure in CreneauxJournee)
+                    {
+                        var occupe = EstOccupe(heure);
+                        var selectionne = heure == _heure;
+                        @if (occupe)
+                        {
+                            <div class="relative bg-error-container/40 text-error p-3 rounded-xl opacity-80 cursor-not-allowed flex flex-col items-center justify-center text-center select-none">
+                                <span class="font-headline-sm text-headline-sm font-bold line-through text-status-unavailable">@heure.ToString("HH:mm")</span>
+                                <span class="text-label-sm font-label-sm text-on-error-container font-semibold mt-0.5 inline-flex items-center gap-0.5">
+                                    <span class="material-symbols-outlined text-[12px]">lock</span> Complet
+                                </span>
+                            </div>
+                        }
+                        else
+                        {
+                            <button class="relative p-3 rounded-xl transition-all text-center flex flex-col items-center justify-center active:scale-95 @(selectionne ? "bg-primary-container text-on-primary shadow-md" : "bg-surface-cream text-primary shadow-sm hover:bg-lavender-subtle")" type="button" @onclick="() => _heure = heure">
+                                <span class="font-headline-sm text-headline-sm font-bold">@heure.ToString("HH:mm")</span>
+                                @if (selectionne)
+                                {
+                                    <span class="inline-flex items-center gap-1 text-label-sm font-label-sm text-on-primary-container font-semibold mt-0.5">
+                                        <span class="material-symbols-outlined text-[13px]">check_circle</span> Sélectionné
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="text-label-sm font-label-sm text-status-available mt-0.5">Disponible</span>
+                                }
+                            </button>
+                        }
+                    }
+                </div>
+            </section>
+
+            @if (PrestationSelectionnee is not null)
             {
-                <option value="@prestation.IdPrestation">@prestation.LibellePrestation (@prestation.DureeMinutes min, @prestation.Tarif.ToString("N0") XOF)</option>
+                <section class="mt-space-lg px-gutter">
+                    <div class="bg-lavender-subtle rounded-xl p-space-md shadow-sm">
+                        <h3 class="font-headline-sm text-headline-sm text-text-primary mb-3 flex items-center justify-between">
+                            <span>Récapitulatif de votre RDV</span>
+                            <span class="material-symbols-outlined text-primary text-[18px]">verified</span>
+                        </h3>
+                        <div class="space-y-2.5 text-body-sm font-body-sm">
+                            <div class="flex items-center justify-between text-on-surface-variant">
+                                <span>Prestation</span>
+                                <span class="font-semibold text-text-primary">@PrestationSelectionnee.LibellePrestation</span>
+                            </div>
+                            <div class="flex items-center justify-between text-on-surface-variant">
+                                <span>Date &amp; Heure</span>
+                                <span class="font-semibold text-primary">@_date.ToString("ddd d MMM", System.Globalization.CultureInfo.GetCultureInfo("fr-FR")) à @_heure.ToString("HH:mm")</span>
+                            </div>
+                            <div class="flex items-center justify-between pt-2 text-text-primary font-headline-sm text-headline-sm">
+                                <span>Total à régler</span>
+                                <span class="text-primary font-bold">@PrestationSelectionnee.Tarif.ToString("N0") FCFA</span>
+                            </div>
+                        </div>
+                        <div class="mt-space-md pt-space-sm flex items-center gap-2.5 text-status-available font-label-sm text-label-sm bg-surface-cream/80 p-2.5 rounded-lg">
+                            <span class="material-symbols-outlined text-[20px] shrink-0">mark_email_read</span>
+                            <span>Votre demande est envoyée directement au salon, qui confirmera le créneau.</span>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="mt-space-lg px-gutter">
+                    <h3 class="font-headline-sm text-headline-sm text-text-primary mb-space-sm">Mode de règlement fixé par la boutique</h3>
+                    <div class="bg-surface-cream rounded-2xl p-space-md shadow-sm flex items-start gap-3">
+                        <span class="material-symbols-outlined text-primary text-[26px]">@(_detail.ModePaiementService == "ESPECES" ? "payments" : "verified_user")</span>
+                        <div>
+                            <strong class="text-text-primary">@ModePaiementLabel()</strong>
+                            <p class="font-body-sm text-body-sm text-on-surface-variant mt-1">@ModePaiementDescription()</p>
+                            @if (_detail.ModePaiementService != "ESPECES")
+                            {
+                                <p class="font-label-sm text-label-sm text-primary mt-2">Acceptés : @OperateursAcceptes()</p>
+                            }
+                        </div>
+                    </div>
+                    @if (_detail.ModePaiementService == "MIXTE")
+                    {
+                        <div class="grid grid-cols-2 gap-2 mt-3" role="radiogroup" aria-label="Votre choix de paiement">
+                            <button type="button" class="p-3 rounded-xl border-2 @(_modePaiementChoisi == "ESPECES" ? "border-primary bg-lavender-subtle" : "border-outline-variant")" @onclick='() => _modePaiementChoisi = "ESPECES"'>Espèces sur place</button>
+                            <button type="button" class="p-3 rounded-xl border-2 @(_modePaiementChoisi == "EN_LIGNE" ? "border-primary bg-lavender-subtle" : "border-outline-variant")" @onclick='() => _modePaiementChoisi = "EN_LIGNE"'>Paiement mobile</button>
+                        </div>
+                    }
+                </section>
             }
-        </select>
-    </div>
 
-    <div class="mb-3">
-        <label class="form-label">Date</label>
-        <input type="date" class="form-control" @bind="_date" @bind:after="LoadCreneauxAsync" />
-    </div>
-
-    @if (_creneaux.Count > 0)
-    {
-        <p><strong>Créneaux déjà occupés ce jour :</strong></p>
-        <ul class="list-group mb-3">
-            @foreach (var creneau in _creneaux)
+            @if (_idRdvCree is not null && PrestationSelectionnee is not null)
             {
-                <li class="list-group-item list-group-item-danger">
-                    @creneau.DateHeureDebut.ToLocalTime().ToString("HH:mm") – @creneau.DateHeureFin.ToLocalTime().ToString("HH:mm") (indisponible)
-                </li>
+                <section class="px-gutter mt-space-lg">
+                    <div class="relative flex flex-col items-center text-center pb-space-md">
+                        <div class="relative mb-3 flex items-center justify-center">
+                            <div class="absolute inset-0 rounded-full bg-status-available/20 animate-ping opacity-60"></div>
+                            <div class="w-16 h-16 rounded-full bg-gradient-to-tr from-status-available to-teal-400 p-[3px] shadow-xl flex items-center justify-center">
+                                <div class="w-full h-full rounded-full bg-surface-cream flex items-center justify-center">
+                                    <span class="material-symbols-outlined text-[32px] text-status-available" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                                </div>
+                            </div>
+                        </div>
+                        <h2 class="font-headline-lg text-headline-lg text-text-primary tracking-tight">Demande envoyée !</h2>
+                        <p class="mt-1 font-body-md text-body-md text-on-surface-variant max-w-xs">
+                            Votre demande auprès de <span class="font-semibold text-text-primary">@_detail.NomEtablissement</span> a été transmise.
+                        </p>
+                    </div>
+
+                    <div class="relative bg-surface-cream rounded-3xl shadow-xl overflow-hidden">
+                        <div class="h-2 w-full bg-gradient-to-r from-primary via-secondary to-primary-container"></div>
+                        <div class="p-space-md space-y-space-sm">
+                            <div class="flex items-center justify-between">
+                                <span class="font-label-sm text-label-sm px-2 py-1 rounded-full @StatutBadgeClass(_statutRdvCree)">@StatutLabel(_statutRdvCree)</span>
+                                @if (_statutPaiementCree is not null)
+                                {
+                                    <span class="font-label-sm text-label-sm px-2 py-1 rounded-full @PaiementBadgeClass(_statutPaiementCree)">Paiement : @PaiementLabel(_statutPaiementCree)</span>
+                                }
+                                else
+                                {
+                                    <span class="font-label-sm text-label-sm px-2 py-1 rounded-full bg-amber-50 text-amber-900">Espèces sur place</span>
+                                }
+                            </div>
+                            <div class="p-space-sm rounded-2xl bg-surface-container-low">
+                                <p class="font-label-lg text-label-lg text-text-primary font-bold">@PrestationSelectionnee.LibellePrestation</p>
+                                <p class="font-body-sm text-body-sm text-on-surface-variant">@_date.ToString("dddd d MMMM yyyy", System.Globalization.CultureInfo.GetCultureInfo("fr-FR")) à @_heure.ToString("HH:mm")</p>
+                            </div>
+                            <div class="flex justify-between items-center pt-1">
+                                <span class="font-body-sm text-body-sm text-on-surface-variant">Montant</span>
+                                <span class="font-headline-sm text-headline-sm text-primary font-bold">@PrestationSelectionnee.Tarif.ToString("N0") FCFA</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(_lienPaiement))
+                    {
+                        <a class="mt-space-md block text-center px-4 py-3.5 rounded-full bg-gradient-to-r from-primary via-primary-container to-secondary text-on-primary font-label-lg text-label-lg shadow-md" href="@_lienPaiement" target="_blank" rel="noopener">Payer maintenant en ligne</a>
+                    }
+                    @if (_statutPaiementCree == "EN_COURS")
+                    {
+                        <button class="mt-space-sm w-full px-4 py-2 rounded-full bg-surface-container text-text-primary font-label-md text-label-md" type="button" @onclick="RefreshStatutAsync">Actualiser le statut du paiement</button>
+                    }
+
+                    <div class="mt-space-lg space-y-space-sm">
+                        <a class="w-full block text-center py-3.5 px-6 rounded-full bg-primary-container text-on-primary font-label-lg text-label-lg font-bold shadow-lg" href="/mes-rendez-vous">Voir mes rendez-vous</a>
+                        <a class="w-full block text-center py-3 px-6 rounded-full bg-surface-cream text-primary font-label-lg text-label-lg font-semibold shadow-sm" href="/">Retour à l'accueil</a>
+                    </div>
+                </section>
             }
-        </ul>
+            else if (!string.IsNullOrEmpty(_resultMessage))
+            {
+                <section class="px-gutter mt-space-md">
+                    <div class="rounded-xl px-space-md py-space-sm font-body-md text-body-md bg-error-container text-on-error-container">
+                        @_resultMessage
+                    </div>
+                </section>
+            }
+        </div>
+
+        @if (_idRdvCree is null)
+        {
+        <aside aria-label="Confirmation et réservation" class="fixed bottom-0 inset-x-0 bg-surface-cream/95 backdrop-blur-md p-space-md pb-safe shadow-[0_-4px_24px_rgba(58,13,82,0.08)] z-40">
+            <div class="max-w-md mx-auto flex flex-col gap-2">
+                <button class="w-full py-3.5 px-space-lg rounded-full bg-primary-container text-on-primary font-headline-sm text-headline-sm font-bold shadow-lg flex items-center justify-center gap-2 active:scale-[0.98] transition-all hover:bg-primary disabled:opacity-50" type="button" @onclick="SubmitAsync" disabled="@(_busy || PrestationSelectionnee is null)">
+                    <span class="material-symbols-outlined text-[22px]">event_available</span>
+                    <span>@(PrestationSelectionnee is null ? "Choisissez une prestation" : $"Demander le rendez-vous ({PrestationSelectionnee.Tarif.ToString("N0")} FCFA)")</span>
+                </button>
+            </div>
+        </aside>
+        }
     }
-
-    <div class="mb-3">
-        <label class="form-label">Heure souhaitée</label>
-        <input type="time" class="form-control" @bind="_heure" />
-    </div>
-
-    <button class="btn btn-success" @onclick="SubmitAsync" disabled="@_busy">Demander le RDV</button>
-
-    @if (!string.IsNullOrEmpty(_resultMessage))
-    {
-        <div class="alert @(_resultOk ? "alert-success" : "alert-danger") mt-3">@_resultMessage</div>
-    }
-
-    @if (_idRdvCree is not null)
-    {
-        <button class="btn btn-outline-secondary mt-2" @onclick="RefreshStatutAsync">Actualiser le statut</button>
-    }
-}
+</main>
 
 @code {
     [Parameter] public Guid Id { get; set; }
@@ -83,13 +301,37 @@ else
 
     private string _idPrestation = "";
     private DateOnly _date = DateOnly.FromDateTime(DateTime.Today);
-    private TimeOnly _heure = new(10, 0);
+    private TimeOnly _heure = new(9, 0);
     private List<CreneauOccupe> _creneaux = [];
 
     private bool _busy;
-    private bool _resultOk;
     private string? _resultMessage;
     private Guid? _idRdvCree;
+    private string? _lienPaiement;
+    private string _statutRdvCree = "";
+    private string? _statutPaiementCree;
+    private string _modePaiementChoisi = "ESPECES";
+
+    private PrestationDto? PrestationSelectionnee =>
+        Guid.TryParse(_idPrestation, out var id) ? _detail?.Prestations.FirstOrDefault(p => p.IdPrestation == id) : null;
+
+    private static readonly TimeOnly[] CreneauxJournee =
+    [
+        new(8, 0), new(9, 0), new(10, 0), new(11, 0), new(11, 30),
+        new(14, 0), new(15, 0), new(16, 0), new(16, 30), new(18, 0), new(19, 15),
+    ];
+
+    private IEnumerable<DateOnly> JoursSemaine
+    {
+        get
+        {
+            var lundi = _date.AddDays(-(int)_date.DayOfWeek + (_date.DayOfWeek == DayOfWeek.Sunday ? -6 : 1));
+            for (var i = 0; i < 7; i++)
+            {
+                yield return lundi.AddDays(i);
+            }
+        }
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -100,15 +342,31 @@ else
             return;
         }
 
-        var (success, detail) = await DirectoryApi.GetDetailAsync(Id, CancellationToken.None);
+        var (success, detail) = await DirectoryApi.GetDetailAsync(Id, _idClient, CancellationToken.None);
         _error = !success;
         _detail = detail;
         _checkingAuth = false;
 
         if (_detail is not null)
         {
+            _modePaiementChoisi = _detail.ModePaiementService == "EN_LIGNE" ? "EN_LIGNE" : "ESPECES";
             await LoadCreneauxAsync();
         }
+    }
+
+    private bool EstOccupe(TimeOnly heure) =>
+        _creneaux.Any(c => c.DateHeureDebut.ToLocalTime().TimeOfDay <= heure.ToTimeSpan() && c.DateHeureFin.ToLocalTime().TimeOfDay > heure.ToTimeSpan());
+
+    private async Task SelectDateAsync(DateOnly date)
+    {
+        _date = date;
+        await LoadCreneauxAsync();
+    }
+
+    private async Task ShiftWeekAsync(int jours)
+    {
+        _date = _date.AddDays(jours);
+        await LoadCreneauxAsync();
     }
 
     private async Task LoadCreneauxAsync()
@@ -121,7 +379,6 @@ else
     {
         if (_idClient is null || !Guid.TryParse(_idPrestation, out var idPrestation))
         {
-            _resultOk = false;
             _resultMessage = "Choisissez une prestation avant de continuer.";
             return;
         }
@@ -129,25 +386,51 @@ else
         _busy = true;
         var dateHeureDebut = new DateTimeOffset(_date.ToDateTime(_heure), TimeSpan.Zero);
 
-        var (success, status, rdv) = await RdvApi.RequestRdvAsync(_idClient.Value, Id, idPrestation, dateHeureDebut, CancellationToken.None);
+        var (success, status, rdv) = await RdvApi.RequestRdvAsync(_idClient.Value, Id, idPrestation, dateHeureDebut,
+            _detail?.ModePaiementService == "MIXTE" ? _modePaiementChoisi : null, CancellationToken.None);
         _busy = false;
 
         if (success && rdv is not null)
         {
             _idRdvCree = rdv.IdRdv;
-            _resultOk = true;
-            _resultMessage = $"Demande envoyée. Statut : {rdv.Statut}.";
+            _statutRdvCree = rdv.Statut;
+            _statutPaiementCree = rdv.Paiement?.StatutPaiement;
+            _lienPaiement = rdv.Paiement?.StatutPaiement == "EN_COURS" ? rdv.Paiement.LienPaiement : null;
         }
         else
         {
-            _resultOk = false;
             _resultMessage = status switch
             {
                 "slot_unavailable" => "Ce créneau n'est plus disponible. Choisissez-en un autre.",
+                "limite_rdv_atteinte" => "Cette boutique a atteint la limite mensuelle de rendez-vous de sa formule. Vous pouvez la contacter directement ou réessayer le mois prochain.",
                 "unauthorized" => "Session expirée, merci de vous reconnecter.",
                 _ => "La demande de RDV a échoué. Merci de réessayer.",
             };
         }
+    }
+
+    private string ModePaiementLabel() => _detail?.ModePaiementService switch
+    {
+        "EN_LIGNE" => "Paiement mobile",
+        "MIXTE" => "Espèces ou paiement mobile",
+        _ => "Paiement en espèces sur place",
+    };
+
+    private string ModePaiementDescription() => _detail?.ModePaiementService switch
+    {
+        "EN_LIGNE" => "Après la demande, utilisez le lien sécurisé pour régler la prestation.",
+        "MIXTE" => "Choisissez ci-dessous le moyen de règlement qui vous convient.",
+        _ => "Aucun paiement ne vous sera demandé sur Keke Beauty pour cette prestation.",
+    };
+
+    private string OperateursAcceptes()
+    {
+        if (_detail is null) return string.Empty;
+        var operateurs = new List<string>();
+        if (_detail.PaiementWave) operateurs.Add("Wave");
+        if (_detail.PaiementOrangeMoney) operateurs.Add("Orange Money");
+        if (_detail.PaiementMoovMoney) operateurs.Add("Moov Money");
+        return string.Join(", ", operateurs);
     }
 
     private async Task RefreshStatutAsync()
@@ -157,8 +440,47 @@ else
             return;
         }
 
-        var statut = await RdvApi.GetStatutAsync(_idClient.Value, _idRdvCree.Value, CancellationToken.None);
-        _resultMessage = statut is not null ? $"Statut actuel : {statut.Statut}" : "Impossible de récupérer le statut.";
-        _resultOk = statut is not null;
+        var (success, statutPaiement) = await RdvApi.VerifierPaiementAsync(_idClient.Value, _idRdvCree.Value, CancellationToken.None);
+        if (success)
+        {
+            _statutPaiementCree = statutPaiement;
+            if (statutPaiement != "EN_COURS")
+            {
+                _lienPaiement = null;
+            }
+        }
     }
+
+    private static string StatutLabel(string statut) => statut switch
+    {
+        "DEMANDE" => "Demande envoyée",
+        "CONFIRME" => "Confirmé",
+        "REFUSE" => "Refusé",
+        "ANNULE" => "Annulé",
+        "TERMINE" => "Terminé",
+        _ => statut,
+    };
+
+    private static string StatutBadgeClass(string statut) => statut switch
+    {
+        "CONFIRME" => "bg-status-available/15 text-status-available",
+        "DEMANDE" => "bg-lavender-subtle text-primary",
+        "REFUSE" or "ANNULE" => "bg-error-container text-on-error-container",
+        _ => "bg-surface-container text-on-surface-variant",
+    };
+
+    private static string PaiementLabel(string statut) => statut switch
+    {
+        "REUSSIE" => "Payé",
+        "ECHOUEE" => "Échoué",
+        "EN_COURS" => "En attente",
+        _ => statut,
+    };
+
+    private static string PaiementBadgeClass(string statut) => statut switch
+    {
+        "REUSSIE" => "bg-status-available/15 text-status-available",
+        "ECHOUEE" => "bg-error-container text-on-error-container",
+        _ => "bg-lavender-subtle text-primary",
+    };
 }

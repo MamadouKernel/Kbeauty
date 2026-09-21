@@ -6,63 +6,277 @@
 @rendermode @(new InteractiveServerRenderMode(prerender: false))
 
 <PageTitle>Gestion établissement</PageTitle>
+@using KekeBeauty.Web.Components.Layout
 
-@if (_checkingAuth)
-{
-    <p>Chargement…</p>
-}
-else if (_error)
-{
-    <div class="alert alert-danger">Le service est momentanément indisponible. Merci de réessayer.</div>
-}
-else
-{
-    <h1>@(_detail?.NomEtablissement ?? "Établissement")</h1>
-    <p><a href="@($"/partenaire/etablissements/{Id}/rdv")">Voir les demandes de RDV</a></p>
+<PartnerDesktopHeader ActivePath="salon" IdEtablissement="Id" />
 
-    <h2>Prestations</h2>
-    @if (_detail is not null)
-    {
-        <ul class="list-group mb-3">
-            @foreach (var prestation in _detail.Prestations)
-            {
-                <li class="list-group-item d-flex justify-content-between align-items-center">
-                    <span>@prestation.LibellePrestation — @prestation.Tarif.ToString("N0") XOF (@prestation.DureeMinutes min)</span>
-                    <span>
-                        <button class="btn btn-sm btn-outline-secondary" @onclick="() => StartEdit(prestation)">Modifier</button>
-                        <button class="btn btn-sm btn-outline-danger" @onclick="() => DeletePrestationAsync(prestation.IdPrestation)">Supprimer</button>
-                    </span>
-                </li>
-            }
-        </ul>
-    }
+<header class="lg:hidden fixed top-0 inset-x-0 z-50 bg-surface/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(58,13,82,0.04)] pt-safe">
+    <div class="h-16 px-margin flex items-center justify-between gap-space-sm">
+        <div class="flex items-center gap-space-xs min-w-0">
+            <a aria-label="Retour" class="w-11 h-11 -ml-2 rounded-full flex items-center justify-center text-text-primary hover:text-primary transition-colors active:scale-95" href="/partenaire">
+                <span class="material-symbols-outlined text-[22px]">arrow_back_ios_new</span>
+            </a>
+            <h1 class="font-headline-sm text-headline-sm text-text-primary truncate">@(_detail?.NomEtablissement ?? "Mon salon")</h1>
+        </div>
+    </div>
+</header>
 
-    <div class="row g-2 mb-3">
-        <div class="col-auto"><input class="form-control" placeholder="Libellé" @bind="_libelle" /></div>
-        <div class="col-auto"><input class="form-control" type="number" placeholder="Tarif" @bind="_tarif" /></div>
-        <div class="col-auto"><input class="form-control" type="number" placeholder="Durée (min)" @bind="_duree" /></div>
-        @if (_idPrestationEnEdition is null)
+<main id="main-content" tabindex="-1" class="flex flex-col relative w-full pt-16 lg:pt-24 pb-24 bg-surface min-h-screen">
+    <div class="flex flex-col w-full px-margin pb-10 space-y-space-md lg:max-w-3xl lg:mx-auto">
+
+        @if (_checkingAuth)
         {
-            <div class="col-auto"><button class="btn btn-primary" @onclick="AddPrestationAsync">Ajouter</button></div>
+            <p class="font-body-md text-body-md text-on-surface-variant pt-space-md">Chargement…</p>
+        }
+        else if (_error)
+        {
+            <div class="rounded-xl bg-error-container text-on-error-container px-space-md py-space-sm font-body-md text-body-md">
+                Le service est momentanément indisponible. Merci de réessayer.
+            </div>
         }
         else
         {
-            <div class="col-auto"><button class="btn btn-success" @onclick="UpdatePrestationAsync">Enregistrer</button></div>
-            <div class="col-auto"><button class="btn btn-link" @onclick="CancelEdit">Annuler</button></div>
+            @if (_statutKyc == "EN_ATTENTE")
+            {
+                <aside class="rounded-2xl border border-secondary/25 bg-lavender-subtle px-4 py-4 flex items-start gap-3 mt-space-sm">
+                    <span class="material-symbols-outlined text-secondary">pending_actions</span>
+                    <div><strong class="block text-primary">Boutique non vérifiée — examen en cours</strong><p class="text-body-sm text-on-surface-variant mt-1">Vous pouvez préparer vos prestations, tarifs, horaires et votre équipe. La boutique deviendra visible aux clientes après validation par Keke Beauty.</p></div>
+                </aside>
+            }
+            else if (_statutKyc == "REJETE")
+            {
+                <aside class="rounded-2xl border border-error/25 bg-error-container px-4 py-4 flex items-start gap-3 mt-space-sm">
+                    <span class="material-symbols-outlined text-error">error</span>
+                    <div><strong class="block text-on-error-container">Vérification à corriger</strong><p class="text-body-sm text-on-error-container mt-1">@(!string.IsNullOrWhiteSpace(_detail?.MotifRejet) ? _detail.MotifRejet : "Votre boutique reste accessible pour effectuer les corrections, mais elle n’est pas encore visible aux clientes.")</p></div>
+                </aside>
+            }
+            <section class="relative overflow-hidden rounded-2xl bg-surface-container shadow-sm mt-space-sm">
+                <img class="w-full h-52 sm:h-72 object-cover" src="@($"/media/devanture/{Id}")" alt="Photo de devanture de @(_detail?.NomEtablissement)" />
+                <div class="absolute inset-x-0 bottom-0 px-4 py-3 bg-gradient-to-t from-black/70 to-transparent text-white">
+                    <strong class="font-headline-sm">Photo de devanture</strong>
+                    <p class="text-body-sm opacity-90">Image transmise lors de la création de la boutique</p>
+                </div>
+            </section>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-space-sm pt-space-sm">
+                <a class="flex items-center gap-2.5 p-space-md rounded-xl bg-surface-cream shadow-sm hover:bg-lavender-subtle transition-colors" href="@($"/partenaire/etablissements/{Id}/rdv")">
+                    <div class="w-10 h-10 rounded-full bg-lavender-subtle flex items-center justify-center text-primary shrink-0">
+                        <span class="material-symbols-outlined text-[20px]">event_note</span>
+                    </div>
+                    <span class="font-label-md text-label-md text-text-primary">Demandes de RDV</span>
+                </a>
+                <a class="flex items-center gap-2.5 p-space-md rounded-xl bg-surface-cream shadow-sm hover:bg-lavender-subtle transition-colors" href="@($"/partenaire/etablissements/{Id}/abonnement")">
+                    <div class="w-10 h-10 rounded-full bg-lavender-subtle flex items-center justify-center text-primary shrink-0">
+                        <span class="material-symbols-outlined text-[20px]">workspace_premium</span>
+                    </div>
+                    <span class="font-label-md text-label-md text-text-primary">Abonnement Pro</span>
+                </a>
+                <a class="sm:col-span-2 flex items-center gap-2.5 p-space-md rounded-xl bg-surface-cream shadow-sm hover:bg-lavender-subtle transition-colors" href="@($"/partenaire/etablissements/{Id}/statistiques")">
+                    <div class="w-10 h-10 rounded-full bg-lavender-subtle flex items-center justify-center text-primary shrink-0">
+                        <span class="material-symbols-outlined text-[20px]">monitoring</span>
+                    </div>
+                    <span class="font-label-md text-label-md text-text-primary">Revenus &amp; Statistiques</span>
+                </a>
+            </div>
+
+            <section class="bg-surface-cream rounded-2xl p-space-md shadow-sm">
+                <div class="flex items-start gap-3 mb-4"><span class="material-symbols-outlined text-primary">edit_location_alt</span><div><h2 class="font-headline-sm text-headline-sm text-text-primary">Informations de la boutique</h2><p class="text-body-sm text-on-surface-variant">Modifiez les informations visibles après validation.</p></div></div>
+                <div class="grid sm:grid-cols-2 gap-3">
+                    <label class="sm:col-span-2"><span class="font-label-md">Nom</span><input class="onboarding-input" @bind="_shopName" /></label>
+                    <label class="sm:col-span-2"><span class="font-label-md">Description</span><textarea class="onboarding-input" rows="3" maxlength="800" @bind="_shopDescription"></textarea></label>
+                    <label><span class="font-label-md">Téléphone clientes</span><input class="onboarding-input" type="tel" @bind="_shopPhone" /></label>
+                    <label><span class="font-label-md">Horaires</span><input class="onboarding-input" placeholder="Lun–Sam, 8h–19h" @bind="_shopHours" /></label>
+                    <label><span class="font-label-md">Latitude</span><input class="onboarding-input" type="number" step="0.000001" @bind="_shopLat" /></label>
+                    <label><span class="font-label-md">Longitude</span><input class="onboarding-input" type="number" step="0.000001" @bind="_shopLng" /></label>
+                </div>
+                <button class="mt-4 px-5 py-2.5 rounded-full bg-primary text-white font-bold disabled:opacity-50" disabled="@_savingProfile" @onclick="SaveProfileAsync">@(_savingProfile ? "Enregistrement…" : "Enregistrer les informations")</button>
+            </section>
+
+            <section class="bg-surface-cream rounded-2xl p-space-md shadow-sm">
+                <div class="flex items-start gap-3 mb-4"><span class="material-symbols-outlined text-primary">photo_library</span><div><h2 class="font-headline-sm text-headline-sm">Galerie de la boutique</h2><p class="text-body-sm text-on-surface-variant">Ajoutez des photos qui rassurent et donnent envie aux clientes.</p></div></div>
+                <InputFile OnChange="SelectGalleryPhoto" accept="image/jpeg,image/png,image/webp" />
+                <button class="mt-3 px-5 py-2.5 rounded-full bg-primary text-white font-bold disabled:opacity-50" disabled="@(_galleryPhoto is null)" @onclick="UploadGalleryAsync">Ajouter la photo</button>
+                @if(_detail?.Medias.Count>0){<div class="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-4">@foreach(var media in _detail.Medias){<div class="relative rounded-xl overflow-hidden bg-surface-container aspect-square"><img class="w-full h-full object-cover" src="@media.Url" alt="Photo de la boutique"/><button class="absolute top-2 right-2 w-9 h-9 rounded-full bg-white/90 text-error" @onclick="()=>DeleteGalleryAsync(media.IdMedia)"><span class="material-symbols-outlined">delete</span></button></div>}</div>}
+            </section>
+
+            @if(_statutKyc=="REJETE")
+            {
+                <section class="premium-card kyc-resubmit"><div class="premium-heading compact"><span class="premium-eyebrow">Correction KYC</span><h2>Corriger et renvoyer le dossier</h2><p>Les documents remplacés seront soumis à une nouvelle vérification.</p></div><div class="document-choice-row"><button type="button" class="document-choice @(_kycDocumentType=="CNI"?"selected":"")" @onclick='()=>SelectKycType("CNI")'><span class="material-symbols-outlined">badge</span>CNI recto-verso</button><button type="button" class="document-choice @(_kycDocumentType=="PASSEPORT"?"selected":"")" @onclick='()=>SelectKycType("PASSEPORT")'><span class="material-symbols-outlined">menu_book</span>Passeport</button></div><div class="grid sm:grid-cols-2 gap-4 mt-4"><label class="capture-shell"><strong>Nouvelle devanture</strong><span class="capture-frame is-storefront"><span class="material-symbols-outlined capture-icon">storefront</span><i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i></span><span class="premium-upload-button">Prendre ou choisir<InputFile OnChange="e=>_kycPhoto=e.File" accept="image/jpeg,image/png,image/webp" capture="environment"/></span></label><label class="capture-shell"><strong>@(_kycDocumentType=="PASSEPORT"?"Page d’identification":"Recto CNI")</strong><span class="capture-frame @(_kycDocumentType=="PASSEPORT"?"is-passport":"is-card")"><span class="document-guide">@(_kycDocumentType=="PASSEPORT"?"PASSEPORT":"RECTO")</span><i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i></span><span class="premium-upload-button">Photographier<InputFile OnChange="e=>_kycRecto=e.File" accept="image/jpeg,image/png,image/webp,.pdf" capture="environment"/></span></label>@if(_kycDocumentType=="CNI"){<label class="capture-shell"><strong>Verso CNI</strong><span class="capture-frame is-card"><span class="document-guide">VERSO</span><i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i></span><span class="premium-upload-button">Photographier<InputFile OnChange="e=>_kycVerso=e.File" accept="image/jpeg,image/png,image/webp,.pdf" capture="environment"/></span></label>}</div><KekeAlert Severity="info" Title="Contrôle avant envoi">Pour une CNI remplacée, le recto et le verso sont obligatoires. Pour un passeport, seule la page d’identification est demandée.</KekeAlert><button class="premium-primary-action mt-4" @onclick="ResubmitKycAsync"><span class="material-symbols-outlined">verified_user</span>Renvoyer pour vérification</button></section>
+            }
+
+            <section class="bg-surface-cream rounded-2xl p-space-md shadow-sm">
+                <div class="flex items-start gap-3 mb-4"><span class="material-symbols-outlined text-primary">event_busy</span><div><h2 class="font-headline-sm text-headline-sm">Fermetures et indisponibilités</h2><p class="text-body-sm text-on-surface-variant">Bloquez une pause, un congé ou une fermeture exceptionnelle.</p></div></div>
+                <div class="grid sm:grid-cols-2 gap-3"><label><span class="font-label-md">Début</span><input class="onboarding-input" type="datetime-local" @bind="_unavailableStart" /></label><label><span class="font-label-md">Fin</span><input class="onboarding-input" type="datetime-local" @bind="_unavailableEnd" /></label><label class="sm:col-span-2"><span class="font-label-md">Motif facultatif</span><input class="onboarding-input" placeholder="Congé, pause déjeuner…" @bind="_unavailableReason" /></label></div>
+                <button class="mt-3 px-5 py-2.5 rounded-full bg-primary text-white font-bold" @onclick="AddUnavailableAsync">Bloquer cette période</button>
+                @if (_unavailabilities.Count > 0) { <div class="mt-4 space-y-2">@foreach(var item in _unavailabilities){<div class="summary-row"><span class="material-symbols-outlined">block</span><div class="flex-1"><strong>@item.DateDebut.LocalDateTime.ToString("dd/MM HH:mm") → @item.DateFin.LocalDateTime.ToString("dd/MM HH:mm")</strong><small>@item.Motif</small></div><button class="text-error" @onclick="() => DeleteUnavailableAsync(item.IdIndisponibilite)"><span class="material-symbols-outlined">delete</span></button></div>}</div> }
+            </section>
+
+            <section class="bg-surface-cream rounded-2xl p-space-md shadow-[0_8px_28px_-8px_rgba(58,13,82,0.14)]" aria-labelledby="payment-mode-title">
+                <div class="flex items-start gap-3 mb-4">
+                    <div class="w-11 h-11 rounded-full bg-lavender-subtle flex items-center justify-center text-primary shrink-0"><span class="material-symbols-outlined">payments</span></div>
+                    <div>
+                        <h2 id="payment-mode-title" class="font-headline-sm text-headline-sm text-text-primary">Paiement des prestations</h2>
+                        <p class="font-body-sm text-body-sm text-on-surface-variant mt-1">Choisissez comment vos clientes règlent les services. Ce réglage est indépendant de votre abonnement Keke Beauty.</p>
+                    </div>
+                </div>
+                <div class="grid sm:grid-cols-3 gap-3" role="radiogroup" aria-label="Mode de paiement des prestations">
+                    <button type="button" role="radio" aria-checked="@(_modePaiementService == "ESPECES")" disabled="@_savingMode" @onclick='() => SetModePaiementAsync("ESPECES")' class="p-4 rounded-2xl border-2 text-left transition-all @(_modePaiementService == "ESPECES" ? "border-primary bg-lavender-subtle shadow-md" : "border-outline-variant bg-surface hover:border-primary/50")">
+                        <span class="material-symbols-outlined text-primary">storefront</span>
+                        <strong class="block text-text-primary mt-2">Espèces sur place</strong>
+                        <small class="text-on-surface-variant">Aucun paiement du service dans l’application.</small>
+                    </button>
+                    <button type="button" role="radio" aria-checked="@(_modePaiementService == "EN_LIGNE")" disabled="@(_savingMode || !_paiementMobileAutorise)" @onclick='() => SetModePaiementAsync("EN_LIGNE")' class="p-4 rounded-2xl border-2 text-left transition-all @(_modePaiementService == "EN_LIGNE" ? "border-primary bg-lavender-subtle shadow-md" : "border-outline-variant bg-surface hover:border-primary/50")">
+                        <span class="material-symbols-outlined text-primary">verified_user</span>
+                        <strong class="block text-text-primary mt-2">Paiement en ligne</strong>
+                        <small class="text-on-surface-variant">La cliente reçoit un lien sécurisé après sa demande.</small>
+                    </button>
+                    <button type="button" role="radio" aria-checked="@(_modePaiementService == "MIXTE")" disabled="@(_savingMode || !_paiementMobileAutorise)" @onclick='() => SetModePaiementAsync("MIXTE")' class="p-4 rounded-2xl border-2 text-left transition-all @(_modePaiementService == "MIXTE" ? "border-primary bg-lavender-subtle shadow-md" : "border-outline-variant bg-surface hover:border-primary/50")">
+                        <span class="material-symbols-outlined text-primary">compare_arrows</span>
+                        <strong class="block text-text-primary mt-2">Espèces ou mobile</strong>
+                        <small class="text-on-surface-variant">La cliente choisit au moment de réserver.</small>
+                    </button>
+                </div>
+                @if (!_paiementMobileAutorise)
+                {
+                    @if (_statutKyc != "VALIDE")
+                    {
+                        <div class="mt-4 rounded-xl bg-lavender-subtle text-primary px-4 py-3 font-label-md text-label-md">Le paiement mobile sera disponible après la validation de votre boutique, si votre formule l’inclut.</div>
+                    }
+                    else
+                    {
+                        <a class="mt-4 block rounded-xl bg-lavender-subtle text-primary px-4 py-3 font-label-md text-label-md" href="@($"/partenaire/etablissements/{Id}/abonnement")">Le paiement mobile n’est pas inclus dans votre formule actuelle.</a>
+                    }
+                }
+                @if (_paiementMobileAutorise && _modePaiementService != "ESPECES")
+                {
+                    <fieldset class="mt-4 grid sm:grid-cols-3 gap-2">
+                        <legend class="font-label-md text-label-md text-text-primary mb-2">Opérateurs acceptés</legend>
+                        <label class="flex items-center gap-2"><input type="checkbox" @bind="_paiementWave" /> Wave</label>
+                        <label class="flex items-center gap-2"><input type="checkbox" @bind="_paiementOrangeMoney" /> Orange Money</label>
+                        <label class="flex items-center gap-2"><input type="checkbox" @bind="_paiementMoovMoney" /> Moov Money</label>
+                    </fieldset>
+                    <button class="mt-4 px-4 py-2 rounded-full bg-primary-container text-on-primary disabled:opacity-50" disabled="@(_savingMode || (!_paiementWave && !_paiementOrangeMoney && !_paiementMoovMoney))" @onclick="SaveModePaiementAsync">Enregistrer les moyens de paiement</button>
+                }
+            </section>
+            <div class="bg-surface-cream rounded-xl p-space-md shadow-[0_4px_20px_-2px_rgba(58,13,82,0.05)] flex flex-col gap-2">
+                <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary text-[20px]">storefront</span>
+                    <h2 class="font-label-lg text-label-lg text-text-primary">Prestations &amp; Tarifs</h2>
+                </div>
+
+                @if (_detail is not null)
+                {
+                    @if (_detail.Prestations.Count == 0)
+                    {
+                        <p class="font-body-sm text-body-sm text-on-surface-variant py-space-sm">Aucune prestation pour l'instant. Ajoutez-en une ci-dessous.</p>
+                    }
+                    else
+                    {
+                        <div class="flex flex-col gap-space-sm">
+                            @foreach (var prestation in _detail.Prestations)
+                            {
+                                <div class="flex items-center justify-between p-space-sm rounded-lg bg-surface-container-low">
+                                    <div class="min-w-0">
+                                        <p class="font-label-md text-label-md text-text-primary truncate">@prestation.LibellePrestation</p>
+                                        <p class="font-body-sm text-body-sm text-on-surface-variant">@prestation.Tarif.ToString("N0") FCFA • @prestation.DureeMinutes min</p>
+                                    </div>
+                                    <div class="flex items-center gap-1 shrink-0">
+                                        <button class="w-8 h-8 rounded-full flex items-center justify-center text-primary hover:bg-lavender-subtle" type="button" @onclick="() => StartEdit(prestation)">
+                                            <span class="material-symbols-outlined text-[18px]">edit</span>
+                                        </button>
+                                        <button class="w-8 h-8 rounded-full flex items-center justify-center text-error hover:bg-error-container" type="button" @onclick="() => DeletePrestationAsync(prestation.IdPrestation)">
+                                            <span class="material-symbols-outlined text-[18px]">delete</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                }
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-space-sm">
+                    <input class="sm:col-span-2 bg-surface-container-low rounded-lg px-3 py-2.5 text-body-md focus:outline-none" placeholder="Libellé (ex: Tresses Box Braids)" @bind="_libelle" @bind:event="oninput" />
+                    <input class="bg-surface-container-low rounded-lg px-3 py-2.5 text-body-md focus:outline-none" type="number" placeholder="Tarif (FCFA)" @bind="_tarif" />
+                    <input class="bg-surface-container-low rounded-lg px-3 py-2.5 text-body-md focus:outline-none" type="number" placeholder="Durée (min)" @bind="_duree" />
+                </div>
+                @if (_idPrestationEnEdition is null)
+                {
+                    <button class="mt-space-xs py-2.5 rounded-full bg-primary-container text-on-primary font-label-md text-label-md shadow-sm" type="button" @onclick="AddPrestationAsync">Ajouter la prestation</button>
+                }
+                else
+                {
+                    <div class="flex gap-2 mt-space-xs">
+                        <button class="flex-1 py-2.5 rounded-full bg-status-available text-on-primary font-label-md text-label-md shadow-sm" type="button" @onclick="UpdatePrestationAsync">Enregistrer</button>
+                        <button class="flex-1 py-2.5 rounded-full bg-surface-container text-text-primary font-label-md text-label-md" type="button" @onclick="CancelEdit">Annuler</button>
+                    </div>
+                }
+            </div>
+
+            <div class="bg-surface-cream rounded-xl p-space-md shadow-[0_4px_20px_-2px_rgba(58,13,82,0.05)] flex flex-col gap-2">
+                <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary text-[20px]">category</span>
+                    <h2 class="font-label-lg text-label-lg text-text-primary">Catégorie du salon</h2>
+                </div>
+                <div class="flex flex-col sm:flex-row gap-2">
+                    <input class="flex-1 bg-surface-container-low rounded-lg px-3 py-2.5 text-body-md focus:outline-none" placeholder="Ex: Coiffure & Tresses" @bind="_categorie" @bind:event="oninput" />
+                    <button class="px-4 py-2.5 rounded-full bg-primary-container text-on-primary font-label-md text-label-md shadow-sm" type="button" @onclick="AssignCategoryAsync">Assigner</button>
+                </div>
+            </div>
+
+            <div class="bg-surface-cream rounded-xl p-space-md shadow-[0_4px_20px_-2px_rgba(58,13,82,0.05)] flex flex-col gap-2">
+                <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary text-[20px]">groups</span>
+                    <h2 class="font-label-lg text-label-lg text-text-primary">Mon équipe</h2>
+                </div>
+
+                @if (_equipe.Count == 0)
+                {
+                    <p class="font-body-sm text-body-sm text-on-surface-variant py-space-sm">Aucune collaboratrice référencée pour l'instant.</p>
+                }
+                else
+                {
+                    <div class="flex flex-col gap-space-sm">
+                        @foreach (var collaborateur in _equipe)
+                        {
+                            <div class="flex items-center justify-between p-space-sm rounded-lg bg-surface-container-low">
+                                <div class="flex items-center gap-2.5 min-w-0">
+                                    <div class="w-9 h-9 rounded-full bg-lavender-subtle flex items-center justify-center text-primary shrink-0">
+                                        <span class="material-symbols-outlined text-[18px]">person</span>
+                                    </div>
+                                    <div class="min-w-0">
+                                        <p class="font-label-md text-label-md text-text-primary truncate">@collaborateur.Nom</p>
+                                        @if (!string.IsNullOrWhiteSpace(collaborateur.Specialite))
+                                        {
+                                            <p class="font-body-sm text-body-sm text-on-surface-variant truncate">@collaborateur.Specialite</p>
+                                        }
+                                        @if (!string.IsNullOrWhiteSpace(collaborateur.Telephone))
+                                        {
+                                            <p class="font-body-sm text-body-sm text-on-surface-variant truncate">@collaborateur.Telephone · @(collaborateur.CompteActif ? "Compte actif" : "Compte non activé")</p>
+                                        }
+                                    </div>
+                                </div>
+                                <button class="w-8 h-8 rounded-full flex items-center justify-center text-error hover:bg-error-container shrink-0" type="button" @onclick="() => RetirerCollaborateurAsync(collaborateur.IdCollaborateur)">
+                                    <span class="material-symbols-outlined text-[18px]">delete</span>
+                                </button>
+                            </div>
+                        }
+                    </div>
+                }
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-space-sm">
+                    <input class="bg-surface-container-low rounded-lg px-3 py-2.5 text-body-md focus:outline-none" placeholder="Nom" @bind="_nomCollaborateur" @bind:event="oninput" />
+                    <input class="bg-surface-container-low rounded-lg px-3 py-2.5 text-body-md focus:outline-none" placeholder="Spécialité (optionnel)" @bind="_specialiteCollaborateur" @bind:event="oninput" />
+                </div>
+                <input class="bg-surface-container-low rounded-lg px-3 py-2.5 text-body-md focus:outline-none" placeholder="Téléphone (+225...) pour l'accès au portail collaboratrice" @bind="_telephoneCollaborateur" @bind:event="oninput" />
+                <button class="mt-space-xs py-2.5 rounded-full bg-primary-container text-on-primary font-label-md text-label-md shadow-sm" type="button" @onclick="AjouterCollaborateurAsync">Ajouter à l'équipe</button>
+            </div>
+
+            @if (!string.IsNullOrEmpty(_message))
+            {
+                <div class="rounded-xl px-space-md py-space-sm font-body-md text-body-md @(_success ? "bg-status-available/10 text-status-available" : "bg-error-container text-on-error-container")">@_message</div>
+            }
         }
     </div>
-
-    <h2>Catégorie</h2>
-    <div class="row g-2 mb-3">
-        <div class="col-auto"><input class="form-control" placeholder="Libellé catégorie" @bind="_categorie" /></div>
-        <div class="col-auto"><button class="btn btn-primary" @onclick="AssignCategoryAsync">Assigner</button></div>
-    </div>
-
-    @if (!string.IsNullOrEmpty(_message))
-    {
-        <div class="alert @(_success ? "alert-success" : "alert-danger")">@_message</div>
-    }
-}
+</main>
 
 @code {
     [Parameter] public Guid Id { get; set; }
@@ -79,6 +293,24 @@ else
     private bool _success;
     private string? _message;
     private Guid? _idPrestationEnEdition;
+    private List<CollaborateurDto> _equipe = [];
+    private string _nomCollaborateur = "";
+    private string _specialiteCollaborateur = "";
+    private string _telephoneCollaborateur = "";
+    private string _modePaiementService = "ESPECES";
+    private bool _savingMode;
+    private bool _paiementMobileAutorise;
+    private bool _paiementWave;
+    private bool _paiementOrangeMoney;
+    private bool _paiementMoovMoney;
+    private string _statutKyc = string.Empty;
+    private string _shopName = "", _shopDescription = "", _shopPhone = "", _shopHours = "";
+    private decimal _shopLat, _shopLng;
+    private bool _savingProfile;
+    private DateTime _unavailableStart = DateTime.Now.AddDays(1).Date.AddHours(8), _unavailableEnd = DateTime.Now.AddDays(1).Date.AddHours(18);
+    private string _unavailableReason = "";
+    private List<IndisponibiliteDto> _unavailabilities = [];
+    private IBrowserFile? _galleryPhoto,_kycPhoto,_kycRecto,_kycVerso; private string _kycDocumentType="CNI";
 
     protected override async Task OnInitializedAsync()
     {
@@ -89,15 +321,145 @@ else
             return;
         }
 
+        var (_, _, shops) = await PartnerApi.GetMesEtablissementsAsync(_idPartner.Value, CancellationToken.None);
+        _statutKyc = shops.FirstOrDefault(x => x.IdEtablissement == Id)?.StatutKyc ?? string.Empty;
         await LoadDetailAsync();
+        var (_, usage) = await PartnerApi.GetPlanUsageAsync(_idPartner.Value, Id, CancellationToken.None);
+        _paiementMobileAutorise = usage?.PaiementMobile == true && _statutKyc == "VALIDE";
+        await LoadEquipeAsync();
+        _unavailabilities = await PartnerApi.GetIndisponibilitesAsync(_idPartner.Value, Id, CancellationToken.None);
         _checkingAuth = false;
+    }
+    private void SelectGalleryPhoto(InputFileChangeEventArgs e)=>_galleryPhoto=e.File;
+    private async Task UploadGalleryAsync(){if(_idPartner is null||_galleryPhoto is null)return;await using var s=_galleryPhoto.OpenReadStream(8*1024*1024);var ok=await PartnerApi.AddMediaAsync(_idPartner.Value,Id,s,_galleryPhoto.Name,CancellationToken.None);_message=ok?"Photo ajoutée.":"Impossible d’ajouter la photo.";_success=ok;if(ok){_galleryPhoto=null;await LoadDetailAsync();}}
+    private async Task DeleteGalleryAsync(Guid media){if(_idPartner is null)return;var(ok,status)=await PartnerApi.DeleteMediaAsync(_idPartner.Value,Id,media,CancellationToken.None);_message=ok?"Photo supprimée.":DecrireErreur(status);if(ok)await LoadDetailAsync();}
+    private void SelectKycType(string type){_kycDocumentType=type;if(type=="PASSEPORT")_kycVerso=null;}
+    private async Task ResubmitKycAsync(){if(_idPartner is null)return;if(_kycPhoto is null&&_kycRecto is null&&_kycVerso is null){_success=false;_message="Ajoutez au moins un document corrigé.";return;}if(_kycRecto is not null&&_kycDocumentType=="CNI"&&_kycVerso is null){_success=false;_message="Ajoutez aussi le verso de la CNI.";return;}Stream? p=null,r=null,v=null;try{if(_kycPhoto is not null)p=_kycPhoto.OpenReadStream(8*1024*1024);if(_kycRecto is not null)r=_kycRecto.OpenReadStream(8*1024*1024);if(_kycVerso is not null)v=_kycVerso.OpenReadStream(8*1024*1024);var(ok,status)=await PartnerApi.ResubmitKycAsync(_idPartner.Value,Id,p,_kycPhoto?.Name,_kycDocumentType,r,_kycRecto?.Name,v,_kycVerso?.Name,CancellationToken.None);_success=ok;_message=ok?"Dossier renvoyé. La vérification reprend.":status=="verso_requis"?"Le verso de la CNI est obligatoire.":"La resoumission a échoué. Vérifiez les fichiers.";if(ok){_statutKyc="EN_ATTENTE";await LoadDetailAsync();}}finally{if(p is not null)await p.DisposeAsync();if(r is not null)await r.DisposeAsync();if(v is not null)await v.DisposeAsync();}}
+    private async Task AddUnavailableAsync()
+    {
+        if (_idPartner is null || _unavailableEnd <= _unavailableStart) { _message="La date de fin doit être après le début."; return; }
+        var (ok,status)=await PartnerApi.AddIndisponibiliteAsync(_idPartner.Value,Id,new DateTimeOffset(_unavailableStart),new DateTimeOffset(_unavailableEnd),_unavailableReason,CancellationToken.None);
+        _success=ok;_message=ok?"Période bloquée.":DecrireErreur(status);if(ok){_unavailableReason="";_unavailabilities=await PartnerApi.GetIndisponibilitesAsync(_idPartner.Value,Id,CancellationToken.None);}
+    }
+    private async Task DeleteUnavailableAsync(Guid unavailableId)
+    {
+        if(_idPartner is null)return;var(ok,status)=await PartnerApi.DeleteIndisponibiliteAsync(_idPartner.Value,Id,unavailableId,CancellationToken.None);_success=ok;_message=ok?"Période supprimée.":DecrireErreur(status);if(ok)_unavailabilities=await PartnerApi.GetIndisponibilitesAsync(_idPartner.Value,Id,CancellationToken.None);
+    }
+
+    private async Task LoadEquipeAsync()
+    {
+        var (success, equipe) = await PartnerApi.GetEquipeAsync(_idPartner!.Value, Id, CancellationToken.None);
+        if (success)
+        {
+            _equipe = equipe;
+        }
+    }
+
+    private async Task AjouterCollaborateurAsync()
+    {
+        if (_idPartner is null || string.IsNullOrWhiteSpace(_nomCollaborateur))
+        {
+            return;
+        }
+
+        var (success, status) = await PartnerApi.AjouterCollaborateurAsync(
+            _idPartner.Value, Id, _nomCollaborateur, string.IsNullOrWhiteSpace(_specialiteCollaborateur) ? null : _specialiteCollaborateur,
+            string.IsNullOrWhiteSpace(_telephoneCollaborateur) ? null : _telephoneCollaborateur, CancellationToken.None);
+        _success = success;
+        _message = success ? "Collaboratrice ajoutée." : DecrireErreur(status);
+        if (success)
+        {
+            _nomCollaborateur = "";
+            _specialiteCollaborateur = "";
+            _telephoneCollaborateur = "";
+            await LoadEquipeAsync();
+        }
+    }
+
+    private async Task RetirerCollaborateurAsync(Guid idCollaborateur)
+    {
+        if (_idPartner is null)
+        {
+            return;
+        }
+
+        var (success, status) = await PartnerApi.RetirerCollaborateurAsync(_idPartner.Value, Id, idCollaborateur, CancellationToken.None);
+        _success = success;
+        _message = success ? "Collaboratrice retirée." : DecrireErreur(status);
+        if (success)
+        {
+            await LoadEquipeAsync();
+        }
     }
 
     private async Task LoadDetailAsync()
     {
-        var (success, detail) = await PartnerApi.GetDetailAsync(Id, CancellationToken.None);
+        var (success, detail) = await PartnerApi.GetDetailAsync(_idPartner!.Value, Id, CancellationToken.None);
         _error = !success;
         _detail = detail;
+        if (detail is not null)
+        {
+            _modePaiementService = detail.ModePaiementService;
+            _paiementWave = detail.PaiementWave;
+            _paiementOrangeMoney = detail.PaiementOrangeMoney;
+            _paiementMoovMoney = detail.PaiementMoovMoney;
+            _shopName = detail.NomEtablissement;
+            _shopDescription = detail.Description ?? "";
+            _shopPhone = detail.NumeroServiceClient;
+            _shopHours = detail.Horaires ?? "";
+            _shopLat = detail.GpsLatitude;
+            _shopLng = detail.GpsLongitude;
+        }
+    }
+
+    private async Task SaveProfileAsync()
+    {
+        if (_idPartner is null || string.IsNullOrWhiteSpace(_shopName) || string.IsNullOrWhiteSpace(_shopPhone)) return;
+        _savingProfile = true;
+        var (success, status) = await PartnerApi.UpdateBoutiqueProfileAsync(_idPartner.Value, Id, _shopName,
+            string.IsNullOrWhiteSpace(_shopDescription) ? null : _shopDescription, _shopPhone, _shopLat, _shopLng,
+            string.IsNullOrWhiteSpace(_shopHours) ? null : _shopHours, CancellationToken.None);
+        _savingProfile = false; _success = success;
+        _message = success ? "Informations de la boutique enregistrées." : DecrireErreur(status);
+        if (success) await LoadDetailAsync();
+    }
+
+    private async Task SetModePaiementAsync(string mode)
+    {
+        if (_idPartner is null || _savingMode || mode == _modePaiementService)
+        {
+            return;
+        }
+
+        var previous = _modePaiementService;
+        _modePaiementService = mode;
+        _savingMode = true;
+        if (mode != "ESPECES" && !_paiementWave && !_paiementOrangeMoney && !_paiementMoovMoney)
+        {
+            _paiementWave = true;
+        }
+        var (success, status) = await PartnerApi.UpdateModePaiementServiceAsync(_idPartner.Value, Id, mode,
+            _paiementWave, _paiementOrangeMoney, _paiementMoovMoney, CancellationToken.None);
+        _savingMode = false;
+        _success = success;
+        _message = success
+            ? (mode == "EN_LIGNE" ? "Les prestations seront payées en ligne." : mode == "MIXTE" ? "Vos clientes choisiront entre espèces et paiement mobile." : "Les prestations seront réglées en espèces sur place.")
+            : DecrireErreur(status);
+        if (!success)
+        {
+            _modePaiementService = previous;
+        }
+    }
+
+    private async Task SaveModePaiementAsync()
+    {
+        if (_idPartner is null || _savingMode || _modePaiementService == "ESPECES") return;
+        _savingMode = true;
+        var (success, status) = await PartnerApi.UpdateModePaiementServiceAsync(_idPartner.Value, Id, _modePaiementService,
+            _paiementWave, _paiementOrangeMoney, _paiementMoovMoney, CancellationToken.None);
+        _savingMode = false;
+        _success = success;
+        _message = success ? "Moyens de paiement enregistrés." : DecrireErreur(status);
     }
 
     private async Task AddPrestationAsync()
@@ -188,6 +550,8 @@ else
     {
         "forbidden" => "Cet établissement ne vous appartient pas.",
         "unauthorized" => "Session expirée, merci de vous reconnecter.",
+        "gestion_equipe_non_incluse" or "statistiques_non_incluses" or "paiement_mobile_non_inclus" => "Cette fonctionnalité n’est pas incluse dans votre formule actuelle.",
+        "limite_prestations_atteinte" => "La limite de prestations de votre formule est atteinte.",
         _ => "L'action a échoué. Merci de réessayer.",
     };
 }

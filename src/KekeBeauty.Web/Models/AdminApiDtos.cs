@@ -1,5 +1,22 @@
 namespace KekeBeauty.Web.Models;
 
+public sealed class AdminStatistiquesGlobalesDto
+{
+    public int EtablissementsValides { get; set; }
+    public int EtablissementsEnAttente { get; set; }
+    public int EtablissementsRejetes { get; set; }
+    public int RdvDemande { get; set; }
+    public int RdvConfirme { get; set; }
+    public int RdvTermine { get; set; }
+    public int RdvRefuseOuAnnule { get; set; }
+    public decimal RevenuEstimeTotal { get; set; }
+    public int AbonnementsActifs { get; set; }
+    public int AbonnementsImpayes { get; set; }
+    public int NombreAvis { get; set; }
+    public double? NoteMoyenneGlobale { get; set; }
+    public int NombreClients { get; set; }
+}
+
 public sealed class ApplicationSummary
 {
     public Guid IdEtablissement { get; set; }
@@ -17,7 +34,9 @@ public sealed class ApplicationDetail
     public string NumeroServiceClient { get; set; } = string.Empty;
     public string StatutKyc { get; set; } = string.Empty;
     public bool HasPhotoDevanture { get; set; }
-    public bool HasPieceIdentite { get; set; }
+    public string? TypeDocumentIdentite { get; set; }
+    public bool HasDocumentRecto { get; set; }
+    public bool HasDocumentVerso { get; set; }
     public DateTimeOffset DateCreation { get; set; }
 }
 
@@ -35,3 +54,18 @@ public sealed class TarifStandard
     public string Periodicite { get; set; } = string.Empty;
     public decimal Montant { get; set; }
 }
+
+public sealed class ConfigurationFormuleDto
+{
+    public string Formule { get; set; } = string.Empty;
+    public int? LimitePrestations { get; set; }
+    public int? LimiteRdvMensuels { get; set; }
+    public bool PaiementMobile { get; set; }
+    public bool GestionEquipe { get; set; }
+    public bool StatistiquesAvancees { get; set; }
+}
+
+public sealed class AdminUserItemDto { public Guid IdUtilisateur {get;set;} public string Nom {get;set;}=""; public string Telephone {get;set;}=""; public string? Email {get;set;} public string TypeCompte {get;set;}=""; public bool EstSuspendu {get;set;} public DateTimeOffset DateCreation {get;set;} }
+public sealed class AdminShopItemDto { public Guid IdEtablissement {get;set;} public string NomEtablissement {get;set;}=""; public string Gerant {get;set;}=""; public string Telephone {get;set;}=""; public string StatutKyc {get;set;}=""; public bool EstSuspendu {get;set;} public DateTimeOffset DateCreation {get;set;} }
+public sealed class AdminAuditItemDto { public Guid IdJournal {get;set;} public string NomAdmin {get;set;}=""; public string Action {get;set;}=""; public string? TypeCible {get;set;} public Guid? IdCible {get;set;} public string? Details {get;set;} public DateTimeOffset DateAction {get;set;} }
+public sealed class AdminAccountItemDto { public Guid IdAdmin {get;set;} public string Nom {get;set;}=""; public string Email {get;set;}=""; public string Role {get;set;}=""; public bool Actif {get;set;} public DateTimeOffset DateCreation {get;set;} public DateTimeOffset? DerniereConnexion {get;set;} }

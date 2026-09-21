@@ -1,0 +1,9 @@
+@page "/partenaire/etablissements/{ShopId:guid}/abonnements/{SubscriptionId:guid}/recu"
+@inject PartnerApiClient Api
+@inject PartnerSessionService Session
+@inject NavigationManager Nav
+@inject IJSRuntime JS
+@rendermode @(new InteractiveServerRenderMode(prerender:false))
+<PageTitle>Reçu d’abonnement</PageTitle>
+<main class="min-h-screen bg-surface p-6"><article class="max-w-xl mx-auto bg-white rounded-2xl p-8 shadow-sm"><img src="/img/logo.png" class="h-16" alt="Keke Beauty"/><h1 class="text-headline-lg font-bold mt-5">Reçu d’abonnement Keke Beauty</h1>@if(_item is null){<p class="mt-5">Reçu introuvable.</p>}else{<dl class="mt-6 space-y-3"><div><dt>Référence</dt><dd class="font-bold">@_item.IdAbonnement</dd></div><div><dt>Date</dt><dd>@_item.DateDebutEngagement.ToString("dd/MM/yyyy")</dd></div><div><dt>Formule</dt><dd>PRO · @_item.Periodicite</dd></div><div><dt>Montant</dt><dd class="text-xl font-bold">@_item.Montant.ToString("N0") FCFA</dd></div><div><dt>Statut</dt><dd>@_item.StatutAbonnement</dd></div></dl><button class="mt-8 px-5 py-3 rounded-full bg-primary text-white print:hidden" @onclick="PrintAsync">Imprimer / enregistrer en PDF</button>}</article></main>
+@code{[Parameter]public Guid ShopId{get;set;}[Parameter]public Guid SubscriptionId{get;set;}AbonnementHistoriqueDto? _item;protected override async Task OnInitializedAsync(){var id=await Session.GetPartnerIdAsync();if(id is null){Nav.NavigateTo("/login?role=partenaire");return;}_item=(await Api.GetHistoriqueAbonnementsAsync(id.Value,ShopId,CancellationToken.None)).FirstOrDefault(x=>x.IdAbonnement==SubscriptionId);}Task PrintAsync()=>JS.InvokeVoidAsync("print").AsTask();}

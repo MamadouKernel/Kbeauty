@@ -1,0 +1,435 @@
+@page "/mes-rendez-vous"
+@inject RdvApiClient RdvApi
+@inject ClientSessionService Session
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+@* prerender:false : voir PartnerDashboard.razor pour le detail du bug de prerendering evite. *@
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+@using KekeBeauty.Web.Components.Layout
+
+<PageTitle>Mes Rendez-vous</PageTitle>
+
+<DesktopHeader ActivePath="rendez-vous" />
+
+<header class="lg:hidden fixed top-0 w-full z-50 pt-safe bg-surface/80 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)]">
+    <div class="h-16 px-margin flex items-center justify-between">
+        <div class="flex items-center gap-space-sm">
+            <img alt="Keke Beauty" class="h-8 w-auto object-contain" src="/img/logo.png" />
+            <div class="flex flex-col">
+                <span class="font-label-md text-label-md text-primary tracking-wide uppercase">Keke Beauty</span>
+                <span class="font-headline-sm text-headline-sm text-text-primary leading-none">Rendez-vous</span>
+            </div>
+        </div>
+    </div>
+</header>
+
+<main id="main-content" tabindex="-1" class="flex-1 flex flex-col relative w-full pt-16 lg:pt-24 pb-24 lg:pb-space-xl bg-surface">
+    <div class="flex flex-col w-full px-margin pb-6 gap-space-lg lg:max-w-4xl lg:mx-auto">
+
+        @if (_checkingAuth)
+        {
+            <p class="font-body-md text-body-md text-on-surface-variant pt-space-md">Chargement…</p>
+        }
+        else if (_error)
+        {
+            <div class="mt-space-md rounded-xl bg-error-container text-on-error-container px-space-md py-space-sm font-body-md text-body-md">
+                Le service est momentanément indisponible. Merci de réessayer.
+            </div>
+        }
+        else
+        {
+            <div class="flex flex-col gap-space-xs pt-space-sm">
+                <h1 class="font-headline-lg text-headline-lg text-text-primary tracking-tight">Mes Rendez-vous</h1>
+                <p class="font-body-md text-body-md text-on-surface-variant">Suivez vos réservations et leur statut de paiement.</p>
+            </div>
+
+            <PushOptIn />
+
+            <div class="flex p-1 rounded-full bg-surface-container shadow-inner" role="tablist">
+                <button class="flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-full font-label-md text-label-md transition-all duration-300 @(!_showHistorique ? "bg-primary text-on-primary shadow-md" : "text-on-surface-variant hover:text-primary")" type="button" @onclick="() => _showHistorique = false">
+                    <span>À venir</span>
+                    <span class="inline-flex items-center justify-center px-2 py-0.5 rounded-full text-[10px] font-bold @(!_showHistorique ? "bg-on-primary/20 text-on-primary" : "bg-surface-container-high text-on-surface-variant")">@AVenir.Count</span>
+                </button>
+                <button class="flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-full font-label-md text-label-md transition-all duration-300 @(_showHistorique ? "bg-primary text-on-primary shadow-md" : "text-on-surface-variant hover:text-primary")" type="button" @onclick="() => _showHistorique = true">
+                    <span>Historique</span>
+                    <span class="inline-flex items-center justify-center px-2 py-0.5 rounded-full text-[10px] font-semibold @(_showHistorique ? "bg-on-primary/20 text-on-primary" : "bg-surface-container-high text-on-surface-variant")">@Historique.Count</span>
+                </button>
+            </div>
+
+            @if (ListeAffichee.Count == 0)
+            {
+                <p class="font-body-md text-body-md text-on-surface-variant text-center py-space-lg">
+                    @(_showHistorique ? "Aucun rendez-vous passé pour l'instant." : "Aucun rendez-vous à venir. Explorez les salons pour réserver.")
+                </p>
+            }
+            else
+            {
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-space-md">
+                    @foreach (var rdv in ListeAffichee)
+                    {
+                        <div class="flex flex-col p-space-md rounded-2xl bg-surface-cream shadow-sm gap-space-sm">
+                            <a class="appointment-card-link" href="@($"/mes-rendez-vous/{rdv.IdRdv}")" aria-label="Voir le détail du rendez-vous"><span>Détails et actions</span><span class="material-symbols-outlined">arrow_forward</span></a>
+                            <div class="flex items-start justify-between gap-3">
+                                <div class="flex-1 min-w-0">
+                                    <h4 class="font-headline-sm text-headline-sm text-text-primary truncate">@rdv.NomEtablissement</h4>
+                                    <p class="font-body-md text-body-md text-on-surface-variant truncate">@rdv.LibellePrestation</p>
+                                    <p class="font-body-sm text-body-sm text-on-surface-variant mt-1">@rdv.DateHeureDebut.ToLocalTime().ToString("ddd d MMM yyyy 'à' HH:mm", System.Globalization.CultureInfo.GetCultureInfo("fr-FR"))</p>
+                                </div>
+                                <span class="px-2.5 py-1 rounded-full font-label-sm text-label-sm shrink-0 @StatutBadgeClass(rdv.StatutRdv)">@StatutLabel(rdv.StatutRdv)</span>
+                            </div>
+
+                            @if (rdv.StatutPaiement is not null)
+                            {
+                                <div class="flex items-center justify-between p-2.5 rounded-xl @(rdv.StatutPaiement == "REUSSIE" ? "bg-status-available/10" : rdv.StatutPaiement == "ECHOUEE" ? "bg-error-container/40" : "bg-lavender-subtle")">
+                                    <div class="flex items-center gap-2">
+                                        <span class="material-symbols-outlined text-[18px] @(rdv.StatutPaiement == "REUSSIE" ? "text-status-available" : rdv.StatutPaiement == "ECHOUEE" ? "text-status-unavailable" : "text-primary")">
+                                            @(rdv.StatutPaiement == "REUSSIE" ? "check_circle" : rdv.StatutPaiement == "ECHOUEE" ? "error" : "hourglass_top")
+                                        </span>
+                                        <span class="font-label-md text-label-md">Paiement en ligne : @PaiementLabel(rdv.StatutPaiement)</span>
+                                    </div>
+                                    @if (rdv.StatutPaiement == "EN_COURS")
+                                    {
+                                        <button class="font-label-sm text-label-sm text-primary underline" type="button" @onclick="() => VerifierPaiementAsync(rdv.IdRdv)">Vérifier</button>
+                                    }
+                                    @if (rdv.StatutPaiement == "ECHOUEE")
+                                    {
+                                        <button class="font-label-sm text-label-sm text-primary underline" type="button" @onclick="() => RelancerPaiementAsync(rdv.IdRdv)">Réessayer</button>
+                                    }
+                                    @if (rdv.StatutPaiement == "REMBOURSEMENT_DEMANDE")
+                                    {
+                                        <span class="font-label-sm text-label-sm text-on-surface-variant">Remboursement en cours de traitement (sous 48h)</span>
+                                    }
+                                </div>
+                            }
+
+                            @if (rdv.StatutRdv is "DEMANDE" or "CONFIRME")
+                            {
+                                @if (_idRdvAnnulationEnCours == rdv.IdRdv)
+                                {
+                                    <div class="rounded-xl bg-error-container/40 p-space-sm space-y-2">
+                                        <p class="font-body-sm text-body-sm text-on-error-container">Confirmer l’annulation ? Le salon sera informé et le créneau libéré.</p>
+                                        <div class="flex flex-col sm:flex-row gap-2">
+                                            <button class="flex-1 py-2 rounded-full bg-error text-on-error font-label-md text-label-md" type="button" @onclick="() => AnnulerAsync(rdv.IdRdv)">Oui, annuler</button>
+                                            <button class="flex-1 py-2 rounded-full bg-surface-cream text-text-primary font-label-md text-label-md" type="button" @onclick="() => _idRdvAnnulationEnCours = null">Conserver mon rendez-vous</button>
+                                        </div>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <button class="flex items-center justify-center gap-1.5 py-2 rounded-full bg-error-container text-on-error-container font-label-md text-label-md" type="button" @onclick="() => _idRdvAnnulationEnCours = rdv.IdRdv">
+                                        <span class="material-symbols-outlined text-[18px]">cancel</span>
+                                        <span>Annuler le rendez-vous</span>
+                                    </button>
+                                }
+                            }
+
+                            @if (rdv.StatutRdv == "TERMINE" && rdv.IdCollaborateur is not null)
+                            {
+                                @if (_idRdvPourboireEnCours == rdv.IdRdv)
+                                {
+                                    <div class="flex flex-col gap-space-xs p-space-sm rounded-xl bg-surface-container-low">
+                                        <div class="grid grid-cols-3 gap-2">
+                                            @foreach (var montant in new[] { 500m, 1000m, 2000m })
+                                            {
+                                                var m = montant;
+                                                <button type="button" class="py-2 rounded-lg @(m == _montantPourboire ? "bg-primary-container text-on-primary" : "bg-surface-cream text-text-primary") font-label-sm text-label-sm" @onclick="() => _montantPourboire = m">@m.ToString("N0") F</button>
+                                            }
+                                        </div>
+                                        <div class="flex gap-2">
+                                            <button class="flex-1 py-2 rounded-full bg-primary-container text-on-primary font-label-sm text-label-sm shadow-sm disabled:opacity-60" type="button" @onclick="() => EnvoyerPourboireAsync(rdv.IdRdv, rdv.IdCollaborateur!.Value)" disabled="@_pourboireBusy">Envoyer le pourboire</button>
+                                            <button class="px-3 py-2 rounded-full bg-surface-container text-text-primary font-label-sm text-label-sm" type="button" @onclick="() => _idRdvPourboireEnCours = null">Annuler</button>
+                                        </div>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <button class="flex items-center justify-center gap-1.5 py-2 rounded-full bg-lavender-subtle text-primary font-label-md text-label-md" type="button" @onclick="() => StartPourboire(rdv.IdRdv)">
+                                        <span class="material-symbols-outlined text-[18px]">volunteer_activism</span>
+                                        <span>Laisser un pourboire à la praticienne</span>
+                                    </button>
+                                }
+                            }
+
+                            @if (rdv.StatutRdv is "TERMINE" or "CONFIRME")
+                            {
+                                @if (_idRdvLitigeEnCours == rdv.IdRdv)
+                                {
+                                    <div class="flex flex-col gap-space-xs p-space-sm rounded-xl bg-surface-container-low">
+                                        <textarea class="w-full rounded-lg bg-surface-cream p-2.5 font-body-sm text-body-sm focus:outline-none resize-none" rows="2" placeholder="Décrivez le problème rencontré" @bind="_motifLitige" @bind:event="oninput"></textarea>
+                                        <div class="flex gap-2">
+                                            <button class="flex-1 py-2 rounded-full bg-error-container text-on-error-container font-label-sm text-label-sm shadow-sm disabled:opacity-60" type="button" @onclick="() => EnvoyerLitigeAsync(rdv.IdRdv)" disabled="@(string.IsNullOrWhiteSpace(_motifLitige) || _litigeBusy)">Signaler</button>
+                                            <button class="px-3 py-2 rounded-full bg-surface-container text-text-primary font-label-sm text-label-sm" type="button" @onclick="() => _idRdvLitigeEnCours = null">Annuler</button>
+                                        </div>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <button class="font-label-sm text-label-sm text-error underline self-start" type="button" @onclick="() => StartLitige(rdv.IdRdv)">Signaler un problème avec ce rendez-vous</button>
+                                }
+                            }
+
+                            @if (rdv.StatutRdv is "TERMINE" or "REFUSE" or "ANNULE")
+                            {
+                                <a class="flex items-center justify-center gap-1.5 py-2 rounded-full bg-primary-container text-on-primary font-label-md text-label-md shadow-sm" href="@($"/etablissements/{rdv.IdEtablissement}/rdv")">
+                                    <span class="material-symbols-outlined text-[18px]">event_repeat</span>
+                                    <span>Réserver à nouveau</span>
+                                </a>
+                            }
+
+                            @if (rdv.StatutRdv == "TERMINE")
+                            {
+                                @if (rdv.ADejaAvis)
+                                {
+                                    <div class="flex items-center gap-1.5 text-status-available font-label-md text-label-md">
+                                        <span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 1;">task_alt</span>
+                                        <span>Avis envoyé</span>
+                                    </div>
+                                }
+                                else if (_idRdvAvisEnCours == rdv.IdRdv)
+                                {
+                                    <div class="flex flex-col gap-space-xs p-space-sm rounded-xl bg-surface-container-low">
+                                        <div class="flex items-center gap-1 justify-center">
+                                            @for (var i = 1; i <= 5; i++)
+                                            {
+                                                var n = i;
+                                                <button type="button" class="p-0.5" @onclick="() => _noteAvis = n">
+                                                    <span class="material-symbols-outlined text-[26px] @(n <= _noteAvis ? "text-secondary" : "text-outline-variant")" style="@(n <= _noteAvis ? "font-variation-settings: 'FILL' 1;" : "")">star</span>
+                                                </button>
+                                            }
+                                        </div>
+                                        <textarea class="w-full rounded-lg bg-surface-cream p-2.5 font-body-sm text-body-sm focus:outline-none resize-none" rows="2" placeholder="Votre commentaire (optionnel)" @bind="_commentaireAvis" @bind:event="oninput"></textarea>
+                                        <div class="flex gap-2">
+                                            <button class="flex-1 py-2 rounded-full bg-primary-container text-on-primary font-label-sm text-label-sm shadow-sm disabled:opacity-60" type="button" @onclick="() => EnvoyerAvisAsync(rdv.IdRdv)" disabled="@(_noteAvis == 0 || _avisBusy)">Envoyer</button>
+                                            <button class="px-3 py-2 rounded-full bg-surface-container text-text-primary font-label-sm text-label-sm" type="button" @onclick="() => _idRdvAvisEnCours = null">Annuler</button>
+                                        </div>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <button class="flex items-center justify-center gap-1.5 py-2 rounded-full bg-lavender-subtle text-primary font-label-md text-label-md" type="button" @onclick="() => StartAvis(rdv.IdRdv)">
+                                        <span class="material-symbols-outlined text-[18px]">star</span>
+                                        <span>Laisser un avis</span>
+                                    </button>
+                                }
+                            }
+                        </div>
+                    }
+                </div>
+            }
+
+            @if (!string.IsNullOrEmpty(_message))
+            {
+                <div class="rounded-xl px-space-md py-space-sm font-body-md text-body-md bg-lavender-subtle text-primary">@_message</div>
+            }
+            @if (!string.IsNullOrEmpty(_lienPaiementRelance))
+            {
+                <a class="block text-center py-3 rounded-full bg-primary-container text-on-primary font-label-lg text-label-lg shadow-md" href="@_lienPaiementRelance" target="_blank" rel="noopener">Payer maintenant</a>
+            }
+        }
+    </div>
+</main>
+
+<BottomNav ActivePath="mes-rendez-vous" />
+
+@code {
+    private bool _checkingAuth = true;
+    private bool _error;
+    private bool _showHistorique;
+    private string? _message;
+    private Guid? _idClient;
+    private List<RdvHistoriqueItem> _rdvs = [];
+    private string? _lienPaiementRelance;
+    private Guid? _idRdvAnnulationEnCours;
+    private Guid? _idRdvAvisEnCours;
+    private int _noteAvis;
+    private string? _commentaireAvis;
+    private bool _avisBusy;
+    private Guid? _idRdvPourboireEnCours;
+    private decimal _montantPourboire = 1000m;
+    private bool _pourboireBusy;
+    private Guid? _idRdvLitigeEnCours;
+    private string? _motifLitige;
+    private bool _litigeBusy;
+    private bool _snapshotPending;
+
+    private List<RdvHistoriqueItem> AVenir => _rdvs.Where(r => r.StatutRdv is "DEMANDE" or "CONFIRME").ToList();
+    private List<RdvHistoriqueItem> Historique => _rdvs.Where(r => r.StatutRdv is "TERMINE" or "REFUSE" or "ANNULE").ToList();
+    private List<RdvHistoriqueItem> ListeAffichee => _showHistorique ? Historique : AVenir;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _idClient = await Session.GetClientIdAsync();
+        if (_idClient is null)
+        {
+            Navigation.NavigateTo("/login?ReturnUrl=/mes-rendez-vous");
+            return;
+        }
+
+        await LoadAsync();
+        _checkingAuth = false;
+    }
+
+    private async Task LoadAsync()
+    {
+        var (success, historique) = await RdvApi.GetHistoriqueAsync(_idClient!.Value, CancellationToken.None);
+        _error = !success;
+        _rdvs = historique;
+        _snapshotPending = success;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!_snapshotPending) return;
+        _snapshotPending = false;
+        await JS.InvokeVoidAsync("kekePwa.saveClientSnapshot", _rdvs);
+    }
+    private async Task VerifierPaiementAsync(Guid idRdv)
+    {
+        var (success, statut) = await RdvApi.VerifierPaiementAsync(_idClient!.Value, idRdv, CancellationToken.None);
+        _message = success ? $"Statut de paiement actualisé : {PaiementLabel(statut)}." : "Vérification impossible pour le moment.";
+        if (success)
+        {
+            await LoadAsync();
+        }
+    }
+
+    private void StartAvis(Guid idRdv)
+    {
+        _idRdvAvisEnCours = idRdv;
+        _noteAvis = 0;
+        _commentaireAvis = null;
+    }
+
+    private async Task EnvoyerAvisAsync(Guid idRdv)
+    {
+        if (_noteAvis == 0)
+        {
+            return;
+        }
+
+        _avisBusy = true;
+        var (success, status) = await RdvApi.LaisserAvisAsync(_idClient!.Value, idRdv, (short)_noteAvis, _commentaireAvis, CancellationToken.None);
+        _avisBusy = false;
+
+        if (success)
+        {
+            _idRdvAvisEnCours = null;
+            await LoadAsync();
+        }
+        else
+        {
+            _message = status switch
+            {
+                "avis_deja_existant" => "Un avis a déjà été laissé pour ce rendez-vous.",
+                _ => "Impossible d'envoyer l'avis pour le moment.",
+            };
+        }
+    }
+
+    private void StartPourboire(Guid idRdv)
+    {
+        _idRdvPourboireEnCours = idRdv;
+        _montantPourboire = 1000m;
+    }
+
+    private async Task EnvoyerPourboireAsync(Guid idRdv, Guid idCollaborateur)
+    {
+        _pourboireBusy = true;
+        var (success, status, lienPaiement) = await RdvApi.LaisserPourboireAsync(_idClient!.Value, idRdv, idCollaborateur, _montantPourboire, CancellationToken.None);
+        _pourboireBusy = false;
+        _idRdvPourboireEnCours = null;
+
+        _message = success
+            ? "Merci ! Finalisez le paiement du pourboire via le lien ci-dessous."
+            : "Le paiement du pourboire n'a pas pu être initié. Merci de réessayer plus tard.";
+        _lienPaiementRelance = success ? lienPaiement : null;
+    }
+
+    private void StartLitige(Guid idRdv)
+    {
+        _idRdvLitigeEnCours = idRdv;
+        _motifLitige = null;
+    }
+
+    private async Task EnvoyerLitigeAsync(Guid idRdv)
+    {
+        if (string.IsNullOrWhiteSpace(_motifLitige))
+        {
+            return;
+        }
+
+        _litigeBusy = true;
+        var (success, _) = await RdvApi.DeclarerLitigeAsync(_idClient!.Value, idRdv, _motifLitige, CancellationToken.None);
+        _litigeBusy = false;
+
+        _message = success
+            ? "Votre signalement a été transmis à l'équipe Keke Beauty. Nous reviendrons vers vous."
+            : "Impossible d'envoyer le signalement pour le moment.";
+        if (success)
+        {
+            _idRdvLitigeEnCours = null;
+        }
+    }
+
+    private static string StatutLabel(string statut) => statut switch
+    {
+        "DEMANDE" => "Demande envoyée",
+        "CONFIRME" => "Confirmé",
+        "REFUSE" => "Refusé",
+        "ANNULE" => "Annulé",
+        "TERMINE" => "Terminé",
+        _ => statut,
+    };
+
+    private static string StatutBadgeClass(string statut) => statut switch
+    {
+        "CONFIRME" => "bg-status-available/15 text-status-available",
+        "DEMANDE" => "bg-lavender-subtle text-primary",
+        "REFUSE" or "ANNULE" => "bg-error-container text-on-error-container",
+        "TERMINE" => "bg-surface-container-high text-on-surface-variant",
+        _ => "bg-surface-container text-on-surface-variant",
+    };
+
+    private static string PaiementLabel(string? statut) => statut switch
+    {
+        "REUSSIE" => "Payé",
+        "ECHOUEE" => "Échoué",
+        "EN_COURS" => "En attente",
+        "REMBOURSEMENT_DEMANDE" => "Remboursement demandé",
+        "REMBOURSEE" => "Remboursement effectué",
+        _ => "—",
+    };
+
+    private async Task RelancerPaiementAsync(Guid idRdv)
+    {
+        var (success, statut, lien) = await RdvApi.RelancerPaiementAsync(_idClient!.Value, idRdv, CancellationToken.None);
+        if (success)
+        {
+            _message = "Nouvelle tentative de paiement générée.";
+            _lienPaiementRelance = lien;
+            await LoadAsync();
+        }
+        else
+        {
+            _message = "Impossible de relancer le paiement pour le moment.";
+        }
+    }
+
+    private async Task AnnulerAsync(Guid idRdv)
+    {
+        var (success, remboursementEnCours) = await RdvApi.AnnulerAsync(_idClient!.Value, idRdv, CancellationToken.None);
+        _message = success
+            ? (remboursementEnCours
+                ? "Rendez-vous annulé. Votre remboursement sera traité manuellement sous 48h."
+                : "Rendez-vous annulé.")
+            : "Impossible d'annuler ce rendez-vous.";
+        if (success)
+        {
+            _idRdvAnnulationEnCours = null;
+            await LoadAsync();
+        }
+    }
+}
+
+
+

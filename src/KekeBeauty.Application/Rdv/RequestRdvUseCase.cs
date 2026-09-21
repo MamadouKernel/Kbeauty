@@ -13,9 +13,9 @@ public sealed class RequestRdvUseCase
         _repository.GetCreneauxOccupesAsync(idEtablissement, date, cancellationToken);
 
     public async Task<RequestRdvResult> ExecuteAsync(
-        Guid idEtablissement, Guid idPrestation, Guid idUtilisateurClient, DateTimeOffset dateHeureDebut, CancellationToken cancellationToken)
+        Guid idEtablissement, Guid idPrestation, Guid idUtilisateurClient, DateTimeOffset dateHeureDebut, string? modePaiementChoisi, CancellationToken cancellationToken)
     {
-        var idRdv = await _repository.CreateIfNoOverlapAsync(idEtablissement, idPrestation, idUtilisateurClient, dateHeureDebut, cancellationToken);
+        var idRdv = await _repository.CreateIfNoOverlapAsync(idEtablissement, idPrestation, idUtilisateurClient, dateHeureDebut, modePaiementChoisi, cancellationToken);
 
         if (idRdv is null)
         {

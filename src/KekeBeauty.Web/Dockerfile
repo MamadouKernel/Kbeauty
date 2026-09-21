@@ -16,6 +16,8 @@ RUN dotnet publish src/KekeBeauty.Web/KekeBeauty.Web.csproj -c Release -o /app -
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 WORKDIR /app
 COPY --from=build /app .
+RUN mkdir -p /app/data-protection-keys && chown -R $APP_UID:$APP_UID /app/data-protection-keys
+USER $APP_UID
 
 EXPOSE 8080
 ENV ASPNETCORE_URLS=http://+:8080

@@ -1,0 +1,111 @@
+@page "/partenaire/etablissements/{Id:guid}/statistiques"
+@inject PartnerApiClient PartnerApi
+@inject PartnerSessionService Session
+@inject NavigationManager Navigation
+@* prerender:false : voir PartnerDashboard.razor pour le detail du bug de prerendering evite. *@
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+
+<PageTitle>Revenus & Statistiques</PageTitle>
+@using KekeBeauty.Web.Components.Layout
+
+<PartnerDesktopHeader ActivePath="stats" IdEtablissement="Id" />
+
+<header class="lg:hidden fixed top-0 inset-x-0 z-50 bg-surface/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(58,13,82,0.04)] pt-safe">
+    <div class="h-16 px-margin flex items-center justify-between gap-space-sm">
+        <div class="flex items-center gap-space-xs min-w-0">
+            <a aria-label="Retour" class="w-11 h-11 -ml-2 rounded-full flex items-center justify-center text-text-primary hover:text-primary transition-colors active:scale-95" href="@($"/partenaire/etablissements/{Id}")">
+                <span class="material-symbols-outlined text-[22px]">arrow_back_ios_new</span>
+            </a>
+            <h1 class="font-headline-sm text-headline-sm text-text-primary truncate">Revenus & Statistiques</h1>
+        </div>
+    </div>
+</header>
+
+<main id="main-content" tabindex="-1" class="flex flex-col relative w-full pt-16 lg:pt-24 pb-safe bg-surface min-h-screen">
+    <div class="flex flex-col w-full px-margin pb-10 space-y-space-md lg:max-w-2xl lg:mx-auto">
+
+        @if (_checkingAuth)
+        {
+            <p class="font-body-md text-body-md text-on-surface-variant pt-space-md">Chargement…</p>
+        }
+        else if (_error)
+        {
+            <div class="rounded-xl bg-error-container text-on-error-container px-space-md py-space-sm font-body-md text-body-md">
+                Le service est momentanément indisponible. Merci de réessayer.
+            </div>
+        }
+        else if (_stats is not null)
+        {
+            <div class="grid grid-cols-2 gap-space-sm pt-space-sm">
+                <div class="bg-surface-cream rounded-xl p-space-md shadow-sm">
+                    <span class="material-symbols-outlined text-primary text-[22px]">event_available</span>
+                    <p class="font-headline-lg text-headline-lg text-text-primary font-bold mt-1">@_stats.NombreRdvConfirmes</p>
+                    <p class="font-body-sm text-body-sm text-on-surface-variant">RDV confirmés</p>
+                </div>
+                <div class="bg-surface-cream rounded-xl p-space-md shadow-sm">
+                    <span class="material-symbols-outlined text-status-available text-[22px]">task_alt</span>
+                    <p class="font-headline-lg text-headline-lg text-text-primary font-bold mt-1">@_stats.NombreRdvTermines</p>
+                    <p class="font-body-sm text-body-sm text-on-surface-variant">RDV terminés</p>
+                </div>
+            </div>
+
+            <div class="bg-gradient-to-br from-primary via-primary-container to-secondary rounded-xl p-space-md shadow-md text-on-primary">
+                <p class="font-label-md text-label-md uppercase tracking-wider opacity-80">Revenu estimé</p>
+                <p class="font-display-lg-mobile text-display-lg-mobile font-bold mt-1">@_stats.RevenuEstime.ToString("N0") FCFA</p>
+                <p class="font-body-sm text-body-sm opacity-80 mt-1">Basé sur les RDV confirmés ou terminés (tarif catalogue)</p>
+            </div>
+
+            <div class="bg-surface-cream rounded-xl p-space-md shadow-sm flex items-center justify-between">
+                <div>
+                    <p class="font-label-lg text-label-lg text-text-primary font-bold">Statut de l'abonnement</p>
+                    <p class="font-body-sm text-body-sm text-on-surface-variant">Visibilité sur Keke Beauty</p>
+                </div>
+                <span class="font-label-md text-label-md px-3 py-1 rounded-full @AbonnementBadgeClass(_stats.StatutAbonnement)">@AbonnementLabel(_stats.StatutAbonnement)</span>
+            </div>
+
+            @if (_stats.StatutAbonnement is null or "IMPAYE" or "RESILIE")
+            {
+                <a class="block text-center py-3 rounded-full bg-primary-container text-on-primary font-label-lg text-label-lg shadow-md" href="@($"/partenaire/etablissements/{Id}/abonnement")">Gérer mon abonnement</a>
+            }
+        }
+    </div>
+</main>
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+
+    private Guid? _idPartner;
+    private bool _checkingAuth = true;
+    private bool _error;
+    private PartenaireStatistiquesDto? _stats;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _idPartner = await Session.GetPartnerIdAsync();
+        if (_idPartner is null)
+        {
+            Navigation.NavigateTo("/login?role=partenaire");
+            return;
+        }
+
+        var (success, stats) = await PartnerApi.GetStatistiquesAsync(_idPartner.Value, Id, CancellationToken.None);
+        _error = !success;
+        _stats = stats;
+        _checkingAuth = false;
+    }
+
+    private static string AbonnementLabel(string? statut) => statut switch
+    {
+        "ACTIF" => "Actif",
+        "IMPAYE" => "Impayé",
+        "RESILIE" => "Résilié",
+        _ => "Aucun abonnement",
+    };
+
+    private static string AbonnementBadgeClass(string? statut) => statut switch
+    {
+        "ACTIF" => "bg-status-available/15 text-status-available",
+        "IMPAYE" or "RESILIE" => "bg-error-container text-on-error-container",
+        _ => "bg-surface-container text-on-surface-variant",
+    };
+}

@@ -1,42 +1,165 @@
 @page "/"
 @inject DirectoryApiClient DirectoryApi
+@inject IJSRuntime JS
 @rendermode InteractiveServer
+@using KekeBeauty.Web.Components.Layout
 
-<PageTitle>Keke Beauty — Annuaire</PageTitle>
+<PageTitle>Keke Beauty — Découverte</PageTitle>
 
-<h1>Trouvez un salon de beauté</h1>
+<DesktopHeader ActivePath="accueil" />
 
-<div class="row g-2 mb-3">
-    <div class="col-auto">
-        <input class="form-control" placeholder="Catégorie" @bind="_categorie" @bind:event="oninput" />
-    </div>
-    <div class="col-auto">
-        <input class="form-control" placeholder="Commune" @bind="_commune" @bind:event="oninput" />
-    </div>
-    <div class="col-auto">
-        <button class="btn btn-primary" @onclick="SearchAsync">Rechercher</button>
-    </div>
-</div>
+<header class="lg:hidden fixed top-0 w-full z-50 pt-safe bg-surface-cream/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)]">
+    <div class="h-16 px-margin flex items-center justify-between gap-space-sm">
+        <div class="flex items-center gap-space-sm min-w-0 flex-1">
+            <img alt="Keke Beauty" class="h-8 w-auto object-contain shrink-0" src="/img/logo.png" />
+            <div class="flex flex-col min-w-0">
+                <span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider truncate">Keke Beauty</span>
+                <span class="flex items-center gap-space-xs text-primary font-headline-sm text-headline-sm truncate text-left">
+                    <span class="truncate">Découvrir</span>
 
-@if (_error)
-{
-    <div class="alert alert-danger">Le service annuaire est momentanément indisponible. Merci de réessayer.</div>
-}
-else if (_searched && _results.Count == 0)
-{
-    <p>Aucun résultat pour ces critères.</p>
-}
-else
-{
-    <div class="list-group">
-        @foreach (var etablissement in _results)
-        {
-            <a class="list-group-item list-group-item-action" href="@($"/etablissements/{etablissement.IdEtablissement}")">
-                <strong>@etablissement.NomEtablissement</strong> — @etablissement.LibelleCommune
+                </span>
+            </div>
+        </div>
+        <div class="flex items-center gap-space-xs shrink-0">
+            <NotificationBell />
+            <a href="/login" aria-label="Mon espace" class="w-8 h-8 rounded-full bg-primary flex items-center justify-center ml-space-xs shadow-sm">
+                <span class="material-symbols-outlined text-on-primary text-[18px]">person</span>
             </a>
+        </div>
+    </div>
+</header>
+
+<main id="main-content" tabindex="-1" class="discovery-page flex-1 flex flex-col relative w-full pt-16 lg:pt-20 pb-20 lg:pb-space-xl bg-surface">
+
+    <section class="discovery-hero" aria-labelledby="discovery-title">
+        <div class="hero-copy">
+            <span class="eyebrow"><span class="hero-dot"></span> VOTRE PAUSE BEAUTÉ, À ABIDJAN</span>
+            <h1 id="discovery-title">Du temps pour vous.<br /><em>Tout simplement.</em></h1>
+            <p>Coiffure, soins, ongles ou détente. Trouvez votre adresse beauté et réservez votre prochain moment à vous.</p>
+            <a class="hero-link" href="#salons">Explorer les salons <span class="material-symbols-outlined" aria-hidden="true">south_east</span></a>
+        </div>
+        <div class="hero-art" aria-hidden="true">
+            <div class="hero-orbit"></div>
+            <div class="hero-flower"><span class="material-symbols-outlined">spa</span></div>
+            <span class="hero-art-label">L’art de prendre soin de soi</span>
+            <div class="hero-note"><span class="material-symbols-outlined">calendar_month</span><div>Votre prochain rendez-vous<small>Commence par une envie.</small></div></div>
+        </div>
+        <div class="hero-search">
+            <label class="hero-field"><span class="material-symbols-outlined" aria-hidden="true">search</span><span><strong>Une envie beauté ?</strong><input aria-label="Rechercher une catégorie" placeholder="Coiffure, spa, onglerie…" @bind="_categorie" @bind:event="oninput" @onkeyup="OnSearchKeyUp" /></span></label>
+            <label class="hero-field"><span class="material-symbols-outlined" aria-hidden="true">location_on</span><span><strong>Où à Abidjan ?</strong><input aria-label="Commune" placeholder="Toutes les communes" @bind="_commune" @bind:event="oninput" @onkeyup="OnSearchKeyUp" /></span></label>
+            <button class="hero-search-button" type="button" @onclick="SearchAsync">Trouver mon salon <span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span></button>
+        </div>
+    </section>
+
+    <div id="salons" class="discovery-content flex flex-col w-full pb-10 lg:max-w-7xl lg:mx-auto lg:w-full">
+
+        <section class="pb-space-md">
+            <div class="px-margin flex items-center justify-between mb-space-sm">
+                <h2 class="font-headline-sm text-headline-sm text-primary">Univers Beauté</h2>
+            </div>
+            <div class="beauty-categories flex gap-space-sm px-margin py-1">
+                @foreach (var categorie in _categories)
+                {
+                    var isActive = string.Equals(_categorie, categorie.Libelle, StringComparison.OrdinalIgnoreCase);
+                    <button class="flex items-center gap-2.5 px-4 py-2.5 rounded-full shrink-0 transition-transform active:scale-95 @(isActive ? "bg-primary-container text-on-primary shadow-sm" : "bg-surface-cream text-primary shadow-[0_2px_8px_rgba(58,13,82,0.04)] hover:bg-lavender-subtle")"
+                            type="button" @onclick="() => SelectCategoryAsync(categorie.Libelle)">
+                        <span class="material-symbols-outlined text-[20px] @(isActive ? "" : "text-secondary")">@categorie.Icon</span>
+                        <span class="font-label-md text-label-md">@categorie.Libelle</span>
+                    </button>
+                }
+            </div>
+        </section>
+
+        <section class="px-margin flex items-center justify-between mb-space-sm pt-space-xs">
+            <div>
+                <h2 class="font-headline-md text-headline-md text-primary">Salons</h2>
+                <p class="font-body-sm text-body-sm text-on-surface-variant">
+                    @(_searched ? $"{_results.Count} résultat(s)" : "Sélection à proximité")
+                </p>
+            </div>
+            <div class="flex items-center bg-surface-container-high p-1 rounded-full shadow-inner">
+                <button class="flex items-center gap-1 px-3 py-1.5 rounded-full font-label-md text-label-md transition-all @(!_showMap ? "bg-surface-container-lowest text-primary shadow-sm" : "text-on-surface-variant hover:text-primary")" type="button" @onclick="() => _showMap = false">
+                    <span class="material-symbols-outlined text-[16px]">format_list_bulleted</span>
+                    <span>Liste</span>
+                </button>
+                <button class="flex items-center gap-1 px-3 py-1.5 rounded-full font-label-md text-label-md transition-all @(_showMap ? "bg-surface-container-lowest text-primary shadow-sm" : "text-on-surface-variant hover:text-primary")" type="button" @onclick="ShowMap">
+                    <span class="material-symbols-outlined text-[16px]">map</span>
+                    <span>Carte</span>
+                </button>
+            </div>
+        </section>
+
+        @if (_showMap)
+        {
+            <div class="px-margin mb-space-lg">
+                <div class="relative w-full h-56 rounded-2xl overflow-hidden shadow-md bg-surface-container">
+                    <div id="home-osm" class="absolute inset-0"></div>
+                    <div class="absolute bottom-3 left-3 z-[400] bg-surface-cream/95 backdrop-blur px-3 py-1.5 rounded-xl shadow-sm pointer-events-none">
+                        <span class="font-label-sm text-label-sm text-primary flex items-center gap-1">
+                            <span class="w-2 h-2 rounded-full bg-status-available animate-pulse"></span>
+                            @_results.Count salon(s) trouvé(s)
+                        </span>
+                    </div>
+                </div>
+            </div>
+        }
+
+        @if (_error)
+        {
+            <div class="px-margin">
+                <div class="rounded-xl bg-error-container text-on-error-container px-space-md py-space-sm font-body-md text-body-md">
+                    Le service annuaire est momentanément indisponible. Merci de réessayer.
+                </div>
+            </div>
+        }
+        else if (_searched && _results.Count == 0)
+        {
+            <div class="px-margin">
+                <div class="search-empty">
+                    <span class="material-symbols-outlined" aria-hidden="true">search_off</span>
+                    <h3>Aucun salon pour cette recherche</h3>
+                    <p>Essayez une autre commune ou découvrez toutes les adresses.</p>
+                    <button type="button" @onclick="ResetSearchAsync">Voir tous les salons</button>
+                </div>
+            </div>
+        }
+        else
+        {
+            <section class="salon-grid px-margin grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-space-md">
+                @foreach (var etablissement in _results)
+                {
+                    <a href="@($"/etablissements/{etablissement.IdEtablissement}")"
+                       class="salon-card w-full bg-surface-cream rounded-2xl overflow-hidden shadow-[0_4px_24px_-4px_rgba(58,13,82,0.07)] flex flex-col transition-transform hover:shadow-lg active:scale-[0.99]">
+                        <div class="salon-cover relative w-full h-40 bg-lavender-subtle overflow-hidden"><img class="w-full h-full object-cover" src="@($"/media/devanture/{etablissement.IdEtablissement}")" alt="Devanture de @etablissement.NomEtablissement" loading="lazy" /></div>
+                        <div class="p-space-md flex flex-col gap-space-xs">
+                            <div class="min-w-0">
+                                <h3 class="font-headline-sm text-headline-sm text-primary truncate">@etablissement.NomEtablissement</h3>
+                                <div class="flex items-center gap-1.5 text-on-surface-variant font-body-sm text-body-sm mt-0.5">
+                                    <span class="material-symbols-outlined text-secondary text-[16px]" style="font-variation-settings: 'FILL' 1;">location_on</span>
+                                    <span class="truncate">@etablissement.LibelleCommune</span>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-end pt-space-sm mt-space-xs">
+                                <span class="px-4 py-2.5 rounded-full bg-primary-container text-on-primary font-label-md text-label-md shadow-md hover:bg-primary transition-all active:scale-95 flex items-center gap-1">
+                                    <span>Découvrir</span>
+                                    <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+                                </span>
+                            </div>
+                        </div>
+                    </a>
+                }
+            </section>
         }
     </div>
-}
+
+    <aside class="lg:hidden fixed right-4 bottom-24 z-40">
+        <button aria-label="Recentrer ma position" class="w-12 h-12 rounded-full bg-surface-cream text-primary shadow-[0_6px_20px_rgba(58,13,82,0.18)] flex items-center justify-center transition-transform active:scale-90" type="button" @onclick="ShowMap">
+            <span class="material-symbols-outlined text-[24px] text-secondary">explore</span>
+        </button>
+    </aside>
+</main>
+
+<BottomNav ActivePath="decouverte" />
 
 @code {
     private string? _categorie;
@@ -44,8 +167,59 @@ else
     private List<EtablissementSummary> _results = [];
     private bool _searched;
     private bool _error;
+    private bool _showMap;
+
+
+    private readonly record struct CategoryItem(string Icon, string Libelle);
+
+    private readonly List<CategoryItem> _categories =
+    [
+        new("content_cut", "Coiffure & Tresses"),
+        new("brush", "Onglerie & Art"),
+        new("hot_tub", "Espace Spa"),
+        new("self_improvement", "Massages"),
+        new("face_4", "Soins Visage"),
+    ];
+
+    private bool _mapDirty;
 
     protected override async Task OnInitializedAsync() => await SearchAsync();
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_showMap && _mapDirty)
+        {
+            _mapDirty = false;
+            await RenderMapAsync();
+        }
+    }
+
+    private async Task SelectCategoryAsync(string libelle)
+    {
+        _categorie = string.Equals(_categorie, libelle, StringComparison.OrdinalIgnoreCase) ? null : libelle;
+        await SearchAsync();
+    }
+
+    private void ShowMap()
+    {
+        _showMap = true;
+        _mapDirty = true;
+    }
+
+    private async Task OnSearchKeyUp(Microsoft.AspNetCore.Components.Web.KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await SearchAsync();
+        }
+    }
+
+    private async Task ResetSearchAsync()
+    {
+        _categorie = null;
+        _commune = null;
+        await SearchAsync();
+    }
 
     private async Task SearchAsync()
     {
@@ -53,5 +227,27 @@ else
         _error = !success;
         _results = results;
         _searched = true;
+        if (_showMap)
+        {
+            _mapDirty = true;
+        }
+    }
+
+    private async Task RenderMapAsync()
+    {
+        const decimal defaultLat = 5.3599517m;
+        const decimal defaultLng = -4.0082563m;
+
+        var centerLat = _results.Count > 0 ? _results.Average(r => r.GpsLatitude) : defaultLat;
+        var centerLng = _results.Count > 0 ? _results.Average(r => r.GpsLongitude) : defaultLng;
+
+        var markers = _results.Select(r => new
+        {
+            lat = r.GpsLatitude,
+            lng = r.GpsLongitude,
+            popupHtml = $"<strong>{System.Net.WebUtility.HtmlEncode(r.NomEtablissement)}</strong><br/>{System.Net.WebUtility.HtmlEncode(r.LibelleCommune)}<br/><a href=\"/etablissements/{r.IdEtablissement}\">Voir le salon</a>",
+        });
+
+        await JS.InvokeVoidAsync("kekeMap.init", "home-osm", centerLat, centerLng, _results.Count > 0 ? 12 : 11, markers);
     }
 }

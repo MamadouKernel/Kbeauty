@@ -1,0 +1,40 @@
+@page "/partenaire/profil"
+@using KekeBeauty.Web.Components.Layout
+@inject PartnerApiClient Api
+@inject PartnerSessionService Session
+@inject NavigationManager Nav
+@rendermode @(new InteractiveServerRenderMode(prerender:false))
+<PageTitle>Mon profil partenaire</PageTitle>
+<PartnerDesktopHeader ActivePath="/partenaire/profil" />
+<main id="main-content" class="premium-page pb-28">
+ <div class="premium-container max-w-2xl">
+  <a href="/partenaire" class="premium-back"><span class="material-symbols-outlined">arrow_back</span> Retour à mon espace</a>
+  <div class="premium-heading"><span class="premium-eyebrow">Identité professionnelle</span><h1>Mon profil partenaire</h1><p>Une identité complète inspire confiance aux clientes et facilite la validation de votre dossier.</p></div>
+  <section class="premium-card profile-editor">
+   <div class="profile-photo-zone">
+    <div class="profile-avatar-xl">
+     @if (!string.IsNullOrWhiteSpace(_photoPreview)) { <img src="@_photoPreview" alt="Photo de profil de @_name" /> }
+     else { <span class="material-symbols-outlined">person</span> }
+    </div>
+    <div><h2>Photo de profil</h2><p>Cadrez votre visage de face, dans un endroit bien éclairé.</p>
+     <label class="premium-upload-button"><span class="material-symbols-outlined">photo_camera</span>@(_photoBytes is null && _hasPhoto ? "Changer la photo" : "Prendre ou choisir une photo")<InputFile OnChange="OnPhoto" accept="image/jpeg,image/png,image/webp" capture="user" /></label>
+     <small>JPG, PNG ou WebP · 8 Mo maximum</small>
+    </div>
+   </div>
+   <div class="profile-form-grid">
+    <label><span>Nom complet</span><input class="onboarding-input" autocomplete="name" @bind="_name" /></label>
+    <label><span>Email</span><input class="onboarding-input" type="email" autocomplete="email" @bind="_email" /></label>
+    <label class="profile-full"><span>Téléphone du compte</span><input class="onboarding-input" value="@_phone" disabled /><small>Ce numéro sécurisé identifie votre compte partenaire.</small></label>
+   </div>
+   @if (_message is not null) { <KekeAlert Severity="@_severity" Title="@(_severity == "success" ? "Profil mis à jour" : "Action impossible")">@_message</KekeAlert> }
+   <button class="premium-primary-action" disabled="@_saving" @onclick="Save"><span class="material-symbols-outlined">save</span>@(_saving ? "Enregistrement…" : "Enregistrer mon profil")</button>
+  </section>
+ </div>
+</main>
+@code {
+ const long MaxFileSize=8*1024*1024;
+ Guid? _id; string _name="",_email="",_phone=""; string? _message,_photoPreview,_photoName; string _severity="danger"; byte[]? _photoBytes; bool _hasPhoto,_saving;
+ protected override async Task OnInitializedAsync(){_id=await Session.GetPartnerIdAsync();if(_id is null){Nav.NavigateTo("/login?role=partenaire");return;}var p=await Api.GetPartnerProfileAsync(_id.Value,CancellationToken.None);if(p is null){_message="Le profil n’a pas pu être chargé.";return;}_name=p.Nom;_email=p.Email??"";_phone=p.Telephone;_hasPhoto=p.HasPhotoProfil;if(_hasPhoto)_photoPreview=await Api.GetPartnerPhotoDataUrlAsync(_id.Value,CancellationToken.None);}
+ async Task OnPhoto(InputFileChangeEventArgs e){try{var file=e.File;await using var input=file.OpenReadStream(MaxFileSize);using var output=new MemoryStream();await input.CopyToAsync(output);_photoBytes=output.ToArray();_photoName=file.Name;_photoPreview=$"data:{file.ContentType};base64,{Convert.ToBase64String(_photoBytes)}";_message=null;}catch(Exception){_severity="danger";_message="La photo dépasse 8 Mo ou son format n’est pas pris en charge.";}}
+ async Task Save(){if(_id is null||string.IsNullOrWhiteSpace(_name))return;_saving=true;_message=null;try{var(ok,_)=await Api.UpdatePartnerProfileAsync(_id.Value,_name.Trim(),string.IsNullOrWhiteSpace(_email)?null:_email.Trim(),CancellationToken.None);if(ok&&_photoBytes is not null)ok=await Api.UploadPartnerPhotoAsync(_id.Value,_photoBytes,_photoName??"profil.jpg",CancellationToken.None);_severity=ok?"success":"danger";_message=ok?"Vos informations et votre photo sont enregistrées.":"Impossible d’enregistrer le profil. Réessayez.";if(ok){_photoBytes=null;_hasPhoto=true;}}finally{_saving=false;}}
+}

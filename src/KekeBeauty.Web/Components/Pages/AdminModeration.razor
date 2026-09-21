@@ -6,6 +6,10 @@
 @rendermode @(new InteractiveServerRenderMode(prerender: false))
 
 <PageTitle>Modération</PageTitle>
+@using KekeBeauty.Web.Components.Layout
+<AdminHeader ActivePath="/admin/moderation" />
+<main id="main-content" tabindex="-1" class="admin-page admin-legacy"><div class="admin-content">
+
 
 @if (_checkingAuth)
 {
@@ -17,14 +21,14 @@ else
 
     <h2>Compte utilisateur (client/partenaire)</h2>
     <div class="row g-2 mb-3">
-        <div class="col-auto"><input class="form-control" placeholder="Identifiant utilisateur (guid)" @bind="_idUtilisateur" style="width:320px" /></div>
+        <div class="col-auto"><input class="form-control" placeholder="Identifiant utilisateur (guid)" @bind="_idUtilisateur"  /></div>
         <div class="col-auto"><button class="btn btn-outline-danger" @onclick="SuspendreUtilisateurAsync">Suspendre</button></div>
         <div class="col-auto"><button class="btn btn-outline-success" @onclick="ReactiverUtilisateurAsync">Réactiver</button></div>
     </div>
 
     <h2>Établissement</h2>
     <div class="row g-2 mb-3">
-        <div class="col-auto"><input class="form-control" placeholder="Identifiant établissement (guid)" @bind="_idEtablissement" style="width:320px" /></div>
+        <div class="col-auto"><input class="form-control" placeholder="Identifiant établissement (guid)" @bind="_idEtablissement"  /></div>
         <div class="col-auto"><button class="btn btn-outline-danger" @onclick="SuspendreEtablissementAsync">Suspendre</button></div>
         <div class="col-auto"><button class="btn btn-outline-success" @onclick="ReactiverEtablissementAsync">Réactiver</button></div>
     </div>
@@ -34,6 +38,8 @@ else
         <div class="alert @(_success ? "alert-success" : "alert-danger")">@_message</div>
     }
 }
+
+</div></main>
 
 @code {
     private string? _apiKey;

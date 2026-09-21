@@ -1,0 +1,503 @@
+@page "/partenaire/etablissements/{IdEtablissement:guid}/agenda"
+@inject PartnerApiClient PartnerApi
+@inject PartnerRdvApiClient PartnerRdvApi
+@inject PartnerSessionService Session
+@inject NavigationManager Navigation
+@using KekeBeauty.Web.Models
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+
+<PageTitle>Agenda Multi-Fauteuils & Cabines — Keke Pro</PageTitle>
+
+<div class="min-h-screen bg-surface flex flex-col font-body-md text-body-md text-on-surface">
+    <!-- Top Navigation Header -->
+    <header class="fixed top-0 inset-x-0 h-16 bg-surface-cream/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-40 flex items-center justify-between px-6 lg:px-10">
+        <div class="flex items-center gap-4">
+            <a class="w-10 h-10 rounded-full flex items-center justify-center hover:bg-lavender-subtle text-text-primary transition-colors" href="@($"/partenaire/etablissements/{IdEtablissement}")" title="Retour aux détails">
+                <span class="material-symbols-outlined text-[20px]">arrow_back</span>
+            </a>
+            <div class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface-container text-text-primary">
+                <span class="material-symbols-outlined text-[18px] text-primary">store</span>
+                <span class="font-label-lg text-label-lg font-bold">@(_detail?.NomEtablissement ?? "Mon Établissement")</span>
+            </div>
+            <div class="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-status-available/10 text-status-available">
+                <span class="w-2 h-2 rounded-full bg-status-available animate-pulse"></span>
+                <span class="font-label-sm text-label-sm font-bold">En service / Ouvert</span>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+            <div class="hidden md:flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-lavender-subtle text-plum-deep">
+                <span class="material-symbols-outlined text-[18px] text-primary">payments</span>
+                <span class="font-label-sm text-label-sm text-outline uppercase font-semibold">Aujourd'hui :</span>
+                <span class="font-label-lg text-label-lg font-bold text-primary">@TotalAujourdhuiFormatted</span>
+            </div>
+            <a class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-surface-cream border border-outline-variant/40 hover:bg-lavender-subtle text-plum-deep font-label-md transition-colors shadow-sm" href="@($"/partenaire/etablissements/{IdEtablissement}/comptoir")">
+                <span class="material-symbols-outlined text-[18px] text-secondary">point_of_sale</span>
+                <span class="hidden lg:inline">Accueil Comptoir</span>
+            </a>
+            <a class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-surface-cream border border-outline-variant/40 hover:bg-lavender-subtle text-plum-deep font-label-md transition-colors shadow-sm" href="@($"/partenaire/etablissements/{IdEtablissement}/finances")">
+                <span class="material-symbols-outlined text-[18px] text-primary">account_balance_wallet</span>
+                <span class="hidden lg:inline">Finances Wave</span>
+            </a>
+        </div>
+    </header>
+
+    <main class="pt-20 px-6 lg:px-10 pb-16 flex-1 flex flex-col gap-5 max-w-[1600px] w-full mx-auto">
+        <!-- En-tête de vue de planning & Contrôles temporels -->
+        <div class="flex flex-col gap-4">
+            <div class="flex flex-wrap items-center justify-between gap-4">
+                <div class="flex flex-col">
+                    <div class="flex items-center gap-2">
+                        <span class="font-label-sm text-label-sm uppercase tracking-widest text-primary font-bold">Pilotage Temps Réel</span>
+                        <span class="w-1.5 h-1.5 rounded-full bg-status-available"></span>
+                        <span class="font-label-sm text-label-sm text-outline">Directeur Connecté</span>
+                    </div>
+                    <h1 class="font-display-lg-mobile lg:font-display-lg text-display-lg-mobile lg:text-display-lg text-text-primary tracking-tight font-bold">
+                        Agenda Multi-Fauteuils &amp; Cabines
+                    </h1>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-3">
+                    <!-- Date Navigator -->
+                    <div class="flex items-center bg-surface-cream rounded-xl p-1.5 shadow-sm border border-outline-variant/30">
+                        <button class="p-1.5 rounded-lg text-on-surface-variant hover:bg-surface-container transition-colors" title="Jour précédent" @onclick="PrevDay">
+                            <span class="material-symbols-outlined text-[18px]">chevron_left</span>
+                        </button>
+                        <div class="flex items-center gap-2 px-3">
+                            <span class="material-symbols-outlined text-[18px] text-primary">calendar_today</span>
+                            <span class="font-label-lg text-label-lg text-text-primary font-bold">@_currentDate.ToString("dddd d MMMM yyyy", Culture)</span>
+                        </div>
+                        <button class="p-1.5 rounded-lg text-on-surface-variant hover:bg-surface-container transition-colors" title="Jour suivant" @onclick="NextDay">
+                            <span class="material-symbols-outlined text-[18px]">chevron_right</span>
+                        </button>
+                        <button class="ml-1 px-3 py-1 text-label-sm font-label-sm rounded-lg bg-lavender-subtle text-primary font-bold hover:bg-primary hover:text-on-primary transition-all" @onclick="Today">
+                            Aujourd'hui
+                        </button>
+                    </div>
+
+                    <!-- Actions rapides -->
+                    <div class="flex items-center gap-2">
+                        <button class="flex items-center gap-2 px-4 py-2.5 rounded-full bg-primary hover:bg-plum-deep text-on-primary font-label-lg text-label-lg shadow-md hover:scale-[0.98] transition-all" @onclick="() => _showWalkinModal = true">
+                            <span class="material-symbols-outlined text-[18px]">add_circle</span>
+                            <span>+ Nouveau RDV / Walk-in</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Category Filter Chips -->
+            <div class="flex flex-wrap items-center justify-between gap-3 pt-1 border-b border-outline-variant/30 pb-3">
+                <div class="flex flex-wrap items-center gap-2">
+                    <button class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-label-md font-semibold transition-all @(_selectedPoste == "all" ? "bg-primary text-on-primary shadow-sm" : "bg-surface-cream text-plum-deep hover:bg-lavender-subtle")" @onclick='() => _selectedPoste = "all"'>
+                        <span>Tous les postes (@CollaborateursCount)</span>
+                    </button>
+                    @foreach (var c in _collaborateurs)
+                    {
+                        <button class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-label-md font-semibold transition-all @(_selectedPoste == c.IdCollaborateur.ToString() ? "bg-primary text-on-primary shadow-sm" : "bg-surface-cream text-plum-deep hover:bg-lavender-subtle")" @onclick="() => _selectedPoste = c.IdCollaborateur.ToString()">
+                            <span class="material-symbols-outlined text-[16px] text-primary">person</span>
+                            <span>@c.Nom</span>
+                        </button>
+                    }
+                </div>
+                <div class="text-label-sm font-label-sm text-outline">
+                    @FilteredRdvs.Count rendez-vous prévus pour cette journée
+                </div>
+            </div>
+        </div>
+
+        @if (_loading)
+        {
+            <div class="py-20 text-center text-on-surface-variant font-body-md">
+                <span class="inline-block w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin mb-2"></span>
+                <p>Chargement du planning multi-fauteuils…</p>
+            </div>
+        }
+        else
+        {
+            <!-- Multi-chair timeline grid -->
+            <div class="bg-surface-cream rounded-2xl shadow-sm border border-outline-variant/30 overflow-hidden flex flex-col">
+                <!-- Columns Header (Chairs / Praticiennes) -->
+                <div class="grid border-b border-outline-variant/30 bg-surface-container-low" style="grid-template-columns: 80px repeat(@VisibleColumns.Count, minmax(220px, 1fr));">
+                    <div class="p-3 text-center text-label-sm font-bold text-outline uppercase border-r border-outline-variant/30">
+                        Heure
+                    </div>
+                    @foreach (var col in VisibleColumns)
+                    {
+                        <div class="p-3.5 flex items-center justify-between border-r border-outline-variant/30 last:border-r-0">
+                            <div class="flex items-center gap-2.5 min-w-0">
+                                <div class="w-8 h-8 rounded-full bg-lavender-subtle text-primary flex items-center justify-center font-bold text-xs shrink-0">
+                                    @col.Nom[..Math.Min(col.Nom.Length, 2)].ToUpperInvariant()
+                                </div>
+                                <div class="min-w-0">
+                                    <p class="font-label-md text-label-md text-text-primary font-bold truncate">@col.Nom</p>
+                                    <p class="font-body-sm text-body-sm text-on-surface-variant truncate">@(col.Specialite ?? "Fauteuil & Soins")</p>
+                                </div>
+                            </div>
+                            <span class="w-2.5 h-2.5 rounded-full bg-status-available" title="Poste opérationnel"></span>
+                        </div>
+                    }
+                </div>
+
+                <!-- Timeline Body Hours (08:00 to 19:00) -->
+                <div class="divide-y divide-outline-variant/20 max-h-[750px] overflow-y-auto">
+                    @for (int hour = 8; hour <= 19; hour++)
+                    {
+                        var currentHour = hour;
+                        <div class="grid hover:bg-surface/50 transition-colors" style="grid-template-columns: 80px repeat(@VisibleColumns.Count, minmax(220px, 1fr)); min-height: 85px;">
+                            <!-- Time Slot Label -->
+                            <div class="p-3 text-center font-label-md font-bold text-on-surface-variant border-r border-outline-variant/30 flex items-start justify-center pt-2">
+                                @($"{currentHour:D2}:00")
+                            </div>
+
+                            <!-- Cells for each column -->
+                            @foreach (var col in VisibleColumns)
+                            {
+                                var slotRdvs = GetRdvsForSlot(col.IdCollaborateur, currentHour);
+                                <div class="p-1.5 border-r border-outline-variant/30 last:border-r-0 relative flex flex-col gap-1.5">
+                                    @foreach (var rdv in slotRdvs)
+                                    {
+                                        <div class="rounded-xl p-2.5 shadow-sm text-left transition-transform hover:scale-[1.01] cursor-pointer @GetCardClass(rdv.StatutRdv)" @onclick="() => SelectRdv(rdv)">
+                                            <div class="flex items-center justify-between gap-1 mb-1">
+                                                <span class="font-label-sm text-label-sm font-bold truncate">@rdv.DateHeureDebut.ToLocalTime().ToString("HH:mm")</span>
+                                                <span class="font-label-sm text-[10px] px-2 py-0.5 rounded-full @GetBadgeClass(rdv.StatutRdv)">@StatusText(rdv.StatutRdv)</span>
+                                            </div>
+                                            <p class="font-label-md text-label-md font-bold truncate text-text-primary">@rdv.NomClient</p>
+                                            <p class="font-body-sm text-body-sm text-on-surface-variant truncate">@rdv.LibellePrestation</p>
+                                            @if (rdv.OrigineRdv == "COMPTOIR")
+                                            {
+                                                <span class="inline-flex items-center gap-1 font-label-sm text-[10px] text-secondary mt-1">
+                                                    <span class="material-symbols-outlined text-[12px]">storefront</span> Walk-in
+                                                </span>
+                                            }
+                                            @if (rdv.RetardMinutes is not null)
+                                            {
+                                                <span class="inline-flex items-center gap-1 font-label-sm text-[10px] text-status-unavailable font-bold mt-1">
+                                                    <span class="material-symbols-outlined text-[12px]">pace</span> +@rdv.RetardMinutes min
+                                                </span>
+                                            }
+                                        </div>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    </main>
+
+    <!-- Modal Walk-in / Nouveau RDV Comptoir -->
+    @if (_showWalkinModal)
+    {
+        <div class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+            <div class="bg-surface-cream rounded-2xl p-6 shadow-xl max-w-md w-full flex flex-col gap-4 border border-outline-variant/30">
+                <div class="flex items-center justify-between border-b border-outline-variant/20 pb-3">
+                    <div class="flex items-center gap-2">
+                        <span class="material-symbols-outlined text-primary text-[24px]">person_pin</span>
+                        <h3 class="font-headline-sm text-headline-sm text-text-primary font-bold">Nouveau Rendez-vous Comptoir</h3>
+                    </div>
+                    <button class="text-on-surface-variant hover:text-text-primary" @onclick="() => _showWalkinModal = false">
+                        <span class="material-symbols-outlined text-[20px]">close</span>
+                    </button>
+                </div>
+
+                <div class="flex flex-col gap-3">
+                    <label class="flex flex-col gap-1">
+                        <span class="font-label-sm text-label-sm text-on-surface-variant uppercase font-bold">Nom de la cliente</span>
+                        <input class="px-3 py-2 rounded-xl bg-surface-container-low text-text-primary border border-outline-variant/40 focus:outline-none focus:border-primary" placeholder="Ex: Aminata Traoré" @bind="_walkinNom" />
+                    </label>
+
+                    <label class="flex flex-col gap-1">
+                        <span class="font-label-sm text-label-sm text-on-surface-variant uppercase font-bold">Téléphone Mobile (+225)</span>
+                        <input class="px-3 py-2 rounded-xl bg-surface-container-low text-text-primary border border-outline-variant/40 focus:outline-none focus:border-primary" placeholder="07 00 00 00 00" @bind="_walkinPhone" />
+                    </label>
+
+                    <label class="flex flex-col gap-1">
+                        <span class="font-label-sm text-label-sm text-on-surface-variant uppercase font-bold">Prestation</span>
+                        <select class="px-3 py-2 rounded-xl bg-surface-container-low text-text-primary border border-outline-variant/40 focus:outline-none focus:border-primary" @bind="_walkinPrestationId">
+                            <option value="">Sélectionner une prestation…</option>
+                            @foreach (var p in _prestations)
+                            {
+                                <option value="@p.IdPrestation">@p.Libelle - @p.Tarif.ToString("N0") FCFA (@p.DureeMinutes min)</option>
+                            }
+                        </select>
+                    </label>
+
+                    <label class="flex flex-col gap-1">
+                        <span class="font-label-sm text-label-sm text-on-surface-variant uppercase font-bold">Fauteuil / Praticienne (Optionnel)</span>
+                        <select class="px-3 py-2 rounded-xl bg-surface-container-low text-text-primary border border-outline-variant/40 focus:outline-none focus:border-primary" @bind="_walkinCollabId">
+                            <option value="">Aucune attribution immédiate</option>
+                            @foreach (var c in _collaborateurs)
+                            {
+                                <option value="@c.IdCollaborateur">@c.Nom</option>
+                            }
+                        </select>
+                    </label>
+
+                    <label class="flex flex-col gap-1">
+                        <span class="font-label-sm text-label-sm text-on-surface-variant uppercase font-bold">Mode d'encaissement</span>
+                        <select class="px-3 py-2 rounded-xl bg-surface-container-low text-text-primary border border-outline-variant/40 focus:outline-none focus:border-primary" @bind="_walkinModePaiement">
+                            <option value="ESPECES">Espèces au comptoir</option>
+                            <option value="WAVE">Wave Business Direct</option>
+                            <option value="EN_LIGNE">Mobile Money</option>
+                        </select>
+                    </label>
+                </div>
+
+                @if (!string.IsNullOrWhiteSpace(_walkinError))
+                {
+                    <div class="p-2.5 rounded-xl bg-error-container text-on-error-container font-body-sm text-body-sm">
+                        @_walkinError
+                    </div>
+                }
+
+                <div class="flex items-center justify-end gap-2 pt-2">
+                    <button class="px-4 py-2 rounded-full font-label-md text-on-surface-variant hover:bg-surface-container" @onclick="() => _showWalkinModal = false">
+                        Annuler
+                    </button>
+                    <button class="px-5 py-2 rounded-full bg-primary hover:bg-plum-deep text-on-primary font-label-md font-bold shadow-md disabled:opacity-50" disabled="@_walkinBusy" @onclick="CreateWalkinAsync">
+                        @(_walkinBusy ? "Création…" : "Enregistrer le Walk-in")
+                    </button>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Modal Détail RDV rapide -->
+    @if (_selectedRdv is not null)
+    {
+        <div class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+            <div class="bg-surface-cream rounded-2xl p-6 shadow-xl max-w-md w-full flex flex-col gap-4 border border-outline-variant/30">
+                <div class="flex items-center justify-between border-b border-outline-variant/20 pb-3">
+                    <div>
+                        <span class="font-label-sm text-label-sm text-primary uppercase font-bold">Détail Rendez-vous</span>
+                        <h3 class="font-headline-sm text-headline-sm text-text-primary font-bold">@_selectedRdv.NomClient</h3>
+                    </div>
+                    <button class="text-on-surface-variant hover:text-text-primary" @onclick="() => _selectedRdv = null">
+                        <span class="material-symbols-outlined text-[20px]">close</span>
+                    </button>
+                </div>
+
+                <div class="flex flex-col gap-2 font-body-sm">
+                    <div class="flex justify-between py-1 border-b border-outline-variant/10">
+                        <span class="text-on-surface-variant">Prestation :</span>
+                        <span class="font-bold text-text-primary">@_selectedRdv.LibellePrestation</span>
+                    </div>
+                    <div class="flex justify-between py-1 border-b border-outline-variant/10">
+                        <span class="text-on-surface-variant">Horaire prévu :</span>
+                        <span class="font-bold text-text-primary">@_selectedRdv.DateHeureDebut.ToLocalTime().ToString("HH:mm")</span>
+                    </div>
+                    <div class="flex justify-between py-1 border-b border-outline-variant/10">
+                        <span class="text-on-surface-variant">Statut :</span>
+                        <span class="px-2 py-0.5 rounded-full font-bold @GetBadgeClass(_selectedRdv.StatutRdv)">@StatusText(_selectedRdv.StatutRdv)</span>
+                    </div>
+                    <div class="flex justify-between py-1 border-b border-outline-variant/10">
+                        <span class="text-on-surface-variant">Téléphone :</span>
+                        <span class="font-bold text-text-primary">@_selectedRdv.TelephoneClient</span>
+                    </div>
+                </div>
+
+                <div class="flex flex-wrap items-center justify-end gap-2 pt-2">
+                    @if (_selectedRdv.StatutRdv == "DEMANDE")
+                    {
+                        <button class="px-3.5 py-1.5 rounded-full bg-status-available text-on-primary font-label-sm font-bold" @onclick="() => ConfirmerRdvAsync(_selectedRdv.IdRdv)">
+                            Confirmer
+                        </button>
+                        <button class="px-3.5 py-1.5 rounded-full bg-error-container text-on-error-container font-label-sm font-bold" @onclick="() => RefuserRdvAsync(_selectedRdv.IdRdv)">
+                            Refuser
+                        </button>
+                    }
+                    <button class="px-4 py-1.5 rounded-full bg-surface-container font-label-sm font-semibold" @onclick="() => _selectedRdv = null">
+                        Fermer
+                    </button>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public Guid IdEtablissement { get; set; }
+    private static readonly System.Globalization.CultureInfo Culture = System.Globalization.CultureInfo.GetCultureInfo("fr-FR");
+
+    private Guid? _idPartner;
+    private EtablissementDetail? _detail;
+    private List<RdvPartenaire> _rdvs = [];
+    private List<PrestationItem> _prestations = [];
+    private List<CollaborateurItem> _collaborateurs = [];
+    private bool _loading = true;
+    private DateTime _currentDate = DateTime.Today;
+    private string _selectedPoste = "all";
+
+    // Walk-in modal
+    private bool _showWalkinModal;
+    private bool _walkinBusy;
+    private string _walkinNom = "";
+    private string _walkinPhone = "";
+    private string _walkinPrestationId = "";
+    private string _walkinCollabId = "";
+    private string _walkinModePaiement = "ESPECES";
+    private string? _walkinError;
+
+    // Selected Rdv
+    private RdvPartenaire? _selectedRdv;
+
+    private int CollaborateursCount => _collaborateurs.Count > 0 ? _collaborateurs.Count : 1;
+
+    private List<CollaborateurItem> VisibleColumns
+    {
+        get
+        {
+            if (_collaborateurs.Count == 0)
+            {
+                return [new CollaborateurItem { IdCollaborateur = Guid.Empty, Nom = "Fauteuil Principal", Specialite = "Coiffure & Soins" }];
+            }
+            if (_selectedPoste != "all" && Guid.TryParse(_selectedPoste, out var idC))
+            {
+                return _collaborateurs.Where(c => c.IdCollaborateur == idC).ToList();
+            }
+            return _collaborateurs;
+        }
+    }
+
+    private List<RdvPartenaire> FilteredRdvs => _rdvs.Where(r => r.DateHeureDebut.ToLocalTime().Date == _currentDate.Date).ToList();
+
+    private string TotalAujourdhuiFormatted
+    {
+        get
+        {
+            var sum = FilteredRdvs.Where(r => r.StatutRdv is "CONFIRME" or "TERMINE").Sum(r => r.TarifPrestation);
+            return $"{sum:N0} FCFA";
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _idPartner = await Session.GetPartnerIdAsync();
+        if (_idPartner is null)
+        {
+            Navigation.NavigateTo("/login?role=partenaire");
+            return;
+        }
+
+        await LoadDataAsync();
+        _loading = false;
+    }
+
+    private async Task LoadDataAsync()
+    {
+        if (_idPartner is null) return;
+
+        var (_, detail) = await PartnerApi.GetDetailAsync(_idPartner.Value, IdEtablissement, CancellationToken.None);
+        _detail = detail;
+
+        var (_, rdvs) = await PartnerRdvApi.ListAsync(_idPartner.Value, IdEtablissement, CancellationToken.None);
+        _rdvs = rdvs;
+
+        var (_, prestations) = await PartnerApi.ListPrestationsAsync(_idPartner.Value, IdEtablissement, CancellationToken.None);
+        _prestations = prestations;
+
+        var (_, collabs) = await PartnerApi.ListCollaborateursAsync(_idPartner.Value, IdEtablissement, CancellationToken.None);
+        _collaborateurs = collabs;
+    }
+
+    private void PrevDay() => _currentDate = _currentDate.AddDays(-1);
+    private void NextDay() => _currentDate = _currentDate.AddDays(1);
+    private void Today() => _currentDate = DateTime.Today;
+
+    private List<RdvPartenaire> GetRdvsForSlot(Guid idCollab, int hour)
+    {
+        return FilteredRdvs.Where(r =>
+        {
+            var local = r.DateHeureDebut.ToLocalTime();
+            var hourMatch = local.Hour == hour;
+            if (!hourMatch) return false;
+            if (idCollab == Guid.Empty) return true;
+            return r.IdCollaborateur == idCollab || (r.IdCollaborateur == null && _collaborateurs.FirstOrDefault()?.IdCollaborateur == idCollab);
+        }).ToList();
+    }
+
+    private void SelectRdv(RdvPartenaire rdv)
+    {
+        _selectedRdv = rdv;
+    }
+
+    private async Task ConfirmerRdvAsync(Guid idRdv)
+    {
+        if (_idPartner is null) return;
+        var (ok, _) = await PartnerRdvApi.ConfirmerAsync(_idPartner.Value, IdEtablissement, idRdv, CancellationToken.None);
+        if (ok)
+        {
+            _selectedRdv = null;
+            await LoadDataAsync();
+        }
+    }
+
+    private async Task RefuserRdvAsync(Guid idRdv)
+    {
+        if (_idPartner is null) return;
+        var (ok, _) = await PartnerRdvApi.RefuserAsync(_idPartner.Value, IdEtablissement, idRdv, CancellationToken.None);
+        if (ok)
+        {
+            _selectedRdv = null;
+            await LoadDataAsync();
+        }
+    }
+
+    private async Task CreateWalkinAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_walkinNom) || string.IsNullOrWhiteSpace(_walkinPhone) || !Guid.TryParse(_walkinPrestationId, out var idPres))
+        {
+            _walkinError = "Veuillez renseigner le nom, le numéro de téléphone et la prestation.";
+            return;
+        }
+
+        _walkinBusy = true;
+        _walkinError = null;
+
+        Guid? idC = Guid.TryParse(_walkinCollabId, out var cid) ? cid : null;
+        var dateDebut = new DateTimeOffset(_currentDate.Date.AddHours(DateTime.Now.Hour).AddMinutes(DateTime.Now.Minute), TimeSpan.Zero);
+
+        var (ok, status) = await PartnerRdvApi.CreerComptoirAsync(_idPartner!.Value, IdEtablissement, idPres, idC, _walkinNom.Trim(), _walkinPhone.Trim(), dateDebut, _walkinModePaiement, CancellationToken.None);
+        _walkinBusy = false;
+
+        if (ok)
+        {
+            _showWalkinModal = false;
+            _walkinNom = "";
+            _walkinPhone = "";
+            await LoadDataAsync();
+        }
+        else
+        {
+            _walkinError = status == "conflit_creneau" ? "Ce créneau horaire est déjà occupé." : "Impossible d'enregistrer le walk-in.";
+        }
+    }
+
+    private static string GetCardClass(string statut) => statut switch
+    {
+        "CONFIRME" => "bg-lavender-subtle/80 border border-primary/20",
+        "TERMINE" => "bg-surface-container-low border border-outline-variant/30 opacity-75",
+        "DEMANDE" => "bg-primary-fixed/30 border border-secondary/30",
+        _ => "bg-surface-container"
+    };
+
+    private static string GetBadgeClass(string statut) => statut switch
+    {
+        "CONFIRME" => "bg-status-available/15 text-status-available",
+        "TERMINE" => "bg-surface-container text-on-surface-variant",
+        "DEMANDE" => "bg-secondary-fixed text-on-secondary-fixed",
+        "ANNULE" or "REFUSE" => "bg-error-container text-on-error-container",
+        _ => "bg-surface-container text-on-surface-variant"
+    };
+
+    private static string StatusText(string statut) => statut switch
+    {
+        "CONFIRME" => "Confirmé",
+        "TERMINE" => "Terminé",
+        "DEMANDE" => "En attente",
+        "ANNULE" => "Annulé",
+        "REFUSE" => "Refusé",
+        _ => statut
+    };
+}

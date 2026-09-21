@@ -11,7 +11,7 @@ public sealed class RejectApplicationUseCase
         _notifier = notifier;
     }
 
-    public async Task<ApplicationDecisionResult> ExecuteAsync(Guid idEtablissement, CancellationToken cancellationToken)
+    public async Task<ApplicationDecisionResult> ExecuteAsync(Guid idEtablissement, string motif, CancellationToken cancellationToken)
     {
         var application = await _repository.GetByIdAsync(idEtablissement, cancellationToken);
         if (application is null)
@@ -19,7 +19,7 @@ public sealed class RejectApplicationUseCase
             return new ApplicationDecisionResult(false, "not_found");
         }
 
-        await _repository.UpdateStatutAsync(idEtablissement, "REJETE", cancellationToken);
+        await _repository.RejectAsync(idEtablissement, motif, cancellationToken);
 
         var telephone = await _repository.GetGerantTelephoneAsync(idEtablissement, cancellationToken);
         if (telephone is not null)

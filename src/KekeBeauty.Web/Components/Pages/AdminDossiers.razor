@@ -8,6 +8,10 @@
 @rendermode @(new InteractiveServerRenderMode(prerender: false))
 
 <PageTitle>Dossiers KYC</PageTitle>
+@using KekeBeauty.Web.Components.Layout
+<AdminHeader ActivePath="/admin/dossiers" />
+<main id="main-content" tabindex="-1" class="admin-page admin-legacy"><div class="admin-content">
+
 
 @if (_checkingAuth)
 {
@@ -47,6 +51,8 @@ else
         </div>
     }
 }
+
+</div></main>
 
 @code {
     private string? _apiKey;

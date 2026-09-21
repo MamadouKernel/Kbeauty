@@ -9,7 +9,14 @@ public sealed record NewEtablissement(
     string? Horaires,
     Guid IdUtilisateurGerant,
     string? UrlPhotoDevanture,
-    string? UrlPieceIdentite);
+    string TypeDocumentIdentite,
+    string? UrlDocumentRecto,
+    string? UrlDocumentVerso,
+    string ModePaiementService,
+    bool PaiementWave,
+    bool PaiementOrangeMoney,
+    bool PaiementMoovMoney,
+    string? Categorie);
 
 public interface IEtablissementRepository
 {
@@ -20,6 +27,8 @@ public interface IEtablissementRepository
     Task<ApplicationDetail?> GetByIdAsync(Guid idEtablissement, CancellationToken cancellationToken);
 
     Task UpdateStatutAsync(Guid idEtablissement, string statutKyc, CancellationToken cancellationToken);
+    Task RejectAsync(Guid idEtablissement, string motif, CancellationToken cancellationToken);
+    Task<bool> ResubmitAsync(Guid idEtablissement, string? photoPath, string? documentRectoPath, string? documentVersoPath, string? typeDocumentIdentite, CancellationToken cancellationToken);
 
     Task<string?> GetFilePathAsync(Guid idEtablissement, string fileType, CancellationToken cancellationToken);
 

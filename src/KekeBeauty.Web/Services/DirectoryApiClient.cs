@@ -32,13 +32,52 @@ public sealed class DirectoryApiClient
         }
     }
 
-    /// <summary>Distingue "introuvable" (404, Success=true/Detail=null) d'une panne reseau/API
-    /// (Success=false) pour que l'appelant affiche le bon message (FR-008).</summary>
-    public async Task<(bool Success, EtablissementDetail? Detail)> GetDetailAsync(Guid id, CancellationToken cancellationToken)
+    public async Task<(bool Success, List<EtablissementSummary> Results)> GetFavorisAsync(Guid idClient, CancellationToken cancellationToken)
     {
         try
         {
-            var response = await _httpClient.GetAsync($"etablissements/{id}", cancellationToken);
+            using var request = new HttpRequestMessage(HttpMethod.Get, "etablissements/favoris");
+            request.Headers.Add("X-Client-Id", idClient.ToString());
+            var response = await _httpClient.SendAsync(request, cancellationToken);
+            if (!response.IsSuccessStatusCode) return (false, []);
+            return (true, await response.Content.ReadFromJsonAsync<List<EtablissementSummary>>(cancellationToken) ?? []);
+        }
+        catch (Exception) { return (false, []); }
+    }
+    /// <summary>Feature 014 (US2) : avis publics d'un etablissement (note moyenne + liste). Jamais
+    /// de valeur inventee : NoteMoyenne reste null tant qu'aucun avis reel n'existe.</summary>
+    public async Task<(bool Success, AvisEtablissement? Avis)> GetAvisAsync(Guid idEtablissement, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var response = await _httpClient.GetAsync($"etablissements/{idEtablissement}/avis", cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                return (false, null);
+            }
+
+            return (true, await response.Content.ReadFromJsonAsync<AvisEtablissement>(cancellationToken));
+        }
+        catch (Exception)
+        {
+            return (false, null);
+        }
+    }
+
+    /// <summary>Distingue "introuvable" (404, Success=true/Detail=null) d'une panne reseau/API
+    /// (Success=false) pour que l'appelant affiche le bon message (FR-008). idClient optionnel
+    /// (endpoint public) : si fourni, EstFavori reflete l'etat reel pour ce client.</summary>
+    public async Task<(bool Success, EtablissementDetail? Detail)> GetDetailAsync(Guid id, Guid? idClient, CancellationToken cancellationToken)
+    {
+        try
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Get, $"etablissements/{id}");
+            if (idClient is not null)
+            {
+                request.Headers.Add("X-Client-Id", idClient.Value.ToString());
+            }
+
+            var response = await _httpClient.SendAsync(request, cancellationToken);
             if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
             {
                 return (true, null);
@@ -54,6 +93,29 @@ public sealed class DirectoryApiClient
         catch (Exception)
         {
             return (false, null);
+        }
+    }
+
+    /// <summary>Parcours 1 : favoris client. Retourne le nouvel etat (true = ajoute au favoris).</summary>
+    public async Task<(bool Success, bool EstFavori)> ToggleFavoriAsync(Guid idClient, Guid idEtablissement, CancellationToken cancellationToken)
+    {
+        try
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Post, $"etablissements/{idEtablissement}/favori");
+            request.Headers.Add("X-Client-Id", idClient.ToString());
+
+            var response = await _httpClient.SendAsync(request, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                return (false, false);
+            }
+
+            var body = await response.Content.ReadFromJsonAsync<Dictionary<string, bool>>(cancellationToken);
+            return (true, body?.GetValueOrDefault("estFavori") ?? false);
+        }
+        catch (Exception)
+        {
+            return (false, false);
         }
     }
 }

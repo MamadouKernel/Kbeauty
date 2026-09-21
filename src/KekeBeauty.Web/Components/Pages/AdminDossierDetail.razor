@@ -6,6 +6,10 @@
 @rendermode @(new InteractiveServerRenderMode(prerender: false))
 
 <PageTitle>Dossier KYC</PageTitle>
+@using KekeBeauty.Web.Components.Layout
+<AdminHeader ActivePath="/admin/dossiers" />
+<main id="main-content" tabindex="-1" class="admin-page admin-legacy"><div class="admin-content">
+
 
 @if (_checkingAuth)
 {
@@ -27,11 +31,27 @@ else
     <p>Position : @_dossier.GpsLatitude, @_dossier.GpsLongitude</p>
     <p>
         Photo devanture : @(_dossier.HasPhotoDevanture ? "fournie" : "manquante") —
-        Pièce d'identité : @(_dossier.HasPieceIdentite ? "fournie" : "manquante")
+        Document : @(_dossier.TypeDocumentIdentite ?? "non précisé") — recto/page d'identification : @(_dossier.HasDocumentRecto ? "fourni" : "manquant") @if (_dossier.TypeDocumentIdentite == "CNI") { <text>— verso : @(_dossier.HasDocumentVerso ? "fourni" : "manquant")</text> }
     </p>
 
+    <section class="kyc-preview-grid" aria-label="Documents soumis">
+        @if (_devantureDataUrl is not null)
+        {
+            <article class="kyc-preview-card"><h2>Photo de devanture</h2><img src="@_devantureDataUrl" alt="Devanture de @_dossier.NomEtablissement" /></article>
+        }
+        @if (_rectoDataUrl is not null)
+        {
+            <article class="kyc-preview-card"><h2>@(_dossier.TypeDocumentIdentite == "PASSEPORT" ? "Page d’identification du passeport" : "Recto de la pièce d’identité")</h2>@if (_rectoContentType == "application/pdf") { <object data="@_rectoDataUrl" type="application/pdf"><p>Aperçu PDF indisponible dans ce navigateur.</p></object> } else { <img src="@_rectoDataUrl" alt="Recto ou page d’identification" /> }</article>
+        }
+        @if (_versoDataUrl is not null)
+        {
+            <article class="kyc-preview-card"><h2>Verso de la pièce d’identité</h2>@if (_versoContentType == "application/pdf") { <object data="@_versoDataUrl" type="application/pdf"><p>Aperçu PDF indisponible dans ce navigateur.</p></object> } else { <img src="@_versoDataUrl" alt="Verso de la pièce d’identité" /> }</article>
+        }
+    </section>
+
+    <KekeAlert Severity="warning" Title="Décision KYC">Vérifiez la lisibilité, la concordance des informations et la présence de toutes les faces avant de valider.</KekeAlert>
     <button class="btn btn-success" @onclick="ValiderAsync">Valider</button>
-    <button class="btn btn-outline-danger" @onclick="RejeterAsync">Rejeter</button>
+    <div class="mt-3"><textarea class="form-control" rows="2" placeholder="Motif précis du rejet" @bind="_motifRejet"></textarea><button class="btn btn-outline-danger mt-2" disabled="@(string.IsNullOrWhiteSpace(_motifRejet))" @onclick="RejeterAsync">Rejeter avec ce motif</button></div>
 
     @if (!string.IsNullOrEmpty(_message))
     {
@@ -39,7 +59,10 @@ else
     }
 }
 
+</div></main>
+
 @code {
+    private string _motifRejet = "";
     [Parameter] public Guid Id { get; set; }
 
     private string? _apiKey;
@@ -48,6 +71,7 @@ else
     private bool _error;
     private bool _success;
     private string? _message;
+    private string? _devantureDataUrl, _rectoDataUrl, _versoDataUrl, _rectoContentType, _versoContentType;
 
     protected override async Task OnInitializedAsync()
     {
@@ -67,6 +91,17 @@ else
         var (success, detail) = await AdminApi.GetDossierAsync(_apiKey!, Id, CancellationToken.None);
         _error = !success;
         _dossier = detail;
+        if (detail is not null)
+        {
+            var devanture = detail.HasPhotoDevanture ? await AdminApi.GetDossierFilePreviewAsync(_apiKey!, Id, "devanture", CancellationToken.None) : default;
+            var recto = detail.HasDocumentRecto ? await AdminApi.GetDossierFilePreviewAsync(_apiKey!, Id, "document-recto", CancellationToken.None) : default;
+            var verso = detail.HasDocumentVerso ? await AdminApi.GetDossierFilePreviewAsync(_apiKey!, Id, "document-verso", CancellationToken.None) : default;
+            _devantureDataUrl = devanture.DataUrl;
+            _rectoDataUrl = recto.DataUrl;
+            _rectoContentType = recto.ContentType;
+            _versoDataUrl = verso.DataUrl;
+            _versoContentType = verso.ContentType;
+        }
     }
 
     private async Task ValiderAsync()
@@ -86,7 +121,7 @@ else
 
     private async Task RejeterAsync()
     {
-        var (success, status) = await AdminApi.RejeterDossierAsync(_apiKey!, Id, CancellationToken.None);
+        var (success, status) = await AdminApi.RejeterDossierAsync(_apiKey!, Id, _motifRejet, CancellationToken.None);
         _success = success;
         _message = success ? "Dossier rejeté." : "Action impossible.";
         if (success)

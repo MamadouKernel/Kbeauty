@@ -1,0 +1,70 @@
+@* Feature 018 (Parcours 3, "meme le PWA") : propose au client d'activer les rappels push
+   (avis/pourboire a la fin d'un RDV). N'affiche rien si deja accorde/refuse ou navigateur
+   incompatible - jamais de bouton qui ne fait rien (meme principe que NotificationBell). *@
+@inject PushApiClient PushApi
+@inject ClientSessionService Session
+@inject IJSRuntime JS
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+
+@if (_visible)
+{
+    <div class="flex items-center justify-between gap-space-sm p-space-sm rounded-xl bg-lavender-subtle">
+        <div class="flex items-center gap-2 min-w-0">
+            <span class="material-symbols-outlined text-primary shrink-0">notifications_active</span>
+            <p class="font-body-sm text-body-sm text-text-primary">Activez les rappels pour ne pas oublier de laisser un avis ou un pourboire après votre rendez-vous.</p>
+        </div>
+        <button class="shrink-0 px-3 py-1.5 rounded-full bg-primary-container text-on-primary font-label-sm text-label-sm shadow-sm disabled:opacity-60" type="button" @onclick="ActiverAsync" disabled="@_busy">Activer</button>
+    </div>
+}
+
+@code {
+    private bool _visible;
+    private bool _busy;
+    private Guid? _idClient;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _idClient = await Session.GetClientIdAsync();
+        if (_idClient is null)
+        {
+            return;
+        }
+
+        var supported = await JS.InvokeAsync<bool>("kekePush.isSupported");
+        var permission = await JS.InvokeAsync<string>("kekePush.getPermission");
+        _visible = supported && permission == "default";
+    }
+
+    private async Task ActiverAsync()
+    {
+        if (_idClient is null)
+        {
+            return;
+        }
+
+        _busy = true;
+        var (success, publicKey) = await PushApi.GetVapidPublicKeyAsync(CancellationToken.None);
+        if (!success || string.IsNullOrWhiteSpace(publicKey))
+        {
+            _busy = false;
+            _visible = false;
+            return;
+        }
+
+        var subscription = await JS.InvokeAsync<PushSubscriptionResult?>("kekePush.subscribe", publicKey);
+        if (subscription is not null)
+        {
+            await PushApi.SubscribeAsync(_idClient.Value, subscription.Endpoint, subscription.P256dh, subscription.Auth, CancellationToken.None);
+        }
+
+        _busy = false;
+        _visible = false;
+    }
+
+    private sealed class PushSubscriptionResult
+    {
+        public string Endpoint { get; set; } = string.Empty;
+        public string P256dh { get; set; } = string.Empty;
+        public string Auth { get; set; } = string.Empty;
+    }
+}

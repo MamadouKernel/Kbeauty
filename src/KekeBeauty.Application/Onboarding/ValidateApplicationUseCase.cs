@@ -17,7 +17,8 @@ public sealed class ValidateApplicationUseCase
             return new ApplicationDecisionResult(false, "not_found");
         }
 
-        if (!application.HasPhotoDevanture || !application.HasPieceIdentite)
+        if (!application.HasPhotoDevanture || !application.HasDocumentRecto ||
+            (application.TypeDocumentIdentite == "CNI" && !application.HasDocumentVerso))
         {
             return new ApplicationDecisionResult(false, "missing_documents");
         }

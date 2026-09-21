@@ -2,6 +2,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json.Serialization;
 using KekeBeauty.Application.Billing;
+using KekeBeauty.Application.Rdv;
 using Microsoft.AspNetCore.Mvc;
 
 namespace KekeBeauty.Api.Controllers;
@@ -22,12 +23,18 @@ public sealed class WiniPayerCallbackBody
 public sealed class WebhookController : ControllerBase
 {
     private readonly IAbonnementRepository _repository;
+    private readonly IRdvPaiementRepository _rdvPaiementRepository;
+    private readonly IPourboireRepository _pourboireRepository;
     private readonly IConfiguration _configuration;
     private readonly ILogger<WebhookController> _logger;
 
-    public WebhookController(IAbonnementRepository repository, IConfiguration configuration, ILogger<WebhookController> logger)
+    public WebhookController(
+        IAbonnementRepository repository, IRdvPaiementRepository rdvPaiementRepository,
+        IPourboireRepository pourboireRepository, IConfiguration configuration, ILogger<WebhookController> logger)
     {
         _repository = repository;
+        _rdvPaiementRepository = rdvPaiementRepository;
+        _pourboireRepository = pourboireRepository;
         _configuration = configuration;
         _logger = logger;
     }
@@ -59,7 +66,8 @@ public sealed class WebhookController : ControllerBase
         }
 
         var expectedHash = ComputeHash(privateKey, body.Uuid, body.Crypto, body.Amount, body.CreatedAt);
-        if (!string.Equals(expectedHash, body.Hash, StringComparison.OrdinalIgnoreCase))
+        if (!CryptographicOperations.FixedTimeEquals(
+                Encoding.UTF8.GetBytes(expectedHash.ToUpperInvariant()), Encoding.UTF8.GetBytes(body.Hash.ToUpperInvariant())))
         {
             _logger.LogWarning("Callback WiniPayer rejete : signature invalide pour la facture {Uuid}.", body.Uuid);
             return Unauthorized(new { status = "invalid_signature" });
@@ -68,8 +76,29 @@ public sealed class WebhookController : ControllerBase
         var paiementReussi = body.State == "success";
         var applique = await _repository.MarquerPaiementAsync(body.Uuid, paiementReussi, body.Operator, cancellationToken);
 
-        // Idempotent (voir IAbonnementRepository.MarquerPaiementAsync) : un callback rejoue ou
-        // deja traite renvoie simplement false, sans erreur - WiniPayer ne doit pas reessayer.
+        // Feature 013 : un meme callback WiniPayer sert les deux flux (abonnement et RDV), aucun
+        // moyen de les distinguer avant reception (un seul callback_url configure cote marchand -
+        // voir research.md Decision 3). Si la reference n'appartenait pas a un abonnement, on
+        // essaie le repository de paiement RDV ; chaque methode est idempotente et ignore les
+        // references qui ne lui appartiennent pas.
+        if (!applique)
+        {
+            applique = await _rdvPaiementRepository.MarquerPaiementAsync(body.Uuid, paiementReussi, body.Operator, cancellationToken);
+        }
+
+        if (!applique)
+        {
+            var pourboire = await _pourboireRepository.ObtenirParReferenceAsync(body.Uuid, cancellationToken);
+            if (pourboire is not null)
+            {
+                await _pourboireRepository.MarquerStatutAsync(body.Uuid, paiementReussi ? "REUSSIE" : "ECHOUEE", cancellationToken);
+                applique = true;
+            }
+        }
+
+        // Idempotent (voir IAbonnementRepository/IRdvPaiementRepository.MarquerPaiementAsync) : un
+        // callback rejoue ou deja traite renvoie simplement false, sans erreur - WiniPayer ne doit
+        // pas reessayer.
         return Ok(new { status = applique ? "applied" : "already_processed_or_unknown" });
     }
 

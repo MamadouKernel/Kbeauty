@@ -5,6 +5,7 @@ public enum TypeCompte
     Client,
     Partenaire,
     Admin,
+    Collaborateur,
 }
 
 public class Utilisateur
@@ -15,4 +16,10 @@ public class Utilisateur
     public TypeCompte TypeCompte { get; set; }
     public DateTimeOffset DateCreation { get; set; }
     public bool EstSuspendu { get; set; }
+    public string? Email { get; set; }
+    public bool NotificationsRdv { get; set; }
+    public bool NotificationsMarketing { get; set; }
+    public bool ConsentementDonnees { get; set; }
+    public DateTimeOffset? DateSuppression { get; set; }
 }
+

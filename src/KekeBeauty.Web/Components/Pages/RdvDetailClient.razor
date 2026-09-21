@@ -1,0 +1,89 @@
+@page "/mes-rendez-vous/{Id:guid}"
+@inject RdvApiClient RdvApi
+@inject ClientSessionService Session
+@inject NavigationManager Navigation
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+
+<PageTitle>Détail du rendez-vous — Keke Beauty</PageTitle>
+<header class="client-flow-header">
+    <a href="/mes-rendez-vous" aria-label="Retour"><span class="material-symbols-outlined">arrow_back</span></a>
+    <a class="brand" href="/"><img src="/img/logo.png" alt="" /><span>Keke Beauty<small>MON RENDEZ-VOUS</small></span></a>
+    <span class="status-pill @StatusClass(_rdv?.StatutRdv)">@StatusLabel(_rdv?.StatutRdv)</span>
+</header>
+
+<main id="main-content" tabindex="-1" class="client-flow-page appointment-page" aria-busy="@_busy">
+@if (_loading) { <div class="flow-skeleton"><span></span><span></span><span></span></div> }
+else if (_rdv is null) {
+<section class="flow-empty"><span class="material-symbols-outlined">event_busy</span><h1>@(_loadStatus == "not_found" ? "Rendez-vous introuvable" : "Chargement impossible")</h1><p>@(_loadStatus == "not_found" ? "Il n’existe pas dans votre espace client." : "Vérifiez votre connexion puis réessayez.")</p><button type="button" @onclick="ReloadAsync">Réessayer</button><a href="/mes-rendez-vous">Retour à l’historique</a></section>
+} else {
+<section class="appointment-hero">
+    <p class="flow-eyebrow">@(_rdv.StatutRdv is "DEMANDE" or "CONFIRME" ? "RENDEZ-VOUS À VENIR" : "HISTORIQUE")</p>
+    <h1>@_rdv.LibellePrestation</h1>
+    <a href="@($"/etablissements/{_rdv.IdEtablissement}")">@_rdv.NomEtablissement <span class="material-symbols-outlined">arrow_forward</span></a>
+    <div class="appointment-date"><span class="material-symbols-outlined">calendar_month</span><div><strong>@LocalDate.ToString("dddd d MMMM", Culture)</strong><small>@LocalDate.ToString("HH:mm")</small></div></div>
+</section>
+
+<section class="appointment-timeline" aria-label="Progression du rendez-vous">
+@foreach (var step in Steps) { <div class="@(step.Active ? "is-active" : "") @(step.Error ? "is-error" : "")"><span class="material-symbols-outlined">@step.Icon</span><p><strong>@step.Label</strong><small>@step.Detail</small></p></div> }
+</section>
+
+@if (!string.IsNullOrWhiteSpace(_message)) { <div class="flow-message @(_success ? "is-success" : "is-error")" role="status"><span class="material-symbols-outlined">@(_success ? "check_circle" : "error")</span><span>@_message</span></div> }
+
+@if (_rdv.StatutPaiement is not null) {
+<section class="appointment-panel payment-recovery payment-@_rdv.StatutPaiement.ToLowerInvariant()">
+    <div><span class="material-symbols-outlined">@PaymentIcon(_rdv.StatutPaiement)</span><div><h2>Paiement en ligne</h2><p>@PaymentLabel(_rdv.StatutPaiement)</p>@if(_rdv.StatutPaiement == "REUSSIE" && _rdv.StatutRdv == "DEMANDE"){<small>Votre paiement est reçu. Le salon doit encore confirmer le créneau.</small>}</div></div>
+    @if (_rdv.StatutPaiement == "EN_COURS") { <button type="button" disabled="@_busy" @onclick="VerifyPaymentAsync">@(_busy ? "Vérification…" : "Vérifier le paiement")</button> }
+    @if (_rdv.StatutPaiement == "ECHOUEE") { <a class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-primary text-on-primary font-label-md shadow-sm hover:bg-plum-deep transition-all" href="@($"/paiement-echec/{Id}")"><span class="material-symbols-outlined text-[16px]">sync_problem</span><span>Récupérer mon créneau (10 min)</span></a> }
+    @if (!string.IsNullOrWhiteSpace(_paymentLink)) { <a href="@_paymentLink" target="_blank" rel="noopener">Payer maintenant</a> }
+</section>
+}
+
+@if (_rdv.StatutRdv == "CONFIRME") {
+@if(_rdv.RetardMinutes is not null){<KekeAlert Severity="success" Title="Salon prévenu">Votre retard de @_rdv.RetardMinutes minutes est enregistré et visible par l’équipe.</KekeAlert>}<section class="appointment-panel"><p class="flow-eyebrow">EN CAS D’IMPRÉVU</p><h2>Je serai en retard</h2><p>Le salon reçoit immédiatement votre estimation.</p><div class="delay-grid">@foreach (var minutes in new[] { 10, 15, 30 }) { <button class="@(_delay == minutes ? "is-selected" : "")" type="button" disabled="@_busy" @onclick="() => _delay = minutes">+@minutes min</button> }</div><button class="flow-primary" type="button" disabled="@_busy" @onclick="SendDelayAsync">@(_busy ? "Envoi…" : "Prévenir le salon")</button></section>
+}
+
+@if (_rdv.StatutRdv is "DEMANDE" or "CONFIRME") {
+<section class="appointment-panel">
+    <p class="flow-eyebrow">MODIFIER</p><h2>Reprogrammer</h2><p>Choisissez une date future différente du rendez-vous actuel. La disponibilité est vérifiée avant validation.</p>
+    <label class="flow-field"><span>Nouvelle date et heure</span><input @key="_dateInputKey" name="new-appointment-date" autocomplete="off" type="datetime-local" min="@MinimumDate" @bind="_newDate" /></label>
+    @if(_newDate is null){<small class="field-help">Sélectionnez une date et une heure pour activer la reprogrammation.</small>}
+    else if(!IsNewDateValid){<small class="field-help is-error">Choisissez une date future différente du rendez-vous actuel.</small>}
+    <button class="flow-secondary" type="button" disabled="@(_busy || !IsNewDateValid)" @onclick="RescheduleAsync">@(_busy ? "Vérification…" : "Vérifier et reprogrammer")</button>
+</section>
+<section class="appointment-panel danger-panel"><h2>Annuler ce rendez-vous</h2><p>@CancelExplanation</p>@if (_confirmCancel) { <div class="cancel-confirm"><strong>Confirmez-vous l’annulation ?</strong><div class="danger-actions"><button type="button" disabled="@_busy" @onclick="CancelAsync">@(_busy ? "Annulation…" : "Oui, annuler")</button><button type="button" disabled="@_busy" @onclick="() => _confirmCancel = false">Conserver</button></div></div> } else { <button type="button" disabled="@_busy" @onclick="() => _confirmCancel = true">Demander l’annulation</button> }</section>
+}
+
+@if (_rdv.StatutRdv == "TERMINE") { <a class="postcare-card" href="@($"/mes-rendez-vous/{Id}/avis")"><span class="material-symbols-outlined">auto_awesome</span><div><strong>Comment s’est passé votre soin ?</strong><small>Laissez un avis certifié et remerciez votre praticienne.</small></div><span class="material-symbols-outlined">arrow_forward</span></a> }
+@if (_rdv.StatutRdv is "DEMANDE" or "CONFIRME" or "TERMINE") {
+<section class="appointment-panel dispute-panel"><button type="button" disabled="@_busy" @onclick="() => _showDispute = !_showDispute">Signaler un problème</button>@if (_showDispute) { <label class="flow-field"><span>Décrivez précisément la situation</span><textarea rows="4" maxlength="2000" @bind="_dispute"></textarea></label><small class="field-help">Minimum 10 caractères, sans données bancaires ni code secret.</small><button class="flow-secondary" type="button" disabled="@(_busy || !CanSendDispute)" @onclick="SendDisputeAsync">@(_busy ? "Transmission…" : "Transmettre à Keke Beauty")</button> }</section>
+}
+}
+</main>
+
+@code {
+[Parameter] public Guid Id { get; set; }
+private static readonly System.Globalization.CultureInfo Culture = System.Globalization.CultureInfo.GetCultureInfo("fr-FR");
+private Guid? _idClient; private RdvHistoriqueItem? _rdv; private bool _loading=true,_busy,_success,_confirmCancel,_showDispute; private int _delay=15,_dateInputKey; private DateTime? _newDate; private string? _message,_paymentLink,_dispute,_loadStatus;
+private DateTime LocalDate => _rdv!.DateHeureDebut.ToLocalTime().DateTime;
+private bool IsNewDateValid => _newDate is not null && _newDate.Value > DateTime.Now && Math.Abs((_newDate.Value - LocalDate).TotalMinutes) >= 1;
+private bool CanSendDispute => !string.IsNullOrWhiteSpace(_dispute) && _dispute.Trim().Length >= 10;
+private string MinimumDate => DateTime.Now.AddMinutes(1).ToString("yyyy-MM-ddTHH:mm");
+private bool KekeProtectEligible => _rdv is not null && _rdv.DateHeureDebut-DateTimeOffset.UtcNow>=TimeSpan.FromHours(4);
+private string CancelExplanation => _rdv?.StatutPaiement == "REUSSIE" ? (KekeProtectEligible ? "Kéké Protect : annulez au moins 4 heures avant et votre remboursement intégral sera demandé." : "La fenêtre Kéké Protect de 4 heures est dépassée : l’annulation reste possible, mais sans remboursement automatique.") : "Le rendez-vous sera annulé. Cette action ne peut pas être annulée depuis l’application.";
+private IEnumerable<(string Label,string Detail,bool Active,bool Error,string Icon)> Steps { get { var s=_rdv?.StatutRdv; yield return("Demande envoyée","Le salon a reçu votre réservation",true,false,"check"); if(s=="REFUSE")yield return("Demande refusée","Le salon n’a pas accepté ce créneau",true,true,"close"); else if(s=="ANNULE")yield return("Rendez-vous annulé","Annulation enregistrée",true,true,"event_busy"); else yield return("Confirmation",s=="DEMANDE"?"En attente de réponse":"Créneau confirmé",s is "CONFIRME" or "TERMINE",false,s is "CONFIRME" or "TERMINE"?"check":"more_horiz"); yield return("Soin réalisé",s=="TERMINE"?"Rendez-vous terminé":"À venir",s=="TERMINE",false,s=="TERMINE"?"check":"more_horiz"); } }
+protected override async Task OnInitializedAsync(){_idClient=await Session.GetClientIdAsync();if(_idClient is null){Navigation.NavigateTo($"/login?ReturnUrl=/mes-rendez-vous/{Id}");return;}await LoadAsync();_loading=false;}
+private async Task LoadAsync(){var(ok,status,item)=await RdvApi.GetDetailAsync(_idClient!.Value,Id,CancellationToken.None);_loadStatus=status;_rdv=ok?item:null;_dateInputKey++;}
+private async Task ReloadAsync(){_loading=true;await LoadAsync();_loading=false;}
+private void Begin(){_busy=true;_message=null;}
+private async Task SendDelayAsync(){Begin();var(ok,status)=await RdvApi.SignalerRetardAsync(_idClient!.Value,Id,_delay,CancellationToken.None);_busy=false;_success=ok;_message=ok?$"Le salon a été prévenu de votre retard de {_delay} minutes.":ErrorMessage(status,"Impossible de prévenir le salon.");}
+private async Task RescheduleAsync(){if(!IsNewDateValid)return;Begin();var value=new DateTimeOffset(DateTime.SpecifyKind(_newDate!.Value,DateTimeKind.Unspecified),TimeSpan.Zero);var(ok,status)=await RdvApi.ReprogrammerAsync(_idClient!.Value,Id,value,CancellationToken.None);_busy=false;_success=ok;_message=ok?"Votre rendez-vous a été reprogrammé et le salon a été informé.":ErrorMessage(status,"La reprogrammation est impossible.");if(ok){_newDate=null;await LoadAsync();}}
+private async Task CancelAsync(){Begin();var(ok,refund)=await RdvApi.AnnulerAsync(_idClient!.Value,Id,CancellationToken.None);_busy=false;_success=ok;_message=ok?(refund?"Rendez-vous annulé. Votre remboursement est en cours de traitement.":"Rendez-vous annulé."):"L’annulation est impossible ou le rendez-vous a déjà changé d’état.";if(ok){_confirmCancel=false;await LoadAsync();}}
+private async Task VerifyPaymentAsync(){Begin();var(ok,status)=await RdvApi.VerifierPaiementAsync(_idClient!.Value,Id,CancellationToken.None);_busy=false;_success=ok;_message=ok?$"Paiement : {PaymentLabel(status)}.":"La vérification du paiement est momentanément indisponible.";if(ok)await LoadAsync();}
+private async Task RetryPaymentAsync(){Begin();var(ok,status,link)=await RdvApi.RelancerPaiementAsync(_idClient!.Value,Id,CancellationToken.None);_busy=false;_success=ok;_paymentLink=ok?link:null;_message=ok?"Nouvelle tentative prête. Ouvrez le paiement sécurisé.":ErrorMessage(status,"Relance impossible.");if(ok)await LoadAsync();}
+private async Task SendDisputeAsync(){if(!CanSendDispute)return;Begin();var(ok,status)=await RdvApi.DeclarerLitigeAsync(_idClient!.Value,Id,_dispute!.Trim(),CancellationToken.None);_busy=false;_success=ok;_message=ok?"Votre signalement a été transmis à l’équipe Keke Beauty.":ErrorMessage(status,"Envoi impossible.");if(ok){_showDispute=false;_dispute=null;}}
+private static string ErrorMessage(string? status,string fallback)=>status switch{"slot_unavailable"=>"Ce créneau vient d’être pris. Choisissez-en un autre.","date_invalide"=>"La nouvelle date doit être dans le futur.","not_found"=>"Ce rendez-vous n’est plus disponible dans cet état.","network_error"=>"Connexion au service impossible. Réessayez dans quelques instants.","motif_requis"=>"Décrivez le problème avant l’envoi.",_=>fallback};
+private static string StatusLabel(string? s)=>s switch{"CONFIRME"=>"Confirmé","REFUSE"=>"Refusé","ANNULE"=>"Annulé","TERMINE"=>"Terminé",_=>"En attente"};
+private static string StatusClass(string? s)=>s switch{"CONFIRME" or "TERMINE"=>"is-success","REFUSE" or "ANNULE"=>"is-error",_=>"is-pending"};
+private static string PaymentLabel(string? s)=>s switch{"REUSSIE"=>"Paiement confirmé","ECHOUEE"=>"Paiement échoué","EN_COURS"=>"Paiement en cours","REMBOURSEMENT_DEMANDE"=>"Remboursement demandé","REMBOURSEE"=>"Remboursement effectué",_=>"Paiement sur place"};
+private static string PaymentIcon(string? s)=>s switch{"REUSSIE"=>"verified","ECHOUEE"=>"error","REMBOURSEMENT_DEMANDE" or "REMBOURSEE"=>"currency_exchange",_=>"payments"};
+}

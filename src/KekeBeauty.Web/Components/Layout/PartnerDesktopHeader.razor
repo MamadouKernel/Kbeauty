@@ -1,0 +1,46 @@
+@inject PartnerSessionService PartnerSession
+@inject NavigationManager Navigation
+@* Barre de navigation haute desktop pour l'espace partenaire (Parcours 4 web). *@
+<header class="hidden lg:block fixed top-0 left-0 right-0 z-50 bg-surface-cream/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(58,13,82,0.05)]">
+    <div class="h-20 max-w-6xl mx-auto px-margin-desktop flex items-center justify-between gap-gutter">
+        <a href="/partenaire" class="flex items-center gap-space-md">
+            <img alt="Keke Beauty" class="h-8 w-auto object-contain" src="/img/logo.png" />
+            <div class="flex items-center gap-space-xs">
+                <span class="font-headline-sm text-headline-sm text-plum-deep tracking-tight font-bold">Keke Beauty</span>
+                <span class="px-2 py-0.5 rounded-full bg-lavender-subtle text-primary text-label-sm font-label-sm uppercase tracking-wider">Pro</span>
+            </div>
+        </a>
+        <nav class="flex items-center gap-space-sm">
+            <a class="px-3 py-1.5 rounded-full font-label-md text-label-md transition-colors @(ActivePath is "salons" or "salon" ? "bg-primary-container text-on-primary font-bold" : "text-on-surface-variant hover:text-on-surface")" href="/partenaire">Mes établissements</a>
+            @if (IdEtablissement is not null)
+            {
+                <a class="px-3 py-1.5 rounded-full font-label-md text-label-md transition-colors @(ActivePath == "rdv" ? "bg-primary-container text-on-primary font-bold" : "text-on-surface-variant hover:text-on-surface")" href="@($"/partenaire/etablissements/{IdEtablissement}/rdv")">Rendez-vous</a>
+                <a class="px-3 py-1.5 rounded-full font-label-md text-label-md transition-colors @(ActivePath == "stats" ? "bg-primary-container text-on-primary font-bold" : "text-on-surface-variant hover:text-on-surface")" href="@($"/partenaire/etablissements/{IdEtablissement}/statistiques")">Revenus</a>
+                <a class="px-3 py-1.5 rounded-full font-label-md text-label-md transition-colors @(ActivePath == "abonnement" ? "bg-primary-container text-on-primary font-bold" : "text-on-surface-variant hover:text-on-surface")" href="@($"/partenaire/etablissements/{IdEtablissement}/abonnement")">Abonnement</a>
+            }
+        </nav>
+        <div class="partner-header-actions"><a href="/partenaire/profil" aria-label="Mon profil partenaire" class="partner-profile-link"><span class="material-symbols-outlined" aria-hidden="true">person</span><span>Mon profil</span></a><button class="session-logout" type="button" @onclick="LogoutAsync"><span class="material-symbols-outlined" aria-hidden="true">logout</span><span>Déconnexion</span></button></div>
+    </div>
+</header>
+
+<nav class="partner-mobile-nav" aria-label="Navigation partenaire">
+    <a href="/partenaire"><span class="material-symbols-outlined" aria-hidden="true">storefront</span>Mes salons</a>
+    @if (IdEtablissement is not null)
+    {
+        <a href="@($"/partenaire/etablissements/{IdEtablissement}")"><span class="material-symbols-outlined" aria-hidden="true">tune</span>Gestion</a>
+        <a href="@($"/partenaire/etablissements/{IdEtablissement}/rdv")"><span class="material-symbols-outlined" aria-hidden="true">calendar_month</span>Rendez-vous</a>
+        <a href="@($"/partenaire/etablissements/{IdEtablissement}/statistiques")"><span class="material-symbols-outlined" aria-hidden="true">bar_chart</span>Revenus</a>
+    }
+    else
+    {
+        <a href="/partenaire/inscription"><span class="material-symbols-outlined" aria-hidden="true">add_business</span>Inscrire un salon</a>
+        <a href="/"><span class="material-symbols-outlined" aria-hidden="true">explore</span>Découvrir</a>
+    }
+    <button class="partner-mobile-logout" type="button" @onclick="LogoutAsync"><span class="material-symbols-outlined" aria-hidden="true">logout</span>Quitter</button>
+</nav>
+
+@code {
+    private async Task LogoutAsync() { await PartnerSession.ClearAsync(); Navigation.NavigateTo("/login?role=partenaire", forceLoad: true); }
+    [Parameter] public string ActivePath { get; set; } = "";
+    [Parameter] public Guid? IdEtablissement { get; set; }
+}

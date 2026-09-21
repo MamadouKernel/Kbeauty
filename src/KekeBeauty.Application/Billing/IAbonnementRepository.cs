@@ -10,6 +10,7 @@ public sealed class AbonnementResume
     public string Periodicite { get; set; } = string.Empty;
     public decimal Montant { get; set; }
     public string StatutAbonnement { get; set; } = string.Empty;
+    public DateOnly DateDebutEngagement { get; set; }
 }
 
 public sealed class TarifStandard
@@ -37,6 +38,7 @@ public interface IAbonnementRepository
     Task<bool> MarquerPaiementAsync(string referenceExterne, bool paiementReussi, string? operateurExterne, CancellationToken cancellationToken);
 
     Task<IReadOnlyList<AbonnementResume>> ListerAsync(string? statut, CancellationToken cancellationToken);
+    Task<IReadOnlyList<AbonnementResume>> ListerParEtablissementAsync(Guid idEtablissement, CancellationToken cancellationToken);
 
     Task<AbonnementResume?> GetByIdAsync(Guid idAbonnement, CancellationToken cancellationToken);
 

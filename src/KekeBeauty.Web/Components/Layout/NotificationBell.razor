@@ -1,0 +1,86 @@
+@* Feature 018 (US-14) : cloche de notifications in-app reelle, remplace l'icone purement
+   decorative precedemment dupliquee sur Home.razor/Carte.razor. Composant autonome avec sa propre
+   frontiere de rendu (prerender:false) pour lire ClientSessionService sans affecter le rendermode
+   des pages parentes. *@
+@inject NotificationApiClient NotificationApi
+@inject ClientSessionService Session
+@inject NavigationManager Navigation
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+
+<div class="relative">
+    <button aria-label="Notifications" class="w-11 h-11 flex items-center justify-center rounded-full bg-lavender-subtle text-primary transition-transform active:scale-95 relative" type="button" @onclick="ToggleAsync">
+        <span class="material-symbols-outlined text-[20px]">notifications</span>
+        @if (_nonLues > 0)
+        {
+            <span class="absolute top-1 right-1 min-w-[16px] h-4 px-1 rounded-full bg-error text-on-error-container text-[10px] font-bold flex items-center justify-center">@(_nonLues > 9 ? "9+" : _nonLues.ToString())</span>
+        }
+    </button>
+
+    @if (_open)
+    {
+        <div class="notification-panel absolute z-30 top-full right-0 mt-2 w-80 max-w-[85vw] bg-surface-cream rounded-xl shadow-lg overflow-hidden">
+            <div class="px-space-md py-space-sm border-b border-outline-variant/30">
+                <span class="font-label-md text-label-md text-text-primary">Notifications</span>
+            </div>
+            <div class="max-h-96 overflow-y-auto">
+                @if (_idClient is null)
+                {
+                    <p class="px-space-md py-space-md font-body-sm text-body-sm text-on-surface-variant">Connectez-vous pour voir vos notifications.</p>
+                }
+                else if (_notifications.Count == 0)
+                {
+                    <p class="px-space-md py-space-md font-body-sm text-body-sm text-on-surface-variant">Aucune notification pour l'instant.</p>
+                }
+                else
+                {
+                    @foreach (var n in _notifications)
+                    {
+                        <div class="px-space-md py-space-sm border-b border-outline-variant/20 @(n.Lu ? "" : "bg-lavender-subtle/40")">
+                            <p class="font-label-sm text-label-sm text-text-primary">@n.Titre</p>
+                            <p class="font-body-sm text-body-sm text-on-surface-variant">@n.Message</p>
+                            <p class="font-body-sm text-body-sm text-on-surface-variant/70 mt-0.5">@n.DateCreation.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</p>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private Guid? _idClient;
+    private int _nonLues;
+    private bool _open;
+    private List<NotificationItem> _notifications = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        _idClient = await Session.GetClientIdAsync();
+        if (_idClient is not null)
+        {
+            var (success, nonLues) = await NotificationApi.CompterNonLuesAsync(_idClient.Value, CancellationToken.None);
+            _nonLues = success ? nonLues : 0;
+        }
+    }
+
+    private async Task ToggleAsync()
+    {
+        _open = !_open;
+        if (!_open || _idClient is null)
+        {
+            return;
+        }
+
+        var (success, notifications) = await NotificationApi.ListerAsync(_idClient.Value, CancellationToken.None);
+        if (success)
+        {
+            _notifications = notifications;
+        }
+
+        if (_nonLues > 0)
+        {
+            await NotificationApi.MarquerLuesAsync(_idClient.Value, CancellationToken.None);
+            _nonLues = 0;
+        }
+    }
+}

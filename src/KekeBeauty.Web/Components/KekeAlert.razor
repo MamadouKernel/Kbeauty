@@ -1,0 +1,37 @@
+@using Microsoft.AspNetCore.Components
+
+<div class="flow-alert @CssClass" role="@Role" aria-live="@LiveRegion">
+    <span class="material-symbols-outlined" aria-hidden="true">@Icon</span>
+    <div class="min-w-0">
+        @if (!string.IsNullOrWhiteSpace(Title))
+        {
+            <strong class="block">@Title</strong>
+        }
+        <span>@ChildContent</span>
+    </div>
+</div>
+
+@code {
+    [Parameter] public string Severity { get; set; } = "info";
+    [Parameter] public string? Title { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    private string NormalizedSeverity => Severity.Trim().ToLowerInvariant() switch
+    {
+        "success" => "success",
+        "warning" => "warning",
+        "danger" or "error" => "error",
+        _ => "info"
+    };
+
+    private string CssClass => $"is-{NormalizedSeverity}";
+    private string Role => NormalizedSeverity == "error" ? "alert" : "status";
+    private string LiveRegion => NormalizedSeverity == "error" ? "assertive" : "polite";
+    private string Icon => NormalizedSeverity switch
+    {
+        "success" => "check_circle",
+        "warning" => "warning",
+        "error" => "error",
+        _ => "info"
+    };
+}

@@ -6,6 +6,7 @@ namespace KekeBeauty.Api.Controllers;
 
 [ApiController]
 [ServiceFilter(typeof(AdminApiKeyFilter))]
+[AdminRole("SUPPORT")]
 public sealed class ModerationController : ControllerBase
 {
     private readonly SuspendUtilisateurUseCase _suspendUtilisateurUseCase;

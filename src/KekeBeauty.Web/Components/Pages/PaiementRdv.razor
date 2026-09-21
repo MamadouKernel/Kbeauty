@@ -1,0 +1,147 @@
+@page "/rdv/{Id:guid}/paiement"
+@inject ClientBookingFlowService BookingFlow
+@inject ClientSessionService Session
+@inject RdvApiClient RdvApi
+@inject NavigationManager Navigation
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+
+<PageTitle>Paiement sécurisé — Keke Beauty</PageTitle>
+
+<header class="client-flow-header">
+    <a href="/mes-rendez-vous" aria-label="Retour aux rendez-vous"><span class="material-symbols-outlined">arrow_back</span></a>
+    <a class="brand" href="/"><img src="/img/logo.png" alt="" /><span>Keke Beauty<small>PAIEMENT SÉCURISÉ</small></span></a>
+    <span class="secure-badge"><span class="material-symbols-outlined">verified_user</span> Sécurisé</span>
+</header>
+
+<main id="main-content" tabindex="-1" class="client-flow-page">
+    @if (_loading)
+    {
+        <div class="flow-skeleton" aria-label="Chargement"><span></span><span></span><span></span></div>
+    }
+    else if (_state is null)
+    {
+        <section class="flow-empty">
+            <span class="material-symbols-outlined">event_busy</span>
+            <h1>Réservation introuvable</h1>
+            <p>Retrouvez votre demande et son paiement depuis votre historique.</p>
+            <a href="/mes-rendez-vous">Voir mes rendez-vous</a>
+        </section>
+    }
+    else
+    {
+        <div class="payment-layout">
+            <section class="payment-main">
+                <p class="flow-eyebrow">ÉTAPE 2 SUR 3</p>
+                <h1>Finalisez votre réservation</h1>
+                <p class="flow-lead">Le paiement est traité sur la page sécurisée de notre partenaire. Votre créneau reste associé à votre demande.</p>
+
+                <div class="payment-methods" aria-label="Moyens de paiement disponibles">
+                    <div><span class="material-symbols-outlined">phone_iphone</span><strong>Mobile Money</strong><small>Wave, Orange Money et Moov Money</small></div>
+                    <div><span class="material-symbols-outlined">credit_card</span><strong>Carte bancaire</strong><small>Selon les options du prestataire</small></div>
+                </div>
+
+                <div class="security-note">
+                    <span class="material-symbols-outlined">lock</span>
+                    <div><strong>Vos données de paiement restent protégées</strong><p>Keke Beauty ne stocke aucune donnée bancaire ou code Mobile Money.</p></div>
+                </div>
+
+                @if (!string.IsNullOrWhiteSpace(_message))
+                {
+                    <div class="flow-message @(_success ? "is-success" : "is-error")" role="status">@_message</div>
+                }
+
+                @if (_state.StatutPaiement == "REUSSIE")
+                {
+                    <a class="flow-primary" href="@($"/rdv/{Id}/confirmation")"><span class="material-symbols-outlined">receipt_long</span> Afficher mon reçu</a>
+                }
+                else if (_state.StatutPaiement == "ECHOUEE")
+                {
+                    <button class="flow-primary" type="button" disabled="@_busy" @onclick="RetryAsync"><span class="material-symbols-outlined">refresh</span> Réessayer le paiement</button>
+                }
+                else
+                {
+                    @if (!string.IsNullOrWhiteSpace(_state.LienPaiement))
+                    {
+                        <a class="flow-primary" href="@_state.LienPaiement" target="_blank" rel="noopener"><span class="material-symbols-outlined">open_in_new</span> Ouvrir le paiement sécurisé</a>
+                    }
+                    <button class="flow-secondary" type="button" disabled="@_busy" @onclick="VerifyAsync"><span class="material-symbols-outlined">sync</span> J’ai payé, vérifier le statut</button>
+                }
+                <a class="flow-text-link" href="@($"/rdv/{Id}/confirmation")">Continuer sans paiement</a>
+            </section>
+
+            <aside class="booking-summary">
+                <span class="status-pill @PaymentClass(_state.StatutPaiement)">@PaymentLabel(_state.StatutPaiement)</span>
+                <h2>Votre rendez-vous</h2>
+                <dl>
+                    <div><dt>Salon</dt><dd>@_state.NomEtablissement</dd></div>
+                    <div><dt>Prestation</dt><dd>@_state.LibellePrestation</dd></div>
+                    <div><dt>Date</dt><dd>@_state.DateHeureDebut.ToLocalTime().ToString("dddd d MMMM yyyy", Culture)</dd></div>
+                    <div><dt>Heure</dt><dd>@_state.DateHeureDebut.ToLocalTime().ToString("HH:mm")</dd></div>
+                    <div class="summary-total"><dt>Total</dt><dd>@_state.Montant.ToString("N0") FCFA</dd></div>
+                </dl>
+                <p>Référence <strong>@Id.ToString()[..8].ToUpperInvariant()</strong></p>
+            </aside>
+        </div>
+    }
+</main>
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+    private static readonly System.Globalization.CultureInfo Culture = System.Globalization.CultureInfo.GetCultureInfo("fr-FR");
+    private ClientBookingFlowState? _state;
+    private Guid? _idClient;
+    private bool _loading = true;
+    private bool _busy;
+    private bool _success;
+    private string? _message;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _idClient = await Session.GetClientIdAsync();
+        if (_idClient is null)
+        {
+            Navigation.NavigateTo($"/login?ReturnUrl=/rdv/{Id}/paiement");
+            return;
+        }
+        var state = await BookingFlow.GetAsync();
+        _state = state?.IdRdv == Id ? state : null;
+        _loading = false;
+    }
+
+    private async Task VerifyAsync()
+    {
+        if (_idClient is null || _state is null) return;
+        _busy = true;
+        var (success, status) = await RdvApi.VerifierPaiementAsync(_idClient.Value, Id, CancellationToken.None);
+        _busy = false;
+        _success = success;
+        if (success)
+        {
+            _state.StatutPaiement = status;
+            if (status == "REUSSIE") _state.LienPaiement = null;
+            await BookingFlow.SaveAsync(_state);
+            _message = status == "REUSSIE" ? "Paiement confirmé. Votre reçu est prêt." : status == "ECHOUEE" ? "Le paiement a échoué. Vous pouvez le relancer." : "Le paiement est encore en cours de traitement.";
+        }
+        else _message = "La vérification est momentanément indisponible.";
+    }
+
+    private async Task RetryAsync()
+    {
+        if (_idClient is null || _state is null) return;
+        _busy = true;
+        var (success, _, link) = await RdvApi.RelancerPaiementAsync(_idClient.Value, Id, CancellationToken.None);
+        _busy = false;
+        _success = success;
+        if (success)
+        {
+            _state.StatutPaiement = "EN_COURS";
+            _state.LienPaiement = link;
+            await BookingFlow.SaveAsync(_state);
+            _message = "Une nouvelle tentative de paiement est prête.";
+        }
+        else _message = "Impossible de relancer ce paiement pour le moment.";
+    }
+
+    private static string PaymentLabel(string? status) => status switch { "REUSSIE" => "Paiement confirmé", "ECHOUEE" => "Paiement échoué", "EN_COURS" => "Paiement en attente", _ => "Paiement facultatif" };
+    private static string PaymentClass(string? status) => status switch { "REUSSIE" => "is-success", "ECHOUEE" => "is-error", _ => "is-pending" };
+}

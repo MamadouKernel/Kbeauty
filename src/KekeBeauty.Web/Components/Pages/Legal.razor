@@ -1,0 +1,23 @@
+@page "/conditions-utilisation"
+@page "/confidentialite"
+@inject NavigationManager Navigation
+<PageTitle>@Title — Keke Beauty</PageTitle>
+<header class="client-flow-header"><a href="/mon-espace" aria-label="Retour"><span class="material-symbols-outlined">arrow_back</span></a><a class="brand" href="/"><img src="/img/logo.png" alt="" /><span>Keke Beauty<small>INFORMATIONS LÉGALES</small></span></a><span></span></header>
+<main id="main-content" tabindex="-1" class="legal-page">
+    @if (IsPrivacy)
+    {
+        <p class="flow-eyebrow">CONFIDENTIALITÉ</p><h1>Vos données restent les vôtres.</h1>
+        <section><h2>Données utilisées</h2><p>Keke Beauty utilise votre numéro de téléphone pour l’authentification, ainsi que les informations indispensables à vos réservations, paiements, avis et demandes d’assistance.</p></section>
+        <section><h2>Finalités</h2><p>Ces données servent à fournir le service, informer le salon de vos demandes, sécuriser les paiements et améliorer l’expérience. Elles ne sont pas vendues.</p></section>
+        <section><h2>Conservation et droits</h2><p>Vous pouvez demander l’accès, la correction ou la suppression de vos données depuis le support Keke Beauty. Certaines informations de transaction peuvent être conservées pour les obligations comptables et la gestion des litiges.</p></section>
+    }
+    else
+    {
+        <p class="flow-eyebrow">CONDITIONS D’UTILISATION</p><h1>Réserver en toute clarté.</h1>
+        <section><h2>Réservations</h2><p>Une demande devient définitive lorsque le salon la confirme. Les horaires affichés dépendent des disponibilités communiquées par chaque établissement.</p></section>
+        <section><h2>Paiements et remboursements</h2><p>Le paiement en ligne est facultatif lorsqu’il est proposé. En cas d’annulation éligible, une demande de remboursement est transmise à l’administration et son état reste visible dans votre historique.</p></section>
+        <section><h2>Comportement et avis</h2><p>Les avis doivent concerner un rendez-vous réellement terminé. Tout contenu abusif, discriminatoire ou sans rapport avec la prestation peut être modéré.</p></section>
+    }
+    <p class="legal-updated">Dernière mise à jour : septembre 2026</p>
+</main>
+@code { private bool IsPrivacy => new Uri(Navigation.Uri).AbsolutePath.EndsWith("confidentialite"); private string Title => IsPrivacy ? "Confidentialité" : "Conditions d’utilisation"; }

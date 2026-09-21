@@ -1,0 +1,1 @@
+ALTER TABLE utilisateur ADD COLUMN IF NOT EXISTS url_photo_profil TEXT;

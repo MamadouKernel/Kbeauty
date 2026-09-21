@@ -6,6 +6,7 @@ namespace KekeBeauty.Api.Controllers;
 
 public sealed record SubscribeBody(string Periodicite);
 public sealed record UpdateTarifBody(decimal Montant);
+public sealed record UpdateFormuleBody(int? LimitePrestations, int? LimiteRdvMensuels, bool PaiementMobile, bool GestionEquipe, bool StatistiquesAvancees);
 
 [ApiController]
 public sealed class BillingController : ControllerBase
@@ -18,18 +19,40 @@ public sealed class BillingController : ControllerBase
     private readonly RelanceUseCase _relanceUseCase;
     private readonly UpdateTarifUseCase _updateTarifUseCase;
     private readonly VerifyAbonnementPaiementUseCase _verifyPaiementUseCase;
+    private readonly PlanAccessService _planAccessService;
+    private readonly IAbonnementRepository _abonnements;
 
     public BillingController(
         SubscribeUseCase subscribeUseCase, AdminListAbonnementsUseCase listUseCase,
         RelanceUseCase relanceUseCase, UpdateTarifUseCase updateTarifUseCase,
-        VerifyAbonnementPaiementUseCase verifyPaiementUseCase)
+        VerifyAbonnementPaiementUseCase verifyPaiementUseCase, PlanAccessService planAccessService, IAbonnementRepository abonnements)
     {
         _subscribeUseCase = subscribeUseCase;
         _listUseCase = listUseCase;
         _relanceUseCase = relanceUseCase;
         _updateTarifUseCase = updateTarifUseCase;
         _verifyPaiementUseCase = verifyPaiementUseCase;
+        _planAccessService = planAccessService;
+        _abonnements = abonnements;
     }
+
+    [HttpGet("etablissements/{id:guid}/formule")]
+    [ServiceFilter(typeof(PartnerOwnershipFilter))]
+    public async Task<IActionResult> GetFormule(Guid id, CancellationToken cancellationToken) =>
+        Ok(await _planAccessService.GetUsageAsync(id, cancellationToken));
+
+    [HttpGet("etablissements/{id:guid}/abonnements")][ServiceFilter(typeof(PartnerOwnershipFilter))]
+    public async Task<IActionResult> Historique(Guid id,CancellationToken ct)=>Ok(await _abonnements.ListerParEtablissementAsync(id,ct));
+
+    [HttpGet("etablissements/{id:guid}/tarifs-abonnement")]
+    [ServiceFilter(typeof(PartnerOwnershipFilter))]
+    public async Task<IActionResult> GetTarifsPartenaire(Guid id, CancellationToken cancellationToken) =>
+        Ok(await _updateTarifUseCase.ListerAsync(cancellationToken));
+
+    [HttpGet("etablissements/{id:guid}/formules-disponibles")]
+    [ServiceFilter(typeof(PartnerOwnershipFilter))]
+    public async Task<IActionResult> GetFormulesPartenaire(Guid id, CancellationToken cancellationToken) =>
+        Ok(await _planAccessService.ListAsync(cancellationToken));
 
     [HttpPost("etablissements/{id:guid}/abonnements")]
     [ServiceFilter(typeof(PartnerOwnershipFilter))]
@@ -59,6 +82,7 @@ public sealed class BillingController : ControllerBase
 
     [HttpPost("admin/abonnements/{id:guid}/verifier-paiement")]
     [ServiceFilter(typeof(AdminApiKeyFilter))]
+    [AdminRole("COMPTABLE")]
     public async Task<IActionResult> VerifierPaiement(Guid id, CancellationToken cancellationToken)
     {
         var result = await _verifyPaiementUseCase.ExecuteAsync(id, cancellationToken);
@@ -84,6 +108,7 @@ public sealed class BillingController : ControllerBase
 
     [HttpGet("admin/abonnements")]
     [ServiceFilter(typeof(AdminApiKeyFilter))]
+    [AdminRole("COMPTABLE")]
     public async Task<IActionResult> ListAbonnements([FromQuery] string? statut, CancellationToken cancellationToken)
     {
         if (statut is not null && !StatutsValides.Contains(statut))
@@ -97,6 +122,7 @@ public sealed class BillingController : ControllerBase
 
     [HttpPost("admin/abonnements/{id:guid}/relance")]
     [ServiceFilter(typeof(AdminApiKeyFilter))]
+    [AdminRole("COMPTABLE")]
     public async Task<IActionResult> Relancer(Guid id, CancellationToken cancellationToken)
     {
         var result = await _relanceUseCase.ExecuteAsync(id, cancellationToken);
@@ -111,6 +137,7 @@ public sealed class BillingController : ControllerBase
 
     [HttpGet("admin/tarifs")]
     [ServiceFilter(typeof(AdminApiKeyFilter))]
+    [AdminRole("COMPTABLE")]
     public async Task<IActionResult> ListerTarifs(CancellationToken cancellationToken)
     {
         var tarifs = await _updateTarifUseCase.ListerAsync(cancellationToken);
@@ -119,6 +146,7 @@ public sealed class BillingController : ControllerBase
 
     [HttpPut("admin/tarifs/{periodicite}")]
     [ServiceFilter(typeof(AdminApiKeyFilter))]
+    [AdminRole("SUPER_ADMIN")]
     public async Task<IActionResult> UpdateTarif(string periodicite, [FromBody] UpdateTarifBody body, CancellationToken cancellationToken)
     {
         if (!PeriodicitesValides.Contains(periodicite))
@@ -133,5 +161,34 @@ public sealed class BillingController : ControllerBase
         }
 
         return Ok(new { periodicite, montant = body.Montant });
+    }
+
+    [HttpGet("admin/formules")]
+    [ServiceFilter(typeof(AdminApiKeyFilter))]
+    [AdminRole("COMPTABLE")]
+    public async Task<IActionResult> ListerFormules(CancellationToken cancellationToken) =>
+        Ok(await _planAccessService.ListAsync(cancellationToken));
+
+    [HttpPut("admin/formules/{formule}")]
+    [ServiceFilter(typeof(AdminApiKeyFilter))]
+    [AdminRole("SUPER_ADMIN")]
+    public async Task<IActionResult> UpdateFormule(string formule, [FromBody] UpdateFormuleBody body, CancellationToken cancellationToken)
+    {
+        formule = formule.Trim().ToUpperInvariant();
+        if (formule is not ("FREE" or "PRO") || body.LimitePrestations < 0 || body.LimiteRdvMensuels < 0)
+        {
+            return BadRequest(new { status = "configuration_invalide" });
+        }
+
+        var updated = await _planAccessService.UpdateAsync(new PlanEntitlements
+        {
+            Formule = formule,
+            LimitePrestations = body.LimitePrestations,
+            LimiteRdvMensuels = body.LimiteRdvMensuels,
+            PaiementMobile = body.PaiementMobile,
+            GestionEquipe = body.GestionEquipe,
+            StatistiquesAvancees = body.StatistiquesAvancees,
+        }, cancellationToken);
+        return updated ? Ok(new { status = "updated" }) : NotFound();
     }
 }

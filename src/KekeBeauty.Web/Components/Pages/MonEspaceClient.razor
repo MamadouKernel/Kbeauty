@@ -1,0 +1,69 @@
+@page "/mon-espace"
+@inject RdvApiClient RdvApi
+@inject ProfileApiClient ProfileApi
+@inject ClientSessionService Session
+@inject NavigationManager Navigation
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+@using KekeBeauty.Web.Components.Layout
+
+<PageTitle>Mon espace — Keke Beauty</PageTitle>
+<DesktopHeader ActivePath="espace" />
+
+<header class="lg:hidden fixed top-0 w-full z-50 pt-safe bg-surface-cream/95 backdrop-blur-xl">
+    <div class="h-16 px-margin flex items-center gap-3"><img src="/img/logo.png" alt="" class="h-8 w-auto" /><div><span class="block text-[10px] font-bold tracking-wider text-primary uppercase">Keke Beauty</span><strong class="text-text-primary">Mon espace</strong></div></div>
+</header>
+
+<main id="main-content" tabindex="-1" class="account-page pt-16 lg:pt-24 pb-24">
+    @if (_loading) { <div class="flow-skeleton"><span></span><span></span><span></span></div> }
+    else
+    {
+        <section class="account-welcome"><div class="account-avatar"><span class="material-symbols-outlined">person</span></div><div><p class="flow-eyebrow">ESPACE CLIENT</p><h1>Bonjour, prenez du temps pour vous.</h1><p>Retrouvez vos réservations, vos alertes et les accès utiles au même endroit.</p></div></section>
+
+        <section class="gold-card"><div><span class="material-symbols-outlined">workspace_premium</span><div><small>KÉKÉ GOLD</small><strong>@_points.ToString("N0") points</strong><p>@GoldMessage</p></div></div><div class="gold-progress"><i style="width:@GoldProgress%"></i></div><small>Prochain palier : @NextTierPoints points</small></section>
+        <section class="account-stats">
+            <div><strong>@Upcoming.Count</strong><span>À venir</span></div><div><strong>@Completed.Count</strong><span>Terminés</span></div><div><strong>@_rdvs.Count(r => r.ADejaAvis)</strong><span>Avis publiés</span></div>
+        </section>
+
+        @if (NextAppointment is not null)
+        {
+            <a class="account-next" href="@($"/mes-rendez-vous/{NextAppointment.IdRdv}")"><div><p class="flow-eyebrow">PROCHAIN RENDEZ-VOUS</p><h2>@NextAppointment.LibellePrestation</h2><p>@NextAppointment.NomEtablissement · @NextAppointment.DateHeureDebut.ToLocalTime().ToString("ddd d MMM à HH:mm", Culture)</p></div><span class="material-symbols-outlined">arrow_forward</span></a>
+        }
+        else
+        {
+            <a class="account-next is-empty" href="/"><div><p class="flow-eyebrow">VOTRE PROCHAIN MOMENT</p><h2>Découvrez une nouvelle adresse beauté</h2><p>Explorez les salons disponibles autour de vous.</p></div><span class="material-symbols-outlined">arrow_forward</span></a>
+        }
+
+        <section class="account-links">
+            <a href="/mon-profil"><span class="material-symbols-outlined">manage_accounts</span><div><strong>Mon profil</strong><small>Coordonnées, consentements et notifications</small></div><span class="material-symbols-outlined">chevron_right</span></a>
+            <a href="/mes-rendez-vous"><span class="material-symbols-outlined">calendar_month</span><div><strong>Mes rendez-vous</strong><small>Suivi, paiement, modification et historique</small></div><span class="material-symbols-outlined">chevron_right</span></a>
+            <a href="/mes-favoris"><span class="material-symbols-outlined">favorite</span><div><strong>Mes salons favoris</strong><small>Retrouvez les adresses ajoutées à vos favoris</small></div><span class="material-symbols-outlined">chevron_right</span></a>
+            <a href="/carte"><span class="material-symbols-outlined">map</span><div><strong>Salons autour de moi</strong><small>Explorez la carte interactive d’Abidjan</small></div><span class="material-symbols-outlined">chevron_right</span></a>
+        </section>
+
+        <PushOptIn />
+
+        <section class="account-secondary">
+            <a href="/login?role=partenaire"><span class="material-symbols-outlined">storefront</span>Gérer un établissement</a>
+            <a href="/conditions-utilisation">Conditions d’utilisation</a>
+            <a href="/confidentialite">Confidentialité</a>
+            <button type="button" @onclick="LogoutAsync"><span class="material-symbols-outlined">logout</span>Se déconnecter</button>
+        </section>
+    }
+</main>
+<BottomNav ActivePath="mon-espace" />
+
+@code {
+    private static readonly System.Globalization.CultureInfo Culture = System.Globalization.CultureInfo.GetCultureInfo("fr-FR");
+    private bool _loading = true; private int _points;
+    private List<RdvHistoriqueItem> _rdvs = [];
+    private List<RdvHistoriqueItem> Upcoming => _rdvs.Where(x => x.StatutRdv is "DEMANDE" or "CONFIRME").ToList();
+    private List<RdvHistoriqueItem> Completed => _rdvs.Where(x => x.StatutRdv == "TERMINE").ToList();
+    private int NextTierPoints => _points < 500 ? 500 : _points < 1500 ? 1500 : 3000;
+    private double GoldProgress => Math.Min(100, _points * 100d / NextTierPoints);
+    private string GoldMessage => _points < 500 ? "Encore quelques soins avant votre premier privilège." : _points < 1500 ? "Membre Gold : vos avantages grandissent." : "Statut Imperial : merci pour votre fidélité.";
+    private RdvHistoriqueItem? NextAppointment => Upcoming.Where(x => x.DateHeureDebut >= DateTimeOffset.Now).OrderBy(x => x.DateHeureDebut).FirstOrDefault();
+    protected override async Task OnInitializedAsync() { var id = await Session.GetClientIdAsync(); if (id is null) { Navigation.NavigateTo("/login?ReturnUrl=/mon-espace"); return; } var (ok, items) = await RdvApi.GetHistoriqueAsync(id.Value, CancellationToken.None); _rdvs = ok ? items : []; var(profileOk,profile)=await ProfileApi.GetAsync(id.Value,CancellationToken.None);if(profileOk&&profile is not null)_points=profile.PointsFidelite; _loading = false; }
+    private async Task LogoutAsync() { await Session.ClearAsync(); Navigation.NavigateTo("/"); }
+}
+
+

@@ -1,148 +1,36 @@
 @page "/partenaire/etablissements/{Id:guid}/rdv"
+@using KekeBeauty.Web.Components.Layout
 @inject PartnerRdvApiClient PartnerRdvApi
+@inject PartnerApiClient PartnerApi
 @inject PartnerSessionService Session
 @inject NavigationManager Navigation
-@* prerender:false : voir PartnerDashboard.razor pour le detail du bug de prerendering evite. *@
-@rendermode @(new InteractiveServerRenderMode(prerender: false))
-
-<PageTitle>Demandes de RDV</PageTitle>
-
-@if (_checkingAuth)
-{
-    <p>Chargement…</p>
-}
-else if (_error)
-{
-    <div class="alert alert-danger">Le service est momentanément indisponible. Merci de réessayer.</div>
-}
-else
-{
-    <h1>Demandes de RDV</h1>
-
-    @if (_rdvs.Count == 0)
-    {
-        <p>Aucune demande de RDV pour cet établissement.</p>
-    }
-    else
-    {
-        <table class="table">
-            <thead>
-                <tr><th>Date/heure</th><th>Prestation</th><th>Client</th><th>Statut</th><th>Actions</th></tr>
-            </thead>
-            <tbody>
-                @foreach (var rdv in _rdvs)
-                {
-                    <tr>
-                        <td>@rdv.DateHeureDebut.ToLocalTime().ToString("g")</td>
-                        <td>@rdv.LibellePrestation</td>
-                        <td>@rdv.TelephoneClient</td>
-                        <td>@rdv.StatutRdv</td>
-                        <td>
-                            @if (rdv.StatutRdv == "DEMANDE")
-                            {
-                                <button class="btn btn-sm btn-success" @onclick="() => ConfirmerAsync(rdv.IdRdv)">Confirmer</button>
-                                <button class="btn btn-sm btn-outline-danger" @onclick="() => RefuserAsync(rdv.IdRdv)">Refuser</button>
-                            }
-                            @if (rdv.StatutRdv is "DEMANDE" or "CONFIRME")
-                            {
-                                @if (_idRdvEnReprogrammation == rdv.IdRdv)
-                                {
-                                    <input type="datetime-local" class="form-control form-control-sm d-inline-block" style="width:auto" @bind="_nouvelleDateHeure" />
-                                    <button class="btn btn-sm btn-primary" @onclick="() => ReprogrammerAsync(rdv.IdRdv)">Valider</button>
-                                    <button class="btn btn-sm btn-link" @onclick="() => _idRdvEnReprogrammation = null">Annuler</button>
-                                }
-                                else
-                                {
-                                    <button class="btn btn-sm btn-outline-secondary" @onclick="() => StartReprogrammer(rdv)">Reprogrammer</button>
-                                }
-                            }
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    }
-
-    @if (!string.IsNullOrEmpty(_message))
-    {
-        <div class="alert @(_success ? "alert-success" : "alert-danger")">@_message</div>
-    }
-}
-
-@code {
-    [Parameter] public Guid Id { get; set; }
-
-    private Guid? _idPartner;
-    private List<RdvPartenaire> _rdvs = [];
-    private bool _checkingAuth = true;
-    private bool _error;
-    private bool _success;
-    private string? _message;
-    private Guid? _idRdvEnReprogrammation;
-    private DateTime _nouvelleDateHeure = DateTime.Now;
-
-    protected override async Task OnInitializedAsync()
-    {
-        _idPartner = await Session.GetPartnerIdAsync();
-        if (_idPartner is null)
-        {
-            Navigation.NavigateTo("/login?role=partenaire");
-            return;
-        }
-
-        await LoadAsync();
-        _checkingAuth = false;
-    }
-
-    private async Task LoadAsync()
-    {
-        var (success, rdvs) = await PartnerRdvApi.ListAsync(_idPartner!.Value, Id, CancellationToken.None);
-        _error = !success;
-        _rdvs = rdvs;
-    }
-
-    private async Task ConfirmerAsync(Guid idRdv)
-    {
-        var (success, status) = await PartnerRdvApi.ConfirmerAsync(_idPartner!.Value, Id, idRdv, CancellationToken.None);
-        _success = success;
-        _message = success ? "RDV confirmé." : "Action impossible (RDV introuvable ou déjà traité).";
-        if (success)
-        {
-            await LoadAsync();
-        }
-    }
-
-    private async Task RefuserAsync(Guid idRdv)
-    {
-        var (success, status) = await PartnerRdvApi.RefuserAsync(_idPartner!.Value, Id, idRdv, CancellationToken.None);
-        _success = success;
-        _message = success ? "RDV refusé." : "Action impossible (RDV introuvable ou déjà traité).";
-        if (success)
-        {
-            await LoadAsync();
-        }
-    }
-
-    private void StartReprogrammer(RdvPartenaire rdv)
-    {
-        _idRdvEnReprogrammation = rdv.IdRdv;
-        _nouvelleDateHeure = rdv.DateHeureDebut.ToLocalTime().DateTime;
-    }
-
-    private async Task ReprogrammerAsync(Guid idRdv)
-    {
-        var nouvelleDateHeureDebut = new DateTimeOffset(_nouvelleDateHeure, TimeZoneInfo.Local.GetUtcOffset(_nouvelleDateHeure));
-        var (success, status) = await PartnerRdvApi.ReprogrammerAsync(_idPartner!.Value, Id, idRdv, nouvelleDateHeureDebut, CancellationToken.None);
-        _success = success;
-        _message = success
-            ? "RDV reprogrammé."
-            : status == "slot_unavailable_or_not_found"
-                ? "Ce créneau n'est plus disponible ou ce RDV est introuvable. Choisissez un autre créneau."
-                : "Action impossible.";
-        if (success)
-        {
-            _idRdvEnReprogrammation = null;
-            await LoadAsync();
-        }
-    }
+@rendermode @(new InteractiveServerRenderMode(prerender:false))
+<PageTitle>Agenda & accueil</PageTitle>
+<PartnerDesktopHeader ActivePath="rdv" IdEtablissement="Id" />
+<main id="main-content" class="premium-page pb-28"><div class="premium-container">
+ <div class="premium-heading split"><div><span class="premium-eyebrow">Pilotage du salon</span><h1>Agenda & accueil</h1><p>Organisez les fauteuils, traitez les demandes et ajoutez les clientes reçues au comptoir.</p></div><div class="heading-actions"><a class="premium-primary-compact secondary" href="@($"/partenaire/etablissements/{Id}/scanner")"><span class="material-symbols-outlined">qr_code_scanner</span>Scanner</a><button class="premium-primary-compact" @onclick='()=>_view="accueil"'><span class="material-symbols-outlined">person_add</span>Nouveau passage</button></div></div>
+ <nav class="segmented-tabs" aria-label="Vues agenda"><button class="@Tab("agenda")" @onclick='()=>_view="agenda"'>Agenda</button><button class="@Tab("demandes")" @onclick='()=>_view="demandes"'>Demandes <span>@PendingCount</span></button><button class="@Tab("accueil")" @onclick='()=>_view="accueil"'>Accueil comptoir</button></nav>
+ @if(_checkingAuth){<div class="premium-loading">Chargement de l’agenda…</div>}
+ else if(_error){<KekeAlert Severity="danger" Title="Agenda indisponible">Le service ne répond pas. Réessayez dans quelques instants.</KekeAlert>}
+ else if(_view=="accueil"){
+  <section class="premium-card walkin-panel"><div class="premium-heading compact"><span class="premium-eyebrow">Sans rendez-vous</span><h2>Enregistrer une cliente au comptoir</h2><p>La réservation est immédiatement confirmée et apparaît dans le planning.</p></div>
+   <div class="walkin-grid"><label><span>Nom de la cliente</span><input class="onboarding-input" @bind="_walkinName"/></label><label><span>Téléphone</span><input class="onboarding-input" type="tel" placeholder="+225 07 00 00 00 00" @bind="_walkinPhone"/></label><label><span>Prestation</span><select class="onboarding-input" @bind="_walkinService"><option value="">Choisir</option>@foreach(var p in _services){<option value="@p.IdPrestation">@p.LibellePrestation · @p.Tarif.ToString("N0") FCFA</option>}</select></label><label><span>Collaboratrice / fauteuil</span><select class="onboarding-input" @bind="_walkinStaff"><option value="">À assigner plus tard</option>@foreach(var c in _equipe){<option value="@c.IdCollaborateur">@c.Nom</option>}</select></label><label><span>Date et heure</span><input class="onboarding-input" type="datetime-local" @bind="_walkinDate"/></label><label><span>Règlement</span><select class="onboarding-input" @bind="_walkinPayment"><option value="ESPECES">Espèces</option><option value="EN_LIGNE">Mobile Money</option></select></label></div>
+   <button class="premium-primary-action" disabled="@_busy" @onclick="CreateWalkInAsync"><span class="material-symbols-outlined">add_task</span>@(_busy?"Enregistrement…":"Ajouter au planning")</button>
+  </section>
+ } else if(_view=="agenda"){
+  <section class="agenda-toolbar"><button @onclick="PreviousDay"><span class="material-symbols-outlined">chevron_left</span></button><input type="date" @bind="_selectedDate"/><button @onclick="NextDay"><span class="material-symbols-outlined">chevron_right</span></button><button class="today" @onclick="Today">Aujourd’hui</button></section>
+  <section class="agenda-board"><aside class="agenda-hours">@foreach(var hour in Hours){<span>@hour.ToString("00"):00</span>}</aside><div class="agenda-columns">@foreach(var lane in Lanes){<article class="agenda-lane"><header><span class="material-symbols-outlined">event_seat</span><strong>@lane.Name</strong></header><div class="agenda-timeline">@foreach(var hour in Hours){<i></i>}@foreach(var rdv in DayRdvs.Where(x=>x.IdCollaborateur==lane.Id)){<button class="agenda-event @EventClass(rdv)" style="@EventStyle(rdv)" title="@rdv.LibellePrestation" @onclick='()=>OpenRequest(rdv)'><strong>@rdv.DateHeureDebut.ToLocalTime().ToString("HH:mm") · @rdv.NomClient</strong><span>@rdv.LibellePrestation</span><small>@(rdv.OrigineRdv=="COMPTOIR"?"Comptoir":"En ligne") · @rdv.DureeMinutes min @if(rdv.RetardMinutes is not null){<b>· Retard +@rdv.RetardMinutes min</b>}</small></button>}</div></article>}</div></section>
+ } else {
+  <section class="request-grid">@foreach(var rdv in _rdvs.Where(x=>x.StatutRdv=="DEMANDE")){<article class="request-card"><div><span class="request-time">@rdv.DateHeureDebut.ToLocalTime().ToString("ddd d MMM · HH:mm",Fr)</span><h2>@rdv.NomClient</h2><p>@rdv.LibellePrestation · @rdv.DureeMinutes min</p>@if(rdv.RetardMinutes is not null){<KekeAlert Severity="warning" Title="Retard signalé">La cliente prévoit environ @rdv.RetardMinutes minutes de retard.</KekeAlert>}<a href="tel:@rdv.TelephoneClient">@rdv.TelephoneClient</a></div><div class="request-actions"><button class="accept" @onclick="()=>ConfirmAsync(rdv.IdRdv)">Confirmer</button><button class="decline" @onclick="()=>DeclineAsync(rdv.IdRdv)">Refuser</button><button @onclick="()=>StartReschedule(rdv)">Reprogrammer</button></div>@if(_rescheduleId==rdv.IdRdv){<div class="reschedule"><input type="datetime-local" @bind="_rescheduleDate"/><button @onclick="()=>RescheduleAsync(rdv.IdRdv)">Valider</button></div>}</article>}</section>
+  @if(PendingCount==0){<div class="premium-empty"><span class="material-symbols-outlined">task_alt</span><h2>Tout est traité</h2><p>Aucune demande en attente.</p></div>}
+ }
+ @if(_message is not null){<KekeAlert Severity="@(_success?"success":"danger")" Title="@(_success?"Action terminée":"Action impossible")">@_message</KekeAlert>}
+</div></main>
+@code{
+ [Parameter]public Guid Id{get;set;} Guid? _partner;List<RdvPartenaire> _rdvs=[];List<CollaborateurDto> _equipe=[];List<PrestationDto> _services=[];bool _checkingAuth=true,_error,_busy,_success;string _view="agenda",_walkinName="",_walkinPhone="",_walkinService="",_walkinStaff="",_walkinPayment="ESPECES";string? _message;DateTime _selectedDate=DateTime.Today,_walkinDate=DateTime.Now.AddMinutes(15),_rescheduleDate;Guid? _rescheduleId;static readonly System.Globalization.CultureInfo Fr=System.Globalization.CultureInfo.GetCultureInfo("fr-FR");IEnumerable<int> Hours=>Enumerable.Range(8,13);int PendingCount=>_rdvs.Count(x=>x.StatutRdv=="DEMANDE");IEnumerable<RdvPartenaire> DayRdvs=>_rdvs.Where(x=>x.DateHeureDebut.ToLocalTime().Date==_selectedDate.Date&&x.StatutRdv is "DEMANDE" or "CONFIRME");IEnumerable<(Guid? Id,string Name)> Lanes=>_equipe.Select(x=>((Guid?)x.IdCollaborateur,x.Nom)).Prepend((null,"Non assignés"));
+ protected override async Task OnInitializedAsync(){_partner=await Session.GetPartnerIdAsync();if(_partner is null){Navigation.NavigateTo("/login?role=partenaire");return;}await LoadAsync();var(_,team)=await PartnerApi.GetEquipeAsync(_partner.Value,Id,CancellationToken.None);_equipe=team;var(_,detail)=await PartnerApi.GetDetailAsync(_partner.Value,Id,CancellationToken.None);_services=detail?.Prestations??[];_checkingAuth=false;}
+ async Task LoadAsync(){var(ok,items)=await PartnerRdvApi.ListAsync(_partner!.Value,Id,CancellationToken.None);_error=!ok;_rdvs=items;}
+ async Task CreateWalkInAsync(){if(!Guid.TryParse(_walkinService,out var service)||string.IsNullOrWhiteSpace(_walkinName)||string.IsNullOrWhiteSpace(_walkinPhone)){_success=false;_message="Complétez le nom, le téléphone et la prestation.";return;}_busy=true;Guid? staff=Guid.TryParse(_walkinStaff,out var st)?st:null;var(ok,status)=await PartnerRdvApi.CreerComptoirAsync(_partner!.Value,Id,service,staff,_walkinName,_walkinPhone,new DateTimeOffset(_walkinDate),_walkinPayment,CancellationToken.None);_busy=false;_success=ok;_message=ok?"La cliente a été ajoutée au planning.":status=="creneau_indisponible"?"Ce créneau est déjà occupé.":"Impossible d’ajouter cette cliente.";if(ok){_walkinName="";_walkinPhone="";await LoadAsync();_selectedDate=_walkinDate.Date;_view="agenda";}}
+ async Task ConfirmAsync(Guid id){var(ok,_)=await PartnerRdvApi.ConfirmerAsync(_partner!.Value,Id,id,CancellationToken.None);_success=ok;_message=ok?"Rendez-vous confirmé.":"La demande n’a pas pu être confirmée.";if(ok)await LoadAsync();}async Task DeclineAsync(Guid id){var(ok,_)=await PartnerRdvApi.RefuserAsync(_partner!.Value,Id,id,CancellationToken.None);_success=ok;_message=ok?"Demande refusée.":"La demande n’a pas pu être refusée.";if(ok)await LoadAsync();}void StartReschedule(RdvPartenaire r){_rescheduleId=r.IdRdv;_rescheduleDate=r.DateHeureDebut.LocalDateTime;}async Task RescheduleAsync(Guid id){var(ok,status)=await PartnerRdvApi.ReprogrammerAsync(_partner!.Value,Id,id,new DateTimeOffset(_rescheduleDate),CancellationToken.None);_success=ok;_message=ok?"Rendez-vous reprogrammé.":status=="slot_unavailable_or_not_found"?"Ce créneau est indisponible.":"Reprogrammation impossible.";if(ok){_rescheduleId=null;await LoadAsync();}}
+ void PreviousDay()=>_selectedDate=_selectedDate.AddDays(-1);void NextDay()=>_selectedDate=_selectedDate.AddDays(1);void Today()=>_selectedDate=DateTime.Today;void OpenRequest(RdvPartenaire r){if(r.StatutRdv=="DEMANDE")_view="demandes";}string Tab(string name)=>_view==name?"active":"";static string EventClass(RdvPartenaire r)=>r.StatutRdv=="DEMANDE"?"pending":r.OrigineRdv=="COMPTOIR"?"walkin":"confirmed";static string EventStyle(RdvPartenaire r){var local=r.DateHeureDebut.ToLocalTime();var top=Math.Max(0,(local.Hour-8)*60+local.Minute);var height=Math.Max(44,(int)r.DureeMinutes);return $"top:{top}px;height:{height}px";}
 }

@@ -1,0 +1,27 @@
+@page "/mes-favoris"
+@inject DirectoryApiClient DirectoryApi
+@inject ClientSessionService Session
+@inject NavigationManager Navigation
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+@using KekeBeauty.Web.Components.Layout
+
+<PageTitle>Mes favoris — Keke Beauty</PageTitle>
+<DesktopHeader ActivePath="espace" />
+<header class="lg:hidden fixed top-0 w-full z-50 pt-safe bg-surface-cream/95 backdrop-blur-xl"><div class="h-16 px-margin flex items-center gap-2"><a href="/mon-espace" class="w-11 h-11 grid place-items-center" aria-label="Retour"><span class="material-symbols-outlined">arrow_back</span></a><strong>Mes salons favoris</strong></div></header>
+<main id="main-content" tabindex="-1" class="favorites-page pt-20 lg:pt-28 pb-24">
+    <div class="favorites-heading"><p class="flow-eyebrow">VOTRE SÉLECTION</p><h1>Les adresses que vous aimez.</h1><p>Retrouvez rapidement les salons enregistrés depuis leur fiche.</p></div>
+    @if (_loading) { <div class="flow-skeleton"><span></span><span></span></div> }
+    else if (_error) { <div class="flow-message is-error">Impossible de charger vos favoris pour le moment.</div> }
+    else if (_items.Count == 0) { <section class="flow-empty"><span class="material-symbols-outlined">favorite</span><h2>Votre sélection est vide</h2><p>Ajoutez un salon avec le cœur présent sur sa fiche.</p><a href="/">Découvrir les salons</a></section> }
+    else
+    {
+        <div class="favorite-grid">
+            @foreach (var item in _items)
+            {
+                <a class="favorite-card" href="@($"/etablissements/{item.IdEtablissement}")"><div class="favorite-art"><img src="@($"/media/devanture/{item.IdEtablissement}")" alt="Devanture de @item.NomEtablissement" loading="lazy" /></div><div><span class="material-symbols-outlined">favorite</span><h2>@item.NomEtablissement</h2><p><span class="material-symbols-outlined">location_on</span>@item.LibelleCommune</p><strong>Voir la fiche <span class="material-symbols-outlined">arrow_forward</span></strong></div></a>
+            }
+        </div>
+    }
+</main>
+<BottomNav ActivePath="mon-espace" />
+@code { private bool _loading = true, _error; private List<EtablissementSummary> _items = []; protected override async Task OnInitializedAsync() { var id = await Session.GetClientIdAsync(); if (id is null) { Navigation.NavigateTo("/login?ReturnUrl=/mes-favoris"); return; } var (ok, items) = await DirectoryApi.GetFavorisAsync(id.Value, CancellationToken.None); _error = !ok; _items = items; _loading = false; } }

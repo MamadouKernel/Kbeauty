@@ -1,0 +1,166 @@
+@page "/staff/fiche-technique/{IdRdv:guid}"
+@inject StaffApiClient StaffApi
+@inject StaffSessionService Session
+@inject NavigationManager Navigation
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+
+<PageTitle>Fiche Technique & Diagnostic Trichologique — Keke Staff</PageTitle>
+
+<div class="min-h-screen bg-surface flex flex-col font-body-md text-body-md text-on-surface">
+    <!-- Header -->
+    <header class="fixed top-0 inset-x-0 h-16 bg-surface-cream/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-40 flex items-center justify-between px-6 lg:px-10">
+        <div class="flex items-center gap-4">
+            <a class="w-10 h-10 rounded-full flex items-center justify-center hover:bg-lavender-subtle text-text-primary transition-colors" href="@($"/staff/poste-travail/{IdRdv}")" title="Retour au poste de travail">
+                <span class="material-symbols-outlined text-[22px]">arrow_back</span>
+            </a>
+            <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-[20px] text-primary">assignment</span>
+                <span class="font-headline-sm font-bold text-text-primary">Fiche Technique &amp; Diagnostic</span>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+            <a class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-primary text-on-primary font-label-md font-bold hover:bg-plum-deep transition-colors shadow-sm" href="@($"/staff/poste-travail/{IdRdv}")">
+                <span class="material-symbols-outlined text-[18px]">timer</span>
+                <span>Revenir au Chrono</span>
+            </a>
+        </div>
+    </header>
+
+    <main class="pt-20 px-6 lg:px-10 pb-16 flex-1 flex flex-col gap-6 max-w-4xl w-full mx-auto">
+        <!-- Diagnostic Profile Card -->
+        <div class="bg-surface-cream rounded-2xl p-6 shadow-sm border border-outline-variant/30 flex flex-wrap items-center justify-between gap-4">
+            <div class="flex items-center gap-4 min-w-0">
+                <div class="w-14 h-14 rounded-full bg-secondary-fixed text-primary font-bold text-xl flex items-center justify-center shrink-0">
+                    <span class="material-symbols-outlined text-[30px]">face_3</span>
+                </div>
+                <div class="min-w-0">
+                    <h1 class="font-headline-md font-bold text-text-primary truncate">Fiche Trichologique de la Cliente</h1>
+                    <p class="font-body-sm text-on-surface-variant">Diagnostics personnalisés, historique et recommandations soin</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-lavender-subtle text-primary font-label-sm font-bold">
+                <span class="material-symbols-outlined text-[16px]">verified</span>
+                <span>Dossier Kéké Gold Certifié</span>
+            </div>
+        </div>
+
+        <!-- 3 Trichology Grid Selector -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Cheveux Type -->
+            <div class="bg-surface-cream rounded-2xl p-5 shadow-sm border border-outline-variant/30 flex flex-col gap-3">
+                <span class="font-label-sm uppercase font-bold text-on-surface-variant">Typologie Capillaire</span>
+                <div class="flex flex-wrap gap-2">
+                    @foreach (var type in new[] { "4C", "4B", "4A", "Défrisé", "En transition" })
+                    {
+                        <button type="button" class="px-3 py-1.5 rounded-xl font-label-md transition-all @(_typeCheveu == type ? "bg-primary text-on-primary font-bold shadow-sm" : "bg-surface-container text-on-surface hover:bg-lavender-subtle")" @onclick="() => _typeCheveu = type">
+                            @type
+                        </button>
+                    }
+                </div>
+            </div>
+
+            <!-- Cuir chevelu sensibilité -->
+            <div class="bg-surface-cream rounded-2xl p-5 shadow-sm border border-outline-variant/30 flex flex-col gap-3">
+                <span class="font-label-sm uppercase font-bold text-on-surface-variant">Sensibilité Cuir Chevelu</span>
+                <div class="flex flex-wrap gap-2">
+                    @foreach (var sens in new[] { "Normale", "Sensible", "Très réactive" })
+                    {
+                        <button type="button" class="px-3 py-1.5 rounded-xl font-label-md transition-all @(_sensibilite == sens ? "bg-amber-600 text-white font-bold shadow-sm" : "bg-surface-container text-on-surface hover:bg-lavender-subtle")" @onclick="() => _sensibilite = sens">
+                            @sens
+                        </button>
+                    }
+                </div>
+            </div>
+
+            <!-- Boisson & Préférences -->
+            <div class="bg-surface-cream rounded-2xl p-5 shadow-sm border border-outline-variant/30 flex flex-col gap-3">
+                <span class="font-label-sm uppercase font-bold text-on-surface-variant">Boisson Préférée</span>
+                <div class="flex flex-wrap gap-2">
+                    @foreach (var boisson in new[] { "Bissap frais", "Thé vert menthe", "Eau minérale", "Jus de gingembre" })
+                    {
+                        <button type="button" class="px-3 py-1.5 rounded-xl font-label-md transition-all @(_boisson == boisson ? "bg-secondary text-on-primary font-bold shadow-sm" : "bg-surface-container text-on-surface hover:bg-lavender-subtle")" @onclick="() => _boisson = boisson">
+                            @boisson
+                        </button>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Notes techniques & Formulations Section -->
+        <div class="bg-surface-cream rounded-2xl p-6 shadow-sm border border-outline-variant/30 flex flex-col gap-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="font-headline-sm font-bold text-text-primary">Notes Techniques &amp; Conseils d'Entretien</h2>
+                    <p class="font-body-sm text-on-surface-variant">Renseignez les particularités, la tension de tresse, les huiles appliquées et les recommandations post-soin.</p>
+                </div>
+                <span class="material-symbols-outlined text-primary text-[24px]">edit_note</span>
+            </div>
+
+            <textarea class="w-full p-4 rounded-xl bg-surface-container-low text-text-primary border border-outline-variant/40 focus:outline-none focus:border-primary font-body-md" rows="6" placeholder="Ex: Cuir chevelu légèrement sec, application huile de ricin pure aux racines. Préfère un traçage en triangle sans tension sur les tempes. Mèches 1B souples." @bind="_notes"></textarea>
+
+            @if (!string.IsNullOrWhiteSpace(_statusMessage))
+            {
+                <div class="p-3 rounded-xl @(_isSuccess ? "bg-status-available/10 text-status-available" : "bg-error-container text-on-error-container") font-body-sm flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[18px]">@(_isSuccess ? "check_circle" : "error")</span>
+                    <span>@_statusMessage</span>
+                </div>
+            }
+
+            <div class="flex justify-end pt-2">
+                <button class="px-8 py-3 rounded-full bg-primary hover:bg-plum-deep text-on-primary font-label-lg font-bold shadow-md transition-all disabled:opacity-50" disabled="@_saving" @onclick="EnregistrerFicheAsync">
+                    @(_saving ? "Enregistrement…" : "Enregistrer la Fiche Technique")
+                </button>
+            </div>
+        </div>
+    </main>
+</div>
+
+@code {
+    [Parameter] public Guid IdRdv { get; set; }
+    private Guid? _idStaff;
+    private string _typeCheveu = "4C";
+    private string _sensibilite = "Sensible";
+    private string _boisson = "Bissap frais";
+    private string _notes = "";
+    private bool _saving;
+    private bool _isSuccess;
+    private string? _statusMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _idStaff = await Session.GetStaffIdAsync();
+        if (_idStaff is null)
+        {
+            Navigation.NavigateTo("/login?role=collaboratrice");
+            return;
+        }
+
+        var (ok, notes) = await StaffApi.GetFicheTechniqueAsync(_idStaff.Value, IdRdv, CancellationToken.None);
+        if (ok && !string.IsNullOrWhiteSpace(notes))
+        {
+            _notes = notes;
+        }
+    }
+
+    private async Task EnregistrerFicheAsync()
+    {
+        if (_idStaff is null) return;
+        _saving = true;
+        _statusMessage = null;
+
+        var fullNotes = $"[Type: {_typeCheveu} | Sensibilité: {_sensibilite} | Boisson: {_boisson}]\n{_notes}";
+        var ok = await StaffApi.SaveFicheTechniqueAsync(_idStaff.Value, IdRdv, fullNotes, CancellationToken.None);
+        _saving = false;
+        _isSuccess = ok;
+
+        if (ok)
+        {
+            _statusMessage = "Fiche technique mise à jour avec succès !";
+        }
+        else
+        {
+            _statusMessage = "Impossible d'enregistrer la fiche technique. Vérifiez votre connexion.";
+        }
+    }
+}

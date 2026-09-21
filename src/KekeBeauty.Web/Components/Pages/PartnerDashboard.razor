@@ -8,36 +8,72 @@
 @rendermode @(new InteractiveServerRenderMode(prerender: false))
 
 <PageTitle>Mes établissements</PageTitle>
+@using KekeBeauty.Web.Components.Layout
 
-@if (_checkingAuth)
-{
-    <p>Chargement…</p>
-}
-else if (_error)
-{
-    <div class="alert alert-danger">Le service est momentanément indisponible. Merci de réessayer.</div>
-}
-else if (_etablissements.Count == 0)
-{
-    <p>Aucun établissement associé à ce compte.</p>
-}
-else
-{
-    <h1>Mes établissements</h1>
-    <div class="list-group">
-        @foreach (var etablissement in _etablissements)
+<PartnerDesktopHeader ActivePath="salons" />
+
+<header class="lg:hidden fixed top-0 inset-x-0 z-50 bg-surface/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(58,13,82,0.04)] pt-safe">
+    <div class="h-16 px-margin flex items-center justify-between gap-space-sm">
+        <div class="flex items-center gap-space-sm">
+            <img alt="Keke Beauty" class="h-8 w-auto object-contain" src="/img/logo.png" />
+            <div class="flex flex-col">
+                <span class="font-label-md text-label-md text-primary tracking-wide uppercase">Keke Beauty</span>
+                <span class="font-headline-sm text-headline-sm text-text-primary leading-none">Espace Pro</span>
+            </div>
+        </div>
+    </div>
+</header>
+
+<main id="main-content" tabindex="-1" class="flex flex-col relative w-full pt-16 lg:pt-24 pb-24 bg-surface min-h-screen">
+    <div class="flex flex-col w-full px-margin pb-10 space-y-space-md lg:max-w-3xl lg:mx-auto">
+        <div class="flex justify-end pt-3"><a class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-surface-cream text-primary shadow-sm" href="/partenaire/profil"><span class="material-symbols-outlined">account_circle</span>Mon profil</a></div>
+
+        @if (_checkingAuth)
         {
-            <a class="list-group-item list-group-item-action" href="@($"/partenaire/etablissements/{etablissement.IdEtablissement}")">
-                <strong>@etablissement.NomEtablissement</strong>
-                — KYC: @etablissement.StatutKyc
-                @if (etablissement.EstSuspendu)
+            <p class="font-body-md text-body-md text-on-surface-variant pt-space-md">Chargement…</p>
+        }
+        else if (_error)
+        {
+            <div class="rounded-xl bg-error-container text-on-error-container px-space-md py-space-sm font-body-md text-body-md">
+                Le service est momentanément indisponible. Merci de réessayer.
+            </div>
+        }
+        else if (_etablissements.Count == 0)
+        {
+            <section class="text-center py-space-lg bg-surface-cream rounded-2xl shadow-sm px-space-md">
+                <span class="material-symbols-outlined text-[44px] text-primary" aria-hidden="true">add_business</span>
+                <h1 class="font-headline-md text-headline-md text-text-primary mt-2">Aucune boutique rattachée</h1>
+                <p class="font-body-md text-body-md text-on-surface-variant mt-2">Créez votre dossier boutique avec le même compte Google. Le rattachement sera automatique.</p>
+                <a class="inline-flex mt-5 px-6 py-3 rounded-full bg-primary text-white font-bold shadow-md" href="/partenaire/inscription">Créer et rattacher ma boutique</a>
+            </section>
+        }
+        else
+        {
+            <h1 class="font-headline-lg text-headline-lg text-text-primary pt-space-sm">Mes établissements</h1>
+            <div class="flex flex-col gap-space-md">
+                @foreach (var etablissement in _etablissements)
                 {
-                    <span class="badge bg-danger ms-2">Suspendu</span>
+                    <a class="bg-surface-cream rounded-xl p-space-md shadow-[0_4px_20px_-2px_rgba(58,13,82,0.05)] flex items-center justify-between gap-space-sm hover:bg-lavender-subtle transition-colors" href="@($"/partenaire/etablissements/{etablissement.IdEtablissement}")">
+                        <div class="flex items-center gap-space-sm min-w-0">
+                            <div class="partner-shop-thumb"><img src="@($"/media/devanture/{etablissement.IdEtablissement}")" alt="Devanture de @etablissement.NomEtablissement" loading="lazy" /></div>
+                            <div class="min-w-0">
+                                <p class="font-label-lg text-label-lg text-text-primary font-bold truncate">@etablissement.NomEtablissement</p>
+                                <div class="flex items-center gap-1.5 mt-0.5">
+                                    <span class="font-label-sm text-label-sm px-2 py-0.5 rounded-full @KycBadgeClass(etablissement.StatutKyc)">KYC : @KycLabel(etablissement.StatutKyc)</span>
+                                    @if (etablissement.EstSuspendu)
+                                    {
+                                        <span class="font-label-sm text-label-sm px-2 py-0.5 rounded-full bg-error-container text-on-error-container">Suspendu</span>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                        <span class="material-symbols-outlined text-[20px] text-primary shrink-0">chevron_right</span>
+                    </a>
                 }
-            </a>
+            </div>
         }
     </div>
-}
+</main>
 
 @code {
     private bool _checkingAuth = true;
@@ -53,9 +89,37 @@ else
             return;
         }
 
-        var (success, etablissements) = await PartnerApi.GetMesEtablissementsAsync(idPartner.Value, CancellationToken.None);
+        if (await Session.GetTokenAsync() is null)
+        {
+            await Session.ClearAsync();
+            Navigation.NavigateTo("/login?role=partenaire&session=missing_token", forceLoad: true);
+            return;
+        }
+
+        var (success, unauthorized, etablissements) = await PartnerApi.GetMesEtablissementsAsync(idPartner.Value, CancellationToken.None);
+        if (unauthorized)
+        {
+            await Session.ClearAsync();
+            Navigation.NavigateTo("/login?role=partenaire&session=unauthorized", forceLoad: true);
+            return;
+        }
         _error = !success;
         _etablissements = etablissements;
         _checkingAuth = false;
     }
+
+    private static string KycLabel(string statut) => statut switch
+    {
+        "VALIDE" => "Validé",
+        "EN_ATTENTE" => "En attente",
+        "REJETE" => "Rejeté",
+        _ => statut,
+    };
+
+    private static string KycBadgeClass(string statut) => statut switch
+    {
+        "VALIDE" => "bg-status-available/15 text-status-available",
+        "REJETE" => "bg-error-container text-on-error-container",
+        _ => "bg-lavender-subtle text-primary",
+    };
 }

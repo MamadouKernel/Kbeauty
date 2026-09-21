@@ -1,0 +1,13 @@
+@page "/admin/comptes"
+@inject AdminApiClient Api
+@inject AdminSessionService Session
+@inject NavigationManager Navigation
+@rendermode @(new InteractiveServerRenderMode(prerender:false))
+<PageTitle>Équipe administrateur</PageTitle>
+@using KekeBeauty.Web.Components.Layout
+@using KekeBeauty.Web.Models
+<AdminHeader ActivePath="/admin/comptes" />
+<main class="admin-page admin-legacy"><div class="admin-content"><h1>Équipe administrateur</h1><p>Chaque personne dispose de son compte et uniquement des droits nécessaires.</p>
+<div class="row g-2 mb-4"><div class="col"><input class="form-control" placeholder="Nom" @bind="_nom"/></div><div class="col"><input class="form-control" type="email" placeholder="E-mail" @bind="_email"/></div><div class="col"><input class="form-control" type="password" placeholder="Mot de passe (10 caractères min.)" @bind="_password"/></div><div class="col"><select class="form-select" @bind="_role"><option>SUPPORT</option><option>KYC</option><option>COMPTABLE</option><option>SUPER_ADMIN</option></select></div><div class="col-auto"><button class="btn btn-primary" @onclick="Create">Ajouter</button></div></div>
+<div class="table-responsive"><table class="table"><thead><tr><th>Nom</th><th>E-mail</th><th>Rôle</th><th>Dernière connexion</th><th>État</th></tr></thead><tbody>@foreach(var x in _items){<tr><td>@x.Nom</td><td>@x.Email</td><td>@x.Role</td><td>@(x.DerniereConnexion?.LocalDateTime.ToString("dd/MM/yyyy HH:mm")??"Jamais")</td><td><button class="btn btn-sm @(x.Actif?"btn-outline-danger":"btn-success")" @onclick="()=>Toggle(x)">@(x.Actif?"Désactiver":"Réactiver")</button></td></tr>}</tbody></table></div>@if(_message is not null){<div class="alert alert-info">@_message</div>}</div></main>
+@code{string? _token,_message;string _nom="",_email="",_password="",_role="SUPPORT";List<AdminAccountItemDto> _items=[];protected override async Task OnInitializedAsync(){_token=await Session.GetApiKeyAsync();if(_token is null){Navigation.NavigateTo("/admin/login");return;}await Load();}async Task Load(){var r=await Api.ListAdminAccountsAsync(_token!,CancellationToken.None);if(r.Success)_items=r.Items;}async Task Create(){var ok=await Api.CreateAdminAsync(_token!,_nom,_email,_password,_role,CancellationToken.None);_message=ok?"Compte administrateur créé.":"Création impossible. Vérifiez les données et vos permissions.";if(ok){_nom=_email=_password="";await Load();}}async Task Toggle(AdminAccountItemDto x){var ok=await Api.SetAdminActiveAsync(_token!,x.IdAdmin,!x.Actif,CancellationToken.None);_message=ok?"Compte mis à jour.":"Action impossible (vous ne pouvez pas désactiver votre propre compte).";await Load();}}

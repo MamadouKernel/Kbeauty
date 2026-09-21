@@ -5,10 +5,10 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-kekebeauty}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-kekebeauty}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
       POSTGRES_DB: ${POSTGRES_DB:-kekebeauty}
     ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
     volumes:
       - kekebeauty_postgres_data:/var/lib/postgresql/data
       - ./db/init:/docker-entrypoint-initdb.d:ro
@@ -28,17 +28,33 @@ services:
       postgres:
         condition: service_healthy
     environment:
-      ConnectionStrings__Default: "Host=postgres;Port=5432;Database=${POSTGRES_DB:-kekebeauty};Username=${POSTGRES_USER:-kekebeauty};Password=${POSTGRES_PASSWORD:-kekebeauty}"
+      ConnectionStrings__Default: "Host=postgres;Port=5432;Database=${POSTGRES_DB:-kekebeauty};Username=${POSTGRES_USER:-kekebeauty};Password=${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}"
       Zavu__ApiKey: "${ZAVU_API_KEY:-}"
       Admin__ApiKey: "${ADMIN_API_KEY:-}"
+      Admin__BootstrapPassword: "${ADMIN_API_KEY:-}"
+      Admin__BootstrapEmail: "${ADMIN_EMAIL:-admin@kekebeauty.ci}"
+      Admin__SigningKey: "${ADMIN_SIGNING_KEY:-}"
+      Authentication__Google__ClientId: "${GOOGLE_CLIENT_ID:-}"
+      Authentication__SessionSigningKey: "${SESSION_SIGNING_KEY:-${ADMIN_SIGNING_KEY:-}}"
       Billing__WiniPayer__Env: "${WINIPAYER_ENV:-test}"
       Billing__WiniPayer__MerchantApply: "${WINIPAYER_MERCHANT_APPLY:-}"
       Billing__WiniPayer__TestTokenKey: "${WINIPAYER_TEST_TOKEN_KEY:-}"
       Billing__WiniPayer__TestPrivateKey: "${WINIPAYER_TEST_PRIVATE_KEY:-}"
       Billing__WiniPayer__ProdTokenKey: "${WINIPAYER_PROD_TOKEN_KEY:-}"
       Billing__WiniPayer__ProdPrivateKey: "${WINIPAYER_PROD_PRIVATE_KEY:-}"
+      Payments__Wave__ApiBaseUrl: "${WAVE_API_BASE_URL:-https://api.wave.com/}"
+      Payments__Wave__ApiKey: "${WAVE_API_KEY:-}"
+      Payments__Wave__SigningSecret: "${WAVE_SIGNING_SECRET:-}"
+      Push__VapidPublicKey: "${VAPID_PUBLIC_KEY:-}"
+      Push__VapidPrivateKey: "${VAPID_PRIVATE_KEY:-}"
+      Push__VapidSubject: "${VAPID_SUBJECT:-mailto:contact@kekebeauty.local}"
+      Email__Smtp__Host: "${SMTP_HOST:-}"
+      Email__Smtp__Port: "${SMTP_PORT:-587}"
+      Email__Smtp__User: "${SMTP_USER:-}"
+      Email__Smtp__Password: "${SMTP_PASSWORD:-}"
+      Email__Smtp__From: "${SMTP_FROM:-no-reply@kekebeauty.local}"
     ports:
-      - "${API_PORT:-5080}:8080"
+      - "127.0.0.1:${API_PORT:-5080}:8080"
     volumes:
       - kekebeauty_kyc_storage:/app/storage
 
@@ -52,8 +68,13 @@ services:
       - api
     environment:
       Api__BaseUrl: "http://api:8080"
+      DataProtection__KeysPath: "/app/data-protection-keys"
+      Authentication__Google__ClientId: "${GOOGLE_CLIENT_ID:-}"
+      Authentication__SessionSigningKey: "${SESSION_SIGNING_KEY:-${ADMIN_SIGNING_KEY:-}}"
     ports:
-      - "${WEB_PORT:-5090}:8080"
+      - "127.0.0.1:${WEB_PORT:-5090}:8080"
+    volumes:
+      - kekebeauty_web_keys:/app/data-protection-keys
 
   pgadmin:
     image: dpage/pgadmin4:latest
@@ -62,10 +83,10 @@ services:
     depends_on:
       - postgres
     environment:
-      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@kekebeauty.local}
-      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@kekebeauty.example.com}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:?PGADMIN_PASSWORD is required}
     ports:
-      - "${PGADMIN_PORT:-5050}:80"
+      - "127.0.0.1:${PGADMIN_PORT:-5050}:80"
     volumes:
       - kekebeauty_pgadmin_data:/var/lib/pgadmin
 
@@ -73,3 +94,5 @@ volumes:
   kekebeauty_postgres_data:
   kekebeauty_pgadmin_data:
   kekebeauty_kyc_storage:
+  kekebeauty_web_keys:
+

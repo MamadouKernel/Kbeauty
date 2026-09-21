@@ -98,7 +98,7 @@ public sealed class AbonnementRepository : IAbonnementRepository
 
         var rows = await connection.QueryAsync<AbonnementResume>(new CommandDefinition(
             @"SELECT id_abonnement AS IdAbonnement, id_etablissement AS IdEtablissement, periodicite AS Periodicite,
-                     montant AS Montant, statut_abonnement AS StatutAbonnement
+                     montant AS Montant, statut_abonnement AS StatutAbonnement, date_debut_engagement AS DateDebutEngagement
               FROM abonnement
               WHERE @statut IS NULL OR statut_abonnement = @statut::statut_abonnement_enum
               ORDER BY id_abonnement;",
@@ -107,6 +107,9 @@ public sealed class AbonnementRepository : IAbonnementRepository
 
         return rows.AsList();
     }
+
+    public async Task<IReadOnlyList<AbonnementResume>> ListerParEtablissementAsync(Guid idEtablissement,CancellationToken ct)
+    {using var c=_connectionFactory.CreateConnection();await c.OpenAsync(ct);var rows=await c.QueryAsync<AbonnementResume>(new CommandDefinition(@"SELECT id_abonnement AS IdAbonnement,id_etablissement AS IdEtablissement,periodicite AS Periodicite,montant AS Montant,statut_abonnement AS StatutAbonnement,date_debut_engagement AS DateDebutEngagement FROM abonnement WHERE id_etablissement=@idEtablissement ORDER BY date_debut_engagement DESC;",new{idEtablissement},cancellationToken:ct));return rows.AsList();}
 
     public async Task<AbonnementResume?> GetByIdAsync(Guid idAbonnement, CancellationToken cancellationToken)
     {

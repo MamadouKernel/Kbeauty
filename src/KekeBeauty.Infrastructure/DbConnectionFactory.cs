@@ -14,9 +14,12 @@ public class DbConnectionFactory : IDbConnectionFactory
 
     public DbConnectionFactory(IConfiguration configuration)
     {
-        _connectionString = configuration.GetConnectionString("Default")
-            ?? throw new InvalidOperationException(
-                "La chaine de connexion 'Default' est absente de la configuration (ConnectionStrings__Default).");
+        var connectionString = configuration.GetConnectionString("Default");
+        _connectionString = !string.IsNullOrWhiteSpace(connectionString)
+            ? connectionString
+            : throw new InvalidOperationException(
+                "La chaine de connexion 'Default' est absente de la configuration (ConnectionStrings__Default). " +
+                "En local (dotnet run, hors Docker), renseignez ConnectionStrings:Default dans appsettings.Development.json.");
     }
 
     public NpgsqlConnection CreateConnection() => new(_connectionString);

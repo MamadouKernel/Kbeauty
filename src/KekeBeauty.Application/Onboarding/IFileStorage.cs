@@ -7,4 +7,5 @@ public interface IFileStorage
 
     /// <summary>Ouvre le fichier en lecture a partir de son chemin relatif (FR-006/FR-011).</summary>
     Task<Stream?> OpenAsync(string relativePath, CancellationToken cancellationToken);
+    Task DeleteApplicationFilesAsync(Guid idEtablissement, CancellationToken cancellationToken);
 }

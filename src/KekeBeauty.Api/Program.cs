@@ -1,3 +1,4 @@
+using System.Threading.RateLimiting;
 using KekeBeauty.Api.Auth;
 using KekeBeauty.Application.Auth;
 using KekeBeauty.Application.Directory;
@@ -13,9 +14,15 @@ using KekeBeauty.Application.Rdv;
 using KekeBeauty.Application.Billing;
 using KekeBeauty.Application.Moderation;
 using KekeBeauty.Infrastructure.Partner;
+using KekeBeauty.Application.Admin;
+using KekeBeauty.Infrastructure.Admin;
 using KekeBeauty.Infrastructure.Rdv;
 using KekeBeauty.Infrastructure.Billing;
 using KekeBeauty.Infrastructure.Moderation;
+using KekeBeauty.Application.Staff;
+using KekeBeauty.Infrastructure.Staff;
+using KekeBeauty.Application.Notifications;
+using KekeBeauty.Infrastructure.Notifications;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,9 +34,23 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddHealthChecks();
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
+        RateLimitPartition.GetFixedWindowLimiter(context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            _ => new FixedWindowRateLimiterOptions { PermitLimit = 120, Window = TimeSpan.FromMinutes(1), QueueLimit = 0 }));
+    options.AddPolicy("auth", context => RateLimitPartition.GetFixedWindowLimiter(
+        context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        _ => new FixedWindowRateLimiterOptions { PermitLimit = 10, Window = TimeSpan.FromMinutes(5), QueueLimit = 0 }));
+    options.AddPolicy("onboarding", context => RateLimitPartition.GetFixedWindowLimiter(
+        context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        _ => new FixedWindowRateLimiterOptions { PermitLimit = 5, Window = TimeSpan.FromMinutes(10), QueueLimit = 0 }));
+});
 
 builder.Services.AddSingleton<IDbConnectionFactory, DbConnectionFactory>();
 builder.Services.AddScoped<IHealthDataCheck, HealthDataCheck>();
+builder.Services.AddHostedService<KekeBeauty.Api.BackgroundJobs.DatabaseMigrationHostedService>();
 
 builder.Services.AddHttpClient<IOtpSender, ZavuWhatsAppOtpSender>(client =>
 {
@@ -53,8 +74,12 @@ builder.Services.AddScoped<ListPendingApplicationsUseCase>();
 builder.Services.AddScoped<ValidateApplicationUseCase>();
 builder.Services.AddScoped<RejectApplicationUseCase>();
 builder.Services.AddScoped<AdminApiKeyFilter>();
+builder.Services.AddSingleton<AdminSessionTokenService>();
+builder.Services.AddScoped<IAdminManagementRepository, AdminManagementRepository>();
 
 builder.Services.AddScoped<IDirectoryRepository, DirectoryRepository>();
+builder.Services.AddScoped<IFavoriRepository, FavoriRepository>();
+builder.Services.AddScoped<ToggleFavoriUseCase>();
 builder.Services.AddScoped<ICategorieRepository, CategorieRepository>();
 builder.Services.AddScoped<IPrestationRepository, PrestationRepository>();
 builder.Services.AddScoped<SearchEtablissementsUseCase>();
@@ -66,8 +91,44 @@ builder.Services.AddScoped<IPartnerPrestationRepository, PartnerPrestationReposi
 builder.Services.AddScoped<ManagePrestationsUseCase>();
 builder.Services.AddScoped<ManageCategoriesUseCase>();
 builder.Services.AddScoped<PartnerOwnershipFilter>();
+builder.Services.AddSingleton<PartnerSessionTokenService>();
+builder.Services.AddSingleton<UserSessionTokenService>();
+builder.Services.AddSingleton<DeviceTrustTokenService>();
+builder.Services.AddSingleton<StepUpTicketService>();
+builder.Services.AddScoped<IStepUpChallengeRepository, StepUpChallengeRepository>();
+builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
+builder.Services.AddScoped<RequestStepUpUseCase>();
+builder.Services.AddScoped<VerifyStepUpUseCase>();
+builder.Services.AddSingleton<RdvQrTokenService>();
+builder.Services.AddScoped<IPartnerStatsRepository, PartnerStatsRepository>();
+builder.Services.AddScoped<ICollaborateurRepository, CollaborateurRepository>();
+builder.Services.AddScoped<ManageEquipeUseCase>();
+builder.Services.AddScoped<AssignerCollaborateurUseCase>();
+builder.Services.AddScoped<LinkCollaborateurCompteUseCase>();
+builder.Services.AddScoped<IAdminStatsRepository, AdminStatsRepository>();
+builder.Services.AddScoped<GererLitigesUseCase>();
+builder.Services.AddScoped<GererRemboursementsUseCase>();
+
+// Feature 018 (Parcours 5) : portail collaboratrice.
+builder.Services.AddScoped<IStaffRepository, StaffRepository>();
+builder.Services.AddScoped<StaffPortalUseCase>();
+builder.Services.AddScoped<StaffAuthFilter>();
+
+// Feature 018 (Parcours 3 et 6) : pourboire et litiges.
+builder.Services.AddScoped<IPourboireRepository, PourboireRepository>();
+builder.Services.AddScoped<LaisserPourboireUseCase>();
+builder.Services.AddScoped<ILitigeRepository, LitigeRepository>();
+builder.Services.AddScoped<DeclarerLitigeUseCase>();
 
 builder.Services.AddScoped<IRdvRepository, RdvRepository>();
+builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
+builder.Services.AddScoped<NotificationCenterUseCase>();
+builder.Services.AddScoped<IPushSubscriptionRepository, PushSubscriptionRepository>();
+builder.Services.AddScoped<IPushNotificationSender, WebPushNotificationSender>();
+builder.Services.AddScoped<ClientNotificationService>();
+builder.Services.AddScoped<MarquerRdvsTerminesUseCase>();
+builder.Services.AddScoped<EnvoyerRappelsRdvUseCase>();
+builder.Services.AddHostedService<KekeBeauty.Api.BackgroundJobs.RdvCompletionBackgroundService>();
 builder.Services.AddHttpClient<IRdvNotifier, ZavuWhatsAppRdvNotifier>(client =>
 {
     var baseUrl = builder.Configuration["Zavu:BaseUrl"] ?? "https://api.zavu.dev";
@@ -75,8 +136,22 @@ builder.Services.AddHttpClient<IRdvNotifier, ZavuWhatsAppRdvNotifier>(client =>
 });
 builder.Services.AddScoped<RequestRdvUseCase>();
 builder.Services.AddScoped<DecideRdvUseCase>();
+builder.Services.AddScoped<IRdvPaiementRepository, RdvPaiementRepository>();
+builder.Services.AddScoped<InitierPaiementRdvUseCase>();
+builder.Services.AddScoped<VerifyRdvPaiementUseCase>();
+builder.Services.AddScoped<IAvisRepository, AvisRepository>();
+builder.Services.AddScoped<LaisserAvisUseCase>();
+builder.Services.AddScoped<RelancerPaiementRdvUseCase>();
+builder.Services.AddScoped<AnnulerRdvUseCase>();
 
 builder.Services.AddScoped<IAbonnementRepository, AbonnementRepository>();
+builder.Services.AddScoped<IPlanAccessRepository, PlanAccessRepository>();
+builder.Services.AddScoped<PlanAccessService>();
+builder.Services.AddHttpClient<IWaveMoneyGateway, WaveMoneyGateway>(client =>
+{
+    client.BaseAddress = new Uri(builder.Configuration["Payments:Wave:ApiBaseUrl"] ?? "https://api.wave.com/");
+});
+builder.Services.AddHostedService<KekeBeauty.Api.BackgroundJobs.WavePayoutBackgroundService>();
 builder.Services.AddHttpClient<IPaymentGateway, WinPayerGateway>(client =>
 {
     var baseUrl = builder.Configuration["Billing:WiniPayer:BaseUrl"] ?? "https://api-v2.winipayer.com";
@@ -107,6 +182,20 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.Use(async (context, next) =>
+{
+    context.Response.OnStarting(() =>
+    {
+        context.Response.Headers["X-Content-Type-Options"] = "nosniff";
+        context.Response.Headers["X-Frame-Options"] = "DENY";
+        context.Response.Headers["Referrer-Policy"] = "no-referrer";
+        context.Response.Headers["Permissions-Policy"] = "camera=(), geolocation=(), microphone=()";
+        return Task.CompletedTask;
+    });
+    await next();
+});
+app.UseRateLimiter();
+app.UseMiddleware<ClientSessionMiddleware>();
 
 app.UseAuthorization();
 
@@ -129,3 +218,4 @@ app.MapGet("/health/db", async (IHealthDataCheck healthDataCheck, CancellationTo
 });
 
 app.Run();
+

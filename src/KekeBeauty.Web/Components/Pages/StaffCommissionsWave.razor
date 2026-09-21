@@ -1,0 +1,149 @@
+@page "/staff/commissions-wave"
+@inject StaffApiClient StaffApi
+@inject StaffSessionService Session
+@inject NavigationManager Navigation
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+
+<PageTitle>Mes Commissions & Pourboires Wave — Keke Staff</PageTitle>
+
+<div class="min-h-screen bg-surface flex flex-col font-body-md text-body-md text-on-surface">
+    <!-- Header -->
+    <header class="fixed top-0 inset-x-0 h-16 bg-surface-cream/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-40 flex items-center justify-between px-6 lg:px-10">
+        <div class="flex items-center gap-4">
+            <a class="w-10 h-10 rounded-full flex items-center justify-center hover:bg-lavender-subtle text-text-primary transition-colors" href="/staff" title="Retour au portail">
+                <span class="material-symbols-outlined text-[22px]">arrow_back</span>
+            </a>
+            <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-[20px] text-secondary">payments</span>
+                <span class="font-headline-sm font-bold text-text-primary">Mes Commissions &amp; Pourboires Wave</span>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+            <button class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-surface-cream border border-outline-variant/40 hover:bg-lavender-subtle text-plum-deep font-label-md font-bold transition-colors shadow-sm" onclick="window.print()">
+                <span class="material-symbols-outlined text-[18px]">print</span>
+                <span>Imprimer Bulletin</span>
+            </button>
+        </div>
+    </header>
+
+    <main class="pt-20 px-6 lg:px-10 pb-16 flex-1 flex flex-col gap-6 max-w-4xl w-full mx-auto">
+        <!-- Solde & Summary Card -->
+        <div class="bg-primary-container text-on-primary rounded-3xl p-8 shadow-xl flex flex-wrap items-center justify-between gap-6 relative overflow-hidden">
+            <div class="flex flex-col gap-2">
+                <span class="font-label-sm uppercase tracking-wider text-on-primary-container font-bold">Solde Total Perçu (Commissions + Pourboires)</span>
+                <div class="font-display-lg text-display-lg font-bold">@TotalGainFormatted</div>
+                <p class="font-body-sm text-on-primary-container">Versements directs sans retenue de commission sur vos pourboires.</p>
+            </div>
+
+            <div class="flex items-center gap-3 bg-on-primary/10 p-4 rounded-2xl border border-on-primary/20">
+                <span class="material-symbols-outlined text-secondary-fixed text-[36px]">account_balance_wallet</span>
+                <div>
+                    <span class="text-xs uppercase font-bold text-on-primary-container block">Compte Wave Praticienne</span>
+                    <strong class="font-mono text-base font-bold">Vérifié &amp; Actif</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2 KPIs: Commissions vs Pourboires -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="bg-surface-cream rounded-2xl p-6 shadow-sm border border-outline-variant/30 flex items-center justify-between">
+                <div>
+                    <span class="font-label-sm uppercase font-bold text-on-surface-variant block mb-1">Commissions Soins</span>
+                    <strong class="font-headline-lg text-primary">@TotalCommissionsFormatted</strong>
+                    <p class="font-body-sm text-on-surface-variant mt-1">@_items.Count prestations réalisées</p>
+                </div>
+                <div class="w-12 h-12 rounded-full bg-lavender-subtle text-primary flex items-center justify-center">
+                    <span class="material-symbols-outlined text-[26px]">content_cut</span>
+                </div>
+            </div>
+
+            <div class="bg-surface-cream rounded-2xl p-6 shadow-sm border border-outline-variant/30 flex items-center justify-between">
+                <div>
+                    <span class="font-label-sm uppercase font-bold text-on-surface-variant block mb-1">Pourboires Wave Directs (100%)</span>
+                    <strong class="font-headline-lg text-status-available">@TotalPourboiresFormatted</strong>
+                    <p class="font-body-sm text-on-surface-variant mt-1">Générosité des clientes satisfaites</p>
+                </div>
+                <div class="w-12 h-12 rounded-full bg-status-available/10 text-status-available flex items-center justify-center">
+                    <span class="material-symbols-outlined text-[26px]">volunteer_activism</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detail Table -->
+        <div class="bg-surface-cream rounded-2xl p-6 shadow-sm border border-outline-variant/30 flex flex-col gap-4">
+            <div class="flex items-center justify-between border-b border-outline-variant/20 pb-3">
+                <h2 class="font-headline-sm font-bold text-text-primary">Bulletin Détaillé des Prestations</h2>
+                <span class="font-label-sm text-outline">@_items.Count lignes</span>
+            </div>
+
+            @if (_loading)
+            {
+                <div class="py-12 text-center text-on-surface-variant">Chargement de votre relevé…</div>
+            }
+            else if (_items.Count == 0)
+            {
+                <div class="py-12 text-center text-on-surface-variant">Aucune commission enregistrée pour le moment.</div>
+            }
+            else
+            {
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left font-body-sm">
+                        <thead>
+                            <tr class="border-b border-outline-variant/30 text-on-surface-variant font-label-sm uppercase">
+                                <th class="pb-3">Date</th>
+                                <th class="pb-3">Cliente</th>
+                                <th class="pb-3">Prestation</th>
+                                <th class="pb-3 text-right">Tarif</th>
+                                <th class="pb-3 text-right">Votre Commission</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-outline-variant/10">
+                            @foreach (var item in _items)
+                            {
+                                <tr class="hover:bg-surface/50">
+                                    <td class="py-3 font-mono text-xs">@item.DateHeureDebut.ToLocalTime().ToString("dd/MM/yyyy")</td>
+                                    <td class="py-3 font-bold text-text-primary">@item.NomClient</td>
+                                    <td class="py-3 text-on-surface-variant">@item.LibellePrestation</td>
+                                    <td class="py-3 text-right">@item.TarifPrestation.ToString("N0") FCFA</td>
+                                    <td class="py-3 text-right font-bold text-primary">+@item.Commission.ToString("N0") FCFA</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </main>
+</div>
+
+@code {
+    private Guid? _idStaff;
+    private List<CommissionItemDto> _items = [];
+    private bool _loading = true;
+
+    private decimal TotalCommissions => _items.Sum(i => i.Commission);
+    private decimal TotalPourboires => _items.Sum(i => i.Pourboire);
+    private decimal TotalGain => TotalCommissions + TotalPourboires;
+
+    private string TotalCommissionsFormatted => $"{TotalCommissions:N0} FCFA";
+    private string TotalPourboiresFormatted => $"{TotalPourboires:N0} FCFA";
+    private string TotalGainFormatted => $"{TotalGain:N0} FCFA";
+
+    protected override async Task OnInitializedAsync()
+    {
+        _idStaff = await Session.GetStaffIdAsync();
+        if (_idStaff is null)
+        {
+            Navigation.NavigateTo("/login?role=collaboratrice");
+            return;
+        }
+
+        var (ok, items) = await StaffApi.GetCommissionsAsync(_idStaff.Value, CancellationToken.None);
+        if (ok)
+        {
+            _items = items;
+        }
+        _loading = false;
+    }
+}

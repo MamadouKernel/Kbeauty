@@ -12,16 +12,18 @@ namespace KekeBeauty.Api.Controllers;
 public sealed class PartnerDashboardController : ControllerBase
 {
     private readonly IPartnerPrestationRepository _repository;
+    private readonly KekeBeauty.Api.Auth.PartnerSessionTokenService _tokens;
 
-    public PartnerDashboardController(IPartnerPrestationRepository repository)
+    public PartnerDashboardController(IPartnerPrestationRepository repository, KekeBeauty.Api.Auth.PartnerSessionTokenService tokens)
     {
         _repository = repository;
+        _tokens = tokens;
     }
 
     [HttpGet("partenaire/etablissements")]
     public async Task<IActionResult> GetMesEtablissements(CancellationToken cancellationToken)
     {
-        if (!Request.Headers.TryGetValue("X-Partner-Id", out var partnerIdHeader) || !Guid.TryParse(partnerIdHeader, out var idPartner))
+        if (!_tokens.TryFromRequest(Request, out var idPartner))
         {
             return Unauthorized(new { status = "unauthorized" });
         }

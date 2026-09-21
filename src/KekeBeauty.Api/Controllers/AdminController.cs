@@ -7,10 +7,12 @@ namespace KekeBeauty.Api.Controllers;
 
 public sealed record AssignCategoryRequest(string LibelleCategorie);
 public sealed record AddPrestationRequest(string LibellePrestation, decimal Tarif, short DureeMinutes);
+public sealed record RejectApplicationRequest(string Motif);
 
 [ApiController]
 [Route("admin/applications")]
 [ServiceFilter(typeof(AdminApiKeyFilter))]
+[AdminRole("KYC")]
 public sealed class AdminController : ControllerBase
 {
     private readonly ListPendingApplicationsUseCase _listUseCase;
@@ -56,7 +58,7 @@ public sealed class AdminController : ControllerBase
     [HttpGet("{id:guid}/files/{type}")]
     public async Task<IActionResult> GetFile(Guid id, string type, CancellationToken cancellationToken)
     {
-        if (type != "devanture" && type != "piece-identite")
+        if (type is not ("devanture" or "piece-identite" or "document-recto" or "document-verso"))
         {
             return NotFound();
         }
@@ -68,7 +70,7 @@ public sealed class AdminController : ControllerBase
         }
 
         var stream = await _fileStorage.OpenAsync(relativePath, cancellationToken);
-        return stream is null ? NotFound() : File(stream, "application/octet-stream");
+        return stream is null ? NotFound() : File(stream, MediaController.ContentType(relativePath), enableRangeProcessing: true);
     }
 
     [HttpPost("{id:guid}/validate")]
@@ -84,9 +86,10 @@ public sealed class AdminController : ControllerBase
     }
 
     [HttpPost("{id:guid}/reject")]
-    public async Task<IActionResult> Reject(Guid id, CancellationToken cancellationToken)
+    public async Task<IActionResult> Reject(Guid id, [FromBody] RejectApplicationRequest request, CancellationToken cancellationToken)
     {
-        var result = await _rejectUseCase.ExecuteAsync(id, cancellationToken);
+        if (string.IsNullOrWhiteSpace(request.Motif)) return BadRequest(new { status = "motif_requis" });
+        var result = await _rejectUseCase.ExecuteAsync(id, request.Motif.Trim(), cancellationToken);
         return result.Status == "not_found" ? NotFound() : Ok(new { statut = result.Status });
     }
 

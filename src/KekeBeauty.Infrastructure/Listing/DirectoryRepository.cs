@@ -21,7 +21,7 @@ public sealed class DirectoryRepository : IDirectoryRepository
         // sans logique applicative separee (voir research.md, Decision 1).
         var rows = await connection.QueryAsync<EtablissementSummary>(new CommandDefinition(
             @"SELECT DISTINCT e.id_etablissement AS IdEtablissement, e.nom_etablissement AS NomEtablissement,
-                     c.libelle_commune AS LibelleCommune
+                     c.libelle_commune AS LibelleCommune, e.gps_latitude AS GpsLatitude, e.gps_longitude AS GpsLongitude
               FROM etablissement e
               INNER JOIN etablissement_categorie ec ON ec.id_etablissement = e.id_etablissement
               INNER JOIN categorie cat ON cat.id_categorie = ec.id_categorie
@@ -44,11 +44,40 @@ public sealed class DirectoryRepository : IDirectoryRepository
         return await connection.QuerySingleOrDefaultAsync<EtablissementCoreRow>(new CommandDefinition(
             @"SELECT id_etablissement AS IdEtablissement, nom_etablissement AS NomEtablissement,
                      description AS Description, numero_service_client AS NumeroServiceClient,
-                     gps_latitude AS GpsLatitude, gps_longitude AS GpsLongitude
+                     gps_latitude AS GpsLatitude, gps_longitude AS GpsLongitude,
+                     CASE WHEN pf.paiement_mobile THEN mode_paiement_service ELSE 'ESPECES' END AS ModePaiementService,
+                     (paiement_wave AND pf.paiement_mobile) AS PaiementWave,
+                     (paiement_orange_money AND pf.paiement_mobile) AS PaiementOrangeMoney,
+                     (paiement_moov_money AND pf.paiement_mobile) AS PaiementMoovMoney
               FROM etablissement
+              JOIN parametre_formule pf ON pf.formule = CASE
+                  WHEN EXISTS (SELECT 1 FROM abonnement a WHERE a.id_etablissement = etablissement.id_etablissement AND a.statut_abonnement = 'ACTIF') THEN 'PRO'
+                  ELSE 'FREE' END
               WHERE id_etablissement = @idEtablissement AND statut_kyc = 'VALIDE' AND est_suspendu = false;",
             new { idEtablissement },
             cancellationToken: cancellationToken));
+    }
+
+    public async Task<EtablissementCoreRow?> GetManagedCoreAsync(Guid idEtablissement, CancellationToken cancellationToken)
+    {
+        using var connection = _connectionFactory.CreateConnection();
+        await connection.OpenAsync(cancellationToken);
+
+        return await connection.QuerySingleOrDefaultAsync<EtablissementCoreRow>(new CommandDefinition(
+            @"SELECT id_etablissement AS IdEtablissement, nom_etablissement AS NomEtablissement,
+                     description AS Description, numero_service_client AS NumeroServiceClient,
+                     gps_latitude AS GpsLatitude, gps_longitude AS GpsLongitude,
+                     statut_kyc AS StatutKyc, horaires #>> '{}' AS Horaires, motif_rejet AS MotifRejet,
+                     CASE WHEN pf.paiement_mobile THEN mode_paiement_service ELSE 'ESPECES' END AS ModePaiementService,
+                     (paiement_wave AND pf.paiement_mobile) AS PaiementWave,
+                     (paiement_orange_money AND pf.paiement_mobile) AS PaiementOrangeMoney,
+                     (paiement_moov_money AND pf.paiement_mobile) AS PaiementMoovMoney
+              FROM etablissement
+              JOIN parametre_formule pf ON pf.formule = CASE
+                  WHEN EXISTS (SELECT 1 FROM abonnement a WHERE a.id_etablissement = etablissement.id_etablissement AND a.statut_abonnement = 'ACTIF') THEN 'PRO'
+                  ELSE 'FREE' END
+              WHERE id_etablissement = @idEtablissement AND est_suspendu = false;",
+            new { idEtablissement }, cancellationToken: cancellationToken));
     }
 
     public async Task<IReadOnlyList<MediaDto>> GetMediasAsync(Guid idEtablissement, CancellationToken cancellationToken)
@@ -57,7 +86,7 @@ public sealed class DirectoryRepository : IDirectoryRepository
         await connection.OpenAsync(cancellationToken);
 
         var rows = await connection.QueryAsync<MediaDto>(new CommandDefinition(
-            @"SELECT type_media AS TypeMedia, url AS Url, ordre_affichage AS OrdreAffichage
+            @"SELECT id_media AS IdMedia, type_media AS TypeMedia, '/media/' || id_media AS Url, ordre_affichage AS OrdreAffichage
               FROM media WHERE id_etablissement = @idEtablissement ORDER BY ordre_affichage;",
             new { idEtablissement },
             cancellationToken: cancellationToken));

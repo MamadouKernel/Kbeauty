@@ -1,0 +1,132 @@
+@page "/admin/litiges"
+@inject AdminApiClient AdminApi
+@inject AdminSessionService Session
+@inject NavigationManager Navigation
+@* prerender:false : voir AdminDashboard.razor pour le detail du bug de prerendering evite. *@
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+
+<PageTitle>Litiges — Super-Admin</PageTitle>
+
+@using KekeBeauty.Web.Components.Layout
+<AdminHeader ActivePath="/admin/litiges" />
+
+<main id="main-content" tabindex="-1" class="admin-page flex flex-col relative w-full pt-16 pb-space-xl bg-surface min-h-screen">
+    <div class="flex flex-col w-full px-margin py-space-lg gap-space-lg lg:max-w-4xl lg:mx-auto">
+        @if (_checkingAuth)
+        {
+            <p class="font-body-md text-body-md text-on-surface-variant">Chargement…</p>
+        }
+        else
+        {
+            <div class="inline-flex p-1 rounded-full bg-surface-container-high shadow-inner w-fit">
+                <button class="px-space-md py-1.5 rounded-full font-label-md text-label-md transition-all @(_filtre == "OUVERT" ? "bg-primary-container text-on-primary shadow-sm" : "text-on-surface-variant")" @onclick='() => SetFiltre("OUVERT")'>Ouverts</button>
+                <button class="px-space-md py-1.5 rounded-full font-label-md text-label-md transition-all @(_filtre == "RESOLU" ? "bg-primary-container text-on-primary shadow-sm" : "text-on-surface-variant")" @onclick='() => SetFiltre("RESOLU")'>Résolus</button>
+                <button class="px-space-md py-1.5 rounded-full font-label-md text-label-md transition-all @(_filtre == null ? "bg-primary-container text-on-primary shadow-sm" : "text-on-surface-variant")" @onclick='() => SetFiltre(null)'>Tous</button>
+            </div>
+
+            @if (_litiges.Count == 0)
+            {
+                <p class="font-body-sm text-body-sm text-on-surface-variant py-space-sm">Aucun litige dans cette catégorie.</p>
+            }
+            else
+            {
+                <div class="flex flex-col gap-space-sm">
+                    @foreach (var litige in _litiges)
+                    {
+                        <div class="bg-surface-cream rounded-xl p-space-md shadow-sm space-y-space-sm">
+                            <div class="flex items-center justify-between">
+                                <p class="font-label-md text-label-md text-text-primary">@litige.NomEtablissement</p>
+                                <span class="font-label-sm text-label-sm px-2 py-1 rounded-full @(litige.StatutLitige == "OUVERT" ? "bg-error-container text-on-error-container" : "bg-status-available/10 text-status-available")">@litige.StatutLitige</span>
+                            </div>
+                            <p class="font-body-sm text-body-sm text-on-surface-variant">Déclaré par @litige.TelephoneDeclarant le @litige.DateCreation.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</p>
+                            <p class="font-body-md text-body-md text-text-primary">@litige.Motif</p>
+                            @if (litige.Resolution is not null)
+                            {
+                                <p class="font-body-sm text-body-sm text-status-available">Résolution : @litige.Resolution</p>
+                            }
+                            else if (_idLitigeEnCours == litige.IdLitige)
+                            {
+                                <div class="flex flex-col gap-space-xs">
+                                    <textarea class="w-full rounded-lg bg-surface-container-low p-2.5 font-body-sm text-body-sm focus:outline-none resize-none" rows="2" placeholder="Résolution apportée" @bind="_resolution" @bind:event="oninput"></textarea>
+                                    <div class="flex gap-2">
+                                        <button class="flex-1 py-2 rounded-full bg-primary-container text-on-primary font-label-sm text-label-sm shadow-sm disabled:opacity-60" type="button" @onclick="() => ResoudreAsync(litige.IdLitige)" disabled="@string.IsNullOrWhiteSpace(_resolution)">Marquer résolu</button>
+                                        <button class="px-3 py-2 rounded-full bg-surface-container text-text-primary font-label-sm text-label-sm" type="button" @onclick="() => _idLitigeEnCours = null">Annuler</button>
+                                    </div>
+                                </div>
+                            }
+                            else
+                            {
+                                <button class="font-label-sm text-label-sm text-primary underline self-start" type="button" @onclick="() => StartResoudre(litige.IdLitige)">Résoudre</button>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+
+            @if (!string.IsNullOrEmpty(_message))
+            {
+                <div class="rounded-xl px-space-md py-space-sm font-body-md text-body-md bg-status-available/10 text-status-available">@_message</div>
+            }
+        }
+    </div>
+</main>
+
+@code {
+    private string? _apiKey;
+    private bool _checkingAuth = true;
+    private string? _filtre = "OUVERT";
+    private List<LitigeItem> _litiges = [];
+    private Guid? _idLitigeEnCours;
+    private string? _resolution;
+    private string? _message;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _apiKey = await Session.GetApiKeyAsync();
+        if (_apiKey is null)
+        {
+            Navigation.NavigateTo("/admin/login");
+            return;
+        }
+
+        await LoadAsync();
+        _checkingAuth = false;
+    }
+
+    private async Task LoadAsync()
+    {
+        var (success, litiges) = await AdminApi.ListerLitigesAsync(_apiKey!, _filtre, CancellationToken.None);
+        if (success)
+        {
+            _litiges = litiges;
+        }
+    }
+
+    private async Task SetFiltre(string? filtre)
+    {
+        _filtre = filtre;
+        await LoadAsync();
+    }
+
+    private void StartResoudre(Guid idLitige)
+    {
+        _idLitigeEnCours = idLitige;
+        _resolution = null;
+    }
+
+    private async Task ResoudreAsync(Guid idLitige)
+    {
+        if (string.IsNullOrWhiteSpace(_resolution))
+        {
+            return;
+        }
+
+        var (success, _) = await AdminApi.ResoudreLitigeAsync(_apiKey!, idLitige, _resolution, CancellationToken.None);
+        _message = success ? "Litige marqué résolu." : "Échec de la résolution.";
+        if (success)
+        {
+            _idLitigeEnCours = null;
+            await LoadAsync();
+        }
+    }
+}

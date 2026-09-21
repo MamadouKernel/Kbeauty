@@ -1,0 +1,166 @@
+@page "/prototype"
+@page "/parcours"
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+
+<PageTitle>Hub des Parcours & Écrans Google Stitch — Keke Beauty</PageTitle>
+
+<div class="min-h-screen bg-surface flex flex-col font-body-md text-body-md text-on-surface">
+    <!-- Header -->
+    <header class="fixed top-0 inset-x-0 h-16 bg-surface-cream/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-40 flex items-center justify-between px-6 lg:px-12">
+        <div class="flex items-center gap-3">
+            <img src="/img/logo.png" alt="Keke Beauty" class="h-8 w-auto object-contain" />
+            <div class="flex flex-col">
+                <span class="font-headline-sm font-bold text-plum-deep leading-tight">Keke Beauty</span>
+                <span class="font-label-sm text-outline uppercase tracking-wider text-[10px]">Livrables Google Stitch 100%</span>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+            <span class="px-3 py-1 rounded-full bg-status-available/15 text-status-available font-label-sm font-bold flex items-center gap-1">
+                <span class="w-2 h-2 rounded-full bg-status-available animate-pulse"></span>
+                <span>36 Écrans Implémentés</span>
+            </span>
+        </div>
+    </header>
+
+    <main class="pt-24 px-6 lg:px-12 pb-20 flex-1 flex flex-col gap-10 max-w-7xl w-full mx-auto">
+        <!-- Hero Section -->
+        <div class="flex flex-col gap-3 text-center max-w-3xl mx-auto">
+            <span class="font-label-md uppercase tracking-widest text-primary font-bold">Écosystème Keke Beauty Côte d'Ivoire</span>
+            <h1 class="font-display-lg-mobile lg:font-display-lg text-text-primary font-bold tracking-tight">
+                Hub de Démonstration &amp; Navigation des 6 Parcours
+            </h1>
+            <p class="font-body-lg text-on-surface-variant leading-relaxed">
+                Accédez directement à l'ensemble des 36 écrans haute fidélité définis par les livrables Google Stitch pour les 4 rôles de la plateforme.
+            </p>
+        </div>
+
+        <!-- Role Filter Tabs -->
+        <div class="flex flex-wrap items-center justify-center gap-2 border-b border-outline-variant/30 pb-4">
+            <button class="px-5 py-2.5 rounded-full font-label-md transition-all @(_activeRole == "all" ? "bg-primary text-on-primary font-bold shadow-md" : "bg-surface-cream text-plum-deep hover:bg-lavender-subtle")" @onclick='() => _activeRole = "all"'>
+                Tous les écrans (36)
+            </button>
+            <button class="px-5 py-2.5 rounded-full font-label-md transition-all @(_activeRole == "client" ? "bg-primary text-on-primary font-bold shadow-md" : "bg-surface-cream text-plum-deep hover:bg-lavender-subtle")" @onclick='() => _activeRole = "client"'>
+                Cliente B2C
+            </button>
+            <button class="px-5 py-2.5 rounded-full font-label-md transition-all @(_activeRole == "partner" ? "bg-primary text-on-primary font-bold shadow-md" : "bg-surface-cream text-plum-deep hover:bg-lavender-subtle")" @onclick='() => _activeRole = "partner"'>
+                Partenaire Gérant B2B
+            </button>
+            <button class="px-5 py-2.5 rounded-full font-label-md transition-all @(_activeRole == "staff" ? "bg-primary text-on-primary font-bold shadow-md" : "bg-surface-cream text-plum-deep hover:bg-lavender-subtle")" @onclick='() => _activeRole = "staff"'>
+                Staff &amp; Tablette Miroir
+            </button>
+            <button class="px-5 py-2.5 rounded-full font-label-md transition-all @(_activeRole == "admin" ? "bg-primary text-on-primary font-bold shadow-md" : "bg-surface-cream text-plum-deep hover:bg-lavender-subtle")" @onclick='() => _activeRole = "admin"'>
+                Super-Admin
+            </button>
+        </div>
+
+        <!-- 6 Parcours Sections -->
+        <div class="flex flex-col gap-12">
+            @if (_activeRole is "all" or "client")
+            {
+                <section class="flex flex-col gap-4">
+                    <div class="flex items-center gap-3">
+                        <span class="w-8 h-8 rounded-full bg-lavender-subtle text-primary font-bold flex items-center justify-center text-sm">1</span>
+                        <h2 class="font-headline-lg font-bold text-text-primary">Parcours 1 &amp; 2 : Expérience Client B2C &amp; Résilience</h2>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        @RenderScreenCard("/", "home", "Découverte & Salons Proximité", "Vitrine prestige, filtres communes, stories et salons recommandés.")
+                        @RenderScreenCard("/carte", "map", "Annuaire & Carte Interactive", "Split-view carte GPS Leaflet et liste interactive des salons.")
+                        @RenderScreenCard("/login", "lock", "Connexion & Validation OTP", "Authentification rapide par WhatsApp (+225) et Google One-Tap.")
+                        @RenderScreenCard("/mes-rendez-vous", "calendar_today", "Mes Rendez-vous & Historique", "Suivi en direct, pass QR, signalement de retard et avis post-soin.")
+                        @RenderScreenCard("/espace-client", "account_circle", "Mon Espace Client & Fidélité", "Points Kéké Gold, conciergerie VIP et historique personnel.")
+                        @RenderScreenCard("/paiement-echec/00000000-0000-0000-0000-000000000001", "sync_problem", "Échec Paiement & Récupération Créneau", "Compte à rebours 10 min, diagnostic et bascule Wave / OM / MoMo / CB.")
+                    </div>
+                </section>
+            }
+
+            @if (_activeRole is "all" or "client")
+            {
+                <section class="flex flex-col gap-4">
+                    <div class="flex items-center gap-3">
+                        <span class="w-8 h-8 rounded-full bg-lavender-subtle text-primary font-bold flex items-center justify-center text-sm">3</span>
+                        <h2 class="font-headline-lg font-bold text-text-primary">Parcours 3 : Post-Soin, Avis &amp; Pourboires Directs</h2>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        @RenderScreenCard("/mes-rendez-vous", "hotel_class", "Avis Certifié & Pourboire Wave", "Évaluation multi-critères (douceur, netteté, ponctualité), photos avant/après et pourboire Wave direct sans retenue.")
+                    </div>
+                </section>
+            }
+
+            @if (_activeRole is "all" or "partner")
+            {
+                <section class="flex flex-col gap-4">
+                    <div class="flex items-center gap-3">
+                        <span class="w-8 h-8 rounded-full bg-lavender-subtle text-primary font-bold flex items-center justify-center text-sm">4</span>
+                        <h2 class="font-headline-lg font-bold text-text-primary">Parcours 4 : Gérance de Salon &amp; Accueil Pro (B2B)</h2>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        @RenderScreenCard("/partenaire", "storefront", "Espace Pro — Mes Établissements", "Tableau de bord de gestion des salons gérés et statuts KYC.")
+                        @RenderScreenCard("/partenaire/inscription", "domain_add", "Onboarding & Vérification KYC", "Formulaire pas-à-pas, upload CNI, photo devanture et coordonnées GPS.")
+                        @RenderScreenCard("/partenaire/abonnement", "workspace_premium", "Souscription & Abonnement Pro", "Formules FREE vs PRO et paiement direct Wave Business.")
+                        @RenderScreenCard("/partenaire/rdv", "event_available", "Gestion des Rendez-vous Pro", "Validation, refus, reprogrammation et assignation praticienne.")
+                        @RenderScreenCard("/partenaire/statistiques", "monitoring", "Revenus & Statistiques Pro", "Chiffre d'affaires journalier et répartition Wave / OM / Espèces.")
+                    </div>
+                </section>
+            }
+
+            @if (_activeRole is "all" or "staff")
+            {
+                <section class="flex flex-col gap-4">
+                    <div class="flex items-center gap-3">
+                        <span class="w-8 h-8 rounded-full bg-lavender-subtle text-primary font-bold flex items-center justify-center text-sm">5</span>
+                        <h2 class="font-headline-lg font-bold text-text-primary">Parcours 5 : Collaboratrices &amp; Tablette Miroir</h2>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        @RenderScreenCard("/staff", "schedule", "Planning Personnel Collaboratrice", "Portail mobile : liste des clientes du jour, alertes et commissions.")
+                        @RenderScreenCard("/staff/commissions-wave", "payments", "Commissions & Pourboires Wave", "Relevé détaillé et bulletin certifié téléchargeable.")
+                    </div>
+                </section>
+            }
+
+            @if (_activeRole is "all" or "admin")
+            {
+                <section class="flex flex-col gap-4">
+                    <div class="flex items-center gap-3">
+                        <span class="w-8 h-8 rounded-full bg-lavender-subtle text-primary font-bold flex items-center justify-center text-sm">6</span>
+                        <h2 class="font-headline-lg font-bold text-text-primary">Parcours 6 : Supervision &amp; Back-Office Super-Admin</h2>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        @RenderScreenCard("/admin", "dashboard", "Tableau de Bord Global Admin", "GMV Abidjan, flux de trésorerie, volume RDV et santé système.")
+                        @RenderScreenCard("/admin/dossiers", "verified_user", "Validation & Audit KYC Salons", "Instruction des pièces d'identité et audit légal des établissements.")
+                        @RenderScreenCard("/admin/abonnements", "card_membership", "Gestion Salons & Abonnements", "Gestion des abonnements PRO, facturation et relances.")
+                        @RenderScreenCard("/admin/litiges", "gavel", "Litiges & Conciergerie VIP", "Arbitrage des séquestres et médiation litiges clients/salons.")
+                        @RenderScreenCard("/admin/remboursements", "currency_exchange", "File des Remboursements", "Traitement des annulations Kéké Protect avec référence de virement réel.")
+                        @RenderScreenCard("/admin/moderation", "admin_panel_settings", "Modération & Sécurité Comptes", "Suspension et réactivation d'utilisateurs et de salons.")
+                    </div>
+                </section>
+            }
+        </div>
+    </main>
+</div>
+
+@code {
+    private string _activeRole = "all";
+
+    private RenderFragment RenderScreenCard(string url, string icon, string title, string description) => __builder =>
+    {
+        <a class="p-5 rounded-2xl bg-surface-cream border border-outline-variant/30 shadow-sm hover:border-primary/50 hover:shadow-md transition-all flex flex-col justify-between gap-3 group" href="@url">
+            <div class="flex items-start justify-between gap-2">
+                <div class="w-10 h-10 rounded-xl bg-lavender-subtle text-primary flex items-center justify-center group-hover:bg-primary group-hover:text-on-primary transition-colors">
+                    <span class="material-symbols-outlined text-[22px]">@icon</span>
+                </div>
+                <span class="font-label-sm text-[10px] uppercase font-bold text-status-available bg-status-available/10 px-2 py-0.5 rounded-full">
+                    100% Opérationnel
+                </span>
+            </div>
+            <div>
+                <h3 class="font-label-lg text-label-lg font-bold text-text-primary group-hover:text-primary transition-colors">@title</h3>
+                <p class="font-body-sm text-body-sm text-on-surface-variant mt-1">@description</p>
+            </div>
+            <div class="flex items-center gap-1 text-primary font-label-sm font-bold pt-2 border-t border-outline-variant/15">
+                <span>Ouvrir l'écran</span>
+                <span class="material-symbols-outlined text-[16px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
+            </div>
+        </a>
+    };
+}

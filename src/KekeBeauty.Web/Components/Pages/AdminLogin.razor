@@ -6,11 +6,16 @@
 
 <PageTitle>Connexion admin</PageTitle>
 
+<main id="main-content" tabindex="-1" class="admin-login admin-legacy"><div class="admin-login-card">
+<a class="brand" href="/"><img src="/img/logo.png" alt="" /><span>Keke Beauty<small>ESPACE ADMINISTRATION</small></span></a>
 <h1>Connexion admin</h1>
 
 <div class="mb-3">
-    <label class="form-label">Clé API admin</label>
-    <input class="form-control" type="password" @bind="_apiKey" />
+    <label for="admin-email" class="form-label">Adresse e-mail</label>
+    <input id="admin-email" autocomplete="username" class="form-control" type="email" @bind="_email" />
+</div><div class="mb-3">
+    <label for="admin-password" class="form-label">Mot de passe</label>
+    <input id="admin-password" autocomplete="current-password" class="form-control" type="password" @bind="_password" />
 </div>
 <button class="btn btn-primary" @onclick="LoginAsync" disabled="@_busy">Se connecter</button>
 
@@ -19,29 +24,40 @@
     <div class="alert alert-danger mt-3">@_message</div>
 }
 
+</div></main>
+
 @code {
-    private string _apiKey = "";
+    [SupplyParameterFromQuery]
+    public bool Expired { get; set; }
+
+    private string _email = "admin@kekebeauty.ci";
+    private string _password = "";
     private bool _busy;
     private string? _message;
 
+    protected override void OnInitialized()
+    {
+        if (Expired) _message = "Votre session administrateur a expiré après 30 minutes d’inactivité.";
+    }
+
     private async Task LoginAsync()
     {
-        if (string.IsNullOrWhiteSpace(_apiKey))
+        if (string.IsNullOrWhiteSpace(_email) || string.IsNullOrWhiteSpace(_password))
         {
             return;
         }
 
         _busy = true;
-        var valid = await AdminApi.VerifyApiKeyAsync(_apiKey, CancellationToken.None);
+        var (valid, token) = await AdminApi.LoginAsync(_email, _password, CancellationToken.None);
         _busy = false;
 
         if (valid)
         {
-            await Session.SetApiKeyAsync(_apiKey);
+            await Session.SetApiKeyAsync(token!);
             Navigation.NavigateTo("/admin/dossiers");
             return;
         }
 
-        _message = "Clé invalide ou service momentanément indisponible.";
+        _message = "E-mail ou mot de passe invalide, ou service momentanément indisponible.";
     }
 }

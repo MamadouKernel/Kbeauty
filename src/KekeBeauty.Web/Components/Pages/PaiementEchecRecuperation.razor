@@ -1,0 +1,289 @@
+@page "/paiement-echec/{IdRdv:guid}"
+@inject RdvApiClient RdvApi
+@inject ClientSessionService ClientSession
+@inject NavigationManager Navigation
+@implements IDisposable
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+
+<PageTitle>Paiement Sécurisé — Récupération Créneau — Keke Beauty</PageTitle>
+
+<header class="fixed top-0 inset-x-0 z-50 pt-safe bg-surface-cream/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)]">
+    <div class="h-16 px-gutter flex items-center justify-between gap-space-sm">
+        <div class="flex items-center gap-space-xs min-w-0">
+            <a aria-label="Retour" class="w-11 h-11 -ml-space-xs flex items-center justify-center rounded-full text-text-primary hover:bg-lavender-subtle active:scale-95 transition-all" href="@($"/mes-rendez-vous/{IdRdv}")">
+                <span class="material-symbols-outlined text-[22px]">arrow_back_ios_new</span>
+            </a>
+            <h1 class="font-headline-sm text-headline-sm text-text-primary font-semibold truncate">Paiement Sécurisé Mobile Money</h1>
+        </div>
+        <div class="flex items-center gap-space-xs shrink-0">
+            <div class="flex items-center gap-1 px-2.5 py-1 rounded-full bg-lavender-subtle text-primary border border-primary/10 shadow-sm">
+                <span class="material-symbols-outlined text-[16px] text-status-available">verified_user</span>
+                <span class="font-label-sm text-label-sm text-primary font-bold uppercase tracking-wider">100% Sécurisé</span>
+            </div>
+        </div>
+    </div>
+</header>
+
+<main class="flex-1 flex flex-col relative w-full pt-16 bg-surface">
+    <div class="flex flex-col w-full pb-safe max-w-lg mx-auto">
+        <!-- Status Feedback Banner & Diagnostic -->
+        <div class="px-margin pt-space-md pb-space-xs">
+            <div class="bg-surface-cream rounded-xl p-space-md shadow-sm relative overflow-hidden flex flex-col items-center text-center">
+                <div class="absolute -right-12 -top-12 w-36 h-36 rounded-full bg-primary-fixed/20 blur-2xl pointer-events-none"></div>
+                <div class="absolute -left-12 -bottom-12 w-36 h-36 rounded-full bg-secondary-fixed/20 blur-2xl pointer-events-none"></div>
+
+                <div class="relative mb-space-sm">
+                    <div class="w-16 h-16 rounded-full bg-lavender-subtle flex items-center justify-center shadow-sm">
+                        <span class="material-symbols-outlined text-[32px] text-secondary">sync_problem</span>
+                    </div>
+                    <div class="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-primary flex items-center justify-center text-on-primary shadow">
+                        <span class="material-symbols-outlined text-[14px]">priority_high</span>
+                    </div>
+                </div>
+
+                <div class="inline-flex items-center gap-1.5 px-space-sm py-1 rounded-full bg-lavender-subtle text-primary mb-space-xs">
+                    <span class="w-2 h-2 rounded-full bg-secondary animate-pulse"></span>
+                    <span class="font-label-sm text-label-sm uppercase tracking-wider">Transaction non aboutie</span>
+                </div>
+
+                <h2 class="font-headline-sm text-headline-sm text-text-primary mb-space-xs font-semibold">
+                    Votre paiement n'a pas pu être validé
+                </h2>
+                <p class="font-body-sm text-body-sm text-on-surface-variant max-w-xs mb-space-md">
+                    Rassurez-vous, aucun montant n'a été débité de votre portefeuille.
+                </p>
+
+                <!-- Precision Diagnostic Container -->
+                <div class="w-full bg-surface-container-low rounded-lg p-space-sm text-left flex items-start gap-space-sm">
+                    <span class="material-symbols-outlined text-secondary text-[20px] shrink-0 mt-0.5">info</span>
+                    <div class="min-w-0">
+                        <p class="font-label-md text-label-md text-text-primary mb-0.5">Diagnostic instantané</p>
+                        <p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+                            Délai d'approbation dépassé (timeout USSD/Push) ou confirmation annulée sur votre application mobile.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Countdown Protection Safeguard (Anti-perte de créneau) -->
+        <div class="px-margin py-space-xs">
+            <div class="bg-primary-container text-on-primary rounded-xl p-space-md shadow-md flex items-center justify-between gap-space-sm">
+                <div class="flex items-center gap-space-sm min-w-0">
+                    <div class="w-10 h-10 rounded-full bg-on-primary/10 flex items-center justify-center shrink-0">
+                        <span class="material-symbols-outlined text-on-primary text-[22px]">hourglass_top</span>
+                    </div>
+                    <div class="min-w-0">
+                        <p class="font-label-sm text-label-sm text-on-primary-container uppercase tracking-wider">Créneau réservé &amp; sécurisé</p>
+                        <p class="font-label-lg text-label-lg text-on-primary truncate">@(_rdv?.NomEtablissement ?? "Votre salon") • @DateLabel</p>
+                    </div>
+                </div>
+                <div class="text-right shrink-0 bg-on-primary/15 px-space-sm py-1.5 rounded-lg">
+                    <span class="font-display-lg-mobile text-display-lg-mobile font-bold tracking-tight text-on-primary">@CountdownFormatted</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Deposit Breakdown Card -->
+        <div class="px-margin py-space-xs">
+            <div class="bg-surface-cream rounded-xl p-space-md shadow-sm">
+                <div class="flex items-center justify-between mb-space-xs">
+                    <span class="font-body-md text-body-md text-on-surface-variant">Prestation</span>
+                    <span class="font-label-lg text-label-lg text-text-primary font-bold">@(_rdv?.LibellePrestation ?? "Soins")</span>
+                </div>
+                <div class="flex items-center justify-between mb-space-xs">
+                    <div class="flex items-center gap-1.5">
+                        <span class="font-body-md text-body-md text-text-primary font-medium">Acompte requis</span>
+                        <span class="material-symbols-outlined text-[16px] text-status-available">verified</span>
+                    </div>
+                    <span class="font-headline-sm text-headline-sm text-primary font-bold">@TarifFormatted</span>
+                </div>
+                <div class="w-full bg-surface-container h-1.5 rounded-full overflow-hidden mt-space-xs">
+                    <div class="bg-primary h-full w-full rounded-full"></div>
+                </div>
+                <p class="font-body-sm text-body-sm text-on-surface-variant mt-2">
+                    Séquestre sécurisé Kéké Protect jusqu'à réalisation complète du soin.
+                </p>
+            </div>
+        </div>
+
+        <!-- Payment Resolution Selector -->
+        <div class="px-margin pt-space-xs pb-space-sm">
+            <div class="flex items-center justify-between mb-space-sm">
+                <h3 class="font-headline-sm text-headline-sm text-text-primary">Moyens de règlement</h3>
+                <span class="font-label-sm text-label-sm text-secondary uppercase tracking-wider font-bold">Sélection rapide</span>
+            </div>
+
+            <div class="space-y-space-xs">
+                <!-- Option 1: Retry Wave -->
+                <label class="payment-option-card relative flex items-center justify-between p-space-md rounded-xl bg-surface-cream shadow-sm cursor-pointer transition-all border @(_selectedMethod == "wave" ? "border-primary bg-lavender-subtle/40" : "border-transparent")" @onclick='() => _selectedMethod = "wave"'>
+                    <div class="flex items-center gap-space-sm min-w-0">
+                        <div class="w-11 h-11 rounded-full bg-lavender-subtle flex items-center justify-center shrink-0">
+                            <span class="material-symbols-outlined text-primary text-[24px]">phonelink_ring</span>
+                        </div>
+                        <div class="min-w-0">
+                            <div class="flex items-center gap-2">
+                                <span class="font-label-lg text-label-lg text-text-primary font-bold">Réessayer avec Wave</span>
+                                <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-secondary-fixed text-on-secondary-fixed">Recommandé</span>
+                            </div>
+                            <p class="font-body-sm text-body-sm text-on-surface-variant truncate">Relancer la notification push sur votre app Wave</p>
+                        </div>
+                    </div>
+                    <input checked="@(_selectedMethod == "wave")" class="w-5 h-5 accent-primary shrink-0" name="payment_method" type="radio" value="wave" />
+                </label>
+
+                <!-- Option 2: Orange Money -->
+                <label class="payment-option-card relative flex items-center justify-between p-space-md rounded-xl bg-surface-cream shadow-sm cursor-pointer transition-all border @(_selectedMethod == "orange_money" ? "border-primary bg-lavender-subtle/40" : "border-transparent")" @onclick='() => _selectedMethod = "orange_money"'>
+                    <div class="flex items-center gap-space-sm min-w-0">
+                        <div class="w-11 h-11 rounded-full bg-surface-container-high flex items-center justify-center shrink-0">
+                            <span class="material-symbols-outlined text-text-primary text-[24px]">pin</span>
+                        </div>
+                        <div class="min-w-0">
+                            <span class="font-label-lg text-label-lg text-text-primary font-bold block">Basculer vers Orange Money</span>
+                            <p class="font-body-sm text-body-sm text-on-surface-variant truncate">Code secret généré via #144*82#</p>
+                        </div>
+                    </div>
+                    <input checked="@(_selectedMethod == "orange_money")" class="w-5 h-5 accent-primary shrink-0" name="payment_method" type="radio" value="orange_money" />
+                </label>
+
+                <!-- Option 3: MTN / Moov -->
+                <label class="payment-option-card relative flex items-center justify-between p-space-md rounded-xl bg-surface-cream shadow-sm cursor-pointer transition-all border @(_selectedMethod == "mtn_moov" ? "border-primary bg-lavender-subtle/40" : "border-transparent")" @onclick='() => _selectedMethod = "mtn_moov"'>
+                    <div class="flex items-center gap-space-sm min-w-0">
+                        <div class="w-11 h-11 rounded-full bg-surface-container-high flex items-center justify-center shrink-0">
+                            <span class="material-symbols-outlined text-text-primary text-[24px]">cell_tower</span>
+                        </div>
+                        <div class="min-w-0">
+                            <span class="font-label-lg text-label-lg text-text-primary font-bold block">Payer via MTN MoMo ou Moov</span>
+                            <p class="font-body-sm text-body-sm text-on-surface-variant truncate">Validation instantanée par prompt USSD</p>
+                        </div>
+                    </div>
+                    <input checked="@(_selectedMethod == "mtn_moov")" class="w-5 h-5 accent-primary shrink-0" name="payment_method" type="radio" value="mtn_moov" />
+                </label>
+
+                <!-- Option 4: Bank Card -->
+                <label class="payment-option-card relative flex items-center justify-between p-space-md rounded-xl bg-surface-cream shadow-sm cursor-pointer transition-all border @(_selectedMethod == "card" ? "border-primary bg-lavender-subtle/40" : "border-transparent")" @onclick='() => _selectedMethod = "card"'>
+                    <div class="flex items-center gap-space-sm min-w-0">
+                        <div class="w-11 h-11 rounded-full bg-surface-container-high flex items-center justify-center shrink-0">
+                            <span class="material-symbols-outlined text-text-primary text-[24px]">credit_card</span>
+                        </div>
+                        <div class="min-w-0">
+                            <span class="font-label-lg text-label-lg text-text-primary font-bold block">Carte Bancaire (Visa / Mastercard)</span>
+                            <p class="font-body-sm text-body-sm text-on-surface-variant truncate">Paiement international 3D-Secure</p>
+                        </div>
+                    </div>
+                    <input checked="@(_selectedMethod == "card")" class="w-5 h-5 accent-primary shrink-0" name="payment_method" type="radio" value="card" />
+                </label>
+            </div>
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(_errorMessage))
+        {
+            <div class="px-margin mb-space-sm">
+                <div class="rounded-xl bg-error-container text-on-error-container p-space-sm font-body-sm text-body-sm flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[18px]">error</span>
+                    <span>@_errorMessage</span>
+                </div>
+            </div>
+        }
+
+        <!-- Concierge Trust & Assistance -->
+        <div class="px-margin py-space-xs">
+            <div class="bg-lavender-subtle rounded-xl p-space-md flex items-center justify-between gap-space-sm">
+                <div class="flex items-center gap-space-sm min-w-0">
+                    <span class="material-symbols-outlined text-secondary text-[24px]">support_agent</span>
+                    <div class="min-w-0">
+                        <p class="font-label-md text-label-md text-text-primary font-bold">Besoin d'aide ?</p>
+                        <p class="font-body-sm text-body-sm text-on-surface-variant truncate">Assistance WhatsApp Conciergerie Express</p>
+                    </div>
+                </div>
+                <a class="px-3 py-1.5 rounded-full bg-status-available text-on-primary font-label-sm text-label-sm font-bold flex items-center gap-1 shrink-0" href="https://wa.me/2250748921100?text=Bonjour,%20j'ai%20besoin%20d'aide%20pour%20finaliser%20mon%20paiement%20sur%20Keke%20Beauty" target="_blank" rel="noopener">
+                    <span>WhatsApp</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Sticky Footer Action -->
+        <div class="p-margin pt-space-sm">
+            <button class="w-full py-4 px-space-md rounded-full bg-primary hover:bg-plum-deep text-on-primary font-label-lg text-label-lg tracking-wide shadow-md hover:scale-[0.99] active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50" disabled="@_busy" @onclick="RelancerPaiementAsync">
+                @if (_busy)
+                {
+                    <span class="inline-block w-4 h-4 border-2 border-on-primary border-t-transparent rounded-full animate-spin"></span>
+                    <span>Préparation du paiement…</span>
+                }
+                else
+                {
+                    <span>Confirmer &amp; Relancer le paiement</span>
+                    <span class="material-symbols-outlined text-sm">arrow_forward</span>
+                }
+            </button>
+        </div>
+    </div>
+</main>
+
+@code {
+    [Parameter] public Guid IdRdv { get; set; }
+    private Guid? _idClient;
+    private RdvHistoriqueItem? _rdv;
+    private string _selectedMethod = "wave";
+    private bool _busy;
+    private string? _errorMessage;
+    private int _remainingSeconds = 600;
+    private System.Threading.Timer? _timer;
+
+    private string CountdownFormatted => $"{_remainingSeconds / 60:D2}:{_remainingSeconds % 60:D2}";
+    private string DateLabel => _rdv is null ? "Samedi" : _rdv.DateHeureDebut.ToLocalTime().ToString("dddd d MMMM • HH:mm", System.Globalization.CultureInfo.GetCultureInfo("fr-FR"));
+    private string TarifFormatted => _rdv?.TarifPrestation is not null ? $"{_rdv.TarifPrestation:N0} FCFA" : "9 000 FCFA";
+
+    protected override async Task OnInitializedAsync()
+    {
+        _idClient = await ClientSession.GetClientIdAsync();
+        if (_idClient is null)
+        {
+            Navigation.NavigateTo($"/login?ReturnUrl=/paiement-echec/{IdRdv}");
+            return;
+        }
+
+        var (ok, _, item) = await RdvApi.GetDetailAsync(_idClient.Value, IdRdv, CancellationToken.None);
+        if (ok && item is not null)
+        {
+            _rdv = item;
+        }
+
+        _timer = new System.Threading.Timer(async _ =>
+        {
+            if (_remainingSeconds > 0)
+            {
+                _remainingSeconds--;
+                await InvokeAsync(StateHasChanged);
+            }
+        }, null, 1000, 1000);
+    }
+
+    private async Task RelancerPaiementAsync()
+    {
+        if (_idClient is null) return;
+        _busy = true;
+        _errorMessage = null;
+
+        var (ok, status, link) = await RdvApi.RelancerPaiementAsync(_idClient.Value, IdRdv, CancellationToken.None);
+        _busy = false;
+
+        if (ok && !string.IsNullOrWhiteSpace(link))
+        {
+            Navigation.NavigateTo(link);
+        }
+        else
+        {
+            _errorMessage = status switch
+            {
+                "passerelle_indisponible" => "La passerelle de paiement est temporairement indisponible. Veuillez réessayer.",
+                _ => "Impossible d'initier le paiement. Veuillez contacter notre assistance."
+            };
+        }
+    }
+
+    public void Dispose()
+    {
+        _timer?.Dispose();
+    }
+}

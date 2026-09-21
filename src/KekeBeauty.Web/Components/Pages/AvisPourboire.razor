@@ -1,0 +1,117 @@
+@page "/mes-rendez-vous/{Id:guid}/avis"
+@inject RdvApiClient RdvApi
+@inject ClientSessionService Session
+@inject NavigationManager Navigation
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+
+<PageTitle>Avis certifié — Keke Beauty</PageTitle>
+
+<header class="client-flow-header">
+    <a href="@($"/mes-rendez-vous/{Id}")" aria-label="Retour"><span class="material-symbols-outlined">arrow_back</span></a>
+    <a class="brand" href="/"><img src="/img/logo.png" alt="" /><span>Keke Beauty<small>AVIS CERTIFIÉ</small></span></a>
+    <span class="secure-badge"><span class="material-symbols-outlined">verified</span> Vérifié</span>
+</header>
+
+<main id="main-content" tabindex="-1" class="client-flow-page postcare-page">
+    @if (_loading) { <div class="flow-skeleton"><span></span><span></span><span></span></div> }
+    else if (_rdv is null || _rdv.StatutRdv != "TERMINE")
+    {
+        <section class="flow-empty"><span class="material-symbols-outlined">star</span><h1>Avis indisponible</h1><p>Un avis peut être publié après un rendez-vous terminé.</p><a href="/mes-rendez-vous">Voir mes rendez-vous</a></section>
+    }
+    else
+    {
+        <section class="postcare-intro"><p class="flow-eyebrow">RENDEZ-VOUS CERTIFIÉ</p><h1>Comment s’est passé votre soin ?</h1><p>@_rdv.LibellePrestation chez @_rdv.NomEtablissement</p></section>
+
+        @if (!string.IsNullOrWhiteSpace(_message)) { <div class="flow-message @(_success ? "is-success" : "is-error")">@_message</div> }
+
+        <section class="postcare-card">
+            <h2>Votre note globale</h2>
+            <div class="rating-input" aria-label="Note sur cinq">
+                @for (var value = 1; value <= 5; value++)
+                {
+                    var rating = value;
+                    <button type="button" aria-label="@rating étoile(s)" @onclick="() => _rating = rating"><span class="material-symbols-outlined @(rating <= _rating ? "is-filled" : "")">star</span></button>
+                }
+            </div>
+            <p>@(_rating == 0 ? "Touchez une étoile pour noter" : RatingText(_rating))</p>
+        </section>
+
+        <section class="postcare-card">
+            <h2>Ce que vous avez apprécié</h2>
+            <div class="criteria-grid">
+                @foreach (var criterion in Criteria)
+                {
+                    <button type="button" class="@(_criteria.Contains(criterion) ? "is-selected" : "")" @onclick="() => ToggleCriterion(criterion)"><span class="material-symbols-outlined">@CriterionIcon(criterion)</span>@criterion</button>
+                }
+            </div>
+            <label class="flow-field"><span>Votre commentaire</span><textarea rows="5" maxlength="800" placeholder="Partagez les détails utiles aux prochaines clientes…" @bind="_comment"></textarea><small>@(_comment?.Length ?? 0)/800</small></label>
+            @if (!_rdv.ADejaAvis)
+            {
+                <button class="flow-primary" type="button" disabled="@(_busy || _rating == 0)" @onclick="SubmitReviewAsync">Publier mon avis certifié</button>
+            }
+            else { <div class="review-sent"><span class="material-symbols-outlined">task_alt</span> Votre avis a déjà été publié.</div> }
+        </section>
+
+        <section class="postcare-card before-after-card"><div class="before-after-title"><div><p class="flow-eyebrow">BONUS KÉKÉ GOLD</p><h2>Votre résultat avant / après</h2><p>Ajoutez les deux photos pour gagner 200 points. Elles restent privées sauf autorisation explicite.</p></div><strong>+200</strong></div><div class="before-after-grid"><label><span>Avant</span><div class="capture-frame is-portrait">@if(_beforePreview is not null){<img src="@_beforePreview" alt="Aperçu avant"/>}else{<span class="material-symbols-outlined capture-icon">add_a_photo</span>}</div><span class="premium-upload-button">Prendre ou choisir<InputFile OnChange='e=>ReadPhoto(e,true)' accept="image/jpeg,image/png,image/webp" capture="environment"/></span></label><label><span>Après</span><div class="capture-frame is-portrait">@if(_afterPreview is not null){<img src="@_afterPreview" alt="Aperçu après"/>}else{<span class="material-symbols-outlined capture-icon">auto_awesome</span>}</div><span class="premium-upload-button">Prendre ou choisir<InputFile OnChange='e=>ReadPhoto(e,false)' accept="image/jpeg,image/png,image/webp" capture="environment"/></span></label></div><label class="privacy-consent"><input type="checkbox" @bind="_sharePhotos"/><span><strong>Autoriser la publication dans la galerie du salon</strong><small>Facultatif. Sans cette autorisation, les photos restent privées et le bonus est tout de même accordé.</small></span></label><button class="flow-secondary" disabled="@(_busy||_beforeBytes is null||_afterBytes is null||!_rdv.ADejaAvis)" @onclick="UploadPhotosAsync">Enregistrer les photos et recevoir mes points</button>@if(!_rdv.ADejaAvis){<small class="field-help">Publiez d’abord votre avis certifié.</small>}</section>
+        @if (_rdv.IdCollaborateur is not null)
+        {
+            <section class="postcare-card tip-card">
+                <span class="material-symbols-outlined">volunteer_activism</span><h2>Remercier votre praticienne</h2><p>Le montant intégral du pourboire lui est attribué, sans commission Keke Beauty.</p>
+                <div class="tip-grid">
+                    @foreach (var amount in new[] { 500m, 1000m, 2000m, 5000m })
+                    {
+                        var tip = amount;
+                        <button type="button" class="@(_tip == tip ? "is-selected" : "")" @onclick="() => _tip = tip">@tip.ToString("N0") F</button>
+                    }
+                </div>
+                <button class="flow-secondary" type="button" disabled="@_busy" @onclick="SubmitTipAsync">Préparer le pourboire</button>
+                @if (!string.IsNullOrWhiteSpace(_tipLink)) { <a class="flow-primary" href="@_tipLink" target="_blank" rel="noopener">Finaliser le paiement du pourboire</a> }
+            </section>
+        }
+
+        <a class="flow-text-link" href="/mes-rendez-vous">Retour à mon historique</a>
+    }
+</main>
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+    private readonly string[] Criteria = ["Douceur du soin", "Résultat soigné", "Ponctualité", "Accueil chaleureux"];
+    private readonly HashSet<string> _criteria = [];
+    private Guid? _idClient;
+    private RdvHistoriqueItem? _rdv;
+    private bool _loading = true, _busy, _success;
+    private int _rating;
+    private string? _comment, _message, _tipLink;
+    private decimal _tip = 1000m;
+    private byte[]? _beforeBytes,_afterBytes; private string? _beforeName,_afterName,_beforePreview,_afterPreview; private bool _sharePhotos; const long MaxPhotoSize=8*1024*1024;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _idClient = await Session.GetClientIdAsync();
+        if (_idClient is null) { Navigation.NavigateTo($"/login?ReturnUrl=/mes-rendez-vous/{Id}/avis"); return; }
+        var (ok, items) = await RdvApi.GetHistoriqueAsync(_idClient.Value, CancellationToken.None);
+        _rdv = ok ? items.FirstOrDefault(x => x.IdRdv == Id) : null;
+        _loading = false;
+    }
+    private void ToggleCriterion(string value) { if (!_criteria.Add(value)) _criteria.Remove(value); }
+    private async Task SubmitReviewAsync()
+    {
+        if (_rating == 0 || _rdv is null) return;
+        _busy = true;
+        var details = _criteria.Count == 0 ? _comment : $"{string.Join(" · ", _criteria)}{(string.IsNullOrWhiteSpace(_comment) ? "" : $" — {_comment}")}";
+        var (ok, status) = await RdvApi.LaisserAvisAsync(_idClient!.Value, Id, (short)_rating, details, CancellationToken.None);
+        _busy = false; _success = ok; _message = ok ? "Merci, votre avis certifié est publié." : status == "avis_deja_existant" ? "Votre avis a déjà été publié." : "Impossible de publier l’avis.";
+        if (ok) _rdv.ADejaAvis = true;
+    }
+    private async Task ReadPhoto(InputFileChangeEventArgs e,bool before){try{var file=e.File;await using var input=file.OpenReadStream(MaxPhotoSize);using var output=new MemoryStream();await input.CopyToAsync(output);var bytes=output.ToArray();var preview=$"data:{file.ContentType};base64,{Convert.ToBase64String(bytes)}";if(before){_beforeBytes=bytes;_beforeName=file.Name;_beforePreview=preview;}else{_afterBytes=bytes;_afterName=file.Name;_afterPreview=preview;}_message=null;}catch{_success=false;_message="La photo dépasse 8 Mo ou son format n’est pas accepté.";}}
+    private async Task UploadPhotosAsync(){if(_beforeBytes is null||_afterBytes is null||_idClient is null)return;_busy=true;var(ok,bonus,_)=await RdvApi.UploadReviewPhotosAsync(_idClient.Value,Id,_beforeBytes,_beforeName??"avant.jpg",_afterBytes,_afterName??"apres.jpg",_sharePhotos,CancellationToken.None);_busy=false;_success=ok;_message=ok?(bonus>0?$"Photos enregistrées : +{bonus} points Kéké Gold.":"Photos mises à jour. Le bonus avait déjà été attribué."):"Impossible d’enregistrer les photos.";}
+    private async Task SubmitTipAsync()
+    {
+        if (_rdv?.IdCollaborateur is null) return;
+        _busy = true;
+        var (ok, _, link) = await RdvApi.LaisserPourboireAsync(_idClient!.Value, Id, _rdv.IdCollaborateur.Value, _tip, CancellationToken.None);
+        _busy = false; _success = ok; _tipLink = ok ? link : null; _message = ok ? "Le paiement du pourboire est prêt." : "Impossible de préparer le pourboire.";
+    }
+    private static string RatingText(int value) => value switch { 1 => "Décevant", 2 => "Peut mieux faire", 3 => "Bien", 4 => "Très bien", _ => "Exceptionnel" };
+    private static string CriterionIcon(string value) => value switch { "Ponctualité" => "schedule", "Accueil chaleureux" => "favorite", "Résultat soigné" => "auto_awesome", _ => "spa" };
+}

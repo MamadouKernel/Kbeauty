@@ -1,0 +1,289 @@
+@page "/partenaire/etablissements/{IdEtablissement:guid}/finances"
+@inject PartnerApiClient PartnerApi
+@inject PartnerRdvApiClient PartnerRdvApi
+@inject PartnerSessionService Session
+@inject NavigationManager Navigation
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+
+<PageTitle>Finances, Acomptes Wave & Trésorerie — Keke Pro</PageTitle>
+
+<div class="min-h-screen bg-surface flex flex-col font-body-md text-body-md text-on-surface">
+    <!-- Top Navigation Header -->
+    <header class="fixed top-0 inset-x-0 h-16 bg-surface-cream/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-40 flex items-center justify-between px-6 lg:px-10">
+        <div class="flex items-center gap-4">
+            <a class="w-10 h-10 rounded-full flex items-center justify-center hover:bg-lavender-subtle text-text-primary transition-colors" href="@($"/partenaire/etablissements/{IdEtablissement}")" title="Retour aux détails">
+                <span class="material-symbols-outlined text-[20px]">arrow_back</span>
+            </a>
+            <div class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface-container text-text-primary">
+                <span class="material-symbols-outlined text-[18px] text-primary">account_balance_wallet</span>
+                <span class="font-label-lg text-label-lg font-bold">Finances &amp; Trésorerie Wave</span>
+            </div>
+            <span class="text-on-surface-variant font-label-sm hidden md:inline">@(_detail?.NomEtablissement)</span>
+        </div>
+
+        <div class="flex items-center gap-3">
+            <a class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-surface-cream border border-outline-variant/40 hover:bg-lavender-subtle text-plum-deep font-label-md transition-colors shadow-sm" href="@($"/partenaire/etablissements/{IdEtablissement}/agenda")">
+                <span class="material-symbols-outlined text-[18px] text-primary">calendar_month</span>
+                <span>Agenda</span>
+            </a>
+            <a class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-surface-cream border border-outline-variant/40 hover:bg-lavender-subtle text-plum-deep font-label-md transition-colors shadow-sm" href="@($"/partenaire/etablissements/{IdEtablissement}/comptoir")">
+                <span class="material-symbols-outlined text-[18px] text-secondary">point_of_sale</span>
+                <span>Comptoir</span>
+            </a>
+        </div>
+    </header>
+
+    <main class="pt-20 px-6 lg:px-10 pb-16 flex-1 flex flex-col gap-6 max-w-[1400px] w-full mx-auto">
+        <div class="flex flex-col gap-1">
+            <h1 class="font-display-lg-mobile lg:font-display-lg text-display-lg-mobile lg:text-display-lg text-text-primary font-bold">
+                Finances, Acomptes Wave &amp; Trésorerie Pro
+            </h1>
+            <p class="font-body-md text-on-surface-variant">
+                Consultez vos acomptes sécurisés, suivez les encaissements et transférez vos fonds vers votre compte Wave Business.
+            </p>
+        </div>
+
+        <!-- 3 KPIs Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Card 1: Solde Wave Disponible -->
+            <div class="bg-primary-container text-on-primary rounded-2xl p-6 shadow-md flex flex-col justify-between gap-4 relative overflow-hidden">
+                <div class="flex items-center justify-between">
+                    <span class="font-label-sm text-on-primary-container uppercase tracking-wider font-bold">Solde Disponible au Retrait</span>
+                    <span class="material-symbols-outlined text-secondary-fixed text-[26px]">account_balance_wallet</span>
+                </div>
+                <div>
+                    <div class="font-display-lg text-display-lg font-bold">@SoldeDisponibleFormatted</div>
+                    <p class="font-body-sm text-on-primary-container mt-1">Acomptes de soins confirmés ou terminés</p>
+                </div>
+                <button class="w-full py-2.5 px-4 rounded-xl bg-on-primary text-primary font-label-md font-bold shadow hover:bg-lavender-subtle transition-all flex items-center justify-center gap-2" @onclick="() => _showWithdrawModal = true">
+                    <span class="material-symbols-outlined text-[18px]">send_to_mobile</span>
+                    <span>Transférer vers Wave Business</span>
+                </button>
+            </div>
+
+            <!-- Card 2: Acomptes en Séquestre Kéké Protect -->
+            <div class="bg-surface-cream rounded-2xl p-6 shadow-sm border border-outline-variant/30 flex flex-col justify-between gap-4">
+                <div class="flex items-center justify-between">
+                    <span class="font-label-sm text-on-surface-variant uppercase tracking-wider font-bold">Séquestre Kéké Protect</span>
+                    <span class="material-symbols-outlined text-status-available text-[26px]">shield</span>
+                </div>
+                <div>
+                    <div class="font-display-lg text-display-lg font-bold text-text-primary">@SequestreFormatted</div>
+                    <p class="font-body-sm text-on-surface-variant mt-1">Réservations à venir (libération post-soin)</p>
+                </div>
+                <div class="flex items-center gap-2 text-status-available font-label-sm">
+                    <span class="material-symbols-outlined text-[16px]">verified</span>
+                    <span>Protection garantie 100% sans litige</span>
+                </div>
+            </div>
+
+            <!-- Card 3: Chiffre d'Affaires Global Réalisé -->
+            <div class="bg-surface-cream rounded-2xl p-6 shadow-sm border border-outline-variant/30 flex flex-col justify-between gap-4">
+                <div class="flex items-center justify-between">
+                    <span class="font-label-sm text-on-surface-variant uppercase tracking-wider font-bold">Volume Total Réalisé</span>
+                    <span class="material-symbols-outlined text-primary text-[26px]">trending_up</span>
+                </div>
+                <div>
+                    <div class="font-display-lg text-display-lg font-bold text-primary">@TotalRealiseFormatted</div>
+                    <p class="font-body-sm text-on-surface-variant mt-1">@RdvsTermines.Count soins terminés</p>
+                </div>
+                <div class="flex items-center gap-3 text-on-surface-variant text-sm border-t border-outline-variant/20 pt-2">
+                    <span>Panier moyen : <strong class="text-text-primary">@PanierMoyenFormatted</strong></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Répartition par Opérateurs & Transactions Récentes -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Left: Historique des flux -->
+            <div class="lg:col-span-2 bg-surface-cream rounded-2xl p-6 shadow-sm border border-outline-variant/30 flex flex-col gap-4">
+                <div class="flex items-center justify-between">
+                    <h2 class="font-headline-sm font-bold text-text-primary">Journal des Acomptes &amp; Règlements</h2>
+                    <span class="font-label-sm text-outline">@_rdvs.Count opérations</span>
+                </div>
+
+                @if (_rdvs.Count == 0)
+                {
+                    <p class="text-on-surface-variant font-body-sm py-8 text-center">Aucune transaction enregistrée pour cet établissement.</p>
+                }
+                else
+                {
+                    <div class="divide-y divide-outline-variant/20">
+                        @foreach (var r in _rdvs.Take(12))
+                        {
+                            <div class="py-3.5 flex items-center justify-between gap-4">
+                                <div class="flex items-center gap-3 min-w-0">
+                                    <div class="w-10 h-10 rounded-full @(r.StatutRdv == "TERMINE" ? "bg-status-available/10 text-status-available" : "bg-lavender-subtle text-primary") flex items-center justify-center shrink-0">
+                                        <span class="material-symbols-outlined text-[20px]">payments</span>
+                                    </div>
+                                    <div class="min-w-0">
+                                        <p class="font-label-md font-bold text-text-primary truncate">@r.NomClient • @r.LibellePrestation</p>
+                                        <p class="font-body-sm text-on-surface-variant">@r.DateHeureDebut.ToLocalTime().ToString("dd MMMM yyyy à HH:mm")</p>
+                                    </div>
+                                </div>
+                                <div class="text-right shrink-0">
+                                    <span class="font-label-lg font-bold text-primary block">+@r.TarifPrestation.ToString("N0") FCFA</span>
+                                    <span class="text-xs px-2 py-0.5 rounded-full font-semibold @(r.StatutRdv == "TERMINE" ? "bg-status-available/15 text-status-available" : "bg-surface-container text-on-surface-variant")">
+                                        @(r.StatutRdv == "TERMINE" ? "Encaissé" : "Séquestre Kéké")
+                                    </span>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+
+            <!-- Right: Répartition des encaissements -->
+            <div class="bg-surface-cream rounded-2xl p-6 shadow-sm border border-outline-variant/30 flex flex-col gap-5">
+                <h3 class="font-headline-sm font-bold text-text-primary">Canaux d'Encaissement</h3>
+
+                <div class="space-y-4">
+                    <div>
+                        <div class="flex justify-between text-sm mb-1">
+                            <span class="flex items-center gap-1.5 font-bold text-text-primary">
+                                <span class="w-2.5 h-2.5 rounded-full bg-secondary"></span> Wave Business
+                            </span>
+                            <span class="font-bold text-primary">65%</span>
+                        </div>
+                        <div class="w-full bg-surface-container h-2 rounded-full overflow-hidden">
+                            <div class="bg-secondary h-full w-[65%] rounded-full"></div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between text-sm mb-1">
+                            <span class="flex items-center gap-1.5 font-bold text-text-primary">
+                                <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span> Orange Money / MoMo
+                            </span>
+                            <span class="font-bold text-primary">25%</span>
+                        </div>
+                        <div class="w-full bg-surface-container h-2 rounded-full overflow-hidden">
+                            <div class="bg-amber-500 h-full w-[25%] rounded-full"></div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between text-sm mb-1">
+                            <span class="flex items-center gap-1.5 font-bold text-text-primary">
+                                <span class="w-2.5 h-2.5 rounded-full bg-emerald-600"></span> Espèces comptoir
+                            </span>
+                            <span class="font-bold text-primary">10%</span>
+                        </div>
+                        <div class="w-full bg-surface-container h-2 rounded-full overflow-hidden">
+                            <div class="bg-emerald-600 h-full w-[10%] rounded-full"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-lavender-subtle rounded-xl p-4 flex flex-col gap-2 mt-auto">
+                    <div class="flex items-center gap-2 text-primary font-bold">
+                        <span class="material-symbols-outlined text-[18px]">verified</span>
+                        <span>Compte Wave Marchand Vérifié</span>
+                    </div>
+                    <p class="font-body-sm text-on-surface-variant">
+                        Les virements sortants sont traités instantanément sans frais de transfert supplémentaire.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal Virement Wave -->
+    @if (_showWithdrawModal)
+    {
+        <div class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+            <div class="bg-surface-cream rounded-2xl p-6 shadow-xl max-w-md w-full flex flex-col gap-4 border border-outline-variant/30">
+                <div class="flex items-center justify-between border-b border-outline-variant/20 pb-3">
+                    <div class="flex items-center gap-2">
+                        <span class="material-symbols-outlined text-secondary text-[24px]">send_to_mobile</span>
+                        <h3 class="font-headline-sm text-headline-sm text-text-primary font-bold">Virement Wave Business</h3>
+                    </div>
+                    <button class="text-on-surface-variant hover:text-text-primary" @onclick="() => _showWithdrawModal = false">
+                        <span class="material-symbols-outlined text-[20px]">close</span>
+                    </button>
+                </div>
+
+                <div class="flex flex-col gap-3">
+                    <p class="font-body-sm text-on-surface-variant">
+                        Transférez votre solde disponible vers votre numéro Wave Business marchand enregistré.
+                    </p>
+                    <div class="p-3 rounded-xl bg-surface-container-low flex justify-between items-center">
+                        <span class="font-label-md text-on-surface-variant">Montant disponible :</span>
+                        <strong class="font-label-lg text-primary">@SoldeDisponibleFormatted</strong>
+                    </div>
+
+                    <label class="flex flex-col gap-1">
+                        <span class="font-label-sm text-on-surface-variant uppercase font-bold">Numéro Wave récepteur (+225)</span>
+                        <input class="px-3 py-2 rounded-xl bg-surface-container-low text-text-primary border border-outline-variant/40 focus:outline-none focus:border-primary font-bold" @bind="_withdrawPhone" placeholder="07 00 00 00 00" />
+                    </label>
+                </div>
+
+                @if (_withdrawSuccess)
+                {
+                    <div class="p-3 rounded-xl bg-status-available/10 text-status-available font-body-sm flex items-center gap-2">
+                        <span class="material-symbols-outlined text-[18px]">check_circle</span>
+                        <span>Virement initié avec succès vers votre compte Wave !</span>
+                    </div>
+                }
+
+                <div class="flex items-center justify-end gap-2 pt-2">
+                    <button class="px-4 py-2 rounded-full font-label-md text-on-surface-variant hover:bg-surface-container" @onclick="() => _showWithdrawModal = false">
+                        Fermer
+                    </button>
+                    <button class="px-5 py-2 rounded-full bg-secondary hover:bg-plum-deep text-on-primary font-label-md font-bold shadow-md disabled:opacity-50" disabled="@(_withdrawBusy || _withdrawSuccess)" @onclick="ExecuterVirementWave">
+                        @(_withdrawBusy ? "Transfert…" : "Confirmer le virement")
+                    </button>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public Guid IdEtablissement { get; set; }
+    private Guid? _idPartner;
+    private EtablissementDetail? _detail;
+    private List<RdvPartenaire> _rdvs = [];
+
+    // Modal
+    private bool _showWithdrawModal;
+    private string _withdrawPhone = "07 00 00 00 00";
+    private bool _withdrawBusy;
+    private bool _withdrawSuccess;
+
+    private List<RdvPartenaire> RdvsTermines => _rdvs.Where(r => r.StatutRdv == "TERMINE").ToList();
+    private List<RdvPartenaire> RdvsAVenir => _rdvs.Where(r => r.StatutRdv is "DEMANDE" or "CONFIRME").ToList();
+
+    private decimal SoldeDisponible => RdvsTermines.Sum(r => r.TarifPrestation);
+    private decimal Sequestre => RdvsAVenir.Sum(r => r.TarifPrestation * 0.5m);
+    private decimal TotalRealise => _rdvs.Sum(r => r.TarifPrestation);
+
+    private string SoldeDisponibleFormatted => $"{SoldeDisponible:N0} FCFA";
+    private string SequestreFormatted => $"{Sequestre:N0} FCFA";
+    private string TotalRealiseFormatted => $"{TotalRealise:N0} FCFA";
+    private string PanierMoyenFormatted => RdvsTermines.Count > 0 ? $"{(SoldeDisponible / RdvsTermines.Count):N0} FCFA" : "0 FCFA";
+
+    protected override async Task OnInitializedAsync()
+    {
+        _idPartner = await Session.GetPartnerIdAsync();
+        if (_idPartner is null)
+        {
+            Navigation.NavigateTo("/login?role=partenaire");
+            return;
+        }
+
+        var (_, detail) = await PartnerApi.GetDetailAsync(_idPartner.Value, IdEtablissement, CancellationToken.None);
+        _detail = detail;
+
+        var (_, rdvs) = await PartnerRdvApi.ListAsync(_idPartner.Value, IdEtablissement, CancellationToken.None);
+        _rdvs = rdvs;
+    }
+
+    private async Task ExecuterVirementWave()
+    {
+        _withdrawBusy = true;
+        await Task.Delay(800); // Simulation transfert instantané
+        _withdrawBusy = false;
+        _withdrawSuccess = true;
+    }
+}

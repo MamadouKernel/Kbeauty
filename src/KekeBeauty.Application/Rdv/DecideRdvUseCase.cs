@@ -1,14 +1,18 @@
+using KekeBeauty.Application.Notifications;
+
 namespace KekeBeauty.Application.Rdv;
 
 public sealed class DecideRdvUseCase
 {
     private readonly IRdvRepository _repository;
     private readonly IRdvNotifier _notifier;
+    private readonly ClientNotificationService _notificationService;
 
-    public DecideRdvUseCase(IRdvRepository repository, IRdvNotifier notifier)
+    public DecideRdvUseCase(IRdvRepository repository, IRdvNotifier notifier, ClientNotificationService notificationService)
     {
         _repository = repository;
         _notifier = notifier;
+        _notificationService = notificationService;
     }
 
     public async Task<DecideRdvResult> ConfirmerAsync(Guid idEtablissement, Guid idRdv, CancellationToken cancellationToken) =>
@@ -38,7 +42,8 @@ public sealed class DecideRdvUseCase
             return new DecideRdvResult(false, "not_found");
         }
 
-        await NotifyAsync(idRdv, statutRdv, DateTimeOffset.UtcNow, cancellationToken);
+        var dateHeureDebut = await _repository.GetDateHeureDebutAsync(idRdv, cancellationToken) ?? DateTimeOffset.UtcNow;
+        await NotifyAsync(idRdv, statutRdv, dateHeureDebut, cancellationToken);
         return new DecideRdvResult(true, statutRdv);
     }
 
@@ -50,5 +55,22 @@ public sealed class DecideRdvUseCase
             // FR-006 : la notification n'empeche pas la decision, deja effective.
             await _notifier.NotifyDecisionAsync(telephone, statutRdv, dateHeureDebut, cancellationToken);
         }
+
+        // Feature 018 : notification in-app, canal independant du SMS/WhatsApp (Zavu) ci-dessus -
+        // seul canal reellement fonctionnel tant que Zavu n'est pas configure.
+        var idClient = await _repository.GetClientIdAsync(idRdv, cancellationToken);
+        if (idClient is not null)
+        {
+            var (titre, message) = LibelleNotification(statutRdv, dateHeureDebut);
+            await _notificationService.SendAsync(idClient.Value, titre, message, idRdv, $"/mes-rendez-vous/{idRdv}", cancellationToken);
+        }
     }
+
+    private static (string Titre, string Message) LibelleNotification(string statutRdv, DateTimeOffset dateHeureDebut) => statutRdv switch
+    {
+        "CONFIRME" => ("Rendez-vous confirmé", $"Votre rendez-vous du {dateHeureDebut:dd/MM/yyyy à HH:mm} a été confirmé par l'établissement."),
+        "REFUSE" => ("Rendez-vous refusé", $"Votre demande de rendez-vous du {dateHeureDebut:dd/MM/yyyy à HH:mm} a été refusée par l'établissement."),
+        _ => ("Rendez-vous reprogrammé", $"Votre rendez-vous a été reprogrammé au {dateHeureDebut:dd/MM/yyyy à HH:mm}."),
+    };
 }
+

@@ -70,15 +70,18 @@ curl -X POST http://localhost:${API_PORT:-5080}/partners/applications \
   -F "telephone=+225XXXXXXXXXX" -F "nomEtablissement=..." -F "gpsLatitude=..." -F "gpsLongitude=..." \
   -F "numeroServiceClient=..." -F "photoDevanture=@./devanture.jpg" -F "pieceIdentite=@./piece.jpg"
 
-# Endpoints admin (proteges par cle temporaire, voir Assumptions)
-curl -H "X-Admin-Api-Key: $ADMIN_API_KEY" "http://localhost:${API_PORT:-5080}/admin/applications?statut=EN_ATTENTE"
-curl -X POST -H "X-Admin-Api-Key: $ADMIN_API_KEY" "http://localhost:${API_PORT:-5080}/admin/applications/<id>/validate"
+# Connexion nominative (conserver le champ token renvoye dans ADMIN_TOKEN)
+curl -X POST -H "Content-Type: application/json" -d '{"email":"admin@kekebeauty.ci","motDePasse":"..."}' "http://localhost:${API_PORT:-5080}/admin/auth/login"
+
+# Endpoints admin proteges par jeton signe et roles
+curl -H "X-Admin-Token: $ADMIN_TOKEN" "http://localhost:${API_PORT:-5080}/admin/applications?statut=EN_ATTENTE"
+curl -X POST -H "X-Admin-Token: $ADMIN_TOKEN" "http://localhost:${API_PORT:-5080}/admin/applications/<id>/validate"
 ```
 
-⚠️ **Dette technique documentée** : les endpoints `/admin/*` sont protégés par une simple clé d'API
-statique (`ADMIN_API_KEY`), en attendant une vraie feature d'authentification administrateur (aucune
-n'existe encore dans le projet). Ne jamais exposer cette clé publiquement. La notification de rejet
-au gérant dépend de Zavu (même comportement que l'OTP client : échec explicite si non configuré).
+Les endpoints /admin/* utilisent des comptes nominatifs, un jeton signé de 30 minutes et les rôles
+SUPER_ADMIN, KYC, SUPPORT et COMPTABLE. ADMIN_API_KEY sert uniquement de mot de passe
+du premier super-administrateur lorsque la table des comptes est vide ; configurez aussi un
+ADMIN_SIGNING_KEY long et aléatoire. La notification de rejet au gérant dépend de Zavu.
 
 Détails : [specs/004-onboarding-partenaire/quickstart.md](specs/004-onboarding-partenaire/quickstart.md).
 
@@ -89,9 +92,9 @@ curl "http://localhost:${API_PORT:-5080}/etablissements?categorie=Spa&commune=Co
 curl "http://localhost:${API_PORT:-5080}/etablissements/<id>"
 
 # Mecanisme minimal temporaire (FR-008) pour tester la recherche sans gestion partenaire encore construite
-curl -X POST -H "X-Admin-Api-Key: $ADMIN_API_KEY" -H "Content-Type: application/json" \
+curl -X POST -H "X-Admin-Token: $ADMIN_TOKEN" -H "Content-Type: application/json" \
   -d '{"libelleCategorie":"Spa"}' "http://localhost:${API_PORT:-5080}/admin/applications/<id>/categories"
-curl -X POST -H "X-Admin-Api-Key: $ADMIN_API_KEY" -H "Content-Type: application/json" \
+curl -X POST -H "X-Admin-Token: $ADMIN_TOKEN" -H "Content-Type: application/json" \
   -d '{"libellePrestation":"...","tarif":15000,"dureeMinutes":60}' \
   "http://localhost:${API_PORT:-5080}/admin/applications/<id>/prestations"
 ```
@@ -147,10 +150,10 @@ curl -X POST -H "X-Partner-Id: $PARTNER_ID" -H "Content-Type: application/json" 
   "http://localhost:${API_PORT:-5080}/etablissements/<id>/abonnements"
 # -> { "idAbonnement", "statut": "IMPAYE", "checkoutUrl": "https://checkout.winipayer.com/..." }
 
-curl -H "X-Admin-Api-Key: $ADMIN_API_KEY" "http://localhost:${API_PORT:-5080}/admin/abonnements?statut=IMPAYE"
-curl -X POST -H "X-Admin-Api-Key: $ADMIN_API_KEY" "http://localhost:${API_PORT:-5080}/admin/abonnements/<id>/relance"
-curl -H "X-Admin-Api-Key: $ADMIN_API_KEY" "http://localhost:${API_PORT:-5080}/admin/tarifs"
-curl -X PUT -H "X-Admin-Api-Key: $ADMIN_API_KEY" -H "Content-Type: application/json" \
+curl -H "X-Admin-Token: $ADMIN_TOKEN" "http://localhost:${API_PORT:-5080}/admin/abonnements?statut=IMPAYE"
+curl -X POST -H "X-Admin-Token: $ADMIN_TOKEN" "http://localhost:${API_PORT:-5080}/admin/abonnements/<id>/relance"
+curl -H "X-Admin-Token: $ADMIN_TOKEN" "http://localhost:${API_PORT:-5080}/admin/tarifs"
+curl -X PUT -H "X-Admin-Token: $ADMIN_TOKEN" -H "Content-Type: application/json" \
   -d '{"montant":50000}' "http://localhost:${API_PORT:-5080}/admin/tarifs/ANNUEL"
 ```
 
@@ -169,8 +172,8 @@ Détails : [specs/008-abonnement-paiement/quickstart.md](specs/008-abonnement-pa
 ### Modération back-office (suspension/réactivation)
 
 ```bash
-curl -X POST -H "X-Admin-Api-Key: $ADMIN_API_KEY" "http://localhost:${API_PORT:-5080}/admin/utilisateurs/<id>/suspendre"
-curl -X POST -H "X-Admin-Api-Key: $ADMIN_API_KEY" "http://localhost:${API_PORT:-5080}/admin/etablissements/<id>/suspendre"
+curl -X POST -H "X-Admin-Token: $ADMIN_TOKEN" "http://localhost:${API_PORT:-5080}/admin/utilisateurs/<id>/suspendre"
+curl -X POST -H "X-Admin-Token: $ADMIN_TOKEN" "http://localhost:${API_PORT:-5080}/admin/etablissements/<id>/suspendre"
 ```
 
 Un compte suspendu ne peut plus demander de code OTP (`403`). Un établissement suspendu disparaît de
@@ -234,3 +237,12 @@ docker compose up -d pgadmin
 ```
 
 Accessible sur `http://localhost:${PGADMIN_PORT:-5050}` (identifiants dans `.env`).
+
+### Connexion et création de compte avec Google
+
+Définissez `GOOGLE_CLIENT_ID` avec l'identifiant d'un client OAuth 2.0 de type **Application Web**,
+puis ajoutez les origines du site (par exemple `http://localhost:5090` en développement et le
+domaine HTTPS de production) dans **Origines JavaScript autorisées** de Google Cloud Console.
+Le même Client ID est transmis à l'interface et à l'API. L'API valide la signature, l'audience et
+l'adresse email vérifiée du jeton Google avant de créer ou retrouver le compte client. Aucun secret
+Google n'est exposé au navigateur et le bouton n'est pas affiché lorsque le Client ID est absent.

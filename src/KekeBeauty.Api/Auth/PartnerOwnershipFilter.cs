@@ -12,16 +12,17 @@ namespace KekeBeauty.Api.Auth;
 public sealed class PartnerOwnershipFilter : IAsyncActionFilter
 {
     private readonly IPartnerPrestationRepository _repository;
+    private readonly PartnerSessionTokenService _tokens;
 
-    public PartnerOwnershipFilter(IPartnerPrestationRepository repository)
+    public PartnerOwnershipFilter(IPartnerPrestationRepository repository, PartnerSessionTokenService tokens)
     {
         _repository = repository;
+        _tokens = tokens;
     }
 
     public async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
     {
-        if (!context.HttpContext.Request.Headers.TryGetValue("X-Partner-Id", out var partnerIdHeader) ||
-            !Guid.TryParse(partnerIdHeader, out var partnerId))
+        if (!_tokens.TryFromRequest(context.HttpContext.Request, out var partnerId))
         {
             context.Result = new UnauthorizedObjectResult(new { status = "unauthorized" });
             return;

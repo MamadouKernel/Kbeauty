@@ -1,0 +1,88 @@
+@page "/rdv/{Id:guid}/confirmation"
+@inject ClientBookingFlowService BookingFlow
+@inject ClientSessionService Session
+@inject RdvApiClient RdvApi
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+
+<PageTitle>Confirmation et reçu — Keke Beauty</PageTitle>
+
+<header class="client-flow-header no-print">
+    <a href="/mes-rendez-vous" aria-label="Retour aux rendez-vous"><span class="material-symbols-outlined">arrow_back</span></a>
+    <a class="brand" href="/"><img src="/img/logo.png" alt="" /><span>Keke Beauty<small>CONFIRMATION</small></span></a>
+    <button class="print-button" type="button" @onclick="PrintAsync"><span class="material-symbols-outlined">print</span> Imprimer</button>
+</header>
+
+<main id="main-content" tabindex="-1" class="client-flow-page receipt-page">
+    @if (_loading)
+    {
+        <div class="flow-skeleton" aria-label="Chargement"><span></span><span></span><span></span></div>
+    }
+    else if (_state is null)
+    {
+        <section class="flow-empty"><span class="material-symbols-outlined">receipt_long</span><h1>Reçu indisponible</h1><p>Cette réservation reste accessible dans votre historique.</p><a href="/mes-rendez-vous">Voir mes rendez-vous</a></section>
+    }
+    else
+    {
+        <section class="confirmation-intro">
+            <div class="confirmation-mark"><span class="material-symbols-outlined">check</span></div>
+            <p class="flow-eyebrow">DEMANDE ENREGISTRÉE</p>
+            <h1>Votre moment beauté est réservé.</h1>
+            <p>Le salon a reçu votre demande. Vous serez informée dès sa confirmation.</p>
+        </section>
+
+        <article class="official-receipt">
+            <header><div><span>Keke Beauty</span><small>REÇU DE RÉSERVATION</small></div><span class="status-pill @RdvClass(_state.StatutRdv)">@RdvLabel(_state.StatutRdv)</span></header>
+            <div class="receipt-reference"><small>RÉFÉRENCE</small><strong>KB-@Id.ToString()[..8].ToUpperInvariant()</strong></div>
+            <dl>
+                <div><dt>Établissement</dt><dd>@_state.NomEtablissement</dd></div>
+                <div><dt>Prestation</dt><dd>@_state.LibellePrestation</dd></div>
+                <div><dt>Date et heure</dt><dd>@_state.DateHeureDebut.ToLocalTime().ToString("dddd d MMMM yyyy 'à' HH:mm", Culture)</dd></div>
+                <div><dt>Montant</dt><dd>@_state.Montant.ToString("N0") FCFA</dd></div>
+                <div><dt>Paiement</dt><dd>@PaymentLabel(_state.StatutPaiement)</dd></div>
+            </dl>
+            @if(_qrDataUrl is not null){<section class="receipt-qr"><img src="@_qrDataUrl" alt="QR code vérifiable de la réservation"/><div><strong>Pass de réservation</strong><small>Présentez ce QR au salon. Sa signature et son statut peuvent être vérifiés en ligne.</small></div></section>}            <footer><span class="material-symbols-outlined">verified</span><p>Réservation enregistrée par Keke Beauty<br /><small>Conservez cette référence pour toute demande d’assistance.</small></p></footer>
+        </article>
+
+        <section class="next-steps no-print">
+            <h2>Et maintenant ?</h2>
+            <div><span>1</span><p><strong>Attendez la confirmation</strong><small>Le salon confirme ou refuse la demande depuis son espace.</small></p></div>
+            <div><span>2</span><p><strong>Suivez votre rendez-vous</strong><small>Le statut et le paiement restent visibles dans votre espace.</small></p></div>
+            <div><span>3</span><p><strong>Préparez votre arrivée</strong><small>Présentez-vous quelques minutes avant l’heure prévue.</small></p></div>
+        </section>
+
+        <div class="confirmation-actions no-print">
+            <a class="flow-primary" href="/mes-rendez-vous">Suivre mon rendez-vous</a>
+            <a class="flow-secondary" href="@($"/etablissements/{_state.IdEtablissement}")">Retour à la fiche salon</a>
+        </div>
+    }
+</main>
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+    private static readonly System.Globalization.CultureInfo Culture = System.Globalization.CultureInfo.GetCultureInfo("fr-FR");
+    private ClientBookingFlowState? _state;
+    private bool _loading = true;
+    private string? _qrDataUrl;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var idClient = await Session.GetClientIdAsync();
+        if (idClient is null) { Navigation.NavigateTo($"/login?ReturnUrl=/rdv/{Id}/confirmation"); return; }
+        var state = await BookingFlow.GetAsync();
+        _state = state?.IdRdv == Id ? state : null;
+        if (_state is not null)
+        {
+            var rdv = await RdvApi.GetStatutAsync(idClient.Value, Id, CancellationToken.None);
+            if (rdv is not null) { _state.StatutRdv = rdv.Statut; await BookingFlow.SaveAsync(_state); }
+            _qrDataUrl=await RdvApi.GetQrDataUrlAsync(idClient.Value,Id,CancellationToken.None);
+        }
+        _loading = false;
+    }
+
+    private async Task PrintAsync() => await JS.InvokeVoidAsync("print");
+    private static string RdvLabel(string status) => status switch { "CONFIRME" => "Confirmé", "REFUSE" => "Refusé", "ANNULE" => "Annulé", "TERMINE" => "Terminé", _ => "En attente" };
+    private static string RdvClass(string status) => status switch { "CONFIRME" or "TERMINE" => "is-success", "REFUSE" or "ANNULE" => "is-error", _ => "is-pending" };
+    private static string PaymentLabel(string? status) => status switch { "REUSSIE" => "Payé en ligne", "ECHOUEE" => "Échec du paiement", "EN_COURS" => "En cours", "REMBOURSEMENT_DEMANDE" => "Remboursement demandé", "REMBOURSEE" => "Remboursé", _ => "Paiement sur place" };
+}

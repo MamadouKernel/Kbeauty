@@ -1,0 +1,25 @@
+<nav aria-label="Navigation mobile" class="mobile-bottom-nav lg:hidden fixed bottom-0 w-full z-50 pb-safe bg-surface-cream/95 backdrop-blur-xl shadow-[0_-4px_20px_rgba(58,13,82,0.06)]">
+    <div class="flex justify-around items-center h-16 px-gutter-mobile">
+        <a class="flex flex-col items-center justify-center min-w-[56px] min-h-[44px] gap-space-xs @(ActivePath == "decouverte" ? "text-primary-container font-semibold" : "text-on-surface-variant") transition-colors hover:text-primary" href="/">
+            <span class="material-symbols-outlined text-[22px]">spa</span>
+            <span class="font-label-sm text-label-sm">Explorer</span>
+        </a>
+        <a class="flex flex-col items-center justify-center min-w-[56px] min-h-[44px] gap-space-xs @(ActivePath == "carte-interactive" ? "text-primary-container font-semibold" : "text-on-surface-variant") transition-colors hover:text-primary" href="/carte">
+            <span class="material-symbols-outlined text-[22px]">map</span>
+            <span class="font-label-sm text-label-sm">Carte</span>
+        </a>
+        <a class="flex flex-col items-center justify-center min-w-[56px] min-h-[44px] gap-space-xs @(ActivePath == "mes-rendez-vous" ? "text-primary-container font-semibold" : "text-on-surface-variant") transition-colors hover:text-primary" href="/mes-rendez-vous">
+            <span class="material-symbols-outlined text-[22px]">calendar_month</span>
+            <span class="font-label-sm text-label-sm">Mes RDV</span>
+        </a>
+        <a class="flex flex-col items-center justify-center min-w-[56px] min-h-[44px] gap-space-xs @(ActivePath == "mon-espace" ? "text-primary-container font-semibold" : "text-on-surface-variant") transition-colors hover:text-primary" href="/mon-espace">
+            <span class="material-symbols-outlined text-[22px]">storefront</span>
+            <span class="font-label-sm text-label-sm">Mon espace</span>
+        </a>
+    </div>
+</nav>
+
+@code {
+    [Parameter] public string ActivePath { get; set; } = "";
+}
+

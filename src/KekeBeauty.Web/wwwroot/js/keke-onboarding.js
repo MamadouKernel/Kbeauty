@@ -1,0 +1,1 @@
+window.kekeOnboarding=(()=>{const key='keke-partner-onboarding-draft-v1';return{save:value=>localStorage.setItem(key,JSON.stringify({...value,savedAt:new Date().toISOString()})),load:()=>{try{return JSON.parse(localStorage.getItem(key))}catch{return null}},clear:()=>localStorage.removeItem(key)}})();

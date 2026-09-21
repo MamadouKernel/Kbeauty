@@ -1,0 +1,36 @@
+@page "/mon-profil"
+@inject ProfileApiClient Api
+@inject ClientSessionService Session
+@inject NavigationManager Navigation
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+<PageTitle>Mon profil — Keke Beauty</PageTitle>
+<header class="client-flow-header"><a href="/mon-espace" aria-label="Retour"><span class="material-symbols-outlined">arrow_back</span></a><a class="brand" href="/"><img src="/img/logo.png" alt="" /><span>Keke Beauty<small>MON PROFIL</small></span></a><span></span></header>
+<main id="main-content" class="profile-page" tabindex="-1">
+@if(_loading){<div class="flow-skeleton"><span></span><span></span></div>}
+else if(_profile is null){<div class="flow-alert is-error">Profil indisponible.</div>}
+else{
+<section class="profile-heading"><p class="flow-eyebrow">VOS INFORMATIONS</p><h1>Mon profil</h1><p>Modifiez vos coordonnées et choisissez les messages que vous souhaitez recevoir.</p></section>
+<section class="profile-card">
+<label>Nom complet<input autocomplete="name" maxlength="100" @bind="_profile.Nom" /></label>
+<div class="profile-phone">
+<strong>Numéro de téléphone</strong>
+@if(!string.IsNullOrWhiteSpace(_profile.Telephone)){<div class="verified-phone"><span class="material-symbols-outlined">verified</span><span>@_profile.Telephone</span><button type="button" @onclick="()=>_editPhone=true">Modifier</button></div>}
+@if(string.IsNullOrWhiteSpace(_profile.Telephone) || _editPhone){
+<div class="phone-entry"><span>🇨🇮 +225</span><input aria-label="Numéro de téléphone" inputmode="numeric" autocomplete="tel-national" maxlength="10" placeholder="XX XX XX XX XX" @bind="_phoneLocal" /></div>
+@if(!_phoneCodeSent){<button class="phone-action" type="button" disabled="@_busy" @onclick="RequestPhoneAsync">Recevoir un code WhatsApp</button>}
+else{<div class="phone-code"><input aria-label="Code reçu" inputmode="numeric" maxlength="6" placeholder="Code à 6 chiffres" @bind="_phoneCode" /><button class="phone-action" type="button" disabled="@(_busy || _phoneCode.Length != 6)" @onclick="VerifyPhoneAsync">Vérifier et enregistrer</button></div>}
+}
+</div>
+<label>Adresse email<input type="email" autocomplete="email" maxlength="254" @bind="_profile.Email" /></label>
+<h2>Préférences</h2>
+<label class="profile-toggle"><input type="checkbox" @bind="_profile.NotificationsRdv" /><span><strong>Rendez-vous et paiements</strong><small>Confirmations, modifications, rappels et annulations.</small></span></label>
+<label class="profile-toggle"><input type="checkbox" @bind="_profile.NotificationsMarketing" /><span><strong>Nouveautés et offres</strong><small>Conseils et offres de Keke Beauty.</small></span></label>
+<label class="profile-toggle"><input type="checkbox" @bind="_profile.ConsentementDonnees" /><span><strong>Traitement de mes données</strong><small>Nécessaire pour gérer vos réservations et votre compte.</small></span></label>
+@if(_message is not null){<div class="flow-alert @(_success?"is-success":"is-error")" role="status">@_message</div>}
+<button class="flow-primary" disabled="@_busy" @onclick="SaveAsync">Enregistrer mes modifications</button>
+</section>
+<section class="profile-danger"><h2>Supprimer mon compte</h2><p>Vos coordonnées seront anonymisées. L’historique légal des transactions sera conservé sans vos informations personnelles.</p>@if(!_confirmDelete){<button @onclick="()=>_confirmDelete=true">Demander la suppression</button>}else{<div><button disabled="@_busy" @onclick="DeleteAsync">Confirmer la suppression</button><button @onclick="()=>_confirmDelete=false">Annuler</button></div>}</section>
+}
+</main>
+@code{private ClientProfile? _profile;private bool _loading=true,_busy,_success,_confirmDelete,_editPhone,_phoneCodeSent;private string? _message;private string _phoneLocal="",_phoneCode="";private string PhoneE164=>"+225"+new string(_phoneLocal.Where(char.IsDigit).ToArray());protected override async Task OnInitializedAsync(){var id=await Session.GetClientIdAsync();if(id is null){Navigation.NavigateTo("/login?ReturnUrl=/mon-profil");return;}(_, _profile)=await Api.GetAsync(id.Value,CancellationToken.None);_loading=false;}private async Task SaveAsync(){var id=await Session.GetClientIdAsync();if(id is null||_profile is null)return;_busy=true;(_success,_message)=await Api.UpdateAsync(id.Value,_profile,CancellationToken.None);if(_success)_message="Profil mis à jour.";_busy=false;}private async Task DeleteAsync(){var id=await Session.GetClientIdAsync();if(id is null)return;_busy=true;if(await Api.DeleteAsync(id.Value,CancellationToken.None)){await Session.ClearAsync();Navigation.NavigateTo("/");return;}_message="Suppression impossible.";_success=false;_busy=false;}private async Task RequestPhoneAsync(){var id=await Session.GetClientIdAsync();if(id is null)return;_busy=true;(_success,_message)=await Api.RequestPhoneCodeAsync(id.Value,PhoneE164,CancellationToken.None);_busy=false;if(_success){_phoneCodeSent=true;_message="Code envoyé sur WhatsApp.";}}
+private async Task VerifyPhoneAsync(){var id=await Session.GetClientIdAsync();if(id is null||_profile is null)return;_busy=true;(_success,_message)=await Api.VerifyPhoneAsync(id.Value,PhoneE164,_phoneCode,CancellationToken.None);_busy=false;if(_success){_profile.Telephone=PhoneE164;_phoneCodeSent=false;_editPhone=false;_phoneCode="";_message="Numéro vérifié et enregistré.";}}}

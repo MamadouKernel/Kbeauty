@@ -1,0 +1,140 @@
+@page "/admin"
+@inject AdminApiClient AdminApi
+@inject AdminSessionService Session
+@inject NavigationManager Navigation
+@* prerender:false : voir AdminDossiers.razor pour le detail du bug de prerendering evite. *@
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+
+<PageTitle>Tableau de bord Super-Admin</PageTitle>
+
+@using KekeBeauty.Web.Components.Layout
+<AdminHeader ActivePath="/admin" />
+
+<main id="main-content" tabindex="-1" class="admin-page flex flex-col relative w-full pt-16 pb-space-xl bg-surface min-h-screen">
+    <div class="flex flex-col w-full px-margin py-space-lg gap-space-lg lg:max-w-6xl lg:mx-auto">
+
+        @if (_checkingAuth)
+        {
+            <p class="font-body-md text-body-md text-on-surface-variant">Chargement…</p>
+        }
+        else if (_error)
+        {
+            <div class="rounded-xl bg-error-container text-on-error-container px-space-md py-space-sm font-body-md text-body-md">
+                Le service est momentanément indisponible. Merci de réessayer.
+            </div>
+        }
+        else if (_stats is not null)
+        {
+            <div>
+                <h1 class="font-headline-lg text-headline-lg text-text-primary">Tableau de bord global</h1>
+                <p class="font-body-md text-body-md text-on-surface-variant">Vue d'ensemble en temps réel de la plateforme Keke Beauty.</p>
+            </div>
+
+            <section>
+                <h2 class="font-label-lg text-label-lg text-primary mb-space-sm flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[20px]">storefront</span> Établissements
+                </h2>
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-space-sm">
+                    <div class="bg-surface-cream rounded-xl p-space-md shadow-sm">
+                        <p class="font-headline-lg text-headline-lg text-status-available font-bold">@_stats.EtablissementsValides</p>
+                        <p class="font-body-sm text-body-sm text-on-surface-variant">Validés</p>
+                    </div>
+                    <div class="bg-surface-cream rounded-xl p-space-md shadow-sm">
+                        <p class="font-headline-lg text-headline-lg text-primary font-bold">@_stats.EtablissementsEnAttente</p>
+                        <p class="font-body-sm text-body-sm text-on-surface-variant">En attente KYC</p>
+                    </div>
+                    <div class="bg-surface-cream rounded-xl p-space-md shadow-sm">
+                        <p class="font-headline-lg text-headline-lg text-status-unavailable font-bold">@_stats.EtablissementsRejetes</p>
+                        <p class="font-body-sm text-body-sm text-on-surface-variant">Rejetés</p>
+                    </div>
+                </div>
+            </section>
+
+            <section>
+                <h2 class="font-label-lg text-label-lg text-primary mb-space-sm flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[20px]">event_available</span> Rendez-vous
+                </h2>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-space-sm">
+                    <div class="bg-surface-cream rounded-xl p-space-md shadow-sm">
+                        <p class="font-headline-lg text-headline-lg text-text-primary font-bold">@_stats.RdvDemande</p>
+                        <p class="font-body-sm text-body-sm text-on-surface-variant">Demandés</p>
+                    </div>
+                    <div class="bg-surface-cream rounded-xl p-space-md shadow-sm">
+                        <p class="font-headline-lg text-headline-lg text-status-available font-bold">@_stats.RdvConfirme</p>
+                        <p class="font-body-sm text-body-sm text-on-surface-variant">Confirmés</p>
+                    </div>
+                    <div class="bg-surface-cream rounded-xl p-space-md shadow-sm">
+                        <p class="font-headline-lg text-headline-lg text-text-primary font-bold">@_stats.RdvTermine</p>
+                        <p class="font-body-sm text-body-sm text-on-surface-variant">Terminés</p>
+                    </div>
+                    <div class="bg-surface-cream rounded-xl p-space-md shadow-sm">
+                        <p class="font-headline-lg text-headline-lg text-status-unavailable font-bold">@_stats.RdvRefuseOuAnnule</p>
+                        <p class="font-body-sm text-body-sm text-on-surface-variant">Refusés/Annulés</p>
+                    </div>
+                </div>
+            </section>
+
+            <section>
+                <h2 class="font-label-lg text-label-lg text-primary mb-space-sm flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[20px]">payments</span> Revenus &amp; Abonnements
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-space-sm">
+                    <div class="bg-gradient-to-br from-primary via-primary-container to-secondary rounded-xl p-space-md shadow-md text-on-primary">
+                        <p class="font-label-md text-label-md uppercase tracking-wider opacity-80">Revenu estimé plateforme</p>
+                        <p class="font-headline-lg text-headline-lg font-bold mt-1">@_stats.RevenuEstimeTotal.ToString("N0") FCFA</p>
+                        <p class="font-body-sm text-body-sm opacity-80 mt-1">RDV confirmés + terminés (tarif catalogue)</p>
+                    </div>
+                    <div class="bg-surface-cream rounded-xl p-space-md shadow-sm">
+                        <p class="font-headline-lg text-headline-lg text-status-available font-bold">@_stats.AbonnementsActifs</p>
+                        <p class="font-body-sm text-body-sm text-on-surface-variant">Abonnements actifs</p>
+                    </div>
+                    <div class="bg-surface-cream rounded-xl p-space-md shadow-sm">
+                        <p class="font-headline-lg text-headline-lg text-status-unavailable font-bold">@_stats.AbonnementsImpayes</p>
+                        <p class="font-body-sm text-body-sm text-on-surface-variant">Abonnements impayés</p>
+                    </div>
+                </div>
+            </section>
+
+            <section>
+                <h2 class="font-label-lg text-label-lg text-primary mb-space-sm flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[20px]">group</span> Communauté
+                </h2>
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-space-sm">
+                    <div class="bg-surface-cream rounded-xl p-space-md shadow-sm">
+                        <p class="font-headline-lg text-headline-lg text-text-primary font-bold">@_stats.NombreClients</p>
+                        <p class="font-body-sm text-body-sm text-on-surface-variant">Clientes inscrites</p>
+                    </div>
+                    <div class="bg-surface-cream rounded-xl p-space-md shadow-sm">
+                        <p class="font-headline-lg text-headline-lg text-text-primary font-bold">@_stats.NombreAvis</p>
+                        <p class="font-body-sm text-body-sm text-on-surface-variant">Avis certifiés</p>
+                    </div>
+                    <div class="bg-surface-cream rounded-xl p-space-md shadow-sm">
+                        <p class="font-headline-lg text-headline-lg text-primary font-bold">@(_stats.NoteMoyenneGlobale?.ToString("0.0") ?? "—")</p>
+                        <p class="font-body-sm text-body-sm text-on-surface-variant">Note moyenne globale</p>
+                    </div>
+                </div>
+            </section>
+        }
+    </div>
+</main>
+
+@code {
+    private bool _checkingAuth = true;
+    private bool _error;
+    private AdminStatistiquesGlobalesDto? _stats;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var apiKey = await Session.GetApiKeyAsync();
+        if (apiKey is null)
+        {
+            Navigation.NavigateTo("/admin/login");
+            return;
+        }
+
+        var (success, stats) = await AdminApi.GetStatistiquesGlobalesAsync(apiKey, CancellationToken.None);
+        _error = !success;
+        _stats = stats;
+        _checkingAuth = false;
+    }
+}

@@ -45,6 +45,21 @@ public sealed class PartnerRdvApiClient
         SendDecisionAsync(idPartner, $"partenaire/etablissements/{idEtablissement}/rdv/{idRdv}/reprogrammer",
             new { dateHeureDebut = nouvelleDateHeureDebut }, cancellationToken);
 
+    public Task<(bool Success,string? Status)> CreerComptoirAsync(Guid idPartner,Guid idEtablissement,Guid idPrestation,
+        Guid? idCollaborateur,string nomClient,string telephoneClient,DateTimeOffset dateHeureDebut,string modePaiement,CancellationToken cancellationToken) =>
+        SendDecisionAsync(idPartner,$"partenaire/etablissements/{idEtablissement}/rdv/comptoir",
+            new{idPrestation,idCollaborateur,nomClient,telephoneClient,dateHeureDebut,modePaiement},cancellationToken);
+    /// <summary>Feature 018 (Parcours 5) : assigne (ou desassigne si idCollaborateur == null) une
+    /// collaboratrice au RDV (planning individuel).</summary>
+    public Task<(bool Success, string? Status)> AssignerCollaborateurAsync(
+        Guid idPartner, Guid idEtablissement, Guid idRdv, Guid? idCollaborateur, CancellationToken cancellationToken) =>
+        SendDecisionAsync(idPartner, $"partenaire/etablissements/{idEtablissement}/rdv/{idRdv}/assigner",
+            new { idCollaborateur }, cancellationToken);
+
+    public async Task<(bool Success,QrVerificationDto? Result,string? Status)> VerifyQrAsync(Guid idPartner,string token,CancellationToken cancellationToken)
+    {
+        try{using var request=new HttpRequestMessage(HttpMethod.Get,$"rdv/qr/verify?token={Uri.EscapeDataString(token)}");request.Headers.Add("X-Partner-Id",idPartner.ToString());var response=await _httpClient.SendAsync(request,cancellationToken);if(!response.IsSuccessStatusCode)return(false,null,response.StatusCode.ToString());return(true,await response.Content.ReadFromJsonAsync<QrVerificationDto>(cancellationToken),"verified");}catch{return(false,null,"network_error");}
+    }
     private async Task<(bool Success, string? Status)> SendDecisionAsync(Guid idPartner, string url, object? body, CancellationToken cancellationToken)
     {
         try

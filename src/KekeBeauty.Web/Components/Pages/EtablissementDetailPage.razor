@@ -1,55 +1,291 @@
 @page "/etablissements/{Id:guid}"
 @inject DirectoryApiClient DirectoryApi
+@inject ClientSessionService ClientSession
+@inject IJSRuntime JS
+@inject NavigationManager Navigation
+@* prerender:false : lecture ProtectedLocalStorage (ClientSession) ajoutee pour les favoris (018) -
+   voir PartnerDashboard.razor pour le detail du bug de prerendering evite. *@
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+@using KekeBeauty.Web.Components.Layout
 
 <PageTitle>@(_detail?.NomEtablissement ?? "Établissement")</PageTitle>
 
-@if (_error)
-{
-    <div class="alert alert-danger">Le service annuaire est momentanément indisponible. Merci de réessayer.</div>
-}
-else if (_loaded && _detail is null)
-{
-    <div class="alert alert-warning">Établissement introuvable.</div>
-}
-else if (_detail is null)
-{
-    <p>Chargement…</p>
-}
-else
-{
-    <h1>@_detail.NomEtablissement</h1>
-    @if (!string.IsNullOrWhiteSpace(_detail.Description))
-    {
-        <p>@_detail.Description</p>
-    }
+<DesktopHeader ActivePath="explorer" />
 
-    <div class="mb-3">
-        <a class="btn btn-outline-primary" href="@($"tel:{_detail.NumeroServiceClient}")">Appeler @_detail.NumeroServiceClient</a>
-        <a class="btn btn-outline-secondary" href="@_detail.LienItineraire" target="_blank" rel="noopener">Itinéraire</a>
-        <a class="btn btn-success" href="@($"/etablissements/{Id}/rdv")">Prendre RDV</a>
+<header class="lg:hidden fixed top-0 w-full z-50 pt-safe bg-surface-cream/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)]">
+    <div class="h-16 px-gutter flex items-center justify-between gap-space-sm">
+        <div class="flex items-center gap-space-xs min-w-0">
+            <a aria-label="Retour" class="w-11 h-11 -ml-space-xs flex items-center justify-center rounded-full text-text-primary hover:bg-lavender-subtle active:scale-95 transition-all" href="/">
+                <span class="material-symbols-outlined text-[22px]">arrow_back_ios_new</span>
+            </a>
+            <img alt="Keke Beauty" class="h-7 w-auto object-contain shrink-0" src="/img/logo.png" />
+            <h1 class="font-headline-sm text-headline-sm text-text-primary font-semibold truncate">Fiche Salon</h1>
+        </div>
+        <div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center shadow-sm shrink-0">
+            <span class="material-symbols-outlined text-on-primary text-[18px]">person</span>
+        </div>
     </div>
+</header>
 
-    @if (_detail.Medias.Count > 0)
+<main id="main-content" tabindex="-1" class="flex-1 flex flex-col relative w-full pt-16 lg:pt-20 bg-surface min-h-screen">
+    @if (_error)
     {
-        <div class="d-flex flex-wrap gap-2 mb-3">
-            @foreach (var media in _detail.Medias.OrderBy(m => m.OrdreAffichage))
-            {
-                <img src="@media.Url" alt="@_detail.NomEtablissement" style="max-width:200px; max-height:150px;" />
-            }
+        <div class="px-margin pt-space-md">
+            <div class="rounded-xl bg-error-container text-on-error-container px-space-md py-space-sm font-body-md text-body-md">
+                Le service annuaire est momentanément indisponible. Merci de réessayer.
+            </div>
         </div>
     }
+    else if (_loaded && _detail is null)
+    {
+        <div class="px-margin pt-space-md">
+            <div class="rounded-xl bg-surface-container px-space-md py-space-sm font-body-md text-body-md text-on-surface-variant">
+                Établissement introuvable.
+            </div>
+        </div>
+    }
+    else if (_detail is null)
+    {
+        <p class="px-margin pt-space-md font-body-md text-body-md text-on-surface-variant">Chargement…</p>
+    }
+    else
+    {
+        <div class="flex flex-col w-full pb-32 lg:max-w-5xl lg:mx-auto">
 
-    <h2>Prestations</h2>
-    <ul class="list-group">
-        @foreach (var prestation in _detail.Prestations)
-        {
-            <li class="list-group-item d-flex justify-content-between">
-                <span>@prestation.LibellePrestation (@prestation.DureeMinutes min)</span>
-                <strong>@prestation.Tarif.ToString("N0") XOF</strong>
-            </li>
-        }
-    </ul>
-}
+            <div class="relative w-full overflow-hidden bg-surface-container-low lg:rounded-3xl lg:mt-space-lg">
+                @if (_detail.Medias.Count > 0)
+                {
+                    <div class="flex w-full overflow-x-auto snap-x snap-mandatory scrollbar-none scroll-smooth">
+                        <div class="w-full shrink-0 snap-center relative aspect-[4/3]">
+                            <img alt="Devanture de @_detail.NomEtablissement" class="w-full h-full object-cover" src="@($"/media/devanture/{Id}")" />
+                            <div class="absolute inset-0 bg-gradient-to-t from-plum-deep/80 via-transparent to-black/30"></div>
+                        </div>
+                        @foreach (var media in _detail.Medias.OrderBy(m => m.OrdreAffichage))
+                        {
+                            <div class="w-full shrink-0 snap-center relative aspect-[4/3]">
+                                <img alt="@_detail.NomEtablissement" class="w-full h-full object-cover" src="@media.Url" />
+                                <div class="absolute inset-0 bg-gradient-to-t from-plum-deep/80 via-transparent to-black/30"></div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="w-full aspect-[4/3] bg-lavender-subtle"><img alt="Devanture de @_detail.NomEtablissement" class="w-full h-full object-cover" src="@($"/media/devanture/{Id}")" /></div>
+                }
+                <div class="absolute top-4 left-4 right-4 flex items-center justify-between pointer-events-none">
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-cream/90 backdrop-blur-md text-primary font-label-md text-label-md shadow-sm pointer-events-auto">
+                        <span class="material-symbols-outlined text-[16px] text-secondary" style="font-variation-settings: 'FILL' 1;">verified</span>
+                        Keke Beauty
+                    </span>
+                    <button aria-label="Ajouter aux favoris" class="w-10 h-10 rounded-full bg-surface-cream/90 backdrop-blur-md flex items-center justify-center text-primary shadow-sm pointer-events-auto transition-transform active:scale-90" type="button" @onclick="ToggleFavoriAsync">
+                        <span class="material-symbols-outlined text-[20px] @(_favorite ? "text-error" : "text-text-primary")" style="@(_favorite ? "font-variation-settings: 'FILL' 1;" : "")">@(_favorite ? "favorite" : "favorite_border")</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="px-margin pt-space-lg flex flex-col gap-space-sm">
+                <div class="flex items-start justify-between gap-space-sm">
+                    <div class="flex-1 min-w-0">
+                        <h1 class="font-headline-md text-headline-md text-text-primary tracking-tight truncate">@_detail.NomEtablissement</h1>
+                    </div>
+                </div>
+
+                @if (!string.IsNullOrWhiteSpace(_detail.Description))
+                {
+                    <p class="font-body-md text-body-md text-on-surface-variant">@_detail.Description</p>
+                }
+
+                <div class="grid grid-cols-3 gap-2.5 pt-space-sm">
+                    <a class="flex flex-col items-center justify-center py-2.5 px-2 rounded-2xl bg-surface-cream text-text-primary shadow-sm hover:bg-lavender-subtle active:scale-95 transition-all text-center" href="@($"tel:{_detail.NumeroServiceClient}")">
+                        <div class="w-9 h-9 rounded-full bg-lavender-subtle flex items-center justify-center mb-1 text-primary">
+                            <span class="material-symbols-outlined text-[20px]">call</span>
+                        </div>
+                        <span class="font-label-md text-label-md text-text-primary">Appeler</span>
+                    </a>
+                    <div class="relative">
+                        <button type="button" class="w-full flex flex-col items-center justify-center py-2.5 px-2 rounded-2xl bg-surface-cream text-text-primary shadow-sm hover:bg-lavender-subtle active:scale-95 transition-all text-center" @onclick="() => _showItineraireMenu = !_showItineraireMenu">
+                            <div class="w-9 h-9 rounded-full bg-lavender-subtle flex items-center justify-center mb-1 text-secondary">
+                                <span class="material-symbols-outlined text-[20px]">near_me</span>
+                            </div>
+                            <span class="font-label-md text-label-md text-text-primary">S'y rendre</span>
+                        </button>
+                        @if (_showItineraireMenu)
+                        {
+                            <div class="absolute z-20 top-full mt-1 left-1/2 -translate-x-1/2 w-44 bg-surface-cream rounded-xl shadow-lg overflow-hidden">
+                                <a class="flex items-center gap-2 px-3 py-2.5 font-body-sm text-body-sm text-text-primary hover:bg-lavender-subtle" href="@LienGoogleMaps" target="_blank" rel="noopener">
+                                    <span class="material-symbols-outlined text-[18px]">map</span> Google Maps
+                                </a>
+                                <a class="flex items-center gap-2 px-3 py-2.5 font-body-sm text-body-sm text-text-primary hover:bg-lavender-subtle" href="@LienAppleMaps" target="_blank" rel="noopener">
+                                    <span class="material-symbols-outlined text-[18px]">map</span> Apple Maps
+                                </a>
+                                <a class="flex items-center gap-2 px-3 py-2.5 font-body-sm text-body-sm text-text-primary hover:bg-lavender-subtle" href="@LienYango" target="_blank" rel="noopener">
+                                    <span class="material-symbols-outlined text-[18px]">local_taxi</span> Yango
+                                </a>
+                            </div>
+                        }
+                    </div>
+                    <div class="flex flex-col items-center justify-center py-2.5 px-2 rounded-2xl bg-surface-cream text-text-primary shadow-sm text-center">
+                        <div class="w-9 h-9 rounded-full bg-lavender-subtle flex items-center justify-center mb-1 text-text-primary">
+                            <span class="material-symbols-outlined text-[20px]">confirmation_number</span>
+                        </div>
+                        <span class="font-label-md text-label-md text-text-primary">@_detail.Prestations.Count prestation(s)</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-space-lg px-margin">
+                <div class="flex items-center gap-1.5 p-1 bg-surface-container rounded-2xl overflow-x-auto scrollbar-none">
+                    <button class="flex-1 py-2 px-3.5 rounded-xl font-label-md text-label-md transition-all text-center whitespace-nowrap @(_tab == "prestations" ? "bg-surface-cream text-primary shadow-sm" : "text-on-surface-variant hover:text-text-primary")" type="button" @onclick='() => _tab = "prestations"'>
+                        Prestations &amp; Tarifs
+                    </button>
+                    <button class="flex-1 py-2 px-3.5 rounded-xl font-label-md text-label-md transition-all text-center whitespace-nowrap @(_tab == "galerie" ? "bg-surface-cream text-primary shadow-sm" : "text-on-surface-variant hover:text-text-primary")" type="button" @onclick='() => _tab = "galerie"'>
+                        Réalisations
+                    </button>
+                    <button class="flex-1 py-2 px-3.5 rounded-xl font-label-md text-label-md transition-all text-center whitespace-nowrap @(_tab == "avis" ? "bg-surface-cream text-primary shadow-sm" : "text-on-surface-variant hover:text-text-primary")" type="button" @onclick='() => _tab = "avis"'>
+                        Avis@(_avis is { NombreAvis: > 0 } ? $" ({_avis.NombreAvis})" : "")
+                    </button>
+                    <button class="flex-1 py-2 px-3.5 rounded-xl font-label-md text-label-md transition-all text-center whitespace-nowrap @(_tab == "infos" ? "bg-surface-cream text-primary shadow-sm" : "text-on-surface-variant hover:text-text-primary")" type="button" @onclick="ShowInfosTab">
+                        À propos
+                    </button>
+                </div>
+            </div>
+
+            @if (_tab == "prestations")
+            {
+                <div class="px-margin mt-space-md flex flex-col gap-space-md">
+                    @if (_detail.Prestations.Count == 0)
+                    {
+                        <p class="font-body-md text-body-md text-on-surface-variant text-center py-space-lg">Aucune prestation renseignée pour l'instant.</p>
+                    }
+                    else
+                    {
+                        @foreach (var prestation in _detail.Prestations)
+                        {
+                            <div class="p-space-md bg-surface-cream rounded-2xl shadow-sm flex flex-col gap-space-sm">
+                                <h2 class="font-headline-sm text-headline-sm text-text-primary font-bold">@prestation.LibellePrestation</h2>
+                                <div class="flex items-center justify-between pt-2">
+                                    <div class="flex flex-col">
+                                        <span class="font-headline-sm text-headline-sm text-primary font-bold">@prestation.Tarif.ToString("N0") FCFA</span>
+                                        <span class="font-label-sm text-label-sm text-on-surface-variant flex items-center gap-1">
+                                            <span class="material-symbols-outlined text-[14px]">timer</span>
+                                            Durée: @prestation.DureeMinutes min
+                                        </span>
+                                    </div>
+                                    <a class="px-4 py-2 rounded-full bg-primary-container text-on-primary font-label-md text-label-md hover:opacity-95 active:scale-95 transition-all shadow-sm" href="@($"/etablissements/{Id}/rdv")">
+                                        Réserver
+                                    </a>
+                                </div>
+                            </div>
+                        }
+                    }
+                </div>
+            }
+            else if (_tab == "galerie")
+            {
+                <div class="px-margin mt-space-md">
+                    @if (_detail.Medias.Count == 0)
+                    {
+                        <div class="relative aspect-square rounded-2xl overflow-hidden bg-surface-container shadow-sm"><img alt="Devanture de @_detail.NomEtablissement" class="w-full h-full object-cover" src="@($"/media/devanture/{Id}")" /></div>
+                    }
+                    else
+                    {
+                        <div class="grid grid-cols-2 gap-2.5">
+                            @foreach (var media in _detail.Medias.OrderBy(m => m.OrdreAffichage))
+                            {
+                                <div class="relative aspect-square rounded-2xl overflow-hidden bg-surface-container shadow-sm">
+                                    <img alt="@_detail.NomEtablissement" class="w-full h-full object-cover" src="@media.Url" />
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+            else if (_tab == "avis")
+            {
+                <div class="px-margin mt-space-md flex flex-col gap-space-md">
+                    @if (_avis is null)
+                    {
+                        <p class="font-body-md text-body-md text-on-surface-variant text-center py-space-lg">Chargement des avis…</p>
+                    }
+                    else if (_avis.NombreAvis == 0)
+                    {
+                        <p class="font-body-md text-body-md text-on-surface-variant text-center py-space-lg">Ce salon n'a pas encore reçu d'avis certifié.</p>
+                    }
+                    else
+                    {
+                        <div class="p-space-md bg-surface-cream rounded-2xl shadow-sm flex items-center gap-space-md">
+                            <div class="flex flex-col items-center justify-center pr-space-md">
+                                <span class="font-display-lg-mobile text-display-lg-mobile text-primary font-extrabold leading-none">@_avis.NoteMoyenne!.Value.ToString("0.0")</span>
+                                <div class="flex text-secondary my-1">
+                                    @for (var i = 1; i <= 5; i++)
+                                    {
+                                        <span class="material-symbols-outlined text-[16px]" style="@(i <= Math.Round(_avis.NoteMoyenne.Value) ? "font-variation-settings: 'FILL' 1;" : "")">star</span>
+                                    }
+                                </div>
+                                <span class="font-label-sm text-label-sm text-on-surface-variant">@_avis.NombreAvis avis</span>
+                            </div>
+                        </div>
+
+                        @foreach (var item in _avis.Avis)
+                        {
+                            <div class="p-space-md bg-surface-cream rounded-2xl shadow-sm flex flex-col gap-1.5">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex text-secondary">
+                                        @for (var i = 1; i <= 5; i++)
+                                        {
+                                            <span class="material-symbols-outlined text-[14px]" style="@(i <= item.Note ? "font-variation-settings: 'FILL' 1;" : "")">star</span>
+                                        }
+                                    </div>
+                                    <span class="font-label-sm text-label-sm text-on-surface-variant">@item.DateCreation.ToLocalTime().ToString("d MMM yyyy", System.Globalization.CultureInfo.GetCultureInfo("fr-FR"))</span>
+                                </div>
+                                @if(item.HasPhotoAvant && item.HasPhotoApres)
+                                {
+                                    <div class="review-gallery"><figure><img src="@($"/media/avis/{item.IdRdv}/avant")" alt="Résultat avant le soin" loading="lazy"/><figcaption>Avant</figcaption></figure><figure><img src="@($"/media/avis/{item.IdRdv}/apres")" alt="Résultat après le soin" loading="lazy"/><figcaption>Après</figcaption></figure></div>
+                                }                                @if (!string.IsNullOrWhiteSpace(item.Commentaire))
+                                {
+                                    <p class="font-body-md text-body-md text-on-surface-variant">@item.Commentaire</p>
+                                }
+                            </div>
+                        }
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="px-margin mt-space-md flex flex-col gap-space-md">
+                    <div class="p-space-md bg-surface-cream rounded-2xl shadow-sm flex flex-col gap-space-sm">
+                        <h3 class="font-headline-sm text-headline-sm text-text-primary font-bold">Informations pratiques</h3>
+                        <div class="flex items-center gap-2.5 text-text-primary">
+                            <span class="material-symbols-outlined text-[20px] text-secondary">call</span>
+                            <span class="font-body-md text-body-md">@_detail.NumeroServiceClient</span>
+                        </div>
+                        <div class="flex flex-col gap-1.5 pt-1">
+                            <span class="font-body-sm text-body-sm text-on-surface-variant">Itinéraire :</span>
+                            <div class="flex items-center gap-space-md">
+                                <a class="font-body-md text-body-md text-text-primary underline" href="@LienGoogleMaps" target="_blank" rel="noopener">Google Maps</a>
+                                <a class="font-body-md text-body-md text-text-primary underline" href="@LienAppleMaps" target="_blank" rel="noopener">Apple Maps</a>
+                                <a class="font-body-md text-body-md text-text-primary underline" href="@LienYango" target="_blank" rel="noopener">Yango</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="rounded-2xl overflow-hidden shadow-sm h-48">
+                        <div id="fiche-osm" class="w-full h-full"></div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <div class="fixed bottom-0 left-0 right-0 z-40 bg-surface-cream/95 backdrop-blur-lg shadow-[0_-4px_24px_rgba(58,13,82,0.08)] px-margin py-3 pb-safe">
+            <div class="flex items-center gap-3 max-w-md mx-auto">
+                <a class="flex-1 h-12 rounded-full bg-gradient-to-r from-primary via-primary-container to-secondary text-on-primary font-label-lg text-label-lg font-semibold flex items-center justify-center gap-2 shadow-md active:scale-[0.98] transition-all" href="@($"/etablissements/{Id}/rdv")">
+                    <span class="material-symbols-outlined text-[20px]">calendar_month</span>
+                    <span>Prendre Rendez-vous</span>
+                </a>
+            </div>
+        </div>
+    }
+</main>
 
 @code {
     [Parameter] public Guid Id { get; set; }
@@ -57,16 +293,81 @@ else
     private EtablissementDetail? _detail;
     private bool _loaded;
     private bool _error;
+    private bool _favorite;
+    private Guid? _idClient;
+    private string _tab = "prestations";
+    private bool _mapDirty;
+    private AvisEtablissement? _avis;
+    private bool _showItineraireMenu;
+
+    private string LienGoogleMaps => string.Create(System.Globalization.CultureInfo.InvariantCulture,
+        $"https://www.google.com/maps/dir/?api=1&destination={_detail!.GpsLatitude},{_detail.GpsLongitude}");
+
+    private string LienAppleMaps => string.Create(System.Globalization.CultureInfo.InvariantCulture,
+        $"https://maps.apple.com/?daddr={_detail!.GpsLatitude},{_detail.GpsLongitude}");
+
+    // Yango (Yandex Go) s'appuie sur l'infrastructure Yandex Maps en Afrique de l'Ouest : ce lien
+    // ouvre l'app Yango si installee, sinon Yandex Maps web avec l'itineraire pre-rempli.
+    private string LienYango => string.Create(System.Globalization.CultureInfo.InvariantCulture,
+        $"https://maps.yandex.com/?rtext=~{_detail!.GpsLatitude},{_detail.GpsLongitude}");
 
     protected override async Task OnParametersSetAsync()
     {
         _detail = null;
         _loaded = false;
         _error = false;
+        _tab = "prestations";
 
-        var (success, detail) = await DirectoryApi.GetDetailAsync(Id, CancellationToken.None);
+        _idClient = await ClientSession.GetClientIdAsync();
+        var (success, detail) = await DirectoryApi.GetDetailAsync(Id, _idClient, CancellationToken.None);
         _error = !success;
         _detail = detail;
+        _favorite = detail?.EstFavori ?? false;
         _loaded = true;
+
+        if (_detail is not null)
+        {
+            var (avisSuccess, avis) = await DirectoryApi.GetAvisAsync(Id, CancellationToken.None);
+            _avis = avisSuccess ? avis : new AvisEtablissement();
+        }
+    }
+
+    private async Task ToggleFavoriAsync()
+    {
+        if (_idClient is null)
+        {
+            Navigation.NavigateTo($"/login?ReturnUrl=/etablissements/{Id}");
+            return;
+        }
+
+        var (success, estFavori) = await DirectoryApi.ToggleFavoriAsync(_idClient.Value, Id, CancellationToken.None);
+        if (success)
+        {
+            _favorite = estFavori;
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_mapDirty && _detail is not null)
+        {
+            _mapDirty = false;
+            var markers = new[]
+            {
+                new
+                {
+                    lat = _detail.GpsLatitude,
+                    lng = _detail.GpsLongitude,
+                    popupHtml = System.Net.WebUtility.HtmlEncode(_detail.NomEtablissement),
+                },
+            };
+            await JS.InvokeVoidAsync("kekeMap.init", "fiche-osm", _detail.GpsLatitude, _detail.GpsLongitude, 15, markers);
+        }
+    }
+
+    private void ShowInfosTab()
+    {
+        _tab = "infos";
+        _mapDirty = true;
     }
 }

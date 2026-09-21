@@ -1,0 +1,16 @@
+<header class="desktop-header hidden lg:block fixed top-0 left-0 right-0 z-50">
+    <div class="desktop-header-inner">
+        <a href="/" class="brand"><img alt="" src="/img/logo.png" /><span>Keke Beauty<small>LE TEMPS DE PRENDRE SOIN DE VOUS</small></span></a>
+        <nav aria-label="Navigation principale">
+            <a class="@(ActivePath == "accueil" ? "is-active" : "")" href="/" aria-current="@(ActivePath == "accueil" ? "page" : null)">Découvrir</a>
+            <a class="@(ActivePath == "carte" ? "is-active" : "")" href="/carte" aria-current="@(ActivePath == "carte" ? "page" : null)">La carte</a>
+            <a class="@(ActivePath == "rendez-vous" ? "is-active" : "")" href="/mes-rendez-vous">Mes rendez-vous</a>
+            <a class="@(ActivePath == "prototype" ? "is-active" : "")" href="/prototype">Hub Parcours Stitch</a>
+        </nav>
+        <a class="account-link" href="/mon-espace"><span class="material-symbols-outlined" aria-hidden="true">person</span> Mon espace</a>
+    </div>
+</header>
+@code {
+    [Parameter] public string ActivePath { get; set; } = "";
+}
+

@@ -1,0 +1,332 @@
+@page "/partenaire/etablissements/{IdEtablissement:guid}/comptoir"
+@inject PartnerApiClient PartnerApi
+@inject PartnerRdvApiClient PartnerRdvApi
+@inject PartnerSessionService Session
+@inject NavigationManager Navigation
+@using KekeBeauty.Web.Models
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+
+<PageTitle>Accueil Comptoir & Caisse Centrale — Keke Pro</PageTitle>
+
+<div class="min-h-screen bg-surface flex flex-col font-body-md text-body-md text-on-surface">
+    <!-- Top Navigation Header -->
+    <header class="fixed top-0 inset-x-0 h-16 bg-surface-cream/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-40 flex items-center justify-between px-6 lg:px-10">
+        <div class="flex items-center gap-4">
+            <a class="w-10 h-10 rounded-full flex items-center justify-center hover:bg-lavender-subtle text-text-primary transition-colors" href="@($"/partenaire/etablissements/{IdEtablissement}")" title="Retour aux détails">
+                <span class="material-symbols-outlined text-[20px]">arrow_back</span>
+            </a>
+            <div class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface-container text-text-primary">
+                <span class="material-symbols-outlined text-[18px] text-primary">point_of_sale</span>
+                <span class="font-label-lg text-label-lg font-bold">Accueil Comptoir &amp; Caisse</span>
+            </div>
+            <span class="text-on-surface-variant font-label-sm hidden md:inline">@(_detail?.NomEtablissement)</span>
+        </div>
+
+        <div class="flex items-center gap-3">
+            <a class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-surface-cream border border-outline-variant/40 hover:bg-lavender-subtle text-plum-deep font-label-md transition-colors shadow-sm" href="@($"/partenaire/etablissements/{IdEtablissement}/agenda")">
+                <span class="material-symbols-outlined text-[18px] text-primary">calendar_month</span>
+                <span>Agenda Fauteuils</span>
+            </a>
+        </div>
+    </header>
+
+    <main class="pt-20 px-6 lg:px-10 pb-16 flex-1 flex flex-col gap-6 max-w-[1400px] w-full mx-auto">
+        <div class="flex flex-col gap-1">
+            <h1 class="font-display-lg-mobile lg:font-display-lg text-display-lg-mobile lg:text-display-lg text-text-primary font-bold">
+                Accueil Comptoir &amp; Caisse Centrale
+            </h1>
+            <p class="font-body-md text-on-surface-variant">
+                Enregistrez les clientes sans rendez-vous (walk-ins) et validez instantanément les Pass QR.
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Left 2 Cols: Formulaire Walk-in & Validation QR -->
+            <div class="lg:col-span-2 flex flex-col gap-6">
+                <!-- QR Code Verification Card -->
+                <div class="bg-surface-cream rounded-2xl p-6 shadow-sm border border-outline-variant/30 flex flex-col gap-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-lavender-subtle text-primary flex items-center justify-center">
+                            <span class="material-symbols-outlined text-[24px]">qr_code_scanner</span>
+                        </div>
+                        <div>
+                            <h2 class="font-headline-sm font-bold text-text-primary">Validation de Pass QR Cliente</h2>
+                            <p class="font-body-sm text-on-surface-variant">Saisissez le jeton de sécurité ou scannez le pass à l'arrivée</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-3">
+                        <input class="flex-1 px-4 py-3 rounded-xl bg-surface-container-low text-text-primary border border-outline-variant/40 focus:outline-none focus:border-primary font-mono text-sm uppercase tracking-wider" placeholder="Ex: PASS-8492-KK" @bind="_qrInput" />
+                        <button class="px-6 py-3 rounded-xl bg-primary hover:bg-plum-deep text-on-primary font-label-md font-bold shadow-md transition-all disabled:opacity-50" disabled="@_qrBusy" @onclick="CheckQrAsync">
+                            @(_qrBusy ? "Vérification…" : "Valider le Pass")
+                        </button>
+                    </div>
+
+                    @if (_qrResult is not null)
+                    {
+                        <div class="p-4 rounded-xl bg-status-available/10 text-status-available border border-status-available/20 flex flex-col gap-2">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-[20px]">verified</span>
+                                    <strong class="font-label-lg">Pass Confirmé &amp; Valide</strong>
+                                </div>
+                                <span class="font-mono text-xs">@_qrResult.Reference</span>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2 text-sm text-on-surface">
+                                <div><span class="text-on-surface-variant">Cliente :</span> @_qrResult.NomClient</div>
+                                <div><span class="text-on-surface-variant">Prestation :</span> @_qrResult.LibellePrestation</div>
+                                <div><span class="text-on-surface-variant">Horaire :</span> @_qrResult.DateHeureDebut.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</div>
+                                <div><span class="text-on-surface-variant">Acompte payé :</span> <strong class="text-status-available">@_qrResult.AcomptePaye.ToString("N0") FCFA</strong></div>
+                            </div>
+                        </div>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(_qrError))
+                    {
+                        <div class="p-3 rounded-xl bg-error-container text-on-error-container font-body-sm flex items-center gap-2">
+                            <span class="material-symbols-outlined text-[18px]">error</span>
+                            <span>@_qrError</span>
+                        </div>
+                    }
+                </div>
+
+                <!-- Walk-in Form Card -->
+                <div class="bg-surface-cream rounded-2xl p-6 shadow-sm border border-outline-variant/30 flex flex-col gap-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-primary-fixed text-primary flex items-center justify-center">
+                            <span class="material-symbols-outlined text-[24px]">person_add</span>
+                        </div>
+                        <div>
+                            <h2 class="font-headline-sm font-bold text-text-primary">Enregistrer une cliente Walk-in (Sans RDV)</h2>
+                            <p class="font-body-sm text-on-surface-variant">Prise en charge immédiate au salon avec encaissement au choix</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <label class="flex flex-col gap-1">
+                            <span class="font-label-sm text-on-surface-variant uppercase font-bold">Nom &amp; Prénom de la cliente</span>
+                            <input class="px-4 py-2.5 rounded-xl bg-surface-container-low text-text-primary border border-outline-variant/40 focus:outline-none focus:border-primary" placeholder="Ex: Fatouma Bamba" @bind="_walkinNom" />
+                        </label>
+
+                        <label class="flex flex-col gap-1">
+                            <span class="font-label-sm text-on-surface-variant uppercase font-bold">Téléphone Mobile (+225)</span>
+                            <input class="px-4 py-2.5 rounded-xl bg-surface-container-low text-text-primary border border-outline-variant/40 focus:outline-none focus:border-primary" placeholder="07 00 00 00 00" @bind="_walkinPhone" />
+                        </label>
+
+                        <label class="flex flex-col gap-1">
+                            <span class="font-label-sm text-on-surface-variant uppercase font-bold">Prestation demandée</span>
+                            <select class="px-4 py-2.5 rounded-xl bg-surface-container-low text-text-primary border border-outline-variant/40 focus:outline-none focus:border-primary" @bind="_walkinPrestationId">
+                                <option value="">Choisir la prestation…</option>
+                                @foreach (var p in _prestations)
+                                {
+                                    <option value="@p.IdPrestation">@p.Libelle - @p.Tarif.ToString("N0") FCFA (@p.DureeMinutes min)</option>
+                                }
+                            </select>
+                        </label>
+
+                        <label class="flex flex-col gap-1">
+                            <span class="font-label-sm text-on-surface-variant uppercase font-bold">Assigner une praticienne</span>
+                            <select class="px-4 py-2.5 rounded-xl bg-surface-container-low text-text-primary border border-outline-variant/40 focus:outline-none focus:border-primary" @bind="_walkinCollabId">
+                                <option value="">Premier poste disponible</option>
+                                @foreach (var c in _collaborateurs)
+                                {
+                                    <option value="@c.IdCollaborateur">@c.Nom</option>
+                                }
+                            </select>
+                        </label>
+
+                        <label class="flex flex-col gap-1 md:col-span-2">
+                            <span class="font-label-sm text-on-surface-variant uppercase font-bold">Moyen d'encaissement</span>
+                            <div class="grid grid-cols-3 gap-3">
+                                <button type="button" class="py-2.5 px-3 rounded-xl border text-center font-label-md transition-all @(_walkinModePaiement == "ESPECES" ? "border-primary bg-primary text-on-primary font-bold shadow-sm" : "border-outline-variant/40 bg-surface-container-low text-on-surface hover:bg-lavender-subtle")" @onclick='() => _walkinModePaiement = "ESPECES"'>
+                                    Espèces au salon
+                                </button>
+                                <button type="button" class="py-2.5 px-3 rounded-xl border text-center font-label-md transition-all @(_walkinModePaiement == "WAVE" ? "border-primary bg-primary text-on-primary font-bold shadow-sm" : "border-outline-variant/40 bg-surface-container-low text-on-surface hover:bg-lavender-subtle")" @onclick='() => _walkinModePaiement = "WAVE"'>
+                                    Wave Business
+                                </button>
+                                <button type="button" class="py-2.5 px-3 rounded-xl border text-center font-label-md transition-all @(_walkinModePaiement == "EN_LIGNE" ? "border-primary bg-primary text-on-primary font-bold shadow-sm" : "border-outline-variant/40 bg-surface-container-low text-on-surface hover:bg-lavender-subtle")" @onclick='() => _walkinModePaiement = "EN_LIGNE"'>
+                                    Mobile Money
+                                </button>
+                            </div>
+                        </label>
+                    </div>
+
+                    @if (!string.IsNullOrWhiteSpace(_walkinSuccessMessage))
+                    {
+                        <div class="p-3 rounded-xl bg-status-available/10 text-status-available font-body-sm flex items-center gap-2">
+                            <span class="material-symbols-outlined text-[18px]">check_circle</span>
+                            <span>@_walkinSuccessMessage</span>
+                        </div>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(_walkinErrorMessage))
+                    {
+                        <div class="p-3 rounded-xl bg-error-container text-on-error-container font-body-sm flex items-center gap-2">
+                            <span class="material-symbols-outlined text-[18px]">error</span>
+                            <span>@_walkinErrorMessage</span>
+                        </div>
+                    }
+
+                    <div class="flex justify-end pt-2">
+                        <button class="px-8 py-3 rounded-full bg-primary hover:bg-plum-deep text-on-primary font-label-lg font-bold shadow-md transition-all disabled:opacity-50" disabled="@_walkinBusy" @onclick="CreateWalkinAsync">
+                            @(_walkinBusy ? "Création…" : "Valider l'entrée Walk-in")
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Col: Clientes arrivées aujourd'hui & Caisse -->
+            <div class="flex flex-col gap-6">
+                <!-- Caisse du jour Card -->
+                <div class="bg-primary-container text-on-primary rounded-2xl p-6 shadow-md flex flex-col gap-3">
+                    <span class="font-label-sm text-on-primary-container uppercase tracking-wider font-bold">Total Encaissé Aujourd'hui</span>
+                    <div class="font-display-lg text-display-lg font-bold">@TotalJourFormatted</div>
+                    <div class="flex items-center justify-between text-on-primary-container text-sm border-t border-on-primary/15 pt-3">
+                        <span>Prestations réalisées</span>
+                        <strong class="text-on-primary">@RdvsAujourdhui.Count(r => r.StatutRdv == "TERMINE") soins</strong>
+                    </div>
+                </div>
+
+                <!-- Liste des entrées du jour -->
+                <div class="bg-surface-cream rounded-2xl p-6 shadow-sm border border-outline-variant/30 flex flex-col gap-3">
+                    <h3 class="font-headline-sm font-bold text-text-primary">Passages du Jour (@RdvsAujourdhui.Count)</h3>
+                    @if (RdvsAujourdhui.Count == 0)
+                    {
+                        <p class="text-on-surface-variant font-body-sm py-4 text-center">Aucun rendez-vous pour le moment aujourd'hui.</p>
+                    }
+                    else
+                    {
+                        <div class="divide-y divide-outline-variant/20 max-h-[450px] overflow-y-auto">
+                            @foreach (var r in RdvsAujourdhui)
+                            {
+                                <div class="py-3 flex items-center justify-between gap-2">
+                                    <div class="min-w-0">
+                                        <p class="font-label-md font-bold text-text-primary truncate">@r.NomClient</p>
+                                        <p class="font-body-sm text-on-surface-variant truncate">@r.LibellePrestation • @r.DateHeureDebut.ToLocalTime().ToString("HH:mm")</p>
+                                    </div>
+                                    <div class="text-right shrink-0">
+                                        <span class="font-label-sm font-bold text-primary block">@r.TarifPrestation.ToString("N0") F</span>
+                                        <span class="text-[10px] px-2 py-0.5 rounded-full @BadgeClass(r.StatutRdv)">@r.StatutRdv</span>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+@code {
+    [Parameter] public Guid IdEtablissement { get; set; }
+    private Guid? _idPartner;
+    private EtablissementDetail? _detail;
+    private List<RdvPartenaire> _rdvs = [];
+    private List<PrestationItem> _prestations = [];
+    private List<CollaborateurItem> _collaborateurs = [];
+
+    // QR Verification
+    private string _qrInput = "";
+    private bool _qrBusy;
+    private QrVerificationDto? _qrResult;
+    private string? _qrError;
+
+    // Walk-in Form
+    private string _walkinNom = "";
+    private string _walkinPhone = "";
+    private string _walkinPrestationId = "";
+    private string _walkinCollabId = "";
+    private string _walkinModePaiement = "ESPECES";
+    private bool _walkinBusy;
+    private string? _walkinSuccessMessage;
+    private string? _walkinErrorMessage;
+
+    private List<RdvPartenaire> RdvsAujourdhui => _rdvs.Where(r => r.DateHeureDebut.ToLocalTime().Date == DateTime.Today).ToList();
+    private string TotalJourFormatted => $"{RdvsAujourdhui.Where(r => r.StatutRdv is "CONFIRME" or "TERMINE").Sum(r => r.TarifPrestation):N0} FCFA";
+
+    protected override async Task OnInitializedAsync()
+    {
+        _idPartner = await Session.GetPartnerIdAsync();
+        if (_idPartner is null)
+        {
+            Navigation.NavigateTo("/login?role=partenaire");
+            return;
+        }
+
+        await LoadDataAsync();
+    }
+
+    private async Task LoadDataAsync()
+    {
+        if (_idPartner is null) return;
+        var (_, detail) = await PartnerApi.GetDetailAsync(_idPartner.Value, IdEtablissement, CancellationToken.None);
+        _detail = detail;
+
+        var (_, rdvs) = await PartnerRdvApi.ListAsync(_idPartner.Value, IdEtablissement, CancellationToken.None);
+        _rdvs = rdvs;
+
+        var (_, prestations) = await PartnerApi.ListPrestationsAsync(_idPartner.Value, IdEtablissement, CancellationToken.None);
+        _prestations = prestations;
+
+        var (_, collabs) = await PartnerApi.ListCollaborateursAsync(_idPartner.Value, IdEtablissement, CancellationToken.None);
+        _collaborateurs = collabs;
+    }
+
+    private async Task CheckQrAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_qrInput)) return;
+        _qrBusy = true;
+        _qrError = null;
+        _qrResult = null;
+
+        var (ok, res, _) = await PartnerRdvApi.VerifyQrAsync(_idPartner!.Value, _qrInput.Trim(), CancellationToken.None);
+        _qrBusy = false;
+
+        if (ok && res is not null)
+        {
+            _qrResult = res;
+        }
+        else
+        {
+            _qrError = "Pass QR Code invalide, expiré ou introuvable.";
+        }
+    }
+
+    private async Task CreateWalkinAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_walkinNom) || string.IsNullOrWhiteSpace(_walkinPhone) || !Guid.TryParse(_walkinPrestationId, out var idPres))
+        {
+            _walkinErrorMessage = "Veuillez renseigner le nom, le numéro de téléphone et la prestation.";
+            return;
+        }
+
+        _walkinBusy = true;
+        _walkinErrorMessage = null;
+        _walkinSuccessMessage = null;
+
+        Guid? idC = Guid.TryParse(_walkinCollabId, out var cid) ? cid : null;
+        var dateDebut = DateTimeOffset.UtcNow;
+
+        var (ok, status) = await PartnerRdvApi.CreerComptoirAsync(_idPartner!.Value, IdEtablissement, idPres, idC, _walkinNom.Trim(), _walkinPhone.Trim(), dateDebut, _walkinModePaiement, CancellationToken.None);
+        _walkinBusy = false;
+
+        if (ok)
+        {
+            _walkinSuccessMessage = $"Cliente {_walkinNom} enregistrée avec succès au comptoir !";
+            _walkinNom = "";
+            _walkinPhone = "";
+            await LoadDataAsync();
+        }
+        else
+        {
+            _walkinErrorMessage = status == "conflit_creneau" ? "Ce créneau horaire est déjà occupé." : "Impossible d'enregistrer le walk-in.";
+        }
+    }
+
+    private static string BadgeClass(string statut) => statut switch
+    {
+        "CONFIRME" => "bg-status-available/15 text-status-available",
+        "TERMINE" => "bg-surface-container text-on-surface-variant",
+        "DEMANDE" => "bg-secondary-fixed text-on-secondary-fixed",
+        _ => "bg-error-container text-on-error-container"
+    };
+}
