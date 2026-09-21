@@ -4,12 +4,29 @@ dist/
 build/
 *.log
 .DS_Store
+Thumbs.db
+
+# Outillage local (IDE / agents) - jamais partage dans le depot applicatif
+.claude/
+.vscode/
+.idea/
 
 # .NET
 bin/
 obj/
+publish/
 .vs/
 *.user
 test-results/
+TestResults/
+*.trx
+*.cobertura.xml
+coverage*.json
+coverage*.xml
+
+# Config locale susceptible de contenir des secrets (voir appsettings.Development.json,
+# qui lui reste suivi car il ne contient jamais de secret - utiliser dotnet user-secrets a la place)
+appsettings.*.local.json
+appsettings.local.json
 
 backups/
