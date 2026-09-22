@@ -21,14 +21,22 @@ public sealed class DirectoryRepository : IDirectoryRepository
         // sans logique applicative separee (voir research.md, Decision 1).
         var rows = await connection.QueryAsync<EtablissementSummary>(new CommandDefinition(
             @"SELECT DISTINCT e.id_etablissement AS IdEtablissement, e.nom_etablissement AS NomEtablissement,
-                     c.libelle_commune AS LibelleCommune, e.gps_latitude AS GpsLatitude, e.gps_longitude AS GpsLongitude
+                     c.libelle_commune AS LibelleCommune, e.gps_latitude AS GpsLatitude, e.gps_longitude AS GpsLongitude,
+                     e.numero_service_client AS NumeroServiceClient, p.apercu AS PrestationsApercu
               FROM etablissement e
               INNER JOIN etablissement_categorie ec ON ec.id_etablissement = e.id_etablissement
               INNER JOIN categorie cat ON cat.id_categorie = ec.id_categorie
               INNER JOIN commune c ON c.id_commune = e.id_commune
+              LEFT JOIN LATERAL (
+                  SELECT string_agg(libelle_prestation, ', ') AS apercu
+                  FROM (SELECT libelle_prestation FROM prestation WHERE id_etablissement = e.id_etablissement ORDER BY libelle_prestation LIMIT 3) top
+              ) p ON true
               WHERE e.statut_kyc = 'VALIDE' AND e.est_suspendu = false
-                AND (@categorie IS NULL OR cat.libelle_categorie = @categorie)
-                AND (@commune IS NULL OR c.libelle_commune = @commune)
+                AND (@categorie IS NULL OR
+                     e.nom_etablissement ILIKE '%' || @categorie || '%' OR
+                     cat.libelle_categorie ILIKE '%' || @categorie || '%' OR
+                     EXISTS (SELECT 1 FROM prestation pr WHERE pr.id_etablissement = e.id_etablissement AND pr.libelle_prestation ILIKE '%' || @categorie || '%'))
+                AND (@commune IS NULL OR c.libelle_commune ILIKE '%' || @commune || '%')
               ORDER BY e.nom_etablissement;",
             new { categorie, commune },
             cancellationToken: cancellationToken));

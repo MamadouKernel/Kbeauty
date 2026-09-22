@@ -9,7 +9,14 @@
 <main id="main-content" class="premium-page pb-28">
  <div class="premium-container max-w-2xl">
   <a href="/partenaire" class="premium-back"><span class="material-symbols-outlined">arrow_back</span> Retour à mon espace</a>
-  <div class="premium-heading"><span class="premium-eyebrow">Identité professionnelle</span><h1>Mon profil partenaire</h1><p>Une identité complète inspire confiance aux clientes et facilite la validation de votre dossier.</p></div>
+  <section class="partner-hero mt-space-sm mb-6">
+      <div class="partner-hero-glow" aria-hidden="true"></div>
+      <div class="relative z-10">
+          <p class="font-label-sm text-label-sm uppercase tracking-[0.18em] partner-hero-eyebrow mb-1">Identité professionnelle</p>
+          <h1 class="font-headline-lg text-headline-lg text-white font-bold partner-hero-title">Mon profil partenaire</h1>
+          <p class="font-body-sm text-body-sm partner-hero-sub mt-1">Une identité complète inspire confiance aux clientes et facilite la validation de votre dossier.</p>
+      </div>
+  </section>
   <section class="premium-card profile-editor">
    <div class="profile-photo-zone">
     <div class="profile-avatar-xl">
@@ -26,7 +33,7 @@
     <label><span>Email</span><input class="onboarding-input" type="email" autocomplete="email" @bind="_email" /></label>
     <label class="profile-full"><span>Téléphone du compte</span><input class="onboarding-input" value="@_phone" disabled /><small>Ce numéro sécurisé identifie votre compte partenaire.</small></label>
    </div>
-   @if (_message is not null) { <KekeAlert Severity="@_severity" Title="@(_severity == "success" ? "Profil mis à jour" : "Action impossible")">@_message</KekeAlert> }
+   <ToastBridge Message="@_message" Severity="@_severity" OnShown="@(() => _message = null)" />
    <button class="premium-primary-action" disabled="@_saving" @onclick="Save"><span class="material-symbols-outlined">save</span>@(_saving ? "Enregistrement…" : "Enregistrer mon profil")</button>
   </section>
  </div>

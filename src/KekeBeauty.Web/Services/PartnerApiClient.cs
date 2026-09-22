@@ -144,23 +144,6 @@ public sealed class PartnerApiClient
         }
     }
 
-    public async Task<(bool Success, List<TarifAbonnementDto> Tarifs)> GetTarifsAbonnementAsync(
-        Guid idPartner, Guid idEtablissement, CancellationToken cancellationToken)
-    {
-        try
-        {
-            using var request = new HttpRequestMessage(HttpMethod.Get, $"etablissements/{idEtablissement}/tarifs-abonnement");
-            await AddPartnerHeadersAsync(request, idPartner);
-            var response = await _httpClient.SendAsync(request, cancellationToken);
-            if (!response.IsSuccessStatusCode) return (false, []);
-            return (true, await response.Content.ReadFromJsonAsync<List<TarifAbonnementDto>>(cancellationToken) ?? []);
-        }
-        catch (Exception)
-        {
-            return (false, []);
-        }
-    }
-
     public async Task<(bool Success, List<PlanUsageDto> Formules)> GetFormulesAsync(
         Guid idPartner, Guid idEtablissement, CancellationToken cancellationToken)
     {
@@ -193,7 +176,7 @@ public sealed class PartnerApiClient
         string numeroServiceClient, string? horaires, string modePaiementService, bool paiementWave, bool paiementOrangeMoney, bool paiementMoovMoney,
         Stream? photoDevanture, string? photoDevantureNomFichier, string typeDocumentIdentite,
         Stream? documentRecto, string? documentRectoNomFichier, Stream? documentVerso, string? documentVersoNomFichier, CancellationToken cancellationToken,
-        string? googleOnboardingToken = null, string? categorie = null, string? partnerSessionToken = null)
+        string? googleOnboardingToken = null, string? categorie = null, string? partnerSessionToken = null, string? adresseTexte = null)
     {
         try
         {
@@ -227,6 +210,11 @@ public sealed class PartnerApiClient
             if (!string.IsNullOrWhiteSpace(categorie))
             {
                 content.Add(new StringContent(categorie), "categorie");
+            }
+
+            if (!string.IsNullOrWhiteSpace(adresseTexte))
+            {
+                content.Add(new StringContent(adresseTexte), "adresseTexte");
             }
 
             if (photoDevanture is not null && photoDevantureNomFichier is not null)
@@ -287,13 +275,13 @@ public sealed class PartnerApiClient
     /// <summary>Feature 008 (abonnement) : souscription depuis l'espace partenaire. Reutilise
     /// l'endpoint existant POST /etablissements/{id}/abonnements (deja fonctionnel, WinPayer TEST).</summary>
     public async Task<(bool Success, string? Status, string? CheckoutUrl)> SubscribeAsync(
-        Guid idPartner, Guid idEtablissement, string periodicite, CancellationToken cancellationToken)
+        Guid idPartner, Guid idEtablissement, string formule, string periodicite, CancellationToken cancellationToken)
     {
         try
         {
             using var request = new HttpRequestMessage(HttpMethod.Post, $"etablissements/{idEtablissement}/abonnements")
             {
-                Content = JsonContent.Create(new { periodicite })
+                Content = JsonContent.Create(new { formule, periodicite })
             };
             await AddPartnerHeadersAsync(request, idPartner);
 
@@ -314,7 +302,7 @@ public sealed class PartnerApiClient
     }
 
     /// <summary>Statistiques en lecture seule pour l'ecran "Revenus & Statistiques Pro".</summary>
-    public async Task<(bool Success, PartenaireStatistiquesDto? Stats)> GetStatistiquesAsync(Guid idPartner, Guid idEtablissement, CancellationToken cancellationToken)
+    public async Task<(bool Success, string? Status, PartenaireStatistiquesDto? Stats)> GetStatistiquesAsync(Guid idPartner, Guid idEtablissement, CancellationToken cancellationToken)
     {
         try
         {
@@ -324,14 +312,16 @@ public sealed class PartnerApiClient
             var response = await _httpClient.SendAsync(request, cancellationToken);
             if (!response.IsSuccessStatusCode)
             {
-                return (false, null);
+                string? status = null;
+                try { status = (await response.Content.ReadFromJsonAsync<Dictionary<string, string>>(cancellationToken))?.GetValueOrDefault("status"); } catch { }
+                return (false, status, null);
             }
 
-            return (true, await response.Content.ReadFromJsonAsync<PartenaireStatistiquesDto>(cancellationToken));
+            return (true, null, await response.Content.ReadFromJsonAsync<PartenaireStatistiquesDto>(cancellationToken));
         }
         catch (Exception)
         {
-            return (false, null);
+            return (false, null, null);
         }
     }
 
@@ -417,7 +407,18 @@ public sealed class PartnerApiClient
     private async Task AddPartnerHeadersAsync(HttpRequestMessage request, Guid idPartner)
     {
         request.Headers.TryAddWithoutValidation("X-Partner-Id", idPartner.ToString());
-        await Task.CompletedTask;
+        // Le jeton est attache ici (typed client, scope DI correct du circuit) plutot que dans
+        // PartnerAuthHandler : IHttpClientFactory construit les DelegatingHandler via un scope DI
+        // mis en cache/tourniquet distinct du circuit Blazor courant, donc ProtectedLocalStorage
+        // (IJSRuntime) y echoue silencieusement - le jeton n'atteint jamais l'API (bug reproduit).
+        if (!request.Headers.Contains("X-Partner-Token"))
+        {
+            var token = await _session.GetTokenAsync();
+            if (!string.IsNullOrWhiteSpace(token))
+            {
+                request.Headers.TryAddWithoutValidation("X-Partner-Token", token);
+            }
+        }
     }
     private async Task<(bool Success, string? Status)> SendPartnerRequestAsync(
         Guid idPartner, HttpMethod method, string url, object? body, CancellationToken cancellationToken)
@@ -437,8 +438,9 @@ public sealed class PartnerApiClient
                 return (true, null);
             }
 
-            var errorBody = await response.Content.ReadFromJsonAsync<Dictionary<string, string>>(cancellationToken);
-            return (false, errorBody?.GetValueOrDefault("status") ?? response.StatusCode.ToString());
+            string? status = null;
+            try { status = (await response.Content.ReadFromJsonAsync<Dictionary<string, string>>(cancellationToken))?.GetValueOrDefault("status"); } catch { }
+            return (false, status ?? response.StatusCode.ToString());
         }
         catch (Exception)
         {

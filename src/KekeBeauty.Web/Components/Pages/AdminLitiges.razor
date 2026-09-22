@@ -63,10 +63,7 @@
                 </div>
             }
 
-            @if (!string.IsNullOrEmpty(_message))
-            {
-                <div class="rounded-xl px-space-md py-space-sm font-body-md text-body-md bg-status-available/10 text-status-available">@_message</div>
-            }
+            <ToastBridge Message="@_message" Severity="@(_success ? "success" : "danger")" OnShown="@(() => _message = null)" />
         }
     </div>
 </main>
@@ -79,6 +76,7 @@
     private Guid? _idLitigeEnCours;
     private string? _resolution;
     private string? _message;
+    private bool _success;
 
     protected override async Task OnInitializedAsync()
     {
@@ -122,6 +120,7 @@
         }
 
         var (success, _) = await AdminApi.ResoudreLitigeAsync(_apiKey!, idLitige, _resolution, CancellationToken.None);
+        _success = success;
         _message = success ? "Litige marqué résolu." : "Échec de la résolution.";
         if (success)
         {

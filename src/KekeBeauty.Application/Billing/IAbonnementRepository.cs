@@ -7,28 +7,21 @@ public sealed class AbonnementResume
 {
     public Guid IdAbonnement { get; set; }
     public Guid IdEtablissement { get; set; }
+    public string Formule { get; set; } = string.Empty;
     public string Periodicite { get; set; } = string.Empty;
     public decimal Montant { get; set; }
     public string StatutAbonnement { get; set; } = string.Empty;
     public DateOnly DateDebutEngagement { get; set; }
 }
 
-public sealed class TarifStandard
-{
-    public string Periodicite { get; set; } = string.Empty;
-    public decimal Montant { get; set; }
-}
-
 public interface IAbonnementRepository
 {
-    Task<decimal> GetTarifStandardAsync(string periodicite, CancellationToken cancellationToken);
-
     /// <summary>Cree l'abonnement (IMPAYE) et sa transaction (EN_COURS, liee a referenceExterne -
     /// l'uuid du lien de paiement WiniPayer). Retourne null si un abonnement ACTIF existe deja
     /// pour cet etablissement (FR-004, insertion atomique - voir research.md Decision 2). Le
     /// resultat reel du paiement arrive plus tard via MarquerPaiementAsync (callback WiniPayer).</summary>
     Task<Guid?> CreerAvecTransactionAsync(
-        Guid idEtablissement, string periodicite, decimal montant, string referenceExterne,
+        Guid idEtablissement, string formule, string periodicite, decimal montant, string referenceExterne,
         CancellationToken cancellationToken);
 
     /// <summary>Applique le resultat d'un paiement WiniPayer recu via callback : met a jour la
@@ -47,8 +40,4 @@ public interface IAbonnementRepository
     /// <summary>Reference externe (uuid WiniPayer) de la transaction EN_COURS la plus recente de cet
     /// abonnement. Utilise pour la reconciliation manuelle (si un callback a ete rate).</summary>
     Task<string?> GetReferenceExterneEnCoursAsync(Guid idAbonnement, CancellationToken cancellationToken);
-
-    Task<IReadOnlyList<TarifStandard>> ListerTarifsAsync(CancellationToken cancellationToken);
-
-    Task SetTarifStandardAsync(string periodicite, decimal montant, CancellationToken cancellationToken);
 }

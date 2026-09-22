@@ -28,6 +28,17 @@
         {
             <p class="font-body-md text-body-md text-on-surface-variant pt-space-md">Chargement…</p>
         }
+        else if (_status == "statistiques_non_incluses")
+        {
+            <section class="plan-locked-card mt-space-sm">
+                <span class="material-symbols-outlined plan-locked-icon" aria-hidden="true">workspace_premium</span>
+                <h1 class="font-headline-md text-headline-md text-text-primary mt-3">Revenus & statistiques : fonctionnalité Pro</h1>
+                <p class="font-body-md text-body-md text-on-surface-variant mt-2">Votre formule actuelle (Free) ne donne pas accès au suivi des revenus et des rendez-vous. Passez à l'abonnement Pro pour débloquer ce tableau de bord.</p>
+                <a class="inline-flex items-center gap-2 mt-4 px-6 py-3 rounded-full bg-primary-container text-on-primary font-bold shadow-md" href="@($"/partenaire/etablissements/{Id}/abonnement")">
+                    <span class="material-symbols-outlined">upgrade</span>Voir l'abonnement Pro
+                </a>
+            </section>
+        }
         else if (_error)
         {
             <div class="rounded-xl bg-error-container text-on-error-container px-space-md py-space-sm font-body-md text-body-md">
@@ -77,6 +88,7 @@
     private Guid? _idPartner;
     private bool _checkingAuth = true;
     private bool _error;
+    private string? _status;
     private PartenaireStatistiquesDto? _stats;
 
     protected override async Task OnInitializedAsync()
@@ -88,8 +100,9 @@
             return;
         }
 
-        var (success, stats) = await PartnerApi.GetStatistiquesAsync(_idPartner.Value, Id, CancellationToken.None);
-        _error = !success;
+        var (success, status, stats) = await PartnerApi.GetStatistiquesAsync(_idPartner.Value, Id, CancellationToken.None);
+        _error = !success && status != "statistiques_non_incluses";
+        _status = status;
         _stats = stats;
         _checkingAuth = false;
     }

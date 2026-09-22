@@ -16,7 +16,8 @@ public sealed record NewEtablissement(
     bool PaiementWave,
     bool PaiementOrangeMoney,
     bool PaiementMoovMoney,
-    string? Categorie);
+    string? Categorie,
+    string? AdresseTexte = null);
 
 public interface IEtablissementRepository
 {

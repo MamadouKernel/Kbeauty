@@ -12,19 +12,8 @@ public sealed class AbonnementRepository : IAbonnementRepository
         _connectionFactory = connectionFactory;
     }
 
-    public async Task<decimal> GetTarifStandardAsync(string periodicite, CancellationToken cancellationToken)
-    {
-        using var connection = _connectionFactory.CreateConnection();
-        await connection.OpenAsync(cancellationToken);
-
-        return await connection.ExecuteScalarAsync<decimal>(new CommandDefinition(
-            "SELECT montant FROM parametre_abonnement WHERE periodicite = @periodicite::periodicite_enum;",
-            new { periodicite },
-            cancellationToken: cancellationToken));
-    }
-
     public async Task<Guid?> CreerAvecTransactionAsync(
-        Guid idEtablissement, string periodicite, decimal montant, string referenceExterne,
+        Guid idEtablissement, string formule, string periodicite, decimal montant, string referenceExterne,
         CancellationToken cancellationToken)
     {
         using var connection = _connectionFactory.CreateConnection();
@@ -35,14 +24,14 @@ public sealed class AbonnementRepository : IAbonnementRepository
         // L'abonnement demarre IMPAYE : le paiement reel arrive plus tard via callback WiniPayer
         // (MarquerPaiementAsync), le checkout WiniPayer etant heberge et asynchrone.
         var idAbonnement = await connection.ExecuteScalarAsync<Guid?>(new CommandDefinition(
-            @"INSERT INTO abonnement (id_etablissement, periodicite, date_debut_engagement, montant, statut_abonnement)
-              SELECT @idEtablissement, @periodicite::periodicite_enum, CURRENT_DATE, @montant, 'IMPAYE'::statut_abonnement_enum
+            @"INSERT INTO abonnement (id_etablissement, formule, periodicite, date_debut_engagement, montant, statut_abonnement)
+              SELECT @idEtablissement, @formule, @periodicite::periodicite_enum, CURRENT_DATE, @montant, 'IMPAYE'::statut_abonnement_enum
               WHERE EXISTS (SELECT 1 FROM etablissement WHERE id_etablissement = @idEtablissement AND est_suspendu = false)
                 AND NOT EXISTS (
                 SELECT 1 FROM abonnement WHERE id_etablissement = @idEtablissement AND statut_abonnement = 'ACTIF'
               )
               RETURNING id_abonnement;",
-            new { idEtablissement, periodicite, montant },
+            new { idEtablissement, formule, periodicite, montant },
             cancellationToken: cancellationToken));
 
         if (idAbonnement is null)
@@ -97,7 +86,7 @@ public sealed class AbonnementRepository : IAbonnementRepository
         await connection.OpenAsync(cancellationToken);
 
         var rows = await connection.QueryAsync<AbonnementResume>(new CommandDefinition(
-            @"SELECT id_abonnement AS IdAbonnement, id_etablissement AS IdEtablissement, periodicite AS Periodicite,
+            @"SELECT id_abonnement AS IdAbonnement, id_etablissement AS IdEtablissement, formule AS Formule, periodicite AS Periodicite,
                      montant AS Montant, statut_abonnement AS StatutAbonnement, date_debut_engagement AS DateDebutEngagement
               FROM abonnement
               WHERE @statut IS NULL OR statut_abonnement = @statut::statut_abonnement_enum
@@ -109,7 +98,7 @@ public sealed class AbonnementRepository : IAbonnementRepository
     }
 
     public async Task<IReadOnlyList<AbonnementResume>> ListerParEtablissementAsync(Guid idEtablissement,CancellationToken ct)
-    {using var c=_connectionFactory.CreateConnection();await c.OpenAsync(ct);var rows=await c.QueryAsync<AbonnementResume>(new CommandDefinition(@"SELECT id_abonnement AS IdAbonnement,id_etablissement AS IdEtablissement,periodicite AS Periodicite,montant AS Montant,statut_abonnement AS StatutAbonnement,date_debut_engagement AS DateDebutEngagement FROM abonnement WHERE id_etablissement=@idEtablissement ORDER BY date_debut_engagement DESC;",new{idEtablissement},cancellationToken:ct));return rows.AsList();}
+    {using var c=_connectionFactory.CreateConnection();await c.OpenAsync(ct);var rows=await c.QueryAsync<AbonnementResume>(new CommandDefinition(@"SELECT id_abonnement AS IdAbonnement,id_etablissement AS IdEtablissement,formule AS Formule,periodicite AS Periodicite,montant AS Montant,statut_abonnement AS StatutAbonnement,date_debut_engagement AS DateDebutEngagement FROM abonnement WHERE id_etablissement=@idEtablissement ORDER BY date_debut_engagement DESC;",new{idEtablissement},cancellationToken:ct));return rows.AsList();}
 
     public async Task<AbonnementResume?> GetByIdAsync(Guid idAbonnement, CancellationToken cancellationToken)
     {
@@ -117,7 +106,7 @@ public sealed class AbonnementRepository : IAbonnementRepository
         await connection.OpenAsync(cancellationToken);
 
         return await connection.QuerySingleOrDefaultAsync<AbonnementResume>(new CommandDefinition(
-            @"SELECT id_abonnement AS IdAbonnement, id_etablissement AS IdEtablissement, periodicite AS Periodicite,
+            @"SELECT id_abonnement AS IdAbonnement, id_etablissement AS IdEtablissement, formule AS Formule, periodicite AS Periodicite,
                      montant AS Montant, statut_abonnement AS StatutAbonnement
               FROM abonnement WHERE id_abonnement = @idAbonnement;",
             new { idAbonnement },
@@ -151,26 +140,4 @@ public sealed class AbonnementRepository : IAbonnementRepository
             cancellationToken: cancellationToken));
     }
 
-    public async Task<IReadOnlyList<TarifStandard>> ListerTarifsAsync(CancellationToken cancellationToken)
-    {
-        using var connection = _connectionFactory.CreateConnection();
-        await connection.OpenAsync(cancellationToken);
-
-        var rows = await connection.QueryAsync<TarifStandard>(new CommandDefinition(
-            "SELECT periodicite AS Periodicite, montant AS Montant FROM parametre_abonnement ORDER BY periodicite;",
-            cancellationToken: cancellationToken));
-
-        return rows.AsList();
-    }
-
-    public async Task SetTarifStandardAsync(string periodicite, decimal montant, CancellationToken cancellationToken)
-    {
-        using var connection = _connectionFactory.CreateConnection();
-        await connection.OpenAsync(cancellationToken);
-
-        await connection.ExecuteAsync(new CommandDefinition(
-            "UPDATE parametre_abonnement SET montant = @montant WHERE periodicite = @periodicite::periodicite_enum;",
-            new { periodicite, montant },
-            cancellationToken: cancellationToken));
-    }
 }

@@ -1,0 +1,59 @@
+// Design tokens : stitch_keke_beauty_booking_platform/imperial_beauty_concierge/DESIGN.md
+// Build local (npm run build:css) - remplace l'ancien cdn.tailwindcss.com + config inline.
+/** @type {import('tailwindcss').Config} */
+module.exports = {
+  content: [
+    './Components/**/*.razor',
+    './wwwroot/**/*.html',
+  ],
+  darkMode: 'class',
+  theme: {
+    extend: {
+      colors: {
+        'inverse-surface': '#30302f', 'status-unavailable': '#D32F2F', 'text-primary': '#241032',
+        'on-secondary-fixed': '#2c0051', 'on-primary-container': '#cf8bf2', 'on-error-container': '#93000a',
+        'inverse-on-surface': '#f3f0ee', 'inverse-primary': '#e7b3ff', 'on-tertiary-container': '#b19fc6',
+        'on-error': '#ffffff', 'secondary': '#821dda', 'status-available': '#1B8755',
+        'on-tertiary-fixed': '#221534', 'surface-variant': '#e5e2e0', 'primary-fixed': '#f6d9ff',
+        'on-primary-fixed': '#310049', 'surface-container-low': '#f6f3f1', 'tertiary-fixed': '#eddcff',
+        'surface-container': '#f0edeb', 'primary-container': '#5b1b7d', 'secondary-fixed-dim': '#dcb8ff',
+        'surface': '#fcf9f7', 'on-background': '#1b1c1b', 'on-surface-variant': '#4d4450',
+        'outline-variant': '#d0c2d1', 'lavender-subtle': '#F4EEFB', 'surface-container-lowest': '#ffffff',
+        'on-secondary-fixed-variant': '#6700b5', 'surface-container-highest': '#e5e2e0', 'on-surface': '#1b1c1b',
+        'secondary-container': '#9c42f4', 'tertiary-container': '#433556', 'surface-bright': '#fcf9f7',
+        'tertiary': '#2d203f', 'secondary-fixed': '#efdbff', 'on-primary-fixed-variant': '#672889',
+        'error': '#ba1a1a', 'on-tertiary-fixed-variant': '#4f4062', 'on-secondary-container': '#fffbff',
+        'on-tertiary': '#ffffff', 'surface-cream': '#FFFDF9', 'background': '#fcf9f7',
+        'surface-dim': '#dcd9d8', 'error-container': '#ffdad6', 'on-secondary': '#ffffff',
+        'tertiary-fixed-dim': '#d2bfe8', 'primary': '#410060', 'plum-deep': '#3A0D52',
+        'on-primary': '#ffffff', 'outline': '#7f7381', 'primary-fixed-dim': '#e7b3ff',
+        'surface-tint': '#8142a3', 'surface-container-high': '#eae8e6',
+      },
+      borderRadius: { 'DEFAULT': '0.25rem', 'lg': '0.5rem', 'xl': '0.75rem', 'full': '9999px' },
+      spacing: {
+        'gutter': '1rem', 'space-xl': '2.25rem', 'space-sm': '0.5rem', 'space-lg': '1.5rem',
+        'margin-desktop': '2.5rem', 'gutter-mobile': '0.75rem', 'margin': '1.25rem',
+        'space-xs': '0.25rem', 'space-md': '1rem',
+      },
+      fontFamily: {
+        'body-sm': ['Plus Jakarta Sans'], 'display-lg': ['Plus Jakarta Sans'], 'display-lg-mobile': ['Plus Jakarta Sans'],
+        'headline-sm': ['Plus Jakarta Sans'], 'body-md': ['Plus Jakarta Sans'], 'label-sm': ['Plus Jakarta Sans'],
+        'headline-md': ['Plus Jakarta Sans'], 'headline-lg': ['Plus Jakarta Sans'], 'body-lg': ['Plus Jakarta Sans'],
+        'label-lg': ['Plus Jakarta Sans'], 'label-md': ['Plus Jakarta Sans'],
+      },
+      fontSize: {
+        'body-sm': ['12px', { lineHeight: '16px', fontWeight: '400' }],
+        'display-lg': ['36px', { lineHeight: '44px', fontWeight: '700' }],
+        'display-lg-mobile': ['28px', { lineHeight: '36px', fontWeight: '700' }],
+        'headline-sm': ['18px', { lineHeight: '24px', fontWeight: '600' }],
+        'body-md': ['14px', { lineHeight: '20px', fontWeight: '400' }],
+        'label-sm': ['11px', { lineHeight: '14px', fontWeight: '700' }],
+        'headline-md': ['20px', { lineHeight: '28px', fontWeight: '600' }],
+        'headline-lg': ['24px', { lineHeight: '32px', fontWeight: '700' }],
+        'body-lg': ['16px', { lineHeight: '24px', fontWeight: '400' }],
+        'label-lg': ['14px', { lineHeight: '18px', fontWeight: '600' }],
+        'label-md': ['12px', { lineHeight: '16px', fontWeight: '600' }],
+      },
+    },
+  },
+};

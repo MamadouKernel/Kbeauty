@@ -53,25 +53,31 @@
         <div class="flex flex-col w-full pb-32 lg:max-w-5xl lg:mx-auto">
 
             <div class="relative w-full overflow-hidden bg-surface-container-low lg:rounded-3xl lg:mt-space-lg">
-                @if (_detail.Medias.Count > 0)
+                @{ var orderedMedias = _detail.Medias.OrderBy(m => m.OrdreAffichage).ToList(); }
+                @if (orderedMedias.Count > 0)
                 {
                     <div class="flex w-full overflow-x-auto snap-x snap-mandatory scrollbar-none scroll-smooth">
-                        <div class="w-full shrink-0 snap-center relative aspect-[4/3]">
+                        <button type="button" class="w-full shrink-0 snap-center relative aspect-[4/3]" @onclick="() => OpenLightbox(0)">
                             <img alt="Devanture de @_detail.NomEtablissement" class="w-full h-full object-cover" src="@($"/media/devanture/{Id}")" />
                             <div class="absolute inset-0 bg-gradient-to-t from-plum-deep/80 via-transparent to-black/30"></div>
-                        </div>
-                        @foreach (var media in _detail.Medias.OrderBy(m => m.OrdreAffichage))
+                        </button>
+                        @for (var i = 0; i < orderedMedias.Count; i++)
                         {
-                            <div class="w-full shrink-0 snap-center relative aspect-[4/3]">
+                            var media = orderedMedias[i];
+                            var index = i + 1;
+                            <button type="button" class="w-full shrink-0 snap-center relative aspect-[4/3]" @onclick="() => OpenLightbox(index)">
                                 <img alt="@_detail.NomEtablissement" class="w-full h-full object-cover" src="@media.Url" />
                                 <div class="absolute inset-0 bg-gradient-to-t from-plum-deep/80 via-transparent to-black/30"></div>
-                            </div>
+                            </button>
                         }
                     </div>
+                    <button type="button" class="photo-count-badge" @onclick="() => OpenLightbox(0)">
+                        <span class="material-symbols-outlined text-[16px]">photo_library</span>@AllPhotos.Count photos · Voir tout
+                    </button>
                 }
                 else
                 {
-                    <div class="w-full aspect-[4/3] bg-lavender-subtle"><img alt="Devanture de @_detail.NomEtablissement" class="w-full h-full object-cover" src="@($"/media/devanture/{Id}")" /></div>
+                    <button type="button" class="w-full aspect-[4/3] bg-lavender-subtle block" @onclick="() => OpenLightbox(0)"><img alt="Devanture de @_detail.NomEtablissement" class="w-full h-full object-cover" src="@($"/media/devanture/{Id}")" /></button>
                 }
                 <div class="absolute top-4 left-4 right-4 flex items-center justify-between pointer-events-none">
                     <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-cream/90 backdrop-blur-md text-primary font-label-md text-label-md shadow-sm pointer-events-auto">
@@ -186,16 +192,19 @@
                 <div class="px-margin mt-space-md">
                     @if (_detail.Medias.Count == 0)
                     {
-                        <div class="relative aspect-square rounded-2xl overflow-hidden bg-surface-container shadow-sm"><img alt="Devanture de @_detail.NomEtablissement" class="w-full h-full object-cover" src="@($"/media/devanture/{Id}")" /></div>
+                        <button type="button" class="relative aspect-square rounded-2xl overflow-hidden bg-surface-container shadow-sm block w-full" @onclick="() => OpenLightbox(0)"><img alt="Devanture de @_detail.NomEtablissement" class="w-full h-full object-cover" src="@($"/media/devanture/{Id}")" /></button>
                     }
                     else
                     {
                         <div class="grid grid-cols-2 gap-2.5">
-                            @foreach (var media in _detail.Medias.OrderBy(m => m.OrdreAffichage))
+                            @{ var galleryMedias = _detail.Medias.OrderBy(m => m.OrdreAffichage).ToList(); }
+                            @for (var i = 0; i < galleryMedias.Count; i++)
                             {
-                                <div class="relative aspect-square rounded-2xl overflow-hidden bg-surface-container shadow-sm">
+                                var media = galleryMedias[i];
+                                var index = i + 1;
+                                <button type="button" class="relative aspect-square rounded-2xl overflow-hidden bg-surface-container shadow-sm" @onclick="() => OpenLightbox(index)">
                                     <img alt="@_detail.NomEtablissement" class="w-full h-full object-cover" src="@media.Url" />
-                                </div>
+                                </button>
                             }
                         </div>
                     }
@@ -254,23 +263,72 @@
             else
             {
                 <div class="px-margin mt-space-md flex flex-col gap-space-md">
-                    <div class="p-space-md bg-surface-cream rounded-2xl shadow-sm flex flex-col gap-space-sm">
-                        <h3 class="font-headline-sm text-headline-sm text-text-primary font-bold">Informations pratiques</h3>
-                        <div class="flex items-center gap-2.5 text-text-primary">
-                            <span class="material-symbols-outlined text-[20px] text-secondary">call</span>
-                            <span class="font-body-md text-body-md">@_detail.NumeroServiceClient</span>
+                    <div class="p-space-md bg-surface-cream rounded-2xl shadow-sm flex flex-col gap-space-md">
+                        <div class="flex items-center gap-2">
+                            <span class="material-symbols-outlined text-primary text-[20px]">info</span>
+                            <h3 class="font-headline-sm text-headline-sm text-text-primary font-bold">Informations pratiques</h3>
                         </div>
-                        <div class="flex flex-col gap-1.5 pt-1">
-                            <span class="font-body-sm text-body-sm text-on-surface-variant">Itinéraire :</span>
-                            <div class="flex items-center gap-space-md">
-                                <a class="font-body-md text-body-md text-text-primary underline" href="@LienGoogleMaps" target="_blank" rel="noopener">Google Maps</a>
-                                <a class="font-body-md text-body-md text-text-primary underline" href="@LienAppleMaps" target="_blank" rel="noopener">Apple Maps</a>
-                                <a class="font-body-md text-body-md text-text-primary underline" href="@LienYango" target="_blank" rel="noopener">Yango</a>
+
+                        <a class="flex items-center gap-space-sm p-space-sm rounded-xl bg-surface-container-low hover:bg-lavender-subtle transition-colors" href="@($"tel:{_detail.NumeroServiceClient}")">
+                            <div class="w-10 h-10 rounded-full bg-lavender-subtle flex items-center justify-center text-primary shrink-0">
+                                <span class="material-symbols-outlined text-[20px]">call</span>
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <p class="font-label-sm text-label-sm text-on-surface-variant">Téléphone</p>
+                                <p class="font-body-md text-body-md text-text-primary font-semibold">@_detail.NumeroServiceClient</p>
+                            </div>
+                            <span class="material-symbols-outlined text-[18px] text-on-surface-variant">chevron_right</span>
+                        </a>
+
+                        @if (!string.IsNullOrWhiteSpace(_detail.Horaires))
+                        {
+                            <div class="flex items-center gap-space-sm p-space-sm rounded-xl bg-surface-container-low">
+                                <div class="w-10 h-10 rounded-full bg-lavender-subtle flex items-center justify-center text-primary shrink-0">
+                                    <span class="material-symbols-outlined text-[20px]">schedule</span>
+                                </div>
+                                <div class="min-w-0 flex-1">
+                                    <p class="font-label-sm text-label-sm text-on-surface-variant">Horaires</p>
+                                    <p class="font-body-md text-body-md text-text-primary font-semibold">@_detail.Horaires</p>
+                                </div>
+                            </div>
+                        }
+
+                        <div class="flex items-center gap-space-sm p-space-sm rounded-xl bg-surface-container-low">
+                            <div class="w-10 h-10 rounded-full bg-lavender-subtle flex items-center justify-center text-primary shrink-0">
+                                <span class="material-symbols-outlined text-[20px]">payments</span>
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <p class="font-label-sm text-label-sm text-on-surface-variant">Paiement accepté</p>
+                                <p class="font-body-md text-body-md text-text-primary font-semibold">@PaiementLabel</p>
+                            </div>
+                        </div>
+
+                        <div class="pt-1">
+                            <p class="font-label-sm text-label-sm text-on-surface-variant mb-2">Itinéraire</p>
+                            <div class="grid grid-cols-3 gap-2">
+                                <a class="flex flex-col items-center justify-center gap-1 py-2.5 rounded-xl bg-surface-container-low hover:bg-lavender-subtle transition-colors text-text-primary" href="@LienGoogleMaps" target="_blank" rel="noopener">
+                                    <span class="material-symbols-outlined text-[20px] text-primary">map</span>
+                                    <span class="font-label-sm text-label-sm">Google Maps</span>
+                                </a>
+                                <a class="flex flex-col items-center justify-center gap-1 py-2.5 rounded-xl bg-surface-container-low hover:bg-lavender-subtle transition-colors text-text-primary" href="@LienAppleMaps" target="_blank" rel="noopener">
+                                    <span class="material-symbols-outlined text-[20px] text-primary">map</span>
+                                    <span class="font-label-sm text-label-sm">Apple Maps</span>
+                                </a>
+                                <a class="flex flex-col items-center justify-center gap-1 py-2.5 rounded-xl bg-surface-container-low hover:bg-lavender-subtle transition-colors text-text-primary" href="@LienYango" target="_blank" rel="noopener">
+                                    <span class="material-symbols-outlined text-[20px] text-primary">local_taxi</span>
+                                    <span class="font-label-sm text-label-sm">Yango</span>
+                                </a>
                             </div>
                         </div>
                     </div>
-                    <div class="rounded-2xl overflow-hidden shadow-sm h-48">
-                        <div id="fiche-osm" class="w-full h-full"></div>
+                    <div class="bg-surface-cream rounded-2xl shadow-sm overflow-hidden">
+                        <div class="flex items-center gap-2 p-space-sm border-b border-outline-variant/30">
+                            <span class="material-symbols-outlined text-primary text-[20px]">location_on</span>
+                            <h3 class="font-label-md text-label-md text-text-primary font-bold">Localisation</h3>
+                        </div>
+                        <div class="fiche-map-frame">
+                            <div id="fiche-osm" class="w-full h-full"></div>
+                        </div>
                     </div>
                 </div>
             }
@@ -284,6 +342,29 @@
                 </a>
             </div>
         </div>
+
+        @if (_lightboxIndex is not null)
+        {
+            <div class="photo-lightbox" @onclick="CloseLightbox">
+                <button type="button" class="photo-lightbox-close" @onclick="CloseLightbox" @onclick:stopPropagation="true" aria-label="Fermer">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+                <span class="photo-lightbox-counter">@(_lightboxIndex + 1) / @AllPhotos.Count</span>
+                @if (AllPhotos.Count > 1)
+                {
+                    <button type="button" class="photo-lightbox-nav prev" @onclick="PrevPhoto" @onclick:stopPropagation="true" aria-label="Photo précédente">
+                        <span class="material-symbols-outlined">chevron_left</span>
+                    </button>
+                }
+                <img class="photo-lightbox-image" src="@AllPhotos[_lightboxIndex.Value]" alt="@_detail.NomEtablissement" @onclick:stopPropagation="true" />
+                @if (AllPhotos.Count > 1)
+                {
+                    <button type="button" class="photo-lightbox-nav next" @onclick="NextPhoto" @onclick:stopPropagation="true" aria-label="Photo suivante">
+                        <span class="material-symbols-outlined">chevron_right</span>
+                    </button>
+                }
+            </div>
+        }
     }
 </main>
 
@@ -299,6 +380,31 @@
     private bool _mapDirty;
     private AvisEtablissement? _avis;
     private bool _showItineraireMenu;
+    private int? _lightboxIndex;
+
+    private List<string> AllPhotos => _detail is null
+        ? []
+        : new List<string> { $"/media/devanture/{Id}" }.Concat(_detail.Medias.OrderBy(m => m.OrdreAffichage).Select(m => m.Url)).ToList();
+
+    private void OpenLightbox(int index) => _lightboxIndex = index;
+    private void CloseLightbox() => _lightboxIndex = null;
+    private void PrevPhoto() { if (_lightboxIndex is int i) _lightboxIndex = (i - 1 + AllPhotos.Count) % AllPhotos.Count; }
+    private void NextPhoto() { if (_lightboxIndex is int i) _lightboxIndex = (i + 1) % AllPhotos.Count; }
+
+    private string PaiementLabel
+    {
+        get
+        {
+            if (_detail is null) return "Espèces";
+            if (_detail.ModePaiementService == "ESPECES") return "Espèces sur place";
+            var operateurs = new List<string>();
+            if (_detail.PaiementWave) operateurs.Add("Wave");
+            if (_detail.PaiementOrangeMoney) operateurs.Add("Orange Money");
+            if (_detail.PaiementMoovMoney) operateurs.Add("Moov Money");
+            var mobile = operateurs.Count > 0 ? string.Join(", ", operateurs) : "Mobile Money";
+            return _detail.ModePaiementService == "MIXTE" ? $"Espèces ou {mobile}" : mobile;
+        }
+    }
 
     private string LienGoogleMaps => string.Create(System.Globalization.CultureInfo.InvariantCulture,
         $"https://www.google.com/maps/dir/?api=1&destination={_detail!.GpsLatitude},{_detail.GpsLongitude}");

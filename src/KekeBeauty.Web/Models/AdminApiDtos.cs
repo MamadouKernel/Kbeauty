@@ -44,25 +44,44 @@ public sealed class AbonnementResume
 {
     public Guid IdAbonnement { get; set; }
     public Guid IdEtablissement { get; set; }
+    public string Formule { get; set; } = string.Empty;
     public string Periodicite { get; set; } = string.Empty;
     public decimal Montant { get; set; }
     public string StatutAbonnement { get; set; } = string.Empty;
 }
 
-public sealed class TarifStandard
-{
-    public string Periodicite { get; set; } = string.Empty;
-    public decimal Montant { get; set; }
-}
-
 public sealed class ConfigurationFormuleDto
 {
     public string Formule { get; set; } = string.Empty;
+    public string Libelle { get; set; } = string.Empty;
+    public bool EstActif { get; set; } = true;
+    public bool EstDefaut { get; set; }
+    public int OrdreAffichage { get; set; }
+    public decimal? TarifMensuel { get; set; }
+    public decimal? TarifAnnuel { get; set; }
     public int? LimitePrestations { get; set; }
     public int? LimiteRdvMensuels { get; set; }
     public bool PaiementMobile { get; set; }
     public bool GestionEquipe { get; set; }
     public bool StatistiquesAvancees { get; set; }
+    public List<string> Avantages { get; set; } = [];
+    public int? PromoPourcentage { get; set; }
+    public DateTimeOffset? PromoFin { get; set; }
+    public bool EstPromoActive { get; set; }
+    public decimal? TarifMensuelEffectif { get; set; }
+    public decimal? TarifAnnuelEffectif { get; set; }
+
+    public string AvantagesTexte
+    {
+        get => string.Join('\n', Avantages);
+        set => Avantages = value.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
+    }
+
+    public DateTime? PromoFinLocale
+    {
+        get => PromoFin?.LocalDateTime;
+        set => PromoFin = value is null ? null : new DateTimeOffset(DateTime.SpecifyKind(value.Value, DateTimeKind.Local));
+    }
 }
 
 public sealed class AdminUserItemDto { public Guid IdUtilisateur {get;set;} public string Nom {get;set;}=""; public string Telephone {get;set;}=""; public string? Email {get;set;} public string TypeCompte {get;set;}=""; public bool EstSuspendu {get;set;} public DateTimeOffset DateCreation {get;set;} }

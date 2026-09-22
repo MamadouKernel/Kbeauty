@@ -43,10 +43,15 @@
         <PushOptIn />
 
         <section class="account-secondary">
-            <a href="/login?role=partenaire"><span class="material-symbols-outlined">storefront</span>Gérer un établissement</a>
-            <a href="/conditions-utilisation">Conditions d’utilisation</a>
-            <a href="/confidentialite">Confidentialité</a>
-            <button type="button" @onclick="LogoutAsync"><span class="material-symbols-outlined">logout</span>Se déconnecter</button>
+            <a class="account-secondary-cta" href="/login?role=partenaire">
+                <span class="material-symbols-outlined">storefront</span>
+                <div><strong>Vous êtes professionnelle ?</strong><small>Gérez votre établissement sur Keke Beauty</small></div>
+                <span class="material-symbols-outlined">chevron_right</span>
+            </a>
+            <div class="account-legal-links">
+                <a href="/conditions-utilisation">Conditions d’utilisation</a>
+                <a href="/confidentialite">Confidentialité</a>
+            </div>
         </section>
     }
 </main>
@@ -63,7 +68,6 @@
     private string GoldMessage => _points < 500 ? "Encore quelques soins avant votre premier privilège." : _points < 1500 ? "Membre Gold : vos avantages grandissent." : "Statut Imperial : merci pour votre fidélité.";
     private RdvHistoriqueItem? NextAppointment => Upcoming.Where(x => x.DateHeureDebut >= DateTimeOffset.Now).OrderBy(x => x.DateHeureDebut).FirstOrDefault();
     protected override async Task OnInitializedAsync() { var id = await Session.GetClientIdAsync(); if (id is null) { Navigation.NavigateTo("/login?ReturnUrl=/mon-espace"); return; } var (ok, items) = await RdvApi.GetHistoriqueAsync(id.Value, CancellationToken.None); _rdvs = ok ? items : []; var(profileOk,profile)=await ProfileApi.GetAsync(id.Value,CancellationToken.None);if(profileOk&&profile is not null)_points=profile.PointsFidelite; _loading = false; }
-    private async Task LogoutAsync() { await Session.ClearAsync(); Navigation.NavigateTo("/"); }
 }
 
 

@@ -1,0 +1,42 @@
+@* Pont leger : transforme le champ _message/_success deja existant sur chaque page (auparavant
+   affiche inline, souvent hors champ en bas de page) en toast flottant, sans toucher a la logique
+   metier de la page (aucune methode d'action modifiee). *@
+@inject KekeBeauty.Web.Services.ToastService Toast
+
+@code {
+    private string? _lastShown;
+
+    [Parameter] public string? Message { get; set; }
+    [Parameter] public string Severity { get; set; } = "info";
+    [Parameter] public EventCallback OnShown { get; set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Message is null)
+        {
+            _lastShown = null;
+            return;
+        }
+
+        if (Message == _lastShown)
+        {
+            return;
+        }
+
+        _lastShown = Message;
+        Toast.Show(Message, MapSeverity(Severity));
+
+        if (OnShown.HasDelegate)
+        {
+            await OnShown.InvokeAsync();
+        }
+    }
+
+    private static KekeBeauty.Web.Services.ToastSeverity MapSeverity(string severity) => severity.Trim().ToLowerInvariant() switch
+    {
+        "success" => KekeBeauty.Web.Services.ToastSeverity.Success,
+        "danger" or "error" => KekeBeauty.Web.Services.ToastSeverity.Error,
+        "warning" => KekeBeauty.Web.Services.ToastSeverity.Warning,
+        _ => KekeBeauty.Web.Services.ToastSeverity.Info,
+    };
+}

@@ -27,7 +27,7 @@ else if (_rdv is null) {
 @foreach (var step in Steps) { <div class="@(step.Active ? "is-active" : "") @(step.Error ? "is-error" : "")"><span class="material-symbols-outlined">@step.Icon</span><p><strong>@step.Label</strong><small>@step.Detail</small></p></div> }
 </section>
 
-@if (!string.IsNullOrWhiteSpace(_message)) { <div class="flow-message @(_success ? "is-success" : "is-error")" role="status"><span class="material-symbols-outlined">@(_success ? "check_circle" : "error")</span><span>@_message</span></div> }
+<ToastBridge Message="@_message" Severity="@(_success ? "success" : "danger")" OnShown="@(() => _message = null)" />
 
 @if (_rdv.StatutPaiement is not null) {
 <section class="appointment-panel payment-recovery payment-@_rdv.StatutPaiement.ToLowerInvariant()">

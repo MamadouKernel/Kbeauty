@@ -19,7 +19,7 @@
  }else{
   <section class="commission-summary"><div><span>Total reçu</span><strong>@_commissions.Where(x=>x.StatutPaiement=="success").Sum(x=>x.Montant).ToString("N0") FCFA</strong><small>100 % pour vous · 0 % de commission</small></div></section><div class="commission-list">@foreach(var item in _commissions){<article><span class="material-symbols-outlined">volunteer_activism</span><div><strong>@item.Montant.ToString("N0") FCFA</strong><small>@item.DateHeureDebut.ToLocalTime().ToString("dd MMM yyyy",Fr)</small></div><em>@item.StatutPaiement</em></article>}</div>
  }
- @if(_message is not null){<KekeAlert Severity="@(_success?"success":"danger")" Title="@(_success?"Enregistré":"Action impossible")">@_message</KekeAlert>}
+ <ToastBridge Message="@_message" Severity="@(_success?"success":"danger")" OnShown="@(() => _message = null)" />
  }
 </div></main>
 @code{

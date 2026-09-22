@@ -26,7 +26,7 @@ else{<div class="phone-code"><input aria-label="Code reçu" inputmode="numeric" 
 <label class="profile-toggle"><input type="checkbox" @bind="_profile.NotificationsRdv" /><span><strong>Rendez-vous et paiements</strong><small>Confirmations, modifications, rappels et annulations.</small></span></label>
 <label class="profile-toggle"><input type="checkbox" @bind="_profile.NotificationsMarketing" /><span><strong>Nouveautés et offres</strong><small>Conseils et offres de Keke Beauty.</small></span></label>
 <label class="profile-toggle"><input type="checkbox" @bind="_profile.ConsentementDonnees" /><span><strong>Traitement de mes données</strong><small>Nécessaire pour gérer vos réservations et votre compte.</small></span></label>
-@if(_message is not null){<div class="flow-alert @(_success?"is-success":"is-error")" role="status">@_message</div>}
+<ToastBridge Message="@_message" Severity="@(_success ? "success" : "danger")" OnShown="@(() => _message = null)" />
 <button class="flow-primary" disabled="@_busy" @onclick="SaveAsync">Enregistrer mes modifications</button>
 </section>
 <section class="profile-danger"><h2>Supprimer mon compte</h2><p>Vos coordonnées seront anonymisées. L’historique légal des transactions sera conservé sans vos informations personnelles.</p>@if(!_confirmDelete){<button @onclick="()=>_confirmDelete=true">Demander la suppression</button>}else{<div><button disabled="@_busy" @onclick="DeleteAsync">Confirmer la suppression</button><button @onclick="()=>_confirmDelete=false">Annuler</button></div>}</section>

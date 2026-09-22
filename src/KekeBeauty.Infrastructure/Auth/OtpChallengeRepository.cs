@@ -45,7 +45,7 @@ public sealed class OtpChallengeRepository : IOtpChallengeRepository
         await connection.OpenAsync(cancellationToken);
 
         return await connection.QuerySingleOrDefaultAsync<OtpChallenge>(new CommandDefinition(
-            @"SELECT id AS Id, telephone AS Telephone, code_hash AS CodeHash, expires_at AS ExpiresAt, status AS Status
+            @"SELECT id AS Id, telephone AS Telephone, code_hash AS CodeHash, expires_at AS ExpiresAt, status AS Status, attempts AS Attempts
               FROM otp_challenge
               WHERE telephone = @telephone AND type_compte = @typeCompte::type_compte_enum AND status = 'PENDING'
               ORDER BY created_at DESC
@@ -62,6 +62,21 @@ public sealed class OtpChallengeRepository : IOtpChallengeRepository
         await connection.ExecuteAsync(new CommandDefinition(
             "UPDATE otp_challenge SET status = 'CONSUMED' WHERE id = @id;",
             new { id },
+            cancellationToken: cancellationToken));
+    }
+
+    public async Task<int> RegisterFailedAttemptAsync(Guid id, CancellationToken cancellationToken)
+    {
+        using var connection = _connectionFactory.CreateConnection();
+        await connection.OpenAsync(cancellationToken);
+
+        return await connection.ExecuteScalarAsync<int>(new CommandDefinition(
+            @"UPDATE otp_challenge
+              SET attempts = attempts + 1,
+                  status = CASE WHEN attempts + 1 >= @maxAttempts THEN 'INVALIDATED' ELSE status END
+              WHERE id = @id
+              RETURNING attempts;",
+            new { id, maxAttempts = OtpChallengePolicy.MaxAttempts },
             cancellationToken: cancellationToken));
     }
 }

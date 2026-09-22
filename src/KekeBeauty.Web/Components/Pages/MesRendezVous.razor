@@ -217,10 +217,7 @@
                 </div>
             }
 
-            @if (!string.IsNullOrEmpty(_message))
-            {
-                <div class="rounded-xl px-space-md py-space-sm font-body-md text-body-md bg-lavender-subtle text-primary">@_message</div>
-            }
+            <ToastBridge Message="@_message" Severity="@(_success ? "success" : "danger")" OnShown="@(() => _message = null)" />
             @if (!string.IsNullOrEmpty(_lienPaiementRelance))
             {
                 <a class="block text-center py-3 rounded-full bg-primary-container text-on-primary font-label-lg text-label-lg shadow-md" href="@_lienPaiementRelance" target="_blank" rel="noopener">Payer maintenant</a>
@@ -236,6 +233,7 @@
     private bool _error;
     private bool _showHistorique;
     private string? _message;
+    private bool _success;
     private Guid? _idClient;
     private List<RdvHistoriqueItem> _rdvs = [];
     private string? _lienPaiementRelance;
@@ -286,6 +284,7 @@
     private async Task VerifierPaiementAsync(Guid idRdv)
     {
         var (success, statut) = await RdvApi.VerifierPaiementAsync(_idClient!.Value, idRdv, CancellationToken.None);
+        _success = success;
         _message = success ? $"Statut de paiement actualisé : {PaiementLabel(statut)}." : "Vérification impossible pour le moment.";
         if (success)
         {
@@ -311,6 +310,7 @@
         var (success, status) = await RdvApi.LaisserAvisAsync(_idClient!.Value, idRdv, (short)_noteAvis, _commentaireAvis, CancellationToken.None);
         _avisBusy = false;
 
+        _success = success;
         if (success)
         {
             _idRdvAvisEnCours = null;
@@ -339,6 +339,7 @@
         _pourboireBusy = false;
         _idRdvPourboireEnCours = null;
 
+        _success = success;
         _message = success
             ? "Merci ! Finalisez le paiement du pourboire via le lien ci-dessous."
             : "Le paiement du pourboire n'a pas pu être initié. Merci de réessayer plus tard.";
@@ -362,6 +363,7 @@
         var (success, _) = await RdvApi.DeclarerLitigeAsync(_idClient!.Value, idRdv, _motifLitige, CancellationToken.None);
         _litigeBusy = false;
 
+        _success = success;
         _message = success
             ? "Votre signalement a été transmis à l'équipe Keke Beauty. Nous reviendrons vers vous."
             : "Impossible d'envoyer le signalement pour le moment.";
@@ -403,6 +405,7 @@
     private async Task RelancerPaiementAsync(Guid idRdv)
     {
         var (success, statut, lien) = await RdvApi.RelancerPaiementAsync(_idClient!.Value, idRdv, CancellationToken.None);
+        _success = success;
         if (success)
         {
             _message = "Nouvelle tentative de paiement générée.";
@@ -418,6 +421,7 @@
     private async Task AnnulerAsync(Guid idRdv)
     {
         var (success, remboursementEnCours) = await RdvApi.AnnulerAsync(_idClient!.Value, idRdv, CancellationToken.None);
+        _success = success;
         _message = success
             ? (remboursementEnCours
                 ? "Rendez-vous annulé. Votre remboursement sera traité manuellement sous 48h."

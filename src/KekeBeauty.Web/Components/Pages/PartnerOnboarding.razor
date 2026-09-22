@@ -3,6 +3,7 @@
 @inject AuthApiClient AuthApi
 @inject IConfiguration Configuration
 @inject IJSRuntime JS
+@inject KekeBeauty.Web.Services.GeoApiClient Geo
 @implements IAsyncDisposable
 @rendermode @(new InteractiveServerRenderMode(prerender: false))
 
@@ -32,7 +33,21 @@
  } else if (_step == 2) {
   <div class="space-y-4"><label class="block"><span class="font-label-md">Nom de la boutique</span><input class="onboarding-input" placeholder="Ex. Divine Beauty Cocody" @bind="_nom" @bind:event="oninput"/></label><label class="block"><span class="font-label-md">Activité principale</span><select class="onboarding-input" @bind="_categorie"><option value="">Choisir une activité</option><option>Coiffure &amp; Tresses</option><option>Onglerie &amp; Art</option><option>Espace Spa</option><option>Massages</option><option>Soins Visage</option><option>Autre</option></select></label><label class="block"><span class="font-label-md">Numéro visible par les clientes</span><input class="onboarding-input" type="tel" placeholder="Même numéro ou numéro du magasin" @bind="_contact" @bind:event="oninput"/></label></div>
  } else if (_step == 3) {
-  <div class="space-y-4"><button type="button" class="w-full py-3 rounded-full bg-primary text-white font-bold flex items-center justify-center gap-2 disabled:opacity-60" disabled="@_locating" @onclick="LocateAsync"><span class="material-symbols-outlined">my_location</span>@(_locating ? "Localisation en cours…" : "Utiliser ma position actuelle")</button>@if (_locationMessage is not null) { <KekeAlert Severity="@(_locationOk ? "success" : "warning")" Title="@(_locationOk ? "Localisation confirmée" : "Localisation requise")">@_locationMessage</KekeAlert> }<div class="grid grid-cols-2 gap-3"><label><span class="font-label-md">Latitude</span><input class="onboarding-input" type="number" step="0.000001" @bind="_lat"/></label><label><span class="font-label-md">Longitude</span><input class="onboarding-input" type="number" step="0.000001" @bind="_lng"/></label></div><label class="block"><span class="font-label-md">Horaires</span><select class="onboarding-input" @bind="_horaires"><option value="">Choisir</option><option value="Lun-Sam 08h00-19h00">Lun–Sam, 8h–19h</option><option value="Lun-Sam 09h00-18h00">Lun–Sam, 9h–18h</option><option value="Tous les jours 08h00-20h00">Tous les jours, 8h–20h</option><option value="Sur rendez-vous uniquement">Sur rendez-vous uniquement</option></select></label></div>
+  <div class="space-y-4">
+   <button type="button" class="w-full py-3 rounded-full bg-primary text-white font-bold flex items-center justify-center gap-2 disabled:opacity-60" disabled="@_locating" @onclick="LocateAsync"><span class="material-symbols-outlined">my_location</span>@(_locating ? "Localisation en cours…" : "Utiliser ma position actuelle")</button>
+   @if (_locationMessage is not null) { <KekeAlert Severity="@(_locationOk ? "success" : "warning")" Title="@(_locationOk ? "Localisation confirmée" : "Localisation requise")">@_locationMessage</KekeAlert> }
+   <div class="relative">
+    <label class="block"><span class="font-label-md">Ou recherchez votre adresse</span><input class="onboarding-input" placeholder="Ex. Rue des Jardins, Cocody" @bind="_addressQuery" @bind:event="oninput" @onkeyup="OnAddressKeyUp"/></label>
+    @if (_addressSuggestions.Count > 0) {
+     <ul class="address-suggestions">@foreach (var s in _addressSuggestions) { <li><button type="button" @onclick="() => SelectAddressAsync(s)">@s.DisplayName</button></li> }</ul>
+    }
+   </div>
+   <div id="onboarding-picker-map" class="onboarding-picker-map"></div>
+   <p class="text-label-sm text-on-surface-variant">Glissez le repère ou touchez la carte pour affiner l’emplacement exact.</p>
+   @if (!string.IsNullOrWhiteSpace(_adresseTexte)) { <KekeAlert Severity="info" Title="Adresse détectée">@_adresseTexte</KekeAlert> }
+   <div class="grid grid-cols-2 gap-3"><label><span class="font-label-md">Latitude</span><input class="onboarding-input" type="number" step="0.000001" @bind="_lat"/></label><label><span class="font-label-md">Longitude</span><input class="onboarding-input" type="number" step="0.000001" @bind="_lng"/></label></div>
+   <label class="block"><span class="font-label-md">Horaires</span><select class="onboarding-input" @bind="_horaires"><option value="">Choisir</option><option value="Lun-Sam 08h00-19h00">Lun–Sam, 8h–19h</option><option value="Lun-Sam 09h00-18h00">Lun–Sam, 9h–18h</option><option value="Tous les jours 08h00-20h00">Tous les jours, 8h–20h</option><option value="Sur rendez-vous uniquement">Sur rendez-vous uniquement</option></select></label>
+  </div>
  } else if (_step == 4) {
   <div class="space-y-6 kyc-capture-flow">
    <KekeAlert Severity="info" Title="Photos nettes et originales">Utilisez une lumière naturelle, évitez les reflets et placez le document entier dans le cadre. Vos pièces sont protégées et réservées à la vérification.</KekeAlert>
@@ -46,7 +61,7 @@
   </div> } else {
   <div class="space-y-3"><div class="summary-row"><span class="material-symbols-outlined">storefront</span><div><small>Boutique</small><strong>@_nom</strong></div></div><div class="summary-row"><span class="material-symbols-outlined">category</span><div><small>Activité</small><strong>@_categorie</strong></div></div><div class="summary-row"><span class="material-symbols-outlined">call</span><div><small>Contact</small><strong>@_contact</strong></div></div><div class="summary-row"><span class="material-symbols-outlined">schedule</span><div><small>Horaires</small><strong>@(string.IsNullOrWhiteSpace(_horaires) ? "À définir plus tard" : _horaires)</strong></div></div><div class="summary-row"><span class="material-symbols-outlined">location_on</span><div><small>Position</small><strong>@($"{_lat:N5}, {_lng:N5}")</strong></div></div><KekeAlert Severity="warning" Title="Vérification obligatoire">Après la création, la boutique restera en attente jusqu’à la validation des documents KYC.</KekeAlert><label class="flex items-start gap-3 mt-4"><input class="mt-1" type="checkbox" @bind="_accepted"/><span class="text-body-sm text-on-surface-variant">Je confirme l’exactitude des informations et accepte les conditions d’utilisation.</span></label></div>
  }
- @if (_message is not null) { <KekeAlert Severity="@_messageSeverity" Title="@AlertTitle">@_message</KekeAlert> }
+ <ToastBridge Message="@_message" Severity="@_messageSeverity" OnShown="@(() => _message = null)" />
  </section>
  <div class="flex gap-3 mt-5">@if (_step > 1) { <button class="flex-1 py-3 rounded-full bg-surface-container text-primary font-bold" @onclick="Previous">Retour</button> }<button class="flex-[2] py-3 rounded-full bg-primary text-white font-bold shadow-md disabled:opacity-50" disabled="@_busy" @onclick="NextAsync">@(_step == 5 ? (_busy ? "Envoi en cours…" : "Créer ma boutique") : "Continuer")</button></div><p class="text-center text-label-sm text-on-surface-variant mt-4">Brouillon enregistré automatiquement sur cet appareil.</p>
 }
@@ -54,18 +69,61 @@
 
 @code {
 int _step=1; bool _busy,_success,_authChoiceMade,_googleConnected,_phoneVerified,_otpSent,_accepted,_locating,_locationOk; string _telephone="",_nom="",_contact="",_categorie=""; string? _horaires,_message,_locationMessage,_googleClientId,_googleToken,_partnerSessionToken,_photoName,_rectoName,_versoName,_photoPreview,_rectoPreview,_versoPreview; string _documentType="CNI",_messageSeverity="danger",_otpCode=""; decimal _lat,_lng; byte[]? _photoBytes,_rectoBytes,_versoBytes; DotNetObjectReference<PartnerOnboarding>? _googleRef; const long MaxFileSize=8*1024*1024;
+// Abidjan (centre-ville) - vue par defaut de la carte picker tant qu'aucune position n'est choisie.
+const decimal DefaultLat=5.3599517m, DefaultLng=-4.0082563m;
+string _addressQuery=""; string? _adresseTexte; List<KekeBeauty.Web.Services.GeoSuggestionDto> _addressSuggestions=[]; CancellationTokenSource? _addressCts; int _lastRenderedStep; bool _pickerDirty=true; DotNetObjectReference<PartnerOnboarding>? _pickerRef;
  string AlertTitle=>_messageSeverity switch{"warning"=>"Attention","info"=>"Information","success"=>"Terminé",_=>"Action impossible"};
  string Eyebrow=>_step switch{1=>"Votre compte",2=>"Votre activité",3=>"Où vous trouver",4=>"Vérification",_=>"Dernière étape"}; string Title=>_step switch{1=>"Commençons simplement",2=>"Présentez votre boutique",3=>"Localisation et horaires",4=>"Ajoutez vos documents",_=>"Tout est prêt ?"}; string Description=>_step switch{1=>"Google ou WhatsApp : choisissez la méthode la plus rapide.",2=>"Ces informations apparaîtront sur votre fiche publique.",3=>"Un bouton suffit pour détecter votre position.",4=>"Prenez directement les photos avec votre téléphone.",_=>"Relisez vos informations avant d’envoyer le dossier."};
  protected override void OnInitialized()=>_googleClientId=Configuration["Authentication:Google:ClientId"];
- protected override async Task OnAfterRenderAsync(bool first){if(first){var d=await JS.InvokeAsync<Draft?>("kekeOnboarding.load");if(d is not null)Apply(d);await InvokeAsync(StateHasChanged);}if(_step==1&&!_googleConnected&&!string.IsNullOrWhiteSpace(_googleClientId)){_googleRef??=DotNetObjectReference.Create(this);await JS.InvokeAsync<bool>("kekeGoogle.render",_googleClientId,_googleRef,"partner-google-signin");}}
+ protected override async Task OnAfterRenderAsync(bool first){if(first){var d=await JS.InvokeAsync<Draft?>("kekeOnboarding.load");if(d is not null)Apply(d);await InvokeAsync(StateHasChanged);}if(_step==1&&!_googleConnected&&!string.IsNullOrWhiteSpace(_googleClientId)){_googleRef??=DotNetObjectReference.Create(this);await JS.InvokeAsync<bool>("kekeGoogle.render",_googleClientId,_googleRef,"partner-google-signin");}
+  if(_step==3&&(_lastRenderedStep!=3||_pickerDirty)){
+   var lat=_lat==0?DefaultLat:_lat; var lng=_lng==0?DefaultLng:_lng;
+   _pickerRef??=DotNetObjectReference.Create(this);
+   if(_lastRenderedStep!=3) await JS.InvokeVoidAsync("kekeMap.initPicker","onboarding-picker-map",lat,lng,16,_pickerRef);
+   else await JS.InvokeVoidAsync("kekeMap.setPickerPosition","onboarding-picker-map",lat,lng);
+   _pickerDirty=false;
+  }
+  _lastRenderedStep=_step;
+ }
  [JSInvokable] public async Task ReceiveGoogleCredential(string credential){_busy=true;await InvokeAsync(StateHasChanged);var(ok,status,_,token)=await AuthApi.LoginPartnerWithGoogleAsync(credential,CancellationToken.None);_busy=false;if(ok&&token is not null){_googleConnected=true;_authChoiceMade=true;_googleToken=token;_message=null;}else {_messageSeverity="danger";_message=status=="account_suspended"?"Ce compte est suspendu.":"La connexion Google a échoué. Réessayez.";}await InvokeAsync(StateHasChanged);}
  void UsePhone(){_authChoiceMade=true;_googleConnected=false;_phoneVerified=false;_otpSent=false;_googleToken=null;_partnerSessionToken=null;} async Task RequestOnboardingOtpAsync(){_busy=true;_message=null;var(ok,status,message)=await AuthApi.RequestOtpAsync(_telephone,1,CancellationToken.None);_busy=false;_otpSent=ok;if(!ok){_messageSeverity="danger";_message=message??$"Envoi impossible ({status}).";}} async Task VerifyOnboardingOtpAsync(){_busy=true;_message=null;var(ok,status,_,_,token)=await AuthApi.VerifyOtpDetailedAsync(_telephone,_otpCode,1,CancellationToken.None);_busy=false;if(ok&&!string.IsNullOrWhiteSpace(token)){_phoneVerified=true;_partnerSessionToken=token;_messageSeverity="success";_message="Téléphone vérifié.";}else{_messageSeverity="danger";_message="Code invalide ou expiré.";}} void Previous(){_step--;_message=null;}
  async Task NextAsync(){_message=Validate();if(_message is not null){_messageSeverity="warning";return;}if(_step<5){_step++;await Save();return;}await Submit();}
 string? Validate()=>_step switch{1 when !_authChoiceMade=>"Choisissez Google ou WhatsApp.",1 when string.IsNullOrWhiteSpace(_telephone)=>"Ajoutez votre téléphone professionnel.",1 when !_googleConnected&&!_phoneVerified=>"Validez le code reçu sur WhatsApp.",2 when string.IsNullOrWhiteSpace(_nom)||string.IsNullOrWhiteSpace(_categorie)||string.IsNullOrWhiteSpace(_contact)=>"Complétez le nom, l’activité et le contact.",3 when _lat==0||_lng==0=>"Utilisez votre position ou renseignez les coordonnées.",4 when _photoBytes is null||_rectoBytes is null||(_documentType=="CNI"&&_versoBytes is null)=>_documentType=="CNI"?"Ajoutez la devanture, le recto et le verso de la carte.":"Ajoutez la devanture et la page d’identification du passeport.",5 when !_accepted=>"Confirmez les informations avant l’envoi.",_=>null};
- async Task LocateAsync(){_locating=true;try{var p=await JS.InvokeAsync<Geo>("kekeMap.getCurrentPosition");if(p.Status=="granted"){_lat=(decimal)p.Latitude;_lng=(decimal)p.Longitude;_locationOk=true;_locationMessage="Position trouvée et ajoutée.";}else{_locationOk=false;_locationMessage="Autorisez la localisation ou saisissez les coordonnées.";}}catch{_locationOk=false;_locationMessage="Localisation indisponible sur cet appareil.";}_locating=false;await Save();}
+ async Task LocateAsync(){_locating=true;try{var p=await JS.InvokeAsync<GeoPosition>("kekeMap.getCurrentPosition");if(p.Status=="granted"){_lat=(decimal)p.Latitude;_lng=(decimal)p.Longitude;_locationOk=true;_locationMessage="Position trouvée et ajoutée.";_pickerDirty=true;await ReverseGeocodeAsync();}else{_locationOk=false;_locationMessage="Autorisez la localisation ou saisissez les coordonnées.";}}catch{_locationOk=false;_locationMessage="Localisation indisponible sur cet appareil.";}_locating=false;await Save();}
+
+ async Task OnAddressKeyUp(Microsoft.AspNetCore.Components.Web.KeyboardEventArgs e){
+  _addressCts?.Cancel();
+  if(_addressQuery.Trim().Length<3){_addressSuggestions=[];return;}
+  var cts=new CancellationTokenSource(); _addressCts=cts;
+  try{
+   await Task.Delay(350,cts.Token);
+   var results=await Geo.SearchAsync(_addressQuery,cts.Token);
+   if(!cts.IsCancellationRequested){_addressSuggestions=results.ToList();await InvokeAsync(StateHasChanged);}
+  }catch(TaskCanceledException){}
+ }
+
+ async Task SelectAddressAsync(KekeBeauty.Web.Services.GeoSuggestionDto suggestion){
+  _lat=suggestion.Latitude; _lng=suggestion.Longitude; _adresseTexte=suggestion.DisplayName;
+  _addressQuery=suggestion.DisplayName; _addressSuggestions=[]; _locationOk=true;
+  _locationMessage="Position définie depuis l’adresse recherchée."; _pickerDirty=true;
+  await Save();
+ }
+
+ [JSInvokable] public async Task OnPinMoved(double lat,double lng){
+  _lat=(decimal)lat; _lng=(decimal)lng; _locationOk=true; _locationMessage="Position ajustée manuellement.";
+  await InvokeAsync(StateHasChanged);
+  await ReverseGeocodeAsync();
+  await Save();
+ }
+
+ async Task ReverseGeocodeAsync(){
+  if(_lat==0||_lng==0)return;
+  _adresseTexte=await Geo.ReverseAsync(_lat,_lng,CancellationToken.None);
+  await InvokeAsync(StateHasChanged);
+ }
 async Task OnPhoto(InputFileChangeEventArgs e){_photoName=e.File.Name;_photoBytes=await ReadFileAsync(e.File);_photoPreview=Preview(e.File,_photoBytes);} void SelectDocumentType(string type){_documentType=type;_rectoBytes=null;_rectoName=null;_rectoPreview=null;if(type=="PASSEPORT"){_versoBytes=null;_versoName=null;_versoPreview=null;}} async Task OnDocumentRecto(InputFileChangeEventArgs e){_rectoName=e.File.Name;_rectoBytes=await ReadFileAsync(e.File);_rectoPreview=Preview(e.File,_rectoBytes);} async Task OnDocumentVerso(InputFileChangeEventArgs e){_versoName=e.File.Name;_versoBytes=await ReadFileAsync(e.File);_versoPreview=Preview(e.File,_versoBytes);} static string? Preview(IBrowserFile file,byte[] bytes)=>file.ContentType.StartsWith("image/",StringComparison.OrdinalIgnoreCase)?$"data:{file.ContentType};base64,{Convert.ToBase64String(bytes)}":null; static async Task<byte[]> ReadFileAsync(IBrowserFile file){await using var input=file.OpenReadStream(MaxFileSize);using var output=new MemoryStream();await input.CopyToAsync(output);return output.ToArray();}
-async Task Submit(){_busy=true;_message=null;_messageSeverity="danger";try{await using var p=new MemoryStream(_photoBytes!,writable:false);await using var rectoStream=new MemoryStream(_rectoBytes!,writable:false);await using var versoStream=_versoBytes is null?null:new MemoryStream(_versoBytes,writable:false);var(ok,status,_,message)=await PartnerApi.SubmitOnboardingAsync(_telephone,_nom,_lat,_lng,_contact,_horaires,"ESPECES",false,false,false,p,_photoName,_documentType,rectoStream,_rectoName,versoStream,_versoName,CancellationToken.None,_googleToken,_categorie,_partnerSessionToken);if(ok){_success=true;await JS.InvokeVoidAsync("kekeOnboarding.clear");}else _message=status=="google_session_expired"?"La validation Google a expiré. Revenez à la première étape.":message??$"La création a échoué ({status}).";}catch(Exception ex){_message=$"Erreur de communication : {ex.Message}";}finally{_busy=false;}}
+async Task Submit(){_busy=true;_message=null;_messageSeverity="danger";try{await using var p=new MemoryStream(_photoBytes!,writable:false);await using var rectoStream=new MemoryStream(_rectoBytes!,writable:false);await using var versoStream=_versoBytes is null?null:new MemoryStream(_versoBytes,writable:false);var(ok,status,_,message)=await PartnerApi.SubmitOnboardingAsync(_telephone,_nom,_lat,_lng,_contact,_horaires,"ESPECES",false,false,false,p,_photoName,_documentType,rectoStream,_rectoName,versoStream,_versoName,CancellationToken.None,_googleToken,_categorie,_partnerSessionToken,_adresseTexte);if(ok){_success=true;await JS.InvokeVoidAsync("kekeOnboarding.clear");}else _message=status=="google_session_expired"?"La validation Google a expiré. Revenez à la première étape.":message??$"La création a échoué ({status}).";}catch(Exception ex){_message=$"Erreur de communication : {ex.Message}";}finally{_busy=false;}}
  Task Save()=>JS.InvokeVoidAsync("kekeOnboarding.save",new Draft{Step=_step,Telephone=_telephone,Nom=_nom,Contact=_contact,Categorie=_categorie,Horaires=_horaires,Lat=_lat,Lng=_lng,Auth=_authChoiceMade}).AsTask(); void Apply(Draft d){_step=Math.Clamp(d.Step,1,4);_telephone=d.Telephone??"";_nom=d.Nom??"";_contact=d.Contact??"";_categorie=d.Categorie??"";_horaires=d.Horaires;_lat=d.Lat;_lng=d.Lng;_authChoiceMade=d.Auth;}
- public async ValueTask DisposeAsync(){if(_googleRef is not null){try{await JS.InvokeVoidAsync("kekeGoogle.clear");}catch{}_googleRef.Dispose();}}
- sealed class Draft{public int Step{get;set;}=1;public string? Telephone{get;set;}public string? Nom{get;set;}public string? Contact{get;set;}public string? Categorie{get;set;}public string? Horaires{get;set;}public decimal Lat{get;set;}public decimal Lng{get;set;}public bool Auth{get;set;}} sealed class Geo{public string Status{get;set;}="unavailable";public double Latitude{get;set;}public double Longitude{get;set;}}
+ public async ValueTask DisposeAsync(){if(_googleRef is not null){try{await JS.InvokeVoidAsync("kekeGoogle.clear");}catch{}_googleRef.Dispose();}_pickerRef?.Dispose();}
+ sealed class Draft{public int Step{get;set;}=1;public string? Telephone{get;set;}public string? Nom{get;set;}public string? Contact{get;set;}public string? Categorie{get;set;}public string? Horaires{get;set;}public decimal Lat{get;set;}public decimal Lng{get;set;}public bool Auth{get;set;}} sealed class GeoPosition{public string Status{get;set;}="unavailable";public double Latitude{get;set;}public double Longitude{get;set;}}
 }

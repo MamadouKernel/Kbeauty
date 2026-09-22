@@ -1,3 +1,14 @@
+# Build local (aucun CDN) des styles Tailwind : compile wwwroot/css/tailwind.css a partir des
+# classes reellement utilisees dans les .razor, remplace l'ancien cdn.tailwindcss.com.
+FROM node:20-alpine AS assets
+WORKDIR /assets
+COPY src/KekeBeauty.Web/package.json src/KekeBeauty.Web/package-lock.json* ./
+RUN npm install
+COPY src/KekeBeauty.Web/tailwind.config.js ./
+COPY src/KekeBeauty.Web/Components ./Components
+COPY src/KekeBeauty.Web/wwwroot/css/tailwind-input.css ./wwwroot/css/tailwind-input.css
+RUN npm run build:css
+
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
@@ -11,6 +22,7 @@ COPY tests/KekeBeauty.Api.Tests/KekeBeauty.Api.Tests.csproj tests/KekeBeauty.Api
 RUN dotnet restore src/KekeBeauty.Web/KekeBeauty.Web.csproj
 
 COPY . .
+COPY --from=assets /assets/wwwroot/css/tailwind.css src/KekeBeauty.Web/wwwroot/css/tailwind.css
 RUN dotnet publish src/KekeBeauty.Web/KekeBeauty.Web.csproj -c Release -o /app --no-restore
 
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime

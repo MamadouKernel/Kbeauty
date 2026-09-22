@@ -45,10 +45,7 @@
                     <div><strong>Vos données de paiement restent protégées</strong><p>Keke Beauty ne stocke aucune donnée bancaire ou code Mobile Money.</p></div>
                 </div>
 
-                @if (!string.IsNullOrWhiteSpace(_message))
-                {
-                    <div class="flow-message @(_success ? "is-success" : "is-error")" role="status">@_message</div>
-                }
+                <ToastBridge Message="@_message" Severity="@(_success ? "success" : "danger")" OnShown="@(() => _message = null)" />
 
                 @if (_state.StatutPaiement == "REUSSIE")
                 {

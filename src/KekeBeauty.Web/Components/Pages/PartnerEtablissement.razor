@@ -228,55 +228,66 @@
                     <h2 class="font-label-lg text-label-lg text-text-primary">Mon équipe</h2>
                 </div>
 
-                @if (_equipe.Count == 0)
+                @if (!_gestionEquipeAutorisee)
                 {
-                    <p class="font-body-sm text-body-sm text-on-surface-variant py-space-sm">Aucune collaboratrice référencée pour l'instant.</p>
+                    <div class="plan-locked-inline">
+                        <span class="material-symbols-outlined" aria-hidden="true">workspace_premium</span>
+                        <div class="min-w-0">
+                            <strong>Fonctionnalité Pro</strong>
+                            <p>La gestion de l'équipe (ajouter des collaboratrices, leur donner accès au portail) n'est pas incluse dans votre formule Free.</p>
+                        </div>
+                        <a href="@($"/partenaire/etablissements/{Id}/abonnement")">Passer au Pro</a>
+                    </div>
                 }
                 else
                 {
-                    <div class="flex flex-col gap-space-sm">
-                        @foreach (var collaborateur in _equipe)
-                        {
-                            <div class="flex items-center justify-between p-space-sm rounded-lg bg-surface-container-low">
-                                <div class="flex items-center gap-2.5 min-w-0">
-                                    <div class="w-9 h-9 rounded-full bg-lavender-subtle flex items-center justify-center text-primary shrink-0">
-                                        <span class="material-symbols-outlined text-[18px]">person</span>
+                    @if (_equipe.Count == 0)
+                    {
+                        <p class="font-body-sm text-body-sm text-on-surface-variant py-space-sm">Aucune collaboratrice référencée pour l'instant.</p>
+                    }
+                    else
+                    {
+                        <div class="flex flex-col gap-space-sm">
+                            @foreach (var collaborateur in _equipe)
+                            {
+                                <div class="flex items-center justify-between p-space-sm rounded-lg bg-surface-container-low">
+                                    <div class="flex items-center gap-2.5 min-w-0">
+                                        <div class="w-9 h-9 rounded-full bg-lavender-subtle flex items-center justify-center text-primary shrink-0">
+                                            <span class="material-symbols-outlined text-[18px]">person</span>
+                                        </div>
+                                        <div class="min-w-0">
+                                            <p class="font-label-md text-label-md text-text-primary truncate">@collaborateur.Nom</p>
+                                            @if (!string.IsNullOrWhiteSpace(collaborateur.Specialite))
+                                            {
+                                                <p class="font-body-sm text-body-sm text-on-surface-variant truncate">@collaborateur.Specialite</p>
+                                            }
+                                            @if (!string.IsNullOrWhiteSpace(collaborateur.Telephone))
+                                            {
+                                                <p class="font-body-sm text-body-sm text-on-surface-variant truncate">@collaborateur.Telephone · @(collaborateur.CompteActif ? "Compte actif" : "Compte non activé")</p>
+                                            }
+                                        </div>
                                     </div>
-                                    <div class="min-w-0">
-                                        <p class="font-label-md text-label-md text-text-primary truncate">@collaborateur.Nom</p>
-                                        @if (!string.IsNullOrWhiteSpace(collaborateur.Specialite))
-                                        {
-                                            <p class="font-body-sm text-body-sm text-on-surface-variant truncate">@collaborateur.Specialite</p>
-                                        }
-                                        @if (!string.IsNullOrWhiteSpace(collaborateur.Telephone))
-                                        {
-                                            <p class="font-body-sm text-body-sm text-on-surface-variant truncate">@collaborateur.Telephone · @(collaborateur.CompteActif ? "Compte actif" : "Compte non activé")</p>
-                                        }
-                                    </div>
+                                    <button class="w-8 h-8 rounded-full flex items-center justify-center text-error hover:bg-error-container shrink-0" type="button" @onclick="() => RetirerCollaborateurAsync(collaborateur.IdCollaborateur)">
+                                        <span class="material-symbols-outlined text-[18px]">delete</span>
+                                    </button>
                                 </div>
-                                <button class="w-8 h-8 rounded-full flex items-center justify-center text-error hover:bg-error-container shrink-0" type="button" @onclick="() => RetirerCollaborateurAsync(collaborateur.IdCollaborateur)">
-                                    <span class="material-symbols-outlined text-[18px]">delete</span>
-                                </button>
-                            </div>
-                        }
-                    </div>
-                }
+                            }
+                        </div>
+                    }
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-space-sm">
-                    <input class="bg-surface-container-low rounded-lg px-3 py-2.5 text-body-md focus:outline-none" placeholder="Nom" @bind="_nomCollaborateur" @bind:event="oninput" />
-                    <input class="bg-surface-container-low rounded-lg px-3 py-2.5 text-body-md focus:outline-none" placeholder="Spécialité (optionnel)" @bind="_specialiteCollaborateur" @bind:event="oninput" />
-                </div>
-                <input class="bg-surface-container-low rounded-lg px-3 py-2.5 text-body-md focus:outline-none" placeholder="Téléphone (+225...) pour l'accès au portail collaboratrice" @bind="_telephoneCollaborateur" @bind:event="oninput" />
-                <button class="mt-space-xs py-2.5 rounded-full bg-primary-container text-on-primary font-label-md text-label-md shadow-sm" type="button" @onclick="AjouterCollaborateurAsync">Ajouter à l'équipe</button>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-space-sm">
+                        <input class="bg-surface-container-low rounded-lg px-3 py-2.5 text-body-md focus:outline-none" placeholder="Nom" @bind="_nomCollaborateur" @bind:event="oninput" />
+                        <input class="bg-surface-container-low rounded-lg px-3 py-2.5 text-body-md focus:outline-none" placeholder="Spécialité (optionnel)" @bind="_specialiteCollaborateur" @bind:event="oninput" />
+                    </div>
+                    <input class="bg-surface-container-low rounded-lg px-3 py-2.5 text-body-md focus:outline-none" placeholder="Téléphone (+225...) pour l'accès au portail collaboratrice" @bind="_telephoneCollaborateur" @bind:event="oninput" />
+                    <button class="mt-space-xs py-2.5 rounded-full bg-primary-container text-on-primary font-label-md text-label-md shadow-sm" type="button" @onclick="AjouterCollaborateurAsync">Ajouter à l'équipe</button>
+                }
             </div>
 
-            @if (!string.IsNullOrEmpty(_message))
-            {
-                <div class="rounded-xl px-space-md py-space-sm font-body-md text-body-md @(_success ? "bg-status-available/10 text-status-available" : "bg-error-container text-on-error-container")">@_message</div>
-            }
         }
     </div>
 </main>
+<ToastBridge Message="@_message" Severity="@(_success ? "success" : "danger")" OnShown="@(() => _message = null)" />
 
 @code {
     [Parameter] public Guid Id { get; set; }
@@ -300,6 +311,7 @@
     private string _modePaiementService = "ESPECES";
     private bool _savingMode;
     private bool _paiementMobileAutorise;
+    private bool _gestionEquipeAutorisee;
     private bool _paiementWave;
     private bool _paiementOrangeMoney;
     private bool _paiementMoovMoney;
@@ -326,6 +338,7 @@
         await LoadDetailAsync();
         var (_, usage) = await PartnerApi.GetPlanUsageAsync(_idPartner.Value, Id, CancellationToken.None);
         _paiementMobileAutorise = usage?.PaiementMobile == true && _statutKyc == "VALIDE";
+        _gestionEquipeAutorisee = usage?.GestionEquipe == true;
         await LoadEquipeAsync();
         _unavailabilities = await PartnerApi.GetIndisponibilitesAsync(_idPartner.Value, Id, CancellationToken.None);
         _checkingAuth = false;

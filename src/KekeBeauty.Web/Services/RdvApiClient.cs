@@ -6,10 +6,25 @@ namespace KekeBeauty.Web.Services;
 public sealed class RdvApiClient
 {
     private readonly HttpClient _httpClient;
+    private readonly ClientSessionService _session;
 
-    public RdvApiClient(HttpClient httpClient)
+    public RdvApiClient(HttpClient httpClient, ClientSessionService session)
     {
         _httpClient = httpClient;
+        _session = session;
+    }
+
+    // Le jeton est attache ici (typed client, scope DI correct du circuit) plutot que dans
+    // ClientAuthHandler : IHttpClientFactory construit les DelegatingHandler via un scope DI mis
+    // en cache/tourniquet distinct du circuit Blazor courant, donc ProtectedLocalStorage
+    // (IJSRuntime) y echoue silencieusement - le jeton n'atteint jamais l'API.
+    private async Task AddTokenAsync(HttpRequestMessage request)
+    {
+        var token = await _session.GetTokenAsync();
+        if (!string.IsNullOrWhiteSpace(token))
+        {
+            request.Headers.TryAddWithoutValidation("X-Client-Token", token);
+        }
     }
 
     public async Task<(bool Success, List<CreneauOccupe> Creneaux)> GetCreneauxAsync(Guid idEtablissement, DateOnly date, CancellationToken cancellationToken)
@@ -37,6 +52,7 @@ public sealed class RdvApiClient
                 Content = JsonContent.Create(new { idEtablissement, idPrestation, dateHeureDebut, modePaiementChoisi })
             };
             request.Headers.Add("X-Client-Id", idClient.ToString());
+            await AddTokenAsync(request);
 
             var response = await _httpClient.SendAsync(request, cancellationToken);
             if (response.IsSuccessStatusCode)
@@ -62,6 +78,7 @@ public sealed class RdvApiClient
         {
             using var request = new HttpRequestMessage(HttpMethod.Get, "rdv");
             request.Headers.Add("X-Client-Id", idClient.ToString());
+            await AddTokenAsync(request);
 
             var response = await _httpClient.SendAsync(request, cancellationToken);
             if (!response.IsSuccessStatusCode)
@@ -85,6 +102,7 @@ public sealed class RdvApiClient
         {
             using var request = new HttpRequestMessage(HttpMethod.Post, $"rdv/{idRdv}/paiement/relancer");
             request.Headers.Add("X-Client-Id", idClient.ToString());
+            await AddTokenAsync(request);
 
             var response = await _httpClient.SendAsync(request, cancellationToken);
             var body = await response.Content.ReadFromJsonAsync<Dictionary<string, object>>(cancellationToken);
@@ -111,6 +129,7 @@ public sealed class RdvApiClient
         {
             using var request = new HttpRequestMessage(HttpMethod.Post, $"rdv/{idRdv}/annuler");
             request.Headers.Add("X-Client-Id", idClient.ToString());
+            await AddTokenAsync(request);
 
             var response = await _httpClient.SendAsync(request, cancellationToken);
             if (!response.IsSuccessStatusCode)
@@ -138,6 +157,7 @@ public sealed class RdvApiClient
                 Content = JsonContent.Create(new { note, commentaire })
             };
             request.Headers.Add("X-Client-Id", idClient.ToString());
+            await AddTokenAsync(request);
 
             var response = await _httpClient.SendAsync(request, cancellationToken);
             if (response.IsSuccessStatusCode)
@@ -161,6 +181,7 @@ public sealed class RdvApiClient
         {
             using var request = new HttpRequestMessage(HttpMethod.Post, $"rdv/{idRdv}/paiement/verifier");
             request.Headers.Add("X-Client-Id", idClient.ToString());
+            await AddTokenAsync(request);
 
             var response = await _httpClient.SendAsync(request, cancellationToken);
             if (!response.IsSuccessStatusCode)
@@ -183,6 +204,7 @@ public sealed class RdvApiClient
         {
             using var request = new HttpRequestMessage(HttpMethod.Get, $"rdv/{idRdv}");
             request.Headers.Add("X-Client-Id", idClient.ToString());
+            await AddTokenAsync(request);
             var response = await _httpClient.SendAsync(request, cancellationToken);
             if (response.IsSuccessStatusCode)
                 return (true, "ok", await response.Content.ReadFromJsonAsync<RdvHistoriqueItem>(cancellationToken));
@@ -196,6 +218,7 @@ public sealed class RdvApiClient
         {
             using var request = new HttpRequestMessage(HttpMethod.Get, $"rdv/{idRdv}");
             request.Headers.Add("X-Client-Id", idClient.ToString());
+            await AddTokenAsync(request);
 
             var response = await _httpClient.SendAsync(request, cancellationToken);
             return response.IsSuccessStatusCode
@@ -217,6 +240,7 @@ public sealed class RdvApiClient
                 Content = JsonContent.Create(new { motif })
             };
             request.Headers.Add("X-Client-Id", idClient.ToString());
+            await AddTokenAsync(request);
 
             var response = await _httpClient.SendAsync(request, cancellationToken);
             if (response.IsSuccessStatusCode)
@@ -244,6 +268,7 @@ public sealed class RdvApiClient
                 Content = JsonContent.Create(new { idCollaborateur, montant })
             };
             request.Headers.Add("X-Client-Id", idClient.ToString());
+            await AddTokenAsync(request);
 
             var response = await _httpClient.SendAsync(request, cancellationToken);
             var body = await response.Content.ReadFromJsonAsync<Dictionary<string, string>>(cancellationToken);
@@ -269,6 +294,7 @@ public sealed class RdvApiClient
                 Content = JsonContent.Create(new { dateHeureDebut })
             };
             request.Headers.Add("X-Client-Id", idClient.ToString());
+            await AddTokenAsync(request);
             var response = await _httpClient.SendAsync(request, cancellationToken);
             if (response.IsSuccessStatusCode) return (true, "reprogramme");
             var body = await response.Content.ReadFromJsonAsync<Dictionary<string, string>>(cancellationToken);
@@ -286,6 +312,7 @@ public sealed class RdvApiClient
                 Content = JsonContent.Create(new { minutes })
             };
             request.Headers.Add("X-Client-Id", idClient.ToString());
+            await AddTokenAsync(request);
             var response = await _httpClient.SendAsync(request, cancellationToken);
             if (response.IsSuccessStatusCode) return (true, "retard_signale");
             var body = await response.Content.ReadFromJsonAsync<Dictionary<string, string>>(cancellationToken);
@@ -295,9 +322,9 @@ public sealed class RdvApiClient
     }
     public async Task<string?> GetQrDataUrlAsync(Guid idClient,Guid idRdv,CancellationToken cancellationToken)
     {
-        try{using var request=new HttpRequestMessage(HttpMethod.Get,$"rdv/{idRdv}/qr");request.Headers.Add("X-Client-Id",idClient.ToString());var response=await _httpClient.SendAsync(request,cancellationToken);if(!response.IsSuccessStatusCode)return null;var svg=await response.Content.ReadAsStringAsync(cancellationToken);return $"data:image/svg+xml;base64,{Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(svg))}";}catch{return null;}
+        try{using var request=new HttpRequestMessage(HttpMethod.Get,$"rdv/{idRdv}/qr");request.Headers.Add("X-Client-Id",idClient.ToString());await AddTokenAsync(request);var response=await _httpClient.SendAsync(request,cancellationToken);if(!response.IsSuccessStatusCode)return null;var svg=await response.Content.ReadAsStringAsync(cancellationToken);return $"data:image/svg+xml;base64,{Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(svg))}";}catch{return null;}
     }
     public async Task<(bool Success,int BonusPoints,string? Status)> UploadReviewPhotosAsync(Guid idClient,Guid idRdv,byte[] before,string beforeName,byte[] after,string afterName,bool sharePublicly,CancellationToken cancellationToken)
     {
-        try{using var content=new MultipartFormDataContent();content.Add(new ByteArrayContent(before),"photoAvant",beforeName);content.Add(new ByteArrayContent(after),"photoApres",afterName);content.Add(new StringContent(sharePublicly.ToString()),"partagerPubliquement");using var request=new HttpRequestMessage(HttpMethod.Post,$"rdv/{idRdv}/avis/photos"){Content=content};request.Headers.Add("X-Client-Id",idClient.ToString());var response=await _httpClient.SendAsync(request,cancellationToken);var text=await response.Content.ReadAsStringAsync(cancellationToken);if(!response.IsSuccessStatusCode)return(false,0,response.StatusCode.ToString());var body=System.Text.Json.JsonSerializer.Deserialize<Dictionary<string,System.Text.Json.JsonElement>>(text,new System.Text.Json.JsonSerializerOptions{PropertyNameCaseInsensitive=true});return(true,body is not null&&body.TryGetValue("bonusPoints",out var p)?p.GetInt32():0,"saved");}catch{return(false,0,"network_error");}
+        try{using var content=new MultipartFormDataContent();content.Add(new ByteArrayContent(before),"photoAvant",beforeName);content.Add(new ByteArrayContent(after),"photoApres",afterName);content.Add(new StringContent(sharePublicly.ToString()),"partagerPubliquement");using var request=new HttpRequestMessage(HttpMethod.Post,$"rdv/{idRdv}/avis/photos"){Content=content};request.Headers.Add("X-Client-Id",idClient.ToString());await AddTokenAsync(request);var response=await _httpClient.SendAsync(request,cancellationToken);var text=await response.Content.ReadAsStringAsync(cancellationToken);if(!response.IsSuccessStatusCode)return(false,0,response.StatusCode.ToString());var body=System.Text.Json.JsonSerializer.Deserialize<Dictionary<string,System.Text.Json.JsonElement>>(text,new System.Text.Json.JsonSerializerOptions{PropertyNameCaseInsensitive=true});return(true,body is not null&&body.TryGetValue("bonusPoints",out var p)?p.GetInt32():0,"saved");}catch{return(false,0,"network_error");}
     }}

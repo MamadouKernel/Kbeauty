@@ -14,19 +14,19 @@ public sealed class AdminApiClient
 
     /// <summary>Verifie la validite de la cle en tentant un appel admin reel. Success=false si la
     /// cle est invalide/absente ou l'API indisponible (l'API ne distingue pas les deux cas non plus).</summary>
-    public async Task<(bool Success,string? Token)> LoginAsync(string email,string password,CancellationToken cancellationToken)
+    public async Task<(bool Success,string? Token,string? Role)> LoginAsync(string email,string password,CancellationToken cancellationToken)
     {
         try
         {
             using var request = new HttpRequestMessage(HttpMethod.Post, "admin/auth/login") { Content=JsonContent.Create(new { email, motDePasse=password }) };
             var response = await _httpClient.SendAsync(request, cancellationToken);
-            if(!response.IsSuccessStatusCode)return(false,null);
+            if(!response.IsSuccessStatusCode)return(false,null,null);
             var body=await response.Content.ReadFromJsonAsync<Dictionary<string,string>>(cancellationToken);
-            return(true,body?.GetValueOrDefault("token"));
+            return(true,body?.GetValueOrDefault("token"),body?.GetValueOrDefault("role"));
         }
         catch (Exception)
         {
-            return (false,null);
+            return (false,null,null);
         }
     }
 
@@ -138,9 +138,6 @@ public sealed class AdminApiClient
         }
     }
 
-    public Task<(bool Success, List<TarifStandard> Tarifs)> ListerTarifsAsync(string apiKey, CancellationToken cancellationToken) =>
-        GetListAsync<TarifStandard>(apiKey, "admin/tarifs", cancellationToken);
-
     public Task<(bool Success, List<ConfigurationFormuleDto> Formules)> ListerFormulesAsync(string apiKey, CancellationToken cancellationToken) =>
         GetListAsync<ConfigurationFormuleDto>(apiKey, "admin/formules", cancellationToken);
 
@@ -153,16 +150,101 @@ public sealed class AdminApiClient
             {
                 Content = JsonContent.Create(new
                 {
+                    formule.Libelle,
+                    formule.EstActif,
+                    formule.OrdreAffichage,
+                    formule.TarifMensuel,
+                    formule.TarifAnnuel,
                     formule.LimitePrestations,
                     formule.LimiteRdvMensuels,
                     formule.PaiementMobile,
                     formule.GestionEquipe,
                     formule.StatistiquesAvancees,
+                    formule.Avantages,
+                    formule.PromoPourcentage,
+                    formule.PromoFin,
                 })
             };
             request.Headers.Add("X-Admin-Token", apiKey);
             var response = await _httpClient.SendAsync(request, cancellationToken);
             return response.IsSuccessStatusCode ? (true, null) : (false, "configuration_invalide");
+        }
+        catch (Exception)
+        {
+            return (false, "network_error");
+        }
+    }
+
+    public async Task<(bool Success, string? Status)> CreateFormuleAsync(
+        string apiKey, ConfigurationFormuleDto formule, CancellationToken cancellationToken)
+    {
+        try
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Post, "admin/formules")
+            {
+                Content = JsonContent.Create(new
+                {
+                    formule.Formule,
+                    formule.Libelle,
+                    formule.OrdreAffichage,
+                    formule.TarifMensuel,
+                    formule.TarifAnnuel,
+                    formule.LimitePrestations,
+                    formule.LimiteRdvMensuels,
+                    formule.PaiementMobile,
+                    formule.GestionEquipe,
+                    formule.StatistiquesAvancees,
+                    formule.Avantages,
+                    formule.PromoPourcentage,
+                    formule.PromoFin,
+                })
+            };
+            request.Headers.Add("X-Admin-Token", apiKey);
+            var response = await _httpClient.SendAsync(request, cancellationToken);
+            if (response.IsSuccessStatusCode) return (true, null);
+            var errorBody = await response.Content.ReadFromJsonAsync<Dictionary<string, string>>(cancellationToken);
+            return (false, errorBody?.GetValueOrDefault("status") ?? "error");
+        }
+        catch (Exception)
+        {
+            return (false, "network_error");
+        }
+    }
+
+    public Task<(bool Success, string? Status)> SetFormuleParDefautAsync(string apiKey, string formule, CancellationToken cancellationToken) =>
+        PutAsync(apiKey, $"admin/formules/{formule}/defaut", null, cancellationToken);
+
+    public async Task<(bool Success, string? Status)> DeleteFormuleAsync(string apiKey, string formule, CancellationToken cancellationToken)
+    {
+        try
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Delete, $"admin/formules/{formule}");
+            request.Headers.Add("X-Admin-Token", apiKey);
+            var response = await _httpClient.SendAsync(request, cancellationToken);
+            if (response.IsSuccessStatusCode) return (true, null);
+            var errorBody = await response.Content.ReadFromJsonAsync<Dictionary<string, string>>(cancellationToken);
+            return (false, errorBody?.GetValueOrDefault("status") ?? "error");
+        }
+        catch (Exception)
+        {
+            return (false, "network_error");
+        }
+    }
+
+    private async Task<(bool Success, string? Status)> PutAsync(string apiKey, string url, object? body, CancellationToken cancellationToken)
+    {
+        try
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Put, url);
+            if (body is not null)
+            {
+                request.Content = JsonContent.Create(body);
+            }
+            request.Headers.Add("X-Admin-Token", apiKey);
+            var response = await _httpClient.SendAsync(request, cancellationToken);
+            if (response.IsSuccessStatusCode) return (true, null);
+            var errorBody = await response.Content.ReadFromJsonAsync<Dictionary<string, string>>(cancellationToken);
+            return (false, errorBody?.GetValueOrDefault("status") ?? "error");
         }
         catch (Exception)
         {
@@ -194,24 +276,6 @@ public sealed class AdminApiClient
 
     public Task<(bool Success, string? Status)> TraiterRemboursementAsync(string apiKey, Guid idRdv, string referenceRemboursement, CancellationToken cancellationToken) =>
         PostAsync(apiKey, $"admin/remboursements/{idRdv}/traiter", new { referenceRemboursement }, cancellationToken);
-
-    public async Task<(bool Success, string? Status)> UpdateTarifAsync(string apiKey, string periodicite, decimal montant, CancellationToken cancellationToken)
-    {
-        try
-        {
-            using var request = new HttpRequestMessage(HttpMethod.Put, $"admin/tarifs/{periodicite}")
-            {
-                Content = JsonContent.Create(new { montant })
-            };
-            request.Headers.Add("X-Admin-Token", apiKey);
-            var response = await _httpClient.SendAsync(request, cancellationToken);
-            return response.IsSuccessStatusCode ? (true, null) : (false, "invalid_montant");
-        }
-        catch (Exception)
-        {
-            return (false, "network_error");
-        }
-    }
 
     private async Task<(bool Success, List<T> Items)> GetListAsync<T>(string apiKey, string url, CancellationToken cancellationToken)
     {

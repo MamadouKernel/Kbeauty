@@ -26,11 +26,11 @@ public sealed class EtablissementRepository : IEtablissementRepository
             @"INSERT INTO etablissement
                 (id_etablissement, nom_etablissement, gps_latitude, gps_longitude, numero_service_client,
                  horaires, statut_kyc, url_photo_devanture, type_document_identite, url_document_recto, url_document_verso, id_utilisateur_gerant, id_commune,
-                 mode_paiement_service, paiement_wave, paiement_orange_money, paiement_moov_money)
+                 mode_paiement_service, paiement_wave, paiement_orange_money, paiement_moov_money, adresse_texte)
               VALUES
                 (@IdEtablissement, @NomEtablissement, @GpsLatitude, @GpsLongitude, @NumeroServiceClient,
                  @Horaires::jsonb, 'EN_ATTENTE', @UrlPhotoDevanture, @TypeDocumentIdentite, @UrlDocumentRecto, @UrlDocumentVerso, @IdUtilisateurGerant, @IdCommune,
-                 @ModePaiementService, @PaiementWave, @PaiementOrangeMoney, @PaiementMoovMoney)
+                 @ModePaiementService, @PaiementWave, @PaiementOrangeMoney, @PaiementMoovMoney, @AdresseTexte)
               RETURNING id_etablissement;",
             new
             {
@@ -49,6 +49,7 @@ public sealed class EtablissementRepository : IEtablissementRepository
                 etablissement.PaiementWave,
                 etablissement.PaiementOrangeMoney,
                 etablissement.PaiementMoovMoney,
+                etablissement.AdresseTexte,
                 IdCommune = SeedCommuneId,
             },
             transaction: transaction,

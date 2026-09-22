@@ -1,5 +1,13 @@
 namespace KekeBeauty.Application.Auth;
 
+public static class OtpChallengePolicy
+{
+    /// <summary>Audit securite : au-dela de ce nombre d'echecs, le challenge est invalide
+    /// independamment du rate limiting par IP (qu'un attaquant distribue sur plusieurs IP peut
+    /// contourner pour un meme numero de telephone cible).</summary>
+    public const int MaxAttempts = 5;
+}
+
 public sealed class OtpChallenge
 {
     public Guid Id { get; set; }
@@ -7,6 +15,7 @@ public sealed class OtpChallenge
     public string CodeHash { get; set; } = string.Empty;
     public DateTimeOffset ExpiresAt { get; set; }
     public string Status { get; set; } = string.Empty;
+    public int Attempts { get; set; }
 }
 
 public interface IOtpChallengeRepository
@@ -21,4 +30,11 @@ public interface IOtpChallengeRepository
     Task<OtpChallenge?> GetActivePendingAsync(string telephone, string typeCompte, CancellationToken cancellationToken);
 
     Task MarkConsumedAsync(Guid id, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Incremente le compteur d'echecs du challenge de facon atomique et l'invalide (status
+    /// INVALIDATED) si le seuil OtpChallengePolicy.MaxAttempts est atteint. Retourne le nombre
+    /// d'essais apres incrementation.
+    /// </summary>
+    Task<int> RegisterFailedAttemptAsync(Guid id, CancellationToken cancellationToken);
 }

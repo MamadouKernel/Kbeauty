@@ -6,10 +6,25 @@ namespace KekeBeauty.Web.Services;
 public sealed class PartnerRdvApiClient
 {
     private readonly HttpClient _httpClient;
+    private readonly PartnerSessionService _session;
 
-    public PartnerRdvApiClient(HttpClient httpClient)
+    public PartnerRdvApiClient(HttpClient httpClient, PartnerSessionService session)
     {
         _httpClient = httpClient;
+        _session = session;
+    }
+
+    // Le jeton est attache ici (typed client, scope DI correct du circuit) plutot que dans
+    // PartnerAuthHandler : IHttpClientFactory construit les DelegatingHandler via un scope DI
+    // mis en cache/tourniquet distinct du circuit Blazor courant, donc ProtectedLocalStorage
+    // (IJSRuntime) y echoue silencieusement - le jeton n'atteint jamais l'API (bug reproduit).
+    private async Task AddTokenAsync(HttpRequestMessage request)
+    {
+        var token = await _session.GetTokenAsync();
+        if (!string.IsNullOrWhiteSpace(token))
+        {
+            request.Headers.TryAddWithoutValidation("X-Partner-Token", token);
+        }
     }
 
     public async Task<(bool Success, List<RdvPartenaire> Rdvs)> ListAsync(Guid idPartner, Guid idEtablissement, CancellationToken cancellationToken)
@@ -18,6 +33,7 @@ public sealed class PartnerRdvApiClient
         {
             using var request = new HttpRequestMessage(HttpMethod.Get, $"partenaire/etablissements/{idEtablissement}/rdv");
             request.Headers.Add("X-Partner-Id", idPartner.ToString());
+            await AddTokenAsync(request);
 
             var response = await _httpClient.SendAsync(request, cancellationToken);
             if (!response.IsSuccessStatusCode)
@@ -58,7 +74,7 @@ public sealed class PartnerRdvApiClient
 
     public async Task<(bool Success,QrVerificationDto? Result,string? Status)> VerifyQrAsync(Guid idPartner,string token,CancellationToken cancellationToken)
     {
-        try{using var request=new HttpRequestMessage(HttpMethod.Get,$"rdv/qr/verify?token={Uri.EscapeDataString(token)}");request.Headers.Add("X-Partner-Id",idPartner.ToString());var response=await _httpClient.SendAsync(request,cancellationToken);if(!response.IsSuccessStatusCode)return(false,null,response.StatusCode.ToString());return(true,await response.Content.ReadFromJsonAsync<QrVerificationDto>(cancellationToken),"verified");}catch{return(false,null,"network_error");}
+        try{using var request=new HttpRequestMessage(HttpMethod.Get,$"rdv/qr/verify?token={Uri.EscapeDataString(token)}");request.Headers.Add("X-Partner-Id",idPartner.ToString());await AddTokenAsync(request);var response=await _httpClient.SendAsync(request,cancellationToken);if(!response.IsSuccessStatusCode)return(false,null,response.StatusCode.ToString());return(true,await response.Content.ReadFromJsonAsync<QrVerificationDto>(cancellationToken),"verified");}catch{return(false,null,"network_error");}
     }
     private async Task<(bool Success, string? Status)> SendDecisionAsync(Guid idPartner, string url, object? body, CancellationToken cancellationToken)
     {
@@ -70,6 +86,7 @@ public sealed class PartnerRdvApiClient
                 request.Content = JsonContent.Create(body);
             }
             request.Headers.Add("X-Partner-Id", idPartner.ToString());
+            await AddTokenAsync(request);
 
             var response = await _httpClient.SendAsync(request, cancellationToken);
             if (response.IsSuccessStatusCode)

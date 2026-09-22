@@ -27,6 +27,12 @@ public sealed class RdvPartenaire
 public sealed class PlanUsageDto
 {
     public string Formule { get; set; } = "FREE";
+    public string Libelle { get; set; } = string.Empty;
+    public bool EstActif { get; set; } = true;
+    public bool EstDefaut { get; set; }
+    public int OrdreAffichage { get; set; }
+    public decimal? TarifMensuel { get; set; }
+    public decimal? TarifAnnuel { get; set; }
     public int PrestationsUtilisees { get; set; }
     public int? LimitePrestations { get; set; }
     public int RendezVousMoisUtilises { get; set; }
@@ -34,12 +40,12 @@ public sealed class PlanUsageDto
     public bool PaiementMobile { get; set; }
     public bool GestionEquipe { get; set; }
     public bool StatistiquesAvancees { get; set; }
-}
-
-public sealed class TarifAbonnementDto
-{
-    public string Periodicite { get; set; } = string.Empty;
-    public decimal Montant { get; set; }
+    public List<string> Avantages { get; set; } = [];
+    public int? PromoPourcentage { get; set; }
+    public DateTimeOffset? PromoFin { get; set; }
+    public bool EstPromoActive { get; set; }
+    public decimal? TarifMensuelEffectif { get; set; }
+    public decimal? TarifAnnuelEffectif { get; set; }
 }
 
 public sealed class IndisponibiliteDto
@@ -50,7 +56,7 @@ public sealed class IndisponibiliteDto
     public string? Motif { get; set; }
 }
 public sealed class PartnerProfileDto { public Guid IdUtilisateur {get;set;} public string Telephone {get;set;}=""; public string Nom {get;set;}=""; public string? Email {get;set;} public bool HasPhotoProfil {get;set;} }
-public sealed class AbonnementHistoriqueDto { public Guid IdAbonnement {get;set;} public string Periodicite {get;set;}=""; public decimal Montant {get;set;} public string StatutAbonnement {get;set;}=""; public DateOnly DateDebutEngagement {get;set;} }
+public sealed class AbonnementHistoriqueDto { public Guid IdAbonnement {get;set;} public string Formule {get;set;}=""; public string Periodicite {get;set;}=""; public decimal Montant {get;set;} public string StatutAbonnement {get;set;}=""; public DateOnly DateDebutEngagement {get;set;} }
 
 public sealed class QrVerificationDto { public Guid IdRdv {get;set;} public string Statut {get;set;}=""; public DateTimeOffset DateHeureDebut {get;set;} public string LibellePrestation {get;set;}=""; public string NomClient {get;set;}=""; public decimal AcomptePaye {get;set;} public string Reference {get;set;}=""; public bool Verifie {get;set;} }
 

@@ -1,0 +1,31 @@
+@implements IDisposable
+@inject KekeBeauty.Web.Services.ToastService Toast
+
+<div class="toast-stack" aria-live="polite" aria-atomic="true">
+    @foreach (var toast in Toast.Toasts)
+    {
+        <div class="toast-item toast-@toast.Severity.ToString().ToLowerInvariant()" @key="toast.Id" role="@(toast.Severity == KekeBeauty.Web.Services.ToastSeverity.Error ? "alert" : "status")">
+            <span class="material-symbols-outlined toast-icon" aria-hidden="true">@Icon(toast.Severity)</span>
+            <span class="toast-text">@toast.Text</span>
+            <button type="button" class="toast-close" @onclick="() => Toast.Dismiss(toast.Id)" aria-label="Fermer la notification">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+    }
+</div>
+
+@code {
+    protected override void OnInitialized() => Toast.OnChange += Refresh;
+
+    private void Refresh() => InvokeAsync(StateHasChanged);
+
+    public void Dispose() => Toast.OnChange -= Refresh;
+
+    private static string Icon(KekeBeauty.Web.Services.ToastSeverity severity) => severity switch
+    {
+        KekeBeauty.Web.Services.ToastSeverity.Success => "check_circle",
+        KekeBeauty.Web.Services.ToastSeverity.Error => "error",
+        KekeBeauty.Web.Services.ToastSeverity.Warning => "warning",
+        _ => "info",
+    };
+}

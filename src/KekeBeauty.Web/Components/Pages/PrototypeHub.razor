@@ -1,9 +1,13 @@
 @page "/prototype"
 @page "/parcours"
 @rendermode @(new InteractiveServerRenderMode(prerender: false))
+@inject KekeBeauty.Web.Services.AdminSessionService AdminSession
+@inject NavigationManager Navigation
 
 <PageTitle>Hub des Parcours & Écrans Google Stitch — Keke Beauty</PageTitle>
 
+@if (_authorized)
+{
 <div class="min-h-screen bg-surface flex flex-col font-body-md text-body-md text-on-surface">
     <!-- Header -->
     <header class="fixed top-0 inset-x-0 h-16 bg-surface-cream/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-40 flex items-center justify-between px-6 lg:px-12">
@@ -138,9 +142,22 @@
         </div>
     </main>
 </div>
+}
 
 @code {
     private string _activeRole = "all";
+    private bool _authorized;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var role = await AdminSession.GetRoleAsync();
+        if (role != "SUPER_ADMIN")
+        {
+            Navigation.NavigateTo("/", forceLoad: true);
+            return;
+        }
+        _authorized = true;
+    }
 
     private RenderFragment RenderScreenCard(string url, string icon, string title, string description) => __builder =>
     {

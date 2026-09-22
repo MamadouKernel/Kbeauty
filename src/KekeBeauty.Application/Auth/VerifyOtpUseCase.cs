@@ -24,13 +24,16 @@ public sealed class VerifyOtpUseCase
         var targetTypeCompte = typeCompte.ToString().ToUpperInvariant();
         var challenge = await _challengeRepository.GetActivePendingAsync(telephone, targetTypeCompte, cancellationToken);
 
-        if (challenge is null || challenge.ExpiresAt < DateTimeOffset.UtcNow)
+        if (challenge is null || challenge.ExpiresAt < DateTimeOffset.UtcNow || challenge.Attempts >= OtpChallengePolicy.MaxAttempts)
         {
             return new VerifyOtpResult(false, "invalid_or_expired_code");
         }
 
-        if (!string.Equals(challenge.CodeHash, HashCode(code), StringComparison.Ordinal))
+        if (!CryptographicOperations.FixedTimeEquals(Encoding.UTF8.GetBytes(challenge.CodeHash), Encoding.UTF8.GetBytes(HashCode(code))))
         {
+            // Audit securite : compteur d'echecs independant du rate limiting par IP, qui a lui
+            // seul ne bloque pas un brute force distribue sur plusieurs IP pour un meme numero.
+            await _challengeRepository.RegisterFailedAttemptAsync(challenge.Id, cancellationToken);
             return new VerifyOtpResult(false, "invalid_or_expired_code");
         }
 

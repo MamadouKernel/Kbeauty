@@ -1,4 +1,5 @@
 @inject PartnerSessionService PartnerSession
+@inject PartnerApiClient PartnerApi
 @inject NavigationManager Navigation
 @* Barre de navigation haute desktop pour l'espace partenaire (Parcours 4 web). *@
 <header class="hidden lg:block fixed top-0 left-0 right-0 z-50 bg-surface-cream/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(58,13,82,0.05)]">
@@ -7,7 +8,10 @@
             <img alt="Keke Beauty" class="h-8 w-auto object-contain" src="/img/logo.png" />
             <div class="flex items-center gap-space-xs">
                 <span class="font-headline-sm text-headline-sm text-plum-deep tracking-tight font-bold">Keke Beauty</span>
-                <span class="px-2 py-0.5 rounded-full bg-lavender-subtle text-primary text-label-sm font-label-sm uppercase tracking-wider">Pro</span>
+                @if (_formule is not null)
+                {
+                    <span class="plan-badge @(_formule == "PRO" ? "plan-badge-pro" : "")">@(_formule == "PRO" ? "Pro" : "Free")</span>
+                }
             </div>
         </a>
         <nav class="flex items-center gap-space-sm">
@@ -19,7 +23,24 @@
                 <a class="px-3 py-1.5 rounded-full font-label-md text-label-md transition-colors @(ActivePath == "abonnement" ? "bg-primary-container text-on-primary font-bold" : "text-on-surface-variant hover:text-on-surface")" href="@($"/partenaire/etablissements/{IdEtablissement}/abonnement")">Abonnement</a>
             }
         </nav>
-        <div class="partner-header-actions"><a href="/partenaire/profil" aria-label="Mon profil partenaire" class="partner-profile-link"><span class="material-symbols-outlined" aria-hidden="true">person</span><span>Mon profil</span></a><button class="session-logout" type="button" @onclick="LogoutAsync"><span class="material-symbols-outlined" aria-hidden="true">logout</span><span>Déconnexion</span></button></div>
+        <div class="partner-header-actions">
+            <details class="partner-profile-menu">
+                <summary class="partner-profile-link" aria-label="Mon compte partenaire"><span class="material-symbols-outlined" aria-hidden="true">account_circle</span><span>Mon profil</span><span class="material-symbols-outlined partner-profile-chevron" aria-hidden="true">expand_more</span></summary>
+                <div class="partner-profile-menu-panel">
+                    <div class="partner-profile-menu-heading">
+                        <span class="partner-profile-avatar"><span class="material-symbols-outlined" aria-hidden="true">person</span></span>
+                        <div><strong>Mon espace partenaire</strong><small>Profil, sécurité et session</small></div>
+                    </div>
+                    <a href="/partenaire/profil"><span class="material-symbols-outlined" aria-hidden="true">person</span><span>Mon profil</span></a>
+                    @if (IdEtablissement is not null)
+                    {
+                        <a href="@($"/partenaire/etablissements/{IdEtablissement}/abonnement")"><span class="material-symbols-outlined" aria-hidden="true">workspace_premium</span><span>Abonnement</span></a>
+                    }
+                    <hr />
+                    <button type="button" class="partner-profile-menu-logout" @onclick="LogoutAsync"><span class="material-symbols-outlined" aria-hidden="true">logout</span><span>Déconnexion</span></button>
+                </div>
+            </details>
+        </div>
     </div>
 </header>
 
@@ -43,4 +64,31 @@
     private async Task LogoutAsync() { await PartnerSession.ClearAsync(); Navigation.NavigateTo("/login?role=partenaire", forceLoad: true); }
     [Parameter] public string ActivePath { get; set; } = "";
     [Parameter] public Guid? IdEtablissement { get; set; }
+
+    private Guid? _loadedForEtablissement;
+    private string? _formule;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (IdEtablissement == _loadedForEtablissement)
+        {
+            return;
+        }
+
+        _loadedForEtablissement = IdEtablissement;
+        _formule = null;
+        if (IdEtablissement is null)
+        {
+            return;
+        }
+
+        var idPartner = await PartnerSession.GetPartnerIdAsync();
+        if (idPartner is null)
+        {
+            return;
+        }
+
+        var (success, usage) = await PartnerApi.GetPlanUsageAsync(idPartner.Value, IdEtablissement.Value, CancellationToken.None);
+        _formule = success ? usage?.Formule : null;
+    }
 }

@@ -19,10 +19,7 @@
 </div>
 <button class="btn btn-primary" @onclick="LoginAsync" disabled="@_busy">Se connecter</button>
 
-@if (!string.IsNullOrEmpty(_message))
-{
-    <div class="alert alert-danger mt-3">@_message</div>
-}
+<ToastBridge Message="@_message" Severity="danger" OnShown="@(() => _message = null)" />
 
 </div></main>
 
@@ -48,12 +45,12 @@
         }
 
         _busy = true;
-        var (valid, token) = await AdminApi.LoginAsync(_email, _password, CancellationToken.None);
+        var (valid, token, role) = await AdminApi.LoginAsync(_email, _password, CancellationToken.None);
         _busy = false;
 
         if (valid)
         {
-            await Session.SetApiKeyAsync(token!);
+            await Session.SetApiKeyAsync(token!, role);
             Navigation.NavigateTo("/admin/dossiers");
             return;
         }

@@ -32,6 +32,7 @@ public sealed class PartnersController : ControllerBase
         [FromForm] bool paiementMoovMoney,
         [FromForm] string? googleOnboardingToken,
         [FromForm] string? categorie,
+        [FromForm] string? adresseTexte,
         [FromForm] string typeDocumentIdentite,
         IFormFile? photoDevanture,
         IFormFile? documentRecto,
@@ -63,7 +64,8 @@ public sealed class PartnersController : ControllerBase
             paiementMoovMoney,
             googleOnboardingToken,
             categorie,
-            authenticatedPartnerId);
+            authenticatedPartnerId,
+            string.IsNullOrWhiteSpace(adresseTexte) ? null : adresseTexte.Trim());
 
         var result = await _submitUseCase.ExecuteAsync(submission, cancellationToken);
 

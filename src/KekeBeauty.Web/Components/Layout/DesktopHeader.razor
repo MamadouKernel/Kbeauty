@@ -1,3 +1,7 @@
+@inject KekeBeauty.Web.Services.AdminSessionService AdminSession
+@inject KekeBeauty.Web.Services.ClientSessionService ClientSession
+@inject Microsoft.AspNetCore.Components.NavigationManager Navigation
+
 <header class="desktop-header hidden lg:block fixed top-0 left-0 right-0 z-50">
     <div class="desktop-header-inner">
         <a href="/" class="brand"><img alt="" src="/img/logo.png" /><span>Keke Beauty<small>LE TEMPS DE PRENDRE SOIN DE VOUS</small></span></a>
@@ -5,12 +9,49 @@
             <a class="@(ActivePath == "accueil" ? "is-active" : "")" href="/" aria-current="@(ActivePath == "accueil" ? "page" : null)">Découvrir</a>
             <a class="@(ActivePath == "carte" ? "is-active" : "")" href="/carte" aria-current="@(ActivePath == "carte" ? "page" : null)">La carte</a>
             <a class="@(ActivePath == "rendez-vous" ? "is-active" : "")" href="/mes-rendez-vous">Mes rendez-vous</a>
-            <a class="@(ActivePath == "prototype" ? "is-active" : "")" href="/prototype">Hub Parcours Stitch</a>
+            @if (_isSuperAdmin)
+            {
+                <a class="@(ActivePath == "prototype" ? "is-active" : "")" href="/prototype">Hub Parcours Stitch</a>
+            }
         </nav>
-        <a class="account-link" href="/mon-espace"><span class="material-symbols-outlined" aria-hidden="true">person</span> Mon espace</a>
+        @if (_isLoggedIn)
+        {
+            <details class="partner-profile-menu">
+                <summary class="account-link" aria-label="Mon compte"><span class="material-symbols-outlined" aria-hidden="true">person</span><span>Mon espace</span><span class="material-symbols-outlined partner-profile-chevron" aria-hidden="true">expand_more</span></summary>
+                <div class="partner-profile-menu-panel">
+                    <a href="/mon-espace"><span class="material-symbols-outlined" aria-hidden="true">person</span><span>Mon espace</span></a>
+                    <hr />
+                    <button type="button" class="partner-profile-menu-logout" @onclick="LogoutAsync"><span class="material-symbols-outlined" aria-hidden="true">logout</span><span>Se déconnecter</span></button>
+                </div>
+            </details>
+        }
+        else
+        {
+            <a class="account-link" href="/mon-espace"><span class="material-symbols-outlined" aria-hidden="true">person</span> Mon espace</a>
+        }
     </div>
 </header>
 @code {
     [Parameter] public string ActivePath { get; set; } = "";
+
+    private bool _isSuperAdmin;
+    private bool _isLoggedIn;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+
+        var role = await AdminSession.GetRoleAsync();
+        var clientId = await ClientSession.GetClientIdAsync();
+        _isSuperAdmin = role == "SUPER_ADMIN";
+        _isLoggedIn = clientId is not null;
+        StateHasChanged();
+    }
+
+    private async Task LogoutAsync()
+    {
+        await ClientSession.ClearAsync();
+        Navigation.NavigateTo("/", forceLoad: true);
+    }
 }
 

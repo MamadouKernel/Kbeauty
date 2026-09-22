@@ -22,7 +22,7 @@
     {
         <section class="postcare-intro"><p class="flow-eyebrow">RENDEZ-VOUS CERTIFIÉ</p><h1>Comment s’est passé votre soin ?</h1><p>@_rdv.LibellePrestation chez @_rdv.NomEtablissement</p></section>
 
-        @if (!string.IsNullOrWhiteSpace(_message)) { <div class="flow-message @(_success ? "is-success" : "is-error")">@_message</div> }
+        <ToastBridge Message="@_message" Severity="@(_success ? "success" : "danger")" OnShown="@(() => _message = null)" />
 
         <section class="postcare-card">
             <h2>Votre note globale</h2>

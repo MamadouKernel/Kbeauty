@@ -34,14 +34,36 @@ else
         </div>
     </div>
 
-    <h2>Contenu des packs</h2>
-    <p class="text-muted">Laissez une limite vide pour rendre la fonctionnalité illimitée.</p>
-    <div class="row g-3 mb-4">
+    <h2>Packs d'abonnement</h2>
+    <p class="text-muted">Créez, modifiez ou supprimez librement des packs. Laissez une limite vide pour la rendre illimitée ; laissez un tarif vide pour empêcher la souscription sur cette périodicité.</p>
+    <div class="row g-3 mb-3">
         @foreach (var formule in _formules)
         {
             <div class="col-12 col-lg-6">
                 <div class="card h-100"><div class="card-body">
-                    <h3 class="h5">Pack @formule.Formule</h3>
+                    <div class="d-flex justify-content-between align-items-start">
+                        <h3 class="h5 mb-0">@formule.Libelle <small class="text-muted">(@formule.Formule)</small></h3>
+                        <div class="d-flex gap-1">
+                            @if (formule.EstDefaut)
+                            {
+                                <span class="badge bg-primary">Par défaut</span>
+                            }
+                            else if (!formule.EstActif)
+                            {
+                                <span class="badge bg-secondary">Inactif</span>
+                            }
+                            @if (formule.EstPromoActive)
+                            {
+                                <span class="badge bg-danger">Promo -@(formule.PromoPourcentage)%</span>
+                            }
+                        </div>
+                    </div>
+                    <label class="form-label mt-2">Libellé</label>
+                    <input class="form-control" @bind="formule.Libelle" />
+                    <div class="row g-2 mt-1">
+                        <div class="col-6"><label class="form-label">Tarif mensuel (XOF)</label><input class="form-control" type="number" min="0" @bind="formule.TarifMensuel" /></div>
+                        <div class="col-6"><label class="form-label">Tarif annuel (XOF)</label><input class="form-control" type="number" min="0" @bind="formule.TarifAnnuel" /></div>
+                    </div>
                     <label class="form-label mt-2">Nombre maximum de prestations</label>
                     <input class="form-control" type="number" min="0" @bind="formule.LimitePrestations" />
                     <label class="form-label mt-2">Rendez-vous maximum par mois</label>
@@ -49,11 +71,64 @@ else
                     <div class="form-check mt-3"><input class="form-check-input" type="checkbox" @bind="formule.PaiementMobile" /><label class="form-check-label">Paiement mobile</label></div>
                     <div class="form-check"><input class="form-check-input" type="checkbox" @bind="formule.GestionEquipe" /><label class="form-check-label">Gestion de l’équipe</label></div>
                     <div class="form-check"><input class="form-check-input" type="checkbox" @bind="formule.StatistiquesAvancees" /><label class="form-check-label">Statistiques avancées</label></div>
-                    <button class="btn btn-primary mt-3" @onclick="() => SaveFormuleAsync(formule)">Enregistrer le pack @formule.Formule</button>
+                    <div class="form-check mt-2"><input class="form-check-input" type="checkbox" @bind="formule.EstActif" /><label class="form-check-label">Actif (souscriptible par les partenaires)</label></div>
+
+                    <label class="form-label mt-3">Avantages affichés (un par ligne, texte libre)</label>
+                    <textarea class="form-control" rows="3" placeholder="Badge Vérifié Premium&#10;Support WhatsApp prioritaire" @bind="formule.AvantagesTexte"></textarea>
+
+                    <fieldset class="border rounded p-2 mt-3">
+                        <legend class="h6 px-1 mb-0" style="width:auto">Promotion</legend>
+                        <div class="row g-2">
+                            <div class="col-6"><label class="form-label">Réduction (%)</label><input class="form-control" type="number" min="1" max="95" @bind="formule.PromoPourcentage" /></div>
+                            <div class="col-6"><label class="form-label">Fin (optionnel)</label><input class="form-control" type="datetime-local" @bind="formule.PromoFinLocale" /></div>
+                        </div>
+                        @if (formule.PromoPourcentage is not null)
+                        {
+                            <button type="button" class="btn btn-sm btn-outline-secondary mt-2" @onclick="() => { formule.PromoPourcentage = null; formule.PromoFinLocale = null; }">Retirer la promo</button>
+                        }
+                    </fieldset>
+
+                    <div class="d-flex gap-2 mt-3 flex-wrap">
+                        <button class="btn btn-primary" @onclick="() => SaveFormuleAsync(formule)">Enregistrer</button>
+                        @if (!formule.EstDefaut)
+                        {
+                            <button class="btn btn-outline-secondary" @onclick="() => SetDefaultAsync(formule)">Définir par défaut</button>
+                            <button class="btn btn-outline-danger" @onclick="() => DeleteFormuleAsync(formule)">Supprimer</button>
+                        }
+                    </div>
                 </div></div>
             </div>
         }
     </div>
+
+    <details class="mb-4">
+        <summary class="mb-2">Créer un nouveau pack</summary>
+        <div class="card"><div class="card-body">
+            <div class="row g-2">
+                <div class="col-md-3"><label class="form-label">Code (ex : PREMIUM)</label><input class="form-control" @bind="_nouveauFormule.Formule" placeholder="PREMIUM" /></div>
+                <div class="col-md-4"><label class="form-label">Libellé</label><input class="form-control" @bind="_nouveauFormule.Libelle" placeholder="Premium" /></div>
+                <div class="col-md-2"><label class="form-label">Ordre</label><input class="form-control" type="number" @bind="_nouveauFormule.OrdreAffichage" /></div>
+                <div class="col-md-3"></div>
+                <div class="col-md-3"><label class="form-label">Tarif mensuel</label><input class="form-control" type="number" min="0" @bind="_nouveauFormule.TarifMensuel" /></div>
+                <div class="col-md-3"><label class="form-label">Tarif annuel</label><input class="form-control" type="number" min="0" @bind="_nouveauFormule.TarifAnnuel" /></div>
+                <div class="col-md-3"><label class="form-label">Limite prestations</label><input class="form-control" type="number" min="0" @bind="_nouveauFormule.LimitePrestations" /></div>
+                <div class="col-md-3"><label class="form-label">Limite RDV/mois</label><input class="form-control" type="number" min="0" @bind="_nouveauFormule.LimiteRdvMensuels" /></div>
+            </div>
+            <div class="form-check mt-3"><input class="form-check-input" type="checkbox" @bind="_nouveauFormule.PaiementMobile" /><label class="form-check-label">Paiement mobile</label></div>
+            <div class="form-check"><input class="form-check-input" type="checkbox" @bind="_nouveauFormule.GestionEquipe" /><label class="form-check-label">Gestion de l’équipe</label></div>
+            <div class="form-check"><input class="form-check-input" type="checkbox" @bind="_nouveauFormule.StatistiquesAvancees" /><label class="form-check-label">Statistiques avancées</label></div>
+            <label class="form-label mt-3">Avantages affichés (un par ligne, texte libre)</label>
+            <textarea class="form-control" rows="3" placeholder="Badge Vérifié Premium&#10;Support WhatsApp prioritaire" @bind="_nouveauFormule.AvantagesTexte"></textarea>
+            <fieldset class="border rounded p-2 mt-3">
+                <legend class="h6 px-1 mb-0" style="width:auto">Promotion (optionnel)</legend>
+                <div class="row g-2">
+                    <div class="col-6"><label class="form-label">Réduction (%)</label><input class="form-control" type="number" min="1" max="95" @bind="_nouveauFormule.PromoPourcentage" /></div>
+                    <div class="col-6"><label class="form-label">Fin (optionnel)</label><input class="form-control" type="datetime-local" @bind="_nouveauFormule.PromoFinLocale" /></div>
+                </div>
+            </fieldset>
+            <button class="btn btn-primary mt-3" @onclick="CreateFormuleAsync">Créer le pack</button>
+        </div></div>
+    </details>
 
     @if (_abonnements.Count == 0)
     {
@@ -62,12 +137,13 @@ else
     else
     {
         <div class="table-scroll" role="region" aria-label="Liste des abonnements" tabindex="0"><table class="table">
-            <thead><tr><th>Établissement</th><th>Périodicité</th><th>Montant</th><th>Statut</th><th>Actions</th></tr></thead>
+            <thead><tr><th>Établissement</th><th>Pack</th><th>Périodicité</th><th>Montant</th><th>Statut</th><th>Actions</th></tr></thead>
             <tbody>
                 @foreach (var abonnement in _abonnements)
                 {
                     <tr>
                         <td>@abonnement.IdEtablissement</td>
+                        <td>@abonnement.Formule</td>
                         <td>@abonnement.Periodicite</td>
                         <td>@abonnement.Montant.ToString("N0") XOF</td>
                         <td>@abonnement.StatutAbonnement</td>
@@ -83,36 +159,10 @@ else
         </table></div>
     }
 
-    <h2>Tarif standard</h2>
-    @if (_tarifs.Count > 0)
-    {
-        <ul class="list-group mb-3" style="max-width:400px">
-            @foreach (var tarif in _tarifs)
-            {
-                <li class="list-group-item d-flex justify-content-between align-items-center">
-                    @tarif.Periodicite — @tarif.Montant.ToString("N0") XOF
-                </li>
-            }
-        </ul>
-    }
-    <div class="row g-2 mb-3">
-        <div class="col-auto">
-            <select class="form-select" @bind="_periodiciteTarif">
-                <option value="MENSUEL">Mensuel</option>
-                <option value="ANNUEL">Annuel</option>
-            </select>
-        </div>
-        <div class="col-auto"><input class="form-control" type="number" placeholder="Nouveau montant" @bind="_nouveauMontant" /></div>
-        <div class="col-auto"><button class="btn btn-primary" @onclick="UpdateTarifAsync">Modifier</button></div>
-    </div>
-
-    @if (!string.IsNullOrEmpty(_message))
-    {
-        <div class="alert @(_success ? "alert-success" : "alert-danger")">@_message</div>
-    }
 }
 
 </div></main>
+<ToastBridge Message="@_message" Severity="@(_success ? "success" : "danger")" OnShown="@(() => _message = null)" />
 
 @code {
     private string? _apiKey;
@@ -120,10 +170,8 @@ else
     private bool _error;
     private string _statut = "";
     private List<AbonnementResume> _abonnements = [];
-    private List<TarifStandard> _tarifs = [];
     private List<ConfigurationFormuleDto> _formules = [];
-    private string _periodiciteTarif = "MENSUEL";
-    private decimal _nouveauMontant;
+    private ConfigurationFormuleDto _nouveauFormule = new();
     private bool _success;
     private string? _message;
 
@@ -137,7 +185,6 @@ else
         }
 
         await LoadAsync();
-        await LoadTarifsAsync();
         await LoadFormulesAsync();
         _checkingAuth = false;
     }
@@ -152,7 +199,52 @@ else
     {
         var (success, _) = await AdminApi.UpdateFormuleAsync(_apiKey!, formule, CancellationToken.None);
         _success = success;
-        _message = success ? $"Pack {formule.Formule} mis à jour." : "Impossible de modifier le contenu du pack.";
+        _message = success ? $"Pack {formule.Libelle} mis à jour." : "Impossible de modifier le contenu du pack.";
+        if (success) await LoadFormulesAsync();
+    }
+
+    private async Task CreateFormuleAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_nouveauFormule.Formule) || string.IsNullOrWhiteSpace(_nouveauFormule.Libelle))
+        {
+            _success = false;
+            _message = "Code et libellé requis pour créer un pack.";
+            return;
+        }
+
+        var (success, status) = await AdminApi.CreateFormuleAsync(_apiKey!, _nouveauFormule, CancellationToken.None);
+        _success = success;
+        _message = success ? $"Pack {_nouveauFormule.Libelle} créé." : status switch
+        {
+            "formule_existe_deja" => "Ce code de pack existe déjà.",
+            _ => "Impossible de créer ce pack (code invalide : lettres/chiffres/underscore uniquement).",
+        };
+        if (success)
+        {
+            _nouveauFormule = new();
+            await LoadFormulesAsync();
+        }
+    }
+
+    private async Task SetDefaultAsync(ConfigurationFormuleDto formule)
+    {
+        var (success, _) = await AdminApi.SetFormuleParDefautAsync(_apiKey!, formule.Formule, CancellationToken.None);
+        _success = success;
+        _message = success ? $"{formule.Libelle} est désormais le pack par défaut." : "Action impossible (le pack doit être actif).";
+        if (success) await LoadFormulesAsync();
+    }
+
+    private async Task DeleteFormuleAsync(ConfigurationFormuleDto formule)
+    {
+        var (success, status) = await AdminApi.DeleteFormuleAsync(_apiKey!, formule.Formule, CancellationToken.None);
+        _success = success;
+        _message = success ? $"Pack {formule.Libelle} supprimé." : status switch
+        {
+            "formule_par_defaut" => "Impossible : ce pack est le pack par défaut. Définissez-en un autre par défaut d'abord.",
+            "derniere_formule" => "Impossible de supprimer le dernier pack restant.",
+            "formule_utilisee" => "Impossible : des boutiques ont déjà souscrit à ce pack.",
+            _ => "Suppression impossible.",
+        };
         if (success) await LoadFormulesAsync();
     }
 
@@ -163,15 +255,6 @@ else
         _abonnements = abonnements;
     }
 
-    private async Task LoadTarifsAsync()
-    {
-        var (success, tarifs) = await AdminApi.ListerTarifsAsync(_apiKey!, CancellationToken.None);
-        if (success)
-        {
-            _tarifs = tarifs;
-        }
-    }
-
     private async Task RelancerAsync(Guid idAbonnement)
     {
         var (success, notificationEnvoyee) = await AdminApi.RelancerAsync(_apiKey!, idAbonnement, CancellationToken.None);
@@ -179,24 +262,5 @@ else
         _message = success
             ? notificationEnvoyee ? "Relance envoyée." : "Relance tentée, notification non envoyée (Zavu non configuré)."
             : "Action impossible.";
-    }
-
-    private async Task UpdateTarifAsync()
-    {
-        if (_nouveauMontant <= 0)
-        {
-            _success = false;
-            _message = "Montant invalide.";
-            return;
-        }
-
-        var (success, status) = await AdminApi.UpdateTarifAsync(_apiKey!, _periodiciteTarif, _nouveauMontant, CancellationToken.None);
-        _success = success;
-        _message = success ? "Tarif modifié." : "Action impossible.";
-        if (success)
-        {
-            _nouveauMontant = 0;
-            await LoadTarifsAsync();
-        }
     }
 }

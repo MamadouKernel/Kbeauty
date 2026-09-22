@@ -33,10 +33,7 @@ else
         <div class="col-auto"><button class="btn btn-outline-success" @onclick="ReactiverEtablissementAsync">Réactiver</button></div>
     </div>
 
-    @if (!string.IsNullOrEmpty(_message))
-    {
-        <div class="alert @(_success ? "alert-success" : "alert-danger")">@_message</div>
-    }
+    <ToastBridge Message="@_message" Severity="@(_success ? "success" : "danger")" OnShown="@(() => _message = null)" />
 }
 
 </div></main>

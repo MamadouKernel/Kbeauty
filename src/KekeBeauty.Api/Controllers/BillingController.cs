@@ -4,33 +4,38 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace KekeBeauty.Api.Controllers;
 
-public sealed record SubscribeBody(string Periodicite);
-public sealed record UpdateTarifBody(decimal Montant);
-public sealed record UpdateFormuleBody(int? LimitePrestations, int? LimiteRdvMensuels, bool PaiementMobile, bool GestionEquipe, bool StatistiquesAvancees);
+public sealed record SubscribeBody(string Formule, string Periodicite);
+public sealed record UpdateFormuleBody(
+    string Libelle, bool EstActif, int OrdreAffichage, decimal? TarifMensuel, decimal? TarifAnnuel,
+    int? LimitePrestations, int? LimiteRdvMensuels, bool PaiementMobile, bool GestionEquipe, bool StatistiquesAvancees,
+    List<string>? Avantages, int? PromoPourcentage, DateTimeOffset? PromoFin);
+public sealed record CreateFormuleBody(
+    string Formule, string Libelle, int OrdreAffichage, decimal? TarifMensuel, decimal? TarifAnnuel,
+    int? LimitePrestations, int? LimiteRdvMensuels, bool PaiementMobile, bool GestionEquipe, bool StatistiquesAvancees,
+    List<string>? Avantages, int? PromoPourcentage, DateTimeOffset? PromoFin);
 
 [ApiController]
 public sealed class BillingController : ControllerBase
 {
     private static readonly string[] PeriodicitesValides = ["MENSUEL", "ANNUEL"];
     private static readonly string[] StatutsValides = ["ACTIF", "IMPAYE", "RESILIE"];
+    private static readonly System.Text.RegularExpressions.Regex CodeFormuleValide = new("^[A-Z0-9_]{2,30}$");
 
     private readonly SubscribeUseCase _subscribeUseCase;
     private readonly AdminListAbonnementsUseCase _listUseCase;
     private readonly RelanceUseCase _relanceUseCase;
-    private readonly UpdateTarifUseCase _updateTarifUseCase;
     private readonly VerifyAbonnementPaiementUseCase _verifyPaiementUseCase;
     private readonly PlanAccessService _planAccessService;
     private readonly IAbonnementRepository _abonnements;
 
     public BillingController(
         SubscribeUseCase subscribeUseCase, AdminListAbonnementsUseCase listUseCase,
-        RelanceUseCase relanceUseCase, UpdateTarifUseCase updateTarifUseCase,
+        RelanceUseCase relanceUseCase,
         VerifyAbonnementPaiementUseCase verifyPaiementUseCase, PlanAccessService planAccessService, IAbonnementRepository abonnements)
     {
         _subscribeUseCase = subscribeUseCase;
         _listUseCase = listUseCase;
         _relanceUseCase = relanceUseCase;
-        _updateTarifUseCase = updateTarifUseCase;
         _verifyPaiementUseCase = verifyPaiementUseCase;
         _planAccessService = planAccessService;
         _abonnements = abonnements;
@@ -44,11 +49,6 @@ public sealed class BillingController : ControllerBase
     [HttpGet("etablissements/{id:guid}/abonnements")][ServiceFilter(typeof(PartnerOwnershipFilter))]
     public async Task<IActionResult> Historique(Guid id,CancellationToken ct)=>Ok(await _abonnements.ListerParEtablissementAsync(id,ct));
 
-    [HttpGet("etablissements/{id:guid}/tarifs-abonnement")]
-    [ServiceFilter(typeof(PartnerOwnershipFilter))]
-    public async Task<IActionResult> GetTarifsPartenaire(Guid id, CancellationToken cancellationToken) =>
-        Ok(await _updateTarifUseCase.ListerAsync(cancellationToken));
-
     [HttpGet("etablissements/{id:guid}/formules-disponibles")]
     [ServiceFilter(typeof(PartnerOwnershipFilter))]
     public async Task<IActionResult> GetFormulesPartenaire(Guid id, CancellationToken cancellationToken) =>
@@ -58,12 +58,12 @@ public sealed class BillingController : ControllerBase
     [ServiceFilter(typeof(PartnerOwnershipFilter))]
     public async Task<IActionResult> Subscribe(Guid id, [FromBody] SubscribeBody body, CancellationToken cancellationToken)
     {
-        if (!PeriodicitesValides.Contains(body.Periodicite))
+        if (!PeriodicitesValides.Contains(body.Periodicite) || string.IsNullOrWhiteSpace(body.Formule))
         {
             return BadRequest(new { status = "invalid_input" });
         }
 
-        var result = await _subscribeUseCase.ExecuteAsync(id, body.Periodicite, cancellationToken);
+        var result = await _subscribeUseCase.ExecuteAsync(id, body.Formule.Trim().ToUpperInvariant(), body.Periodicite, cancellationToken);
 
         if (!result.Success)
         {
@@ -135,39 +135,46 @@ public sealed class BillingController : ControllerBase
         return Ok(new { notificationEnvoyee = result.NotificationEnvoyee });
     }
 
-    [HttpGet("admin/tarifs")]
-    [ServiceFilter(typeof(AdminApiKeyFilter))]
-    [AdminRole("COMPTABLE")]
-    public async Task<IActionResult> ListerTarifs(CancellationToken cancellationToken)
-    {
-        var tarifs = await _updateTarifUseCase.ListerAsync(cancellationToken);
-        return Ok(tarifs);
-    }
-
-    [HttpPut("admin/tarifs/{periodicite}")]
-    [ServiceFilter(typeof(AdminApiKeyFilter))]
-    [AdminRole("SUPER_ADMIN")]
-    public async Task<IActionResult> UpdateTarif(string periodicite, [FromBody] UpdateTarifBody body, CancellationToken cancellationToken)
-    {
-        if (!PeriodicitesValides.Contains(periodicite))
-        {
-            return BadRequest(new { status = "invalid_periodicite" });
-        }
-
-        var success = await _updateTarifUseCase.ExecuteAsync(periodicite, body.Montant, cancellationToken);
-        if (!success)
-        {
-            return BadRequest(new { status = "invalid_montant" });
-        }
-
-        return Ok(new { periodicite, montant = body.Montant });
-    }
-
     [HttpGet("admin/formules")]
     [ServiceFilter(typeof(AdminApiKeyFilter))]
     [AdminRole("COMPTABLE")]
     public async Task<IActionResult> ListerFormules(CancellationToken cancellationToken) =>
         Ok(await _planAccessService.ListAsync(cancellationToken));
+
+    [HttpPost("admin/formules")]
+    [ServiceFilter(typeof(AdminApiKeyFilter))]
+    [AdminRole("SUPER_ADMIN")]
+    public async Task<IActionResult> CreerFormule([FromBody] CreateFormuleBody body, CancellationToken cancellationToken)
+    {
+        var formule = body.Formule.Trim().ToUpperInvariant();
+        if (!CodeFormuleValide.IsMatch(formule) || string.IsNullOrWhiteSpace(body.Libelle)
+            || body.LimitePrestations < 0 || body.LimiteRdvMensuels < 0
+            || body.TarifMensuel < 0 || body.TarifAnnuel < 0
+            || body.PromoPourcentage is < 1 or > 95)
+        {
+            return BadRequest(new { status = "configuration_invalide" });
+        }
+
+        var created = await _planAccessService.CreateAsync(new PlanEntitlements
+        {
+            Formule = formule,
+            Libelle = body.Libelle.Trim(),
+            EstActif = true,
+            OrdreAffichage = body.OrdreAffichage,
+            TarifMensuel = body.TarifMensuel,
+            TarifAnnuel = body.TarifAnnuel,
+            LimitePrestations = body.LimitePrestations,
+            LimiteRdvMensuels = body.LimiteRdvMensuels,
+            PaiementMobile = body.PaiementMobile,
+            GestionEquipe = body.GestionEquipe,
+            StatistiquesAvancees = body.StatistiquesAvancees,
+            Avantages = (body.Avantages ?? []).Where(a => !string.IsNullOrWhiteSpace(a)).Select(a => a.Trim()).ToList(),
+            PromoPourcentage = body.PromoPourcentage,
+            PromoFin = body.PromoFin,
+        }, cancellationToken);
+
+        return created ? StatusCode(StatusCodes.Status201Created, new { formule }) : Conflict(new { status = "formule_existe_deja" });
+    }
 
     [HttpPut("admin/formules/{formule}")]
     [ServiceFilter(typeof(AdminApiKeyFilter))]
@@ -175,7 +182,9 @@ public sealed class BillingController : ControllerBase
     public async Task<IActionResult> UpdateFormule(string formule, [FromBody] UpdateFormuleBody body, CancellationToken cancellationToken)
     {
         formule = formule.Trim().ToUpperInvariant();
-        if (formule is not ("FREE" or "PRO") || body.LimitePrestations < 0 || body.LimiteRdvMensuels < 0)
+        if (string.IsNullOrWhiteSpace(body.Libelle) || body.LimitePrestations < 0 || body.LimiteRdvMensuels < 0
+            || body.TarifMensuel < 0 || body.TarifAnnuel < 0
+            || body.PromoPourcentage is < 1 or > 95)
         {
             return BadRequest(new { status = "configuration_invalide" });
         }
@@ -183,12 +192,46 @@ public sealed class BillingController : ControllerBase
         var updated = await _planAccessService.UpdateAsync(new PlanEntitlements
         {
             Formule = formule,
+            Libelle = body.Libelle.Trim(),
+            EstActif = body.EstActif,
+            OrdreAffichage = body.OrdreAffichage,
+            TarifMensuel = body.TarifMensuel,
+            TarifAnnuel = body.TarifAnnuel,
             LimitePrestations = body.LimitePrestations,
             LimiteRdvMensuels = body.LimiteRdvMensuels,
             PaiementMobile = body.PaiementMobile,
             GestionEquipe = body.GestionEquipe,
             StatistiquesAvancees = body.StatistiquesAvancees,
+            Avantages = (body.Avantages ?? []).Where(a => !string.IsNullOrWhiteSpace(a)).Select(a => a.Trim()).ToList(),
+            PromoPourcentage = body.PromoPourcentage,
+            PromoFin = body.PromoFin,
         }, cancellationToken);
         return updated ? Ok(new { status = "updated" }) : NotFound();
+    }
+
+    [HttpPut("admin/formules/{formule}/defaut")]
+    [ServiceFilter(typeof(AdminApiKeyFilter))]
+    [AdminRole("SUPER_ADMIN")]
+    public async Task<IActionResult> DefinirFormuleParDefaut(string formule, CancellationToken cancellationToken)
+    {
+        var ok = await _planAccessService.SetDefaultAsync(formule.Trim().ToUpperInvariant(), cancellationToken);
+        return ok ? Ok(new { status = "updated" }) : BadRequest(new { status = "formule_invalide_ou_inactive" });
+    }
+
+    [HttpDelete("admin/formules/{formule}")]
+    [ServiceFilter(typeof(AdminApiKeyFilter))]
+    [AdminRole("SUPER_ADMIN")]
+    public async Task<IActionResult> SupprimerFormule(string formule, CancellationToken cancellationToken)
+    {
+        var result = await _planAccessService.DeleteAsync(formule.Trim().ToUpperInvariant(), cancellationToken);
+        return result switch
+        {
+            DeleteFormuleResult.Deleted => Ok(new { status = "deleted" }),
+            DeleteFormuleResult.NotFound => NotFound(),
+            DeleteFormuleResult.EstFormuleParDefaut => Conflict(new { status = "formule_par_defaut" }),
+            DeleteFormuleResult.DerniereFormule => Conflict(new { status = "derniere_formule" }),
+            DeleteFormuleResult.FormuleUtilisee => Conflict(new { status = "formule_utilisee" }),
+            _ => Conflict(new { status = "suppression_impossible" }),
+        };
     }
 }

@@ -46,11 +46,25 @@ builder.Services.AddRateLimiter(options =>
     options.AddPolicy("onboarding", context => RateLimitPartition.GetFixedWindowLimiter(
         context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
         _ => new FixedWindowRateLimiterOptions { PermitLimit = 5, Window = TimeSpan.FromMinutes(10), QueueLimit = 0 }));
+    // Geocodage Nominatim : plafonne cote proxy (en plus du cache serveur) pour rester dans une
+    // utilisation raisonnable de l'API publique OSM, tout en restant assez genereux pour une
+    // recherche d'adresse "au fil de la frappe" cote client (debounce applique en JS).
+    options.AddPolicy("geo", context => RateLimitPartition.GetFixedWindowLimiter(
+        context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        _ => new FixedWindowRateLimiterOptions { PermitLimit = 30, Window = TimeSpan.FromMinutes(1), QueueLimit = 0 }));
 });
 
 builder.Services.AddSingleton<IDbConnectionFactory, DbConnectionFactory>();
 builder.Services.AddScoped<IHealthDataCheck, HealthDataCheck>();
 builder.Services.AddHostedService<KekeBeauty.Api.BackgroundJobs.DatabaseMigrationHostedService>();
+
+builder.Services.AddMemoryCache();
+builder.Services.AddHttpClient<KekeBeauty.Application.Geo.IGeocodingService, KekeBeauty.Infrastructure.Geo.NominatimGeocodingService>(client =>
+{
+    // Politique d'usage Nominatim : un User-Agent identifiant l'application est obligatoire.
+    client.BaseAddress = new Uri(builder.Configuration["Geo:NominatimBaseUrl"] ?? "https://nominatim.openstreetmap.org/");
+    client.DefaultRequestHeaders.UserAgent.ParseAdd("KekeBeauty/1.0 (contact: support@kekebeauty.ci)");
+});
 
 builder.Services.AddHttpClient<IOtpSender, ZavuWhatsAppOtpSender>(client =>
 {
@@ -165,7 +179,6 @@ builder.Services.AddHttpClient<IAbonnementNotifier, ZavuWhatsAppAbonnementNotifi
 builder.Services.AddScoped<SubscribeUseCase>();
 builder.Services.AddScoped<AdminListAbonnementsUseCase>();
 builder.Services.AddScoped<RelanceUseCase>();
-builder.Services.AddScoped<UpdateTarifUseCase>();
 builder.Services.AddScoped<VerifyAbonnementPaiementUseCase>();
 
 builder.Services.AddScoped<IModerationRepository, ModerationRepository>();

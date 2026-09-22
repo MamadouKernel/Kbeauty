@@ -6,10 +6,25 @@ namespace KekeBeauty.Web.Services;
 public sealed class DirectoryApiClient
 {
     private readonly HttpClient _httpClient;
+    private readonly ClientSessionService _session;
 
-    public DirectoryApiClient(HttpClient httpClient)
+    public DirectoryApiClient(HttpClient httpClient, ClientSessionService session)
     {
         _httpClient = httpClient;
+        _session = session;
+    }
+
+    // Le jeton est attache ici (typed client, scope DI correct du circuit) plutot que dans
+    // ClientAuthHandler : IHttpClientFactory construit les DelegatingHandler via un scope DI mis
+    // en cache/tourniquet distinct du circuit Blazor courant, donc ProtectedLocalStorage
+    // (IJSRuntime) y echoue silencieusement - le jeton n'atteint jamais l'API.
+    private async Task AddTokenAsync(HttpRequestMessage request)
+    {
+        var token = await _session.GetTokenAsync();
+        if (!string.IsNullOrWhiteSpace(token))
+        {
+            request.Headers.TryAddWithoutValidation("X-Client-Token", token);
+        }
     }
 
     /// <summary>Retourne une liste vide en cas d'erreur reseau/API (FR-008 gere par l'appelant via le booleen out).</summary>
@@ -38,6 +53,7 @@ public sealed class DirectoryApiClient
         {
             using var request = new HttpRequestMessage(HttpMethod.Get, "etablissements/favoris");
             request.Headers.Add("X-Client-Id", idClient.ToString());
+            await AddTokenAsync(request);
             var response = await _httpClient.SendAsync(request, cancellationToken);
             if (!response.IsSuccessStatusCode) return (false, []);
             return (true, await response.Content.ReadFromJsonAsync<List<EtablissementSummary>>(cancellationToken) ?? []);
@@ -75,6 +91,7 @@ public sealed class DirectoryApiClient
             if (idClient is not null)
             {
                 request.Headers.Add("X-Client-Id", idClient.Value.ToString());
+                await AddTokenAsync(request);
             }
 
             var response = await _httpClient.SendAsync(request, cancellationToken);
@@ -103,6 +120,7 @@ public sealed class DirectoryApiClient
         {
             using var request = new HttpRequestMessage(HttpMethod.Post, $"etablissements/{idEtablissement}/favori");
             request.Headers.Add("X-Client-Id", idClient.ToString());
+            await AddTokenAsync(request);
 
             var response = await _httpClient.SendAsync(request, cancellationToken);
             if (!response.IsSuccessStatusCode)

@@ -31,9 +31,14 @@ public sealed class ClientProfileController : ControllerBase
     {
         if (!TryClient(out var id)) return Unauthorized();
         var challenge = await _challenges.GetActivePendingAsync(body.Telephone, "CLIENT", ct);
+        if (challenge is not null && challenge.Attempts >= OtpChallengePolicy.MaxAttempts) challenge = null;
         var hash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(body.Code))).ToLowerInvariant();
         if (challenge is null || challenge.ExpiresAt < DateTimeOffset.UtcNow || !CryptographicOperations.FixedTimeEquals(Encoding.ASCII.GetBytes(challenge.CodeHash), Encoding.ASCII.GetBytes(hash)))
+        {
+            // Audit securite : compteur d'echecs independant du rate limiting par IP.
+            if (challenge is not null) await _challenges.RegisterFailedAttemptAsync(challenge.Id, ct);
             return BadRequest(new { status = "invalid_or_expired_code", message = "Code invalide ou expiré." });
+        }
         try
         {
             if (!await _users.UpdateTelephoneAsync(id, body.Telephone, ct)) return NotFound();

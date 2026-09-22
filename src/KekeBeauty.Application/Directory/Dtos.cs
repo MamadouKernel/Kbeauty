@@ -7,6 +7,8 @@ public sealed class EtablissementSummary
     public string LibelleCommune { get; set; } = string.Empty;
     public decimal GpsLatitude { get; set; }
     public decimal GpsLongitude { get; set; }
+    public string NumeroServiceClient { get; set; } = string.Empty;
+    public string? PrestationsApercu { get; set; }
 }
 
 public sealed class MediaDto

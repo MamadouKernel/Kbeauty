@@ -30,6 +30,40 @@ window.kekeMap = (function () {
             instances[elementId].remove();
             delete instances[elementId];
         }
+        delete instances[elementId + ':marker'];
+    }
+
+    // Carte avec marqueur deplacable (onboarding partenaire, feature enrichissement OSM) : clic ou
+    // glisser-deposer pour affiner la position, avec rappel .NET (OnPinMoved) a chaque changement.
+    function initPicker(elementId, lat, lng, zoom, dotnetRef) {
+        destroy(elementId);
+
+        const map = L.map(elementId).setView([lat, lng], zoom || 16);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            maxZoom: 19,
+        }).addTo(map);
+
+        const marker = L.marker([lat, lng], { draggable: true }).addTo(map);
+        const notify = function (position) {
+            dotnetRef.invokeMethodAsync('OnPinMoved', position.lat, position.lng);
+        };
+        marker.on('dragend', function () { notify(marker.getLatLng()); });
+        map.on('click', function (e) { marker.setLatLng(e.latlng); notify(e.latlng); });
+
+        instances[elementId] = map;
+        instances[elementId + ':marker'] = marker;
+        return true;
+    }
+
+    function setPickerPosition(elementId, lat, lng) {
+        const map = instances[elementId];
+        const marker = instances[elementId + ':marker'];
+        if (!map || !marker) return false;
+        marker.setLatLng([lat, lng]);
+        map.setView([lat, lng], map.getZoom());
+        return true;
     }
 
     function getCurrentPosition() {
@@ -49,6 +83,6 @@ window.kekeMap = (function () {
         return true;
     }
 
-    return { init: init, destroy: destroy, getCurrentPosition: getCurrentPosition, focus: focus };
+    return { init: init, destroy: destroy, getCurrentPosition: getCurrentPosition, focus: focus, initPicker: initPicker, setPickerPosition: setPickerPosition };
 })();
 

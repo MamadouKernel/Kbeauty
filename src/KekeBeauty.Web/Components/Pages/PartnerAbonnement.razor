@@ -5,7 +5,7 @@
 @* prerender:false : voir PartnerDashboard.razor pour le detail du bug de prerendering evite. *@
 @rendermode @(new InteractiveServerRenderMode(prerender: false))
 
-<PageTitle>Abonnement Pro</PageTitle>
+<PageTitle>Abonnement</PageTitle>
 @using KekeBeauty.Web.Components.Layout
 
 <PartnerDesktopHeader ActivePath="abonnement" IdEtablissement="Id" />
@@ -16,13 +16,13 @@
             <a aria-label="Retour" class="w-11 h-11 -ml-2 rounded-full flex items-center justify-center text-text-primary hover:text-primary transition-colors active:scale-95" href="@($"/partenaire/etablissements/{Id}")">
                 <span class="material-symbols-outlined text-[22px]">arrow_back_ios_new</span>
             </a>
-            <h1 class="font-headline-sm text-headline-sm text-text-primary truncate">Abonnement Pro</h1>
+            <h1 class="font-headline-sm text-headline-sm text-text-primary truncate">Abonnement</h1>
         </div>
     </div>
 </header>
 
 <main id="main-content" tabindex="-1" class="flex flex-col relative w-full pt-16 lg:pt-24 pb-safe bg-surface min-h-screen">
-    <div class="flex flex-col w-full pb-10 px-margin lg:max-w-2xl lg:mx-auto">
+    <div class="flex flex-col w-full pb-10 px-margin lg:max-w-3xl lg:mx-auto">
 
         @if (_checkingAuth)
         {
@@ -30,93 +30,119 @@
         }
         else
         {
-            <div class="pt-4 pb-2">
-                <div class="bg-gradient-to-br from-lavender-subtle to-surface-container-low rounded-xl p-space-md shadow-sm">
-                    <h2 class="font-headline-sm text-headline-sm text-text-primary">Votre formule : @(_usage?.Formule ?? "FREE")</h2>
-                    <p class="font-body-sm text-body-sm text-on-surface-variant mt-1">Le pack Free reste disponible sans paiement. Passez au Pro lorsque votre activité grandit.</p>
+            <section class="partner-hero mt-space-sm mb-6">
+                <div class="partner-hero-glow" aria-hidden="true"></div>
+                <div class="relative z-10 flex flex-wrap items-center justify-between gap-space-md">
+                    <div>
+                        <p class="font-label-sm text-label-sm uppercase tracking-[0.18em] partner-hero-eyebrow mb-1">Abonnement</p>
+                        <h1 class="font-headline-lg text-headline-lg text-white font-bold partner-hero-title">Formule @(_usage?.Libelle ?? _usage?.Formule)</h1>
+                        <p class="font-body-sm text-body-sm partner-hero-sub mt-1">@(_usage is not null ? UsageLabel(_usage) : "")</p>
+                    </div>
                 </div>
+            </section>
+
+            <div class="grid sm:grid-cols-2 gap-4 pt-3">
+                @foreach (var formule in _formules)
+                {
+                    var estActuelle = formule.Formule == _usage?.Formule;
+                    var souscriptible = formule.EstActif && (formule.TarifMensuel is not null || formule.TarifAnnuel is not null);
+                    <article class="plan-card @(estActuelle ? "is-active" : "") @(souscriptible && !estActuelle ? "plan-card-pro" : "")">
+                        @if (formule.EstPromoActive)
+                        {
+                            <span class="plan-card-ribbon plan-card-ribbon-promo">Promo -@(formule.PromoPourcentage)%</span>
+                        }
+                        else if (estActuelle)
+                        {
+                            <span class="plan-card-ribbon">Formule actuelle</span>
+                        }
+                        <h3 class="font-headline-sm text-headline-sm">@formule.Libelle</h3>
+                        <p class="plan-card-price">
+                            @if (formule.TarifMensuel is null && formule.TarifAnnuel is null)
+                            {
+                                <text>Gratuit</text>
+                            }
+                            else
+                            {
+                                @if (formule.EstPromoActive)
+                                {
+                                    <span class="plan-card-price-barre">@((formule.TarifMensuel ?? formule.TarifAnnuel)!.Value.ToString("N0"))</span>
+                                }
+                                @((formule.TarifMensuelEffectif ?? formule.TarifAnnuelEffectif)!.Value.ToString("N0")) <span>FCFA @(formule.TarifMensuel is not null ? "/ mois" : "/ an")</span>
+                            }
+                        </p>
+                        <ul class="mt-3 space-y-2 font-body-sm text-body-sm @(souscriptible && !estActuelle ? "opacity-95" : "text-on-surface-variant")">
+                            <li><span class="material-symbols-outlined">check_circle</span>Boutique visible dans l’annuaire</li>
+                            <li><span class="material-symbols-outlined">check_circle</span>@LimiteLabel(formule, true)</li>
+                            <li><span class="material-symbols-outlined">check_circle</span>@LimiteLabel(formule, false)</li>
+                            <li><span class="material-symbols-outlined">check_circle</span>@(formule.PaiementMobile ? "Paiement mobile" : "Paiement en espèces")</li>
+                            @if (formule.GestionEquipe) { <li><span class="material-symbols-outlined">check_circle</span>Gestion de l’équipe</li> }
+                            @if (formule.StatistiquesAvancees) { <li><span class="material-symbols-outlined">check_circle</span>Revenus et statistiques détaillés</li> }
+                            @foreach (var avantage in formule.Avantages)
+                            {
+                                <li><span class="material-symbols-outlined">check_circle</span>@avantage</li>
+                            }
+                        </ul>
+                        @if (estActuelle)
+                        {
+                            <p class="mt-4 font-label-sm text-label-sm text-primary bg-lavender-subtle rounded-full px-3 py-1.5 inline-block">@UsageLabel(_usage!)</p>
+                        }
+                        else if (souscriptible)
+                        {
+                            <button class="mt-4 w-full py-2.5 rounded-full bg-white/95 text-primary font-label-md text-label-md font-bold shadow-md" type="button" @onclick="() => SelectFormule(formule)">Choisir @formule.Libelle</button>
+                        }
+                    </article>
+                }
             </div>
 
-            <div class="grid sm:grid-cols-2 gap-3 pt-2">
-                <article class="p-space-md rounded-xl bg-surface-cream shadow-sm border-2 @(_usage?.Formule == "FREE" ? "border-primary" : "border-transparent")">
-                    <h3 class="font-headline-sm text-headline-sm text-text-primary">Free · 0 FCFA</h3>
-                    <ul class="mt-3 space-y-2 font-body-sm text-body-sm text-on-surface-variant">
-                        <li>✓ Boutique visible dans l’annuaire</li>
-                        <li>✓ @LimiteLabel(_free, true)</li>
-                        <li>✓ @LimiteLabel(_free, false)</li>
-                        <li>@(_free?.PaiementMobile == true ? "✓ Paiement mobile" : "✓ Paiement en espèces")</li>
-                        @if (_free?.GestionEquipe == true) { <li>✓ Gestion de l’équipe</li> }
-                        @if (_free?.StatistiquesAvancees == true) { <li>✓ Statistiques avancées</li> }
-                    </ul>
-                    @if (_usage is not null && _usage.Formule == "FREE")
+            @if (_formuleChoisie is not null)
+            {
+                <h3 class="font-label-lg text-label-lg text-text-primary pt-6" id="periodicite-choix">Choisissez la facturation du pack @_formuleChoisie.Libelle</h3>
+                @if (_formuleChoisie.EstPromoActive)
+                {
+                    <p class="font-body-sm text-body-sm text-error mt-1">Promotion -@(_formuleChoisie.PromoPourcentage)% @(_formuleChoisie.PromoFin is not null ? $"jusqu'au {_formuleChoisie.PromoFin.Value.LocalDateTime:dd/MM/yyyy HH:mm}" : "")</p>
+                }
+
+                <div class="space-y-3 pt-2">
+                    @if (_formuleChoisie.TarifMensuel is not null)
                     {
-                        <p class="mt-3 font-label-sm text-label-sm text-primary">Utilisation : @UsageLabel(_usage)</p>
+                        <button class="w-full text-left p-space-md rounded-xl shadow-sm transition-all @(_periodicite == "MENSUEL" ? "bg-primary-container text-on-primary" : "bg-surface-cream text-text-primary")" type="button" @onclick='() => _periodicite = "MENSUEL"'>
+                            <div class="flex items-center justify-between">
+                                <span class="font-label-lg text-label-lg font-bold">Mensuel · @_formuleChoisie.TarifMensuelEffectif!.Value.ToString("N0") FCFA</span>
+                                @if (_periodicite == "MENSUEL")
+                                {
+                                    <span class="material-symbols-outlined text-[20px]">check_circle</span>
+                                }
+                            </div>
+                            <span class="font-body-sm text-body-sm opacity-80">Facturation chaque mois</span>
+                        </button>
                     }
-                </article>
-                <article class="p-space-md rounded-xl bg-primary-container text-on-primary shadow-md border-2 @(_usage?.Formule == "PRO" ? "border-secondary" : "border-transparent")">
-                    <h3 class="font-headline-sm text-headline-sm">Pro</h3>
-                    <p class="mt-1 text-label-sm opacity-80">Tout le pack Free, avec plus de puissance</p>
-                    <ul class="mt-3 space-y-2 font-body-sm text-body-sm opacity-95">
-                        <li>✓ Boutique visible dans l’annuaire</li>
-                        <li>✓ @LimiteLabel(_pro, true)</li>
-                        <li>✓ @LimiteLabel(_pro, false)</li>
-                        <li>✓ Paiement en espèces</li>
-                        @if (_pro?.PaiementMobile == true) { <li>✓ Paiements Wave, Orange Money et Moov Money</li> }
-                        @if (_pro?.GestionEquipe == true) { <li>✓ Gestion de l’équipe et planning individuel</li> }
-                        @if (_pro?.StatistiquesAvancees == true) { <li>✓ Revenus et statistiques détaillés</li> }
-                        <li>✓ Galerie photos de la boutique</li>
-                        <li>✓ Gestion des horaires et indisponibilités</li>
-                        <li>✓ Historique des abonnements et reçus</li>
-                    </ul>
-                </article>
-            </div>
+                    @if (_formuleChoisie.TarifAnnuel is not null)
+                    {
+                        <button class="w-full text-left p-space-md rounded-xl shadow-sm transition-all @(_periodicite == "ANNUEL" ? "bg-primary-container text-on-primary" : "bg-surface-cream text-text-primary")" type="button" @onclick='() => _periodicite = "ANNUEL"'>
+                            <div class="flex items-center justify-between">
+                                <span class="font-label-lg text-label-lg font-bold">Annuel · @_formuleChoisie.TarifAnnuelEffectif!.Value.ToString("N0") FCFA</span>
+                                @if (_periodicite == "ANNUEL")
+                                {
+                                    <span class="material-symbols-outlined text-[20px]">check_circle</span>
+                                }
+                            </div>
+                            <span class="font-body-sm text-body-sm opacity-80">Facturation annuelle</span>
+                        </button>
+                    }
+                </div>
 
-            @if (_usage?.Formule != "PRO")
-            {
-                <h3 class="font-label-lg text-label-lg text-text-primary pt-5">Choisissez la facturation du pack Pro</h3>
+                <ToastBridge Message="@_message" Severity="@(_ok ? "success" : "danger")" OnShown="@(() => _message = null)" />
 
-            <div class="space-y-3 pt-2">
-                <button class="w-full text-left p-space-md rounded-xl shadow-sm transition-all @(_periodicite == "MENSUEL" ? "bg-primary-container text-on-primary" : "bg-surface-cream text-text-primary")" type="button" @onclick='() => _periodicite = "MENSUEL"'>
-                    <div class="flex items-center justify-between">
-                        <span class="font-label-lg text-label-lg font-bold">Mensuel · @Tarif("MENSUEL").ToString("N0") FCFA</span>
-                        @if (_periodicite == "MENSUEL")
-                        {
-                            <span class="material-symbols-outlined text-[20px]">check_circle</span>
-                        }
-                    </div>
-                    <span class="font-body-sm text-body-sm opacity-80">Facturation chaque mois · tarif administrable</span>
+                @if (!string.IsNullOrEmpty(_checkoutUrl))
+                {
+                    <a class="mt-space-md block text-center px-4 py-3.5 rounded-full bg-gradient-to-r from-primary via-primary-container to-secondary text-on-primary font-label-lg text-label-lg shadow-md" href="@_checkoutUrl" target="_blank" rel="noopener">Payer maintenant en ligne</a>
+                }
+
+                <button class="mt-space-lg w-full py-3.5 px-space-md rounded-full bg-primary-container text-on-primary font-label-lg text-label-lg shadow-lg disabled:opacity-60" type="button" @onclick="SubscribeAsync" disabled="@_busy">
+                    @(_busy ? "Traitement en cours..." : $"Souscrire {_formuleChoisie.Libelle}")
                 </button>
-                <button class="w-full text-left p-space-md rounded-xl shadow-sm transition-all @(_periodicite == "ANNUEL" ? "bg-primary-container text-on-primary" : "bg-surface-cream text-text-primary")" type="button" @onclick='() => _periodicite = "ANNUEL"'>
-                    <div class="flex items-center justify-between">
-                        <span class="font-label-lg text-label-lg font-bold">Annuel · @Tarif("ANNUEL").ToString("N0") FCFA</span>
-                        @if (_periodicite == "ANNUEL")
-                        {
-                            <span class="material-symbols-outlined text-[20px]">check_circle</span>
-                        }
-                    </div>
-                    <span class="font-body-sm text-body-sm opacity-80">Facturation annuelle · économisez @EconomieAnnuelle().ToString("N0") FCFA</span>
-                </button>
-            </div>
-
-            @if (!string.IsNullOrEmpty(_message))
-            {
-                <div class="mt-space-md rounded-xl px-space-md py-space-sm font-body-md text-body-md @(_ok ? "bg-status-available/10 text-status-available" : "bg-error-container text-on-error-container")">@_message</div>
             }
-
-            @if (!string.IsNullOrEmpty(_checkoutUrl))
-            {
-                <a class="mt-space-md block text-center px-4 py-3.5 rounded-full bg-gradient-to-r from-primary via-primary-container to-secondary text-on-primary font-label-lg text-label-lg shadow-md" href="@_checkoutUrl" target="_blank" rel="noopener">Payer maintenant en ligne</a>
-            }
-
-            <button class="mt-space-lg w-full py-3.5 px-space-md rounded-full bg-primary-container text-on-primary font-label-lg text-label-lg shadow-lg disabled:opacity-60" type="button" @onclick="SubscribeAsync" disabled="@_busy">
-                @(_busy ? "Traitement en cours..." : "Souscrire cette formule")
-            </button>
-            }
-            else
-            {
-                <div class="mt-space-lg rounded-xl bg-status-available/10 text-status-available px-space-md py-space-sm">Votre pack Pro est actif.</div>
-            }
-            <section class="mt-6 bg-surface-cream rounded-xl p-4 shadow-sm"><h3 class="font-headline-sm text-headline-sm">Historique et factures</h3>@if(_history.Count==0){<p class="text-body-sm text-on-surface-variant mt-2">Aucun abonnement payant.</p>}else{<div class="mt-3 space-y-2">@foreach(var item in _history){<div class="summary-row"><span class="material-symbols-outlined">receipt_long</span><div class="flex-1"><strong>@item.Periodicite · @item.Montant.ToString("N0") FCFA</strong><small>@item.DateDebutEngagement.ToString("dd/MM/yyyy") · @item.StatutAbonnement</small></div><a class="text-primary" href="@($"/partenaire/etablissements/{Id}/abonnements/{item.IdAbonnement}/recu")">Reçu</a></div>}</div>}</section>
+            <section class="mt-6 bg-surface-cream rounded-xl p-4 shadow-sm"><h3 class="font-headline-sm text-headline-sm">Historique et factures</h3>@if(_history.Count==0){<p class="text-body-sm text-on-surface-variant mt-2">Aucun abonnement payant.</p>}else{<div class="mt-3 space-y-2">@foreach(var item in _history){<div class="summary-row"><span class="material-symbols-outlined">receipt_long</span><div class="flex-1"><strong>@item.Formule · @item.Periodicite · @item.Montant.ToString("N0") FCFA</strong><small>@item.DateDebutEngagement.ToString("dd/MM/yyyy") · @item.StatutAbonnement</small></div><a class="text-primary" href="@($"/partenaire/etablissements/{Id}/abonnements/{item.IdAbonnement}/recu")">Reçu</a></div>}</div>}</section>
         }
     </div>
 </main>
@@ -132,9 +158,8 @@
     private string? _message;
     private string? _checkoutUrl;
     private PlanUsageDto? _usage;
-    private List<TarifAbonnementDto> _tarifs = [];
-    private PlanUsageDto? _free;
-    private PlanUsageDto? _pro;
+    private List<PlanUsageDto> _formules = [];
+    private PlanUsageDto? _formuleChoisie;
     private List<AbonnementHistoriqueDto> _history=[];
 
     protected override async Task OnInitializedAsync()
@@ -149,17 +174,22 @@
         var (_, usage) = await PartnerApi.GetPlanUsageAsync(_idPartner.Value, Id, CancellationToken.None);
         _usage = usage;
         var (_, formules) = await PartnerApi.GetFormulesAsync(_idPartner.Value, Id, CancellationToken.None);
-        _free = formules.FirstOrDefault(f => f.Formule == "FREE");
-        _pro = formules.FirstOrDefault(f => f.Formule == "PRO");
-        var (_, tarifs) = await PartnerApi.GetTarifsAbonnementAsync(_idPartner.Value, Id, CancellationToken.None);
-        _tarifs = tarifs;
+        _formules = formules.Where(f => f.EstActif || f.Formule == _usage?.Formule).OrderBy(f => f.OrdreAffichage).ToList();
         _history=await PartnerApi.GetHistoriqueAbonnementsAsync(_idPartner.Value,Id,CancellationToken.None);
         _checkingAuth = false;
     }
 
+    private void SelectFormule(PlanUsageDto formule)
+    {
+        _formuleChoisie = formule;
+        _periodicite = formule.TarifMensuel is not null ? "MENSUEL" : "ANNUEL";
+        _message = null;
+        _checkoutUrl = null;
+    }
+
     private async Task SubscribeAsync()
     {
-        if (_idPartner is null)
+        if (_idPartner is null || _formuleChoisie is null)
         {
             return;
         }
@@ -168,7 +198,7 @@
         _message = null;
         _checkoutUrl = null;
 
-        var (success, status, checkoutUrl) = await PartnerApi.SubscribeAsync(_idPartner.Value, Id, _periodicite, CancellationToken.None);
+        var (success, status, checkoutUrl) = await PartnerApi.SubscribeAsync(_idPartner.Value, Id, _formuleChoisie.Formule, _periodicite, CancellationToken.None);
         _busy = false;
         _ok = success;
 
@@ -183,16 +213,13 @@
             {
                 "abonnement_actif_existant" => "Un abonnement actif existe déjà pour cet établissement.",
                 "payment_initiation_failed" => "Le service de paiement est momentanément indisponible. Merci de réessayer.",
+                "formule_non_souscriptible" => "Ce pack n'est pas disponible sur cette périodicité.",
+                "formule_introuvable" => "Ce pack n'est plus disponible.",
                 "forbidden" => "Cet établissement ne vous appartient pas.",
                 _ => "La souscription a échoué. Merci de réessayer.",
             };
         }
     }
-
-    private decimal Tarif(string periodicite) =>
-        _tarifs.FirstOrDefault(t => t.Periodicite == periodicite)?.Montant ?? 0m;
-
-    private decimal EconomieAnnuelle() => Math.Max(0m, Tarif("MENSUEL") * 12 - Tarif("ANNUEL"));
 
     private static string LimiteLabel(PlanUsageDto? formule, bool prestations)
     {

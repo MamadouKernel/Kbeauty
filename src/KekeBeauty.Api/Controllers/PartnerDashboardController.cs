@@ -13,11 +13,13 @@ public sealed class PartnerDashboardController : ControllerBase
 {
     private readonly IPartnerPrestationRepository _repository;
     private readonly KekeBeauty.Api.Auth.PartnerSessionTokenService _tokens;
+    private readonly ILogger<PartnerDashboardController> _logger;
 
-    public PartnerDashboardController(IPartnerPrestationRepository repository, KekeBeauty.Api.Auth.PartnerSessionTokenService tokens)
+    public PartnerDashboardController(IPartnerPrestationRepository repository, KekeBeauty.Api.Auth.PartnerSessionTokenService tokens, ILogger<PartnerDashboardController> logger)
     {
         _repository = repository;
         _tokens = tokens;
+        _logger = logger;
     }
 
     [HttpGet("partenaire/etablissements")]
@@ -25,6 +27,9 @@ public sealed class PartnerDashboardController : ControllerBase
     {
         if (!_tokens.TryFromRequest(Request, out var idPartner))
         {
+            var headerCount = Request.Headers["X-Partner-Token"].Count;
+            var headerLen = headerCount > 0 ? Request.Headers["X-Partner-Token"][0]?.Length : (int?)null;
+            _logger.LogWarning("DEBUG jeton partenaire refuse : headerCount={HeaderCount}, headerLen={HeaderLen}", headerCount, headerLen);
             return Unauthorized(new { status = "unauthorized" });
         }
 

@@ -245,9 +245,24 @@
         {
             lat = r.GpsLatitude,
             lng = r.GpsLongitude,
-            popupHtml = $"<strong>{System.Net.WebUtility.HtmlEncode(r.NomEtablissement)}</strong><br/>{System.Net.WebUtility.HtmlEncode(r.LibelleCommune)}<br/><a href=\"/etablissements/{r.IdEtablissement}\">Voir le salon</a>",
+            popupHtml = BuildPopupHtml(r),
         });
 
         await JS.InvokeVoidAsync("kekeMap.init", "home-osm", centerLat, centerLng, _results.Count > 0 ? 12 : 11, markers);
+    }
+
+    private static string BuildPopupHtml(EtablissementSummary r)
+    {
+        var html = $"<strong>{System.Net.WebUtility.HtmlEncode(r.NomEtablissement)}</strong><br/>{System.Net.WebUtility.HtmlEncode(r.LibelleCommune)}";
+        if (!string.IsNullOrWhiteSpace(r.NumeroServiceClient))
+        {
+            html += $"<br/><a href=\"tel:{System.Net.WebUtility.HtmlEncode(r.NumeroServiceClient)}\">{System.Net.WebUtility.HtmlEncode(r.NumeroServiceClient)}</a>";
+        }
+        if (!string.IsNullOrWhiteSpace(r.PrestationsApercu))
+        {
+            html += $"<br/><span class=\"popup-prestations\">{System.Net.WebUtility.HtmlEncode(r.PrestationsApercu)}</span>";
+        }
+        html += $"<br/><a href=\"/etablissements/{r.IdEtablissement}\">Voir le salon</a>";
+        return html;
     }
 }

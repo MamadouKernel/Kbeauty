@@ -23,7 +23,8 @@ public sealed record PartnerApplicationSubmission(
     bool PaiementMoovMoney,
     string? GoogleOnboardingToken = null,
     string? Categorie = null,
-    Guid? AuthenticatedPartnerId = null);
+    Guid? AuthenticatedPartnerId = null,
+    string? AdresseTexte = null);
 
 public sealed class SubmitPartnerApplicationUseCase
 {
@@ -105,7 +106,8 @@ public sealed class SubmitPartnerApplicationUseCase
                 submission.PaiementWave,
                 submission.PaiementOrangeMoney,
                 submission.PaiementMoovMoney,
-                submission.Categorie),
+                submission.Categorie,
+                submission.AdresseTexte),
             cancellationToken);
         }
         catch

@@ -63,10 +63,7 @@
                 </div>
             }
 
-            @if (!string.IsNullOrEmpty(_message))
-            {
-                <div class="rounded-xl px-space-md py-space-sm font-body-md text-body-md bg-status-available/10 text-status-available">@_message</div>
-            }
+            <ToastBridge Message="@_message" Severity="@(_success ? "success" : "danger")" OnShown="@(() => _message = null)" />
         }
     </div>
 </main>
@@ -78,6 +75,7 @@
     private Guid? _idRdvEnCours;
     private string? _reference;
     private string? _message;
+    private bool _success;
     private Guid? _waveEnCours;
 
     protected override async Task OnInitializedAsync()
@@ -112,6 +110,7 @@
     {
         _waveEnCours = idRdv;
         var (success, status) = await AdminApi.ExecuterRemboursementWaveAsync(_apiKey!, idRdv, CancellationToken.None);
+        _success = success;
         _message = success ? "Remboursement Wave exécuté et tracé."
             : status == "wave_not_configured" ? "Wave Business n’est pas encore configuré côté serveur."
             : status == "unsupported_payment_provider" ? "Ce paiement vient de WiniPayer : utilisez le traitement manuel."
@@ -127,6 +126,7 @@
         }
 
         var (success, _) = await AdminApi.TraiterRemboursementAsync(_apiKey!, idRdv, _reference, CancellationToken.None);
+        _success = success;
         _message = success ? "Remboursement marqué comme effectué." : "Échec de l'enregistrement.";
         if (success)
         {
