@@ -10,7 +10,16 @@
 <DesktopHeader ActivePath="espace" />
 
 <header class="lg:hidden fixed top-0 w-full z-50 pt-safe bg-surface-cream/95 backdrop-blur-xl">
-    <div class="h-16 px-margin flex items-center gap-3"><img src="/img/logo.png" alt="" class="h-8 w-auto" /><div><span class="block text-[10px] font-bold tracking-wider text-primary uppercase">Keke Beauty</span><strong class="text-text-primary">Mon espace</strong></div></div>
+    <div class="h-16 px-margin flex items-center justify-between gap-3">
+        <div class="flex items-center gap-3"><img src="/img/logo.png" alt="" class="h-8 w-auto" /><div><span class="block text-[10px] font-bold tracking-wider text-primary uppercase">Keke Beauty</span><strong class="text-text-primary">Mon espace</strong></div></div>
+        <details class="partner-profile-menu">
+            <summary class="account-link" aria-label="Mon compte"><span class="material-symbols-outlined" aria-hidden="true">person</span></summary>
+            <div class="partner-profile-menu-panel">
+                <a href="/mon-profil"><span class="material-symbols-outlined" aria-hidden="true">manage_accounts</span><span>Mon profil</span></a>
+                <button type="button" class="partner-profile-menu-logout" @onclick="LogoutAsync"><span class="material-symbols-outlined" aria-hidden="true">logout</span><span>Se déconnecter</span></button>
+            </div>
+        </details>
+    </div>
 </header>
 
 <main id="main-content" tabindex="-1" class="account-page pt-16 lg:pt-24 pb-24">
@@ -68,6 +77,12 @@
     private string GoldMessage => _points < 500 ? "Encore quelques soins avant votre premier privilège." : _points < 1500 ? "Membre Gold : vos avantages grandissent." : "Statut Imperial : merci pour votre fidélité.";
     private RdvHistoriqueItem? NextAppointment => Upcoming.Where(x => x.DateHeureDebut >= DateTimeOffset.Now).OrderBy(x => x.DateHeureDebut).FirstOrDefault();
     protected override async Task OnInitializedAsync() { var id = await Session.GetClientIdAsync(); if (id is null) { Navigation.NavigateTo("/login?ReturnUrl=/mon-espace"); return; } var (ok, items) = await RdvApi.GetHistoriqueAsync(id.Value, CancellationToken.None); _rdvs = ok ? items : []; var(profileOk,profile)=await ProfileApi.GetAsync(id.Value,CancellationToken.None);if(profileOk&&profile is not null)_points=profile.PointsFidelite; _loading = false; }
+
+    private async Task LogoutAsync()
+    {
+        await Session.ClearAsync();
+        Navigation.NavigateTo("/", forceLoad: true);
+    }
 }
 
 
