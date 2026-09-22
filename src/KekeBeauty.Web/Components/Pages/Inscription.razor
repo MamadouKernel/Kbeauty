@@ -1,5 +1,7 @@
 @page "/inscription"
 @inject AuthApiClient AuthApi
+@inject ClientSessionService ClientSession
+@inject PartnerSessionService PartnerSession
 @inject NavigationManager Navigation
 @* prerender:false : voir PartnerDashboard.razor pour le detail du bug de prerendering evite. *@
 @rendermode @(new InteractiveServerRenderMode(prerender: false))
@@ -67,6 +69,23 @@
         && !string.IsNullOrWhiteSpace(_email) && _password.Length >= 8;
 
     private string TelephoneE164 => "+225" + new string(_telephoneLocal.Where(char.IsDigit).ToArray());
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+
+        if (Role == 1)
+        {
+            if (await PartnerSession.GetPartnerIdAsync() is not null && await PartnerSession.GetTokenAsync() is not null)
+            {
+                Navigation.NavigateTo("/partenaire", forceLoad: true);
+            }
+        }
+        else if (await ClientSession.GetClientIdAsync() is not null && await ClientSession.GetTokenAsync() is not null)
+        {
+            Navigation.NavigateTo("/mon-espace", forceLoad: true);
+        }
+    }
 
     private async Task RegisterAsync()
     {

@@ -215,6 +215,13 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        // Une session deja valide ne doit pas re-afficher l'ecran de connexion : sinon on peut
+        // "revenir" sur /login via le bouton precedent du navigateur sans jamais etre redirige.
+        if (firstRender && await RedirectIfAlreadyLoggedInAsync())
+        {
+            return;
+        }
+
         if (_role != 3 && !_codeSent && !string.IsNullOrWhiteSpace(_googleClientId))
         {
             _googleReference ??= DotNetObjectReference.Create(this);
@@ -228,6 +235,25 @@
             _codeScreenFocused = true;
             try { await _codeInputRef.FocusAsync(); } catch { }
         }
+    }
+
+    private async Task<bool> RedirectIfAlreadyLoggedInAsync()
+    {
+        if (_role == 1)
+        {
+            if (await PartnerSession.GetPartnerIdAsync() is not null && await PartnerSession.GetTokenAsync() is not null)
+            {
+                Navigation.NavigateTo("/partenaire", forceLoad: true);
+                return true;
+            }
+        }
+        else if (_role != 3 && await ClientSession.GetClientIdAsync() is not null && await ClientSession.GetTokenAsync() is not null)
+        {
+            Navigation.NavigateTo(SafeReturnUrl, forceLoad: true);
+            return true;
+        }
+
+        return false;
     }
 
     [JSInvokable]

@@ -58,6 +58,25 @@
         ? ReturnUrl
         : "/";
 
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+
+        // Meme garde que Login.razor : une session deja valide ne doit pas re-afficher l'ecran
+        // de connexion (ex: bouton precedent du navigateur apres une connexion reussie).
+        if (Role == 1)
+        {
+            if (await PartnerSession.GetPartnerIdAsync() is not null && await PartnerSession.GetTokenAsync() is not null)
+            {
+                Navigation.NavigateTo("/partenaire", forceLoad: true);
+            }
+        }
+        else if (await ClientSession.GetClientIdAsync() is not null && await ClientSession.GetTokenAsync() is not null)
+        {
+            Navigation.NavigateTo(SafeReturnUrl, forceLoad: true);
+        }
+    }
+
     private async Task LoginAsync()
     {
         _busy = true; _message = null;
