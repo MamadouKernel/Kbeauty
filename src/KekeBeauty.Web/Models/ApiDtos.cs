@@ -82,6 +82,20 @@ public sealed class VerifyOtpResponse
     public string? SessionToken { get; set; }
 }
 
+public sealed class RegisterPasswordResponse
+{
+    public string Status { get; set; } = string.Empty;
+    public Guid? IdUtilisateur { get; set; }
+    public bool EmailSent { get; set; }
+}
+
+public sealed class LoginPasswordResponse
+{
+    public string Status { get; set; } = string.Empty;
+    public Guid? IdUtilisateur { get; set; }
+    public string? SessionToken { get; set; }
+}
+
 public sealed class RequestRdvResponse
 {
     public Guid IdRdv { get; set; }

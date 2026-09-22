@@ -80,6 +80,10 @@
                         {
                             <a class="block text-center font-label-md text-label-md text-secondary hover:underline mt-space-sm" href="/partenaire/inscription">Pas encore de salon ? Devenir partenaire</a>
                         }
+                        @if (_role != 3)
+                        {
+                            <a class="block text-center font-label-md text-label-md text-secondary hover:underline mt-space-sm" href="@($"/mot-de-passe?role={_role}")">Se connecter avec un email et un mot de passe</a>
+                        }
                     </div>
                 </div>
             }

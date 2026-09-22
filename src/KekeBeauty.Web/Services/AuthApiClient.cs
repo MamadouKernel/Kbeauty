@@ -110,4 +110,70 @@ public sealed class AuthApiClient
             return (false, "network_error", null, null);
         }
     }
+
+    /// <summary>typeCompte : 0=Client, 1=Partenaire (voir RequestOtpAsync pour la convention).</summary>
+    public async Task<(bool Success, string Status, Guid? IdUtilisateur, bool EmailSent)> RegisterWithPasswordAsync(
+        string nom, string telephone, string email, string password, int typeCompte, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var response = await _httpClient.PostAsJsonAsync("auth/password/register", new { nom, telephone, email, password, typeCompte }, cancellationToken);
+            var body = await response.Content.ReadFromJsonAsync<RegisterPasswordResponse>(cancellationToken);
+            return (response.IsSuccessStatusCode, body?.Status ?? "error", body?.IdUtilisateur, body?.EmailSent ?? false);
+        }
+        catch (Exception)
+        {
+            return (false, "network_error", null, false);
+        }
+    }
+
+    public async Task<(bool Success, string Status)> VerifyEmailAsync(Guid idUtilisateur, string code, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var response = await _httpClient.PostAsJsonAsync("auth/password/verify-email", new { idUtilisateur, code }, cancellationToken);
+            var body = await response.Content.ReadFromJsonAsync<RequestOtpResponse>(cancellationToken);
+            return (response.IsSuccessStatusCode, body?.Status ?? "error");
+        }
+        catch (Exception)
+        {
+            return (false, "network_error");
+        }
+    }
+
+    public async Task<(bool Success, string Status, Guid? IdUtilisateur, string? SessionToken)> LoginWithPasswordAsync(
+        string email, string password, int typeCompte, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var response = await _httpClient.PostAsJsonAsync("auth/password/login", new { email, password, typeCompte }, cancellationToken);
+            var body = await response.Content.ReadFromJsonAsync<LoginPasswordResponse>(cancellationToken);
+            return (response.IsSuccessStatusCode, body?.Status ?? "error", body?.IdUtilisateur, body?.SessionToken);
+        }
+        catch (Exception)
+        {
+            return (false, "network_error", null, null);
+        }
+    }
+
+    public async Task ForgotPasswordAsync(string email, int typeCompte, CancellationToken cancellationToken)
+    {
+        try { await _httpClient.PostAsJsonAsync("auth/password/forgot", new { email, typeCompte }, cancellationToken); }
+        catch (Exception) { /* best-effort : l'UI affiche toujours le meme message generique */ }
+    }
+
+    public async Task<(bool Success, string Status)> ResetPasswordAsync(
+        string email, string code, string newPassword, int typeCompte, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var response = await _httpClient.PostAsJsonAsync("auth/password/reset", new { email, code, newPassword, typeCompte }, cancellationToken);
+            var body = await response.Content.ReadFromJsonAsync<RequestOtpResponse>(cancellationToken);
+            return (response.IsSuccessStatusCode, body?.Status ?? "error");
+        }
+        catch (Exception)
+        {
+            return (false, "network_error");
+        }
+    }
 }

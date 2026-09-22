@@ -75,6 +75,11 @@ builder.Services.AddScoped<IOtpChallengeRepository, OtpChallengeRepository>();
 builder.Services.AddScoped<IUtilisateurRepository, UtilisateurRepository>();
 builder.Services.AddScoped<RequestOtpUseCase>();
 builder.Services.AddScoped<VerifyOtpUseCase>();
+builder.Services.AddScoped<RegisterWithPasswordUseCase>();
+builder.Services.AddScoped<VerifyEmailUseCase>();
+builder.Services.AddScoped<LoginWithPasswordUseCase>();
+builder.Services.AddScoped<RequestPasswordResetUseCase>();
+builder.Services.AddScoped<ResetPasswordUseCase>();
 
 builder.Services.AddHttpClient<IPartnerNotifier, ZavuWhatsAppPartnerNotifier>(client =>
 {

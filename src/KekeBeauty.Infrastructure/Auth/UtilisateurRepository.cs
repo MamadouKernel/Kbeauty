@@ -242,6 +242,81 @@ public sealed class UtilisateurRepository : IUtilisateurRepository
     {
         using var connection=_connectionFactory.CreateConnection();await connection.OpenAsync(cancellationToken);
         return await connection.ExecuteScalarAsync<int>(new CommandDefinition("SELECT COALESCE(points_fidelite,0) FROM utilisateur WHERE id_utilisateur=@idUtilisateur;",new{idUtilisateur},cancellationToken:cancellationToken));
-    }}
+    }
+
+    public async Task<Utilisateur?> FindByEmailAsync(string email, TypeCompte typeCompte, CancellationToken cancellationToken)
+    {
+        using var connection = _connectionFactory.CreateConnection();
+        await connection.OpenAsync(cancellationToken);
+        // Pas de filtre sur password_hash : la contrainte ux_utilisateur_email_type (migration 0016)
+        // interdit deja un email en double, qu'il appartienne a un compte OTP/Google ou mot de passe.
+        // RegisterWithPasswordUseCase doit donc voir ces comptes aussi pour rejeter proprement le
+        // doublon au lieu de laisser l'INSERT echouer sur la contrainte.
+        return await connection.QuerySingleOrDefaultAsync<Utilisateur>(new CommandDefinition(
+            @"SELECT id_utilisateur AS IdUtilisateur, COALESCE(telephone,'') AS Telephone, nom AS Nom,
+                     type_compte AS TypeCompte, date_creation AS DateCreation, est_suspendu AS EstSuspendu,
+                     email AS Email, notifications_rdv AS NotificationsRdv, notifications_marketing AS NotificationsMarketing,
+                     consentement_donnees AS ConsentementDonnees, date_suppression AS DateSuppression,
+                     password_hash AS PasswordHash, email_verifie AS EmailVerifie
+              FROM utilisateur
+              WHERE lower(email)=lower(@email) AND type_compte=@typeCompte::type_compte_enum
+                AND date_suppression IS NULL;",
+            new { email, typeCompte = typeCompte.ToString().ToUpperInvariant() }, cancellationToken: cancellationToken));
+    }
+
+    public async Task<Guid> CreateWithPasswordAsync(string nom, string telephone, string email, string passwordHash, TypeCompte typeCompte, CancellationToken cancellationToken)
+    {
+        using var connection = _connectionFactory.CreateConnection();
+        await connection.OpenAsync(cancellationToken);
+        return await connection.QuerySingleAsync<Guid>(new CommandDefinition(
+            @"INSERT INTO utilisateur (telephone, nom, email, password_hash, type_compte)
+              VALUES (@telephone, @nom, @email, @passwordHash, @typeCompte::type_compte_enum)
+              RETURNING id_utilisateur;",
+            new { telephone, nom, email, passwordHash, typeCompte = typeCompte.ToString().ToUpperInvariant() },
+            cancellationToken: cancellationToken));
+    }
+
+    public async Task<bool> SetPasswordHashAsync(Guid idUtilisateur, string passwordHash, CancellationToken cancellationToken)
+    {
+        using var connection = _connectionFactory.CreateConnection();
+        await connection.OpenAsync(cancellationToken);
+        var rows = await connection.ExecuteAsync(new CommandDefinition(
+            "UPDATE utilisateur SET password_hash=@passwordHash WHERE id_utilisateur=@idUtilisateur AND date_suppression IS NULL;",
+            new { idUtilisateur, passwordHash }, cancellationToken: cancellationToken));
+        return rows > 0;
+    }
+
+    public async Task<bool> SetEmailVerifieAsync(Guid idUtilisateur, CancellationToken cancellationToken)
+    {
+        using var connection = _connectionFactory.CreateConnection();
+        await connection.OpenAsync(cancellationToken);
+        var rows = await connection.ExecuteAsync(new CommandDefinition(
+            "UPDATE utilisateur SET email_verifie=TRUE WHERE id_utilisateur=@idUtilisateur AND date_suppression IS NULL;",
+            new { idUtilisateur }, cancellationToken: cancellationToken));
+        return rows > 0;
+    }
+
+    public async Task StorePasswordAuthTokenAsync(Guid idUtilisateur, string codeHash, string purpose, DateTimeOffset expireLe, CancellationToken cancellationToken)
+    {
+        using var connection = _connectionFactory.CreateConnection();
+        await connection.OpenAsync(cancellationToken);
+        await connection.ExecuteAsync(new CommandDefinition(
+            @"INSERT INTO password_auth_token (id_utilisateur, purpose, code_hash, expire_le)
+              VALUES (@idUtilisateur, @purpose, @codeHash, @expireLe)
+              ON CONFLICT (id_utilisateur, purpose) DO UPDATE SET code_hash=EXCLUDED.code_hash, expire_le=EXCLUDED.expire_le;",
+            new { idUtilisateur, codeHash, purpose, expireLe }, cancellationToken: cancellationToken));
+    }
+
+    public async Task<bool> ConsumePasswordAuthTokenAsync(Guid idUtilisateur, string purpose, string codeHash, CancellationToken cancellationToken)
+    {
+        using var connection = _connectionFactory.CreateConnection();
+        await connection.OpenAsync(cancellationToken);
+        var rows = await connection.ExecuteAsync(new CommandDefinition(
+            @"DELETE FROM password_auth_token
+              WHERE id_utilisateur=@idUtilisateur AND purpose=@purpose AND code_hash=@codeHash AND expire_le > now();",
+            new { idUtilisateur, purpose, codeHash }, cancellationToken: cancellationToken));
+        return rows > 0;
+    }
+}
 
 

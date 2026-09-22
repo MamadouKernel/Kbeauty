@@ -21,5 +21,7 @@ public class Utilisateur
     public bool NotificationsMarketing { get; set; }
     public bool ConsentementDonnees { get; set; }
     public DateTimeOffset? DateSuppression { get; set; }
+    public string? PasswordHash { get; set; }
+    public bool EmailVerifie { get; set; }
 }
 

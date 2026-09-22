@@ -1,0 +1,89 @@
+@page "/mot-de-passe"
+@inject AuthApiClient AuthApi
+@inject ClientSessionService ClientSession
+@inject PartnerSessionService PartnerSession
+@inject NavigationManager Navigation
+@* prerender:false : voir PartnerDashboard.razor pour le detail du bug de prerendering evite. *@
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+
+<PageTitle>Connexion par mot de passe — Keke Beauty</PageTitle>
+<a class="login-back" href="/login">← Retour</a>
+
+<main id="main-content" tabindex="-1" class="login-page flex-1 flex flex-col relative w-full bg-surface min-h-screen">
+    <div class="flex flex-col w-full px-margin pb-space-xl max-w-md mx-auto">
+        <div class="relative flex flex-col items-center pt-space-md text-center">
+            <div class="relative p-space-xs rounded-full bg-surface-cream shadow-sm mb-space-sm flex items-center justify-center">
+                <img alt="Keke Beauty" class="h-16 w-16 object-contain rounded-full" src="/img/logo.png" />
+            </div>
+            <h1 class="font-headline-md text-headline-md text-text-primary tracking-tight mb-1">Connexion</h1>
+            <p class="font-body-md text-body-md text-on-surface-variant max-w-xs leading-snug">Avec votre email et votre mot de passe</p>
+        </div>
+
+        <div class="mt-space-lg w-full">
+            <div class="bg-surface-cream rounded-xl p-space-md shadow-md space-y-space-md">
+                <div class="space-y-1.5">
+                    <label class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Email</label>
+                    <input class="w-full bg-surface-container-low rounded-xl px-3 py-2.5 font-body-md text-body-md text-text-primary focus:outline-none" type="email" @bind="_email" @bind:event="oninput" />
+                </div>
+                <div class="space-y-1.5">
+                    <label class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Mot de passe</label>
+                    <input class="w-full bg-surface-container-low rounded-xl px-3 py-2.5 font-body-md text-body-md text-text-primary focus:outline-none" type="password" @bind="_password" @bind:event="oninput" />
+                </div>
+                <a class="block text-right font-label-sm text-label-sm text-secondary hover:underline" href="@($"/mot-de-passe-oublie?role={Role}")">Mot de passe oublié ?</a>
+                <button class="w-full py-3.5 px-space-md rounded-full bg-primary-container text-on-primary font-label-lg text-label-lg tracking-wide shadow-md hover:bg-plum-deep active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50" disabled="@(_busy || string.IsNullOrWhiteSpace(_email) || string.IsNullOrWhiteSpace(_password))" @onclick="LoginAsync">
+                    <span>Se connecter</span>
+                    <span class="material-symbols-outlined text-sm">arrow_forward</span>
+                </button>
+                <a class="block text-center font-label-md text-label-md text-secondary hover:underline" href="@($"/inscription?role={Role}")">Pas encore de compte ? Créer un compte</a>
+            </div>
+        </div>
+
+        <ToastBridge Message="@_message" Severity="danger" OnShown="@(() => _message = null)" />
+    </div>
+</main>
+
+@code {
+    [SupplyParameterFromQuery]
+    public int Role { get; set; }
+
+    [SupplyParameterFromQuery]
+    public string? ReturnUrl { get; set; }
+
+    private string _email = "";
+    private string _password = "";
+    private bool _busy;
+    private string? _message;
+
+    private string SafeReturnUrl => !string.IsNullOrWhiteSpace(ReturnUrl) && ReturnUrl.StartsWith('/') && !ReturnUrl.StartsWith("//") && !ReturnUrl.Contains('\\')
+        ? ReturnUrl
+        : "/";
+
+    private async Task LoginAsync()
+    {
+        _busy = true; _message = null;
+        var (success, status, idUtilisateur, sessionToken) = await AuthApi.LoginWithPasswordAsync(_email.Trim(), _password, Role, CancellationToken.None);
+        _busy = false;
+
+        if (success && idUtilisateur is not null && !string.IsNullOrWhiteSpace(sessionToken))
+        {
+            if (Role == 1)
+            {
+                await PartnerSession.SetPartnerIdAsync(idUtilisateur.Value, sessionToken);
+                Navigation.NavigateTo("/partenaire", forceLoad: true);
+            }
+            else
+            {
+                await ClientSession.SetClientIdAsync(idUtilisateur.Value, sessionToken);
+                Navigation.NavigateTo(SafeReturnUrl);
+            }
+            return;
+        }
+
+        _message = status switch
+        {
+            "email_not_verified" => "Votre adresse email n'est pas encore vérifiée. Consultez votre boîte mail.",
+            "account_suspended" => "Ce compte est suspendu.",
+            _ => "Email ou mot de passe incorrect.",
+        };
+    }
+}

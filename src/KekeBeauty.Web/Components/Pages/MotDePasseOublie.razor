@@ -1,0 +1,99 @@
+@page "/mot-de-passe-oublie"
+@inject AuthApiClient AuthApi
+@inject NavigationManager Navigation
+@* prerender:false : voir PartnerDashboard.razor pour le detail du bug de prerendering evite. *@
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+
+<PageTitle>Mot de passe oublié — Keke Beauty</PageTitle>
+<a class="login-back" href="/mot-de-passe">← Retour</a>
+
+<main id="main-content" tabindex="-1" class="login-page flex-1 flex flex-col relative w-full bg-surface min-h-screen">
+    <div class="flex flex-col w-full px-margin pb-space-xl max-w-md mx-auto">
+        <div class="relative flex flex-col items-center pt-space-md text-center">
+            <div class="w-14 h-14 rounded-full bg-lavender-subtle text-primary flex items-center justify-center mb-space-sm shadow-inner">
+                <span class="material-symbols-outlined text-[28px]">lock_reset</span>
+            </div>
+            <h1 class="font-headline-md text-headline-md text-text-primary tracking-tight mb-1">Mot de passe oublié</h1>
+            <p class="font-body-md text-body-md text-on-surface-variant max-w-xs leading-snug">
+                @(_codeSent ? "Entrez le code reçu par email et votre nouveau mot de passe." : "Entrez votre email pour recevoir un code de réinitialisation.")
+            </p>
+        </div>
+
+        <div class="mt-space-lg w-full">
+            <div class="bg-surface-cream rounded-xl p-space-md shadow-md space-y-space-md">
+                @if (!_codeSent)
+                {
+                    <div class="space-y-1.5">
+                        <label class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Email</label>
+                        <input class="w-full bg-surface-container-low rounded-xl px-3 py-2.5 font-body-md text-body-md text-text-primary focus:outline-none" type="email" @bind="_email" @bind:event="oninput" />
+                    </div>
+                    <button class="w-full py-3.5 px-space-md rounded-full bg-primary-container text-on-primary font-label-lg text-label-lg tracking-wide shadow-md hover:bg-plum-deep active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50" disabled="@(_busy || string.IsNullOrWhiteSpace(_email))" @onclick="RequestCodeAsync">
+                        <span>Envoyer le code</span>
+                        <span class="material-symbols-outlined text-sm">send</span>
+                    </button>
+                }
+                else
+                {
+                    <div class="space-y-1.5">
+                        <label class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Code reçu par email</label>
+                        <input class="w-full bg-surface-container-low rounded-xl px-3 py-2.5 font-headline-sm text-headline-sm text-text-primary tracking-widest text-center focus:outline-none" maxlength="6" inputmode="numeric" @bind="_code" @bind:event="oninput" />
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Nouveau mot de passe (8 caractères minimum)</label>
+                        <input class="w-full bg-surface-container-low rounded-xl px-3 py-2.5 font-body-md text-body-md text-text-primary focus:outline-none" type="password" @bind="_newPassword" @bind:event="oninput" />
+                    </div>
+                    <button class="w-full py-3.5 px-space-md rounded-full bg-primary-container text-on-primary font-label-lg text-label-lg tracking-wide shadow-md hover:bg-plum-deep active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50" disabled="@(_busy || _code.Length != 6 || _newPassword.Length < 8)" @onclick="ResetAsync">
+                        <span>Réinitialiser</span>
+                        <span class="material-symbols-outlined text-sm">check_circle</span>
+                    </button>
+                    <button class="block w-full text-center font-label-sm text-label-sm text-secondary hover:underline" @onclick="() => _codeSent = false">Changer d'email</button>
+                }
+            </div>
+        </div>
+
+        <ToastBridge Message="@_message" Severity="@(_success ? "success" : "danger")" OnShown="@(() => _message = null)" />
+    </div>
+</main>
+
+@code {
+    [SupplyParameterFromQuery]
+    public int Role { get; set; }
+
+    private string _email = "";
+    private string _code = "";
+    private string _newPassword = "";
+    private bool _codeSent;
+    private bool _busy;
+    private bool _success;
+    private string? _message;
+
+    private async Task RequestCodeAsync()
+    {
+        _busy = true; _message = null;
+        await AuthApi.ForgotPasswordAsync(_email.Trim(), Role, CancellationToken.None);
+        _busy = false;
+        _codeSent = true;
+        _success = true;
+        _message = "Si un compte existe avec cet email, un code de réinitialisation vient d'être envoyé.";
+    }
+
+    private async Task ResetAsync()
+    {
+        _busy = true; _message = null;
+        var (success, status) = await AuthApi.ResetPasswordAsync(_email.Trim(), _code, _newPassword, Role, CancellationToken.None);
+        _busy = false;
+
+        if (success)
+        {
+            Navigation.NavigateTo($"/mot-de-passe?role={Role}");
+            return;
+        }
+
+        _success = false;
+        _message = status switch
+        {
+            "weak_password" => "Le mot de passe doit contenir au moins 8 caractères.",
+            _ => "Code invalide ou expiré. Merci de réessayer.",
+        };
+    }
+}

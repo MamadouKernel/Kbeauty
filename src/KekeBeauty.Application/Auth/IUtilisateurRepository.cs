@@ -25,5 +25,13 @@ public interface IUtilisateurRepository
     Task<(Utilisateur Utilisateur, bool IsNewAccount)> FindOrCreateAsync(
         string telephone, TypeCompte typeCompte, CancellationToken cancellationToken);
     Task<int> GetLoyaltyPointsAsync(Guid idUtilisateur, CancellationToken cancellationToken);
+
+    // Auth par email + mot de passe (additive aux flux OTP/Google existants).
+    Task<Utilisateur?> FindByEmailAsync(string email, TypeCompte typeCompte, CancellationToken cancellationToken);
+    Task<Guid> CreateWithPasswordAsync(string nom, string telephone, string email, string passwordHash, TypeCompte typeCompte, CancellationToken cancellationToken);
+    Task<bool> SetPasswordHashAsync(Guid idUtilisateur, string passwordHash, CancellationToken cancellationToken);
+    Task<bool> SetEmailVerifieAsync(Guid idUtilisateur, CancellationToken cancellationToken);
+    Task StorePasswordAuthTokenAsync(Guid idUtilisateur, string codeHash, string purpose, DateTimeOffset expireLe, CancellationToken cancellationToken);
+    Task<bool> ConsumePasswordAuthTokenAsync(Guid idUtilisateur, string purpose, string codeHash, CancellationToken cancellationToken);
 }
 

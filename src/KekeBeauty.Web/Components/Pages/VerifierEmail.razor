@@ -1,0 +1,67 @@
+@page "/verifier-email"
+@inject AuthApiClient AuthApi
+@inject NavigationManager Navigation
+@* prerender:false : voir PartnerDashboard.razor pour le detail du bug de prerendering evite. *@
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+
+<PageTitle>Vérifier votre email — Keke Beauty</PageTitle>
+
+<main id="main-content" tabindex="-1" class="login-page flex-1 flex flex-col relative w-full bg-surface min-h-screen">
+    <div class="flex flex-col w-full px-margin pb-space-xl max-w-md mx-auto">
+        <div class="relative flex flex-col items-center pt-space-md text-center">
+            <div class="w-14 h-14 rounded-full bg-lavender-subtle text-primary flex items-center justify-center mb-space-sm shadow-inner">
+                <span class="material-symbols-outlined text-[28px]">mark_email_read</span>
+            </div>
+            <h1 class="font-headline-md text-headline-md text-text-primary tracking-tight mb-1">Vérifiez votre email</h1>
+            <p class="font-body-md text-body-md text-on-surface-variant max-w-xs leading-snug">
+                Entrez le code à 6 chiffres envoyé par email pour activer votre compte.
+            </p>
+        </div>
+
+        <div class="mt-space-lg w-full">
+            <div class="bg-surface-cream rounded-xl p-space-md shadow-md space-y-space-md">
+                <div class="space-y-1.5">
+                    <label class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Code de vérification</label>
+                    <input class="w-full bg-surface-container-low rounded-xl px-3 py-2.5 font-headline-sm text-headline-sm text-text-primary tracking-widest text-center focus:outline-none" maxlength="6" inputmode="numeric" @bind="_code" @bind:event="oninput" />
+                </div>
+                <button class="w-full py-3.5 px-space-md rounded-full bg-primary-container text-on-primary font-label-lg text-label-lg tracking-wide shadow-md hover:bg-plum-deep active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50" disabled="@(_busy || _code.Length != 6 || IdUtilisateur is null)" @onclick="VerifyAsync">
+                    <span>Vérifier</span>
+                    <span class="material-symbols-outlined text-sm">check_circle</span>
+                </button>
+            </div>
+        </div>
+
+        <ToastBridge Message="@_message" Severity="@(_success ? "success" : "danger")" OnShown="@(() => _message = null)" />
+    </div>
+</main>
+
+@code {
+    [SupplyParameterFromQuery(Name = "id")]
+    public Guid? IdUtilisateur { get; set; }
+
+    [SupplyParameterFromQuery]
+    public int Role { get; set; }
+
+    private string _code = "";
+    private bool _busy;
+    private bool _success;
+    private string? _message;
+
+    private async Task VerifyAsync()
+    {
+        if (IdUtilisateur is null) return;
+        _busy = true; _message = null;
+        var (success, status) = await AuthApi.VerifyEmailAsync(IdUtilisateur.Value, _code, CancellationToken.None);
+        _busy = false;
+
+        if (success)
+        {
+            Navigation.NavigateTo($"/mot-de-passe?role={Role}");
+            return;
+        }
+
+        _success = false;
+        _message = "Code invalide ou expiré. Merci de réessayer.";
+        _code = "";
+    }
+}

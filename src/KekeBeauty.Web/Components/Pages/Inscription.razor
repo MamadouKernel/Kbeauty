@@ -1,0 +1,95 @@
+@page "/inscription"
+@inject AuthApiClient AuthApi
+@inject NavigationManager Navigation
+@* prerender:false : voir PartnerDashboard.razor pour le detail du bug de prerendering evite. *@
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+
+<PageTitle>Créer un compte — Keke Beauty</PageTitle>
+<a class="login-back" href="/mot-de-passe">← Retour</a>
+
+<main id="main-content" tabindex="-1" class="login-page flex-1 flex flex-col relative w-full bg-surface min-h-screen">
+    <div class="flex flex-col w-full px-margin pb-space-xl max-w-md mx-auto">
+        <div class="relative flex flex-col items-center pt-space-md text-center">
+            <div class="relative p-space-xs rounded-full bg-surface-cream shadow-sm mb-space-sm flex items-center justify-center">
+                <img alt="Keke Beauty" class="h-16 w-16 object-contain rounded-full" src="/img/logo.png" />
+            </div>
+            <h1 class="font-headline-md text-headline-md text-text-primary tracking-tight mb-1">Créer un compte</h1>
+            <p class="font-body-md text-body-md text-on-surface-variant max-w-xs leading-snug">Avec votre email et un mot de passe</p>
+        </div>
+
+        <div class="mt-space-lg w-full">
+            <div class="bg-surface-cream rounded-xl p-space-md shadow-md space-y-space-md">
+                <div class="space-y-1.5">
+                    <label class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Nom et prénoms</label>
+                    <input class="w-full bg-surface-container-low rounded-xl px-3 py-2.5 font-body-md text-body-md text-text-primary focus:outline-none" @bind="_nom" @bind:event="oninput" />
+                </div>
+                <div class="space-y-1.5">
+                    <label class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Téléphone</label>
+                    <div class="flex items-center gap-2 p-1.5 bg-surface-container-low rounded-xl">
+                        <div class="flex items-center gap-1.5 px-3 py-2 bg-surface-cream rounded-lg shadow-sm text-text-primary font-label-md text-label-md shrink-0">
+                            <span class="text-base">🇨🇮</span><span class="font-semibold text-primary">+225</span>
+                        </div>
+                        <input class="w-full bg-transparent px-2 py-2 font-body-md text-body-md text-text-primary placeholder:text-outline focus:outline-none" placeholder="XX XX XX XX XX" type="tel" @bind="_telephoneLocal" @bind:event="oninput" />
+                    </div>
+                </div>
+                <div class="space-y-1.5">
+                    <label class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Email</label>
+                    <input class="w-full bg-surface-container-low rounded-xl px-3 py-2.5 font-body-md text-body-md text-text-primary focus:outline-none" type="email" @bind="_email" @bind:event="oninput" />
+                </div>
+                <div class="space-y-1.5">
+                    <label class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Mot de passe (8 caractères minimum)</label>
+                    <input class="w-full bg-surface-container-low rounded-xl px-3 py-2.5 font-body-md text-body-md text-text-primary focus:outline-none" type="password" @bind="_password" @bind:event="oninput" />
+                </div>
+                <button class="w-full py-3.5 px-space-md rounded-full bg-primary-container text-on-primary font-label-lg text-label-lg tracking-wide shadow-md hover:bg-plum-deep active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50" disabled="@(_busy || !CanSubmit)" @onclick="RegisterAsync">
+                    <span>Créer mon compte</span>
+                    <span class="material-symbols-outlined text-sm">arrow_forward</span>
+                </button>
+            </div>
+        </div>
+
+        <ToastBridge Message="@_message" Severity="@(_success ? "success" : "danger")" OnShown="@(() => _message = null)" />
+    </div>
+</main>
+
+@code {
+    [SupplyParameterFromQuery]
+    public int Role { get; set; }
+
+    private string _nom = "";
+    private string _telephoneLocal = "";
+    private string _email = "";
+    private string _password = "";
+    private bool _busy;
+    private bool _success;
+    private string? _message;
+
+    private bool CanSubmit => !string.IsNullOrWhiteSpace(_nom) && !string.IsNullOrWhiteSpace(_telephoneLocal)
+        && !string.IsNullOrWhiteSpace(_email) && _password.Length >= 8;
+
+    private string TelephoneE164 => "+225" + new string(_telephoneLocal.Where(char.IsDigit).ToArray());
+
+    private async Task RegisterAsync()
+    {
+        _busy = true; _message = null;
+        var (success, status, idUtilisateur, emailSent) = await AuthApi.RegisterWithPasswordAsync(
+            _nom.Trim(), TelephoneE164, _email.Trim(), _password, Role, CancellationToken.None);
+        _busy = false;
+
+        if (success && idUtilisateur is not null)
+        {
+            Navigation.NavigateTo($"/verifier-email?id={idUtilisateur}&role={Role}");
+            return;
+        }
+
+        _success = false;
+        _message = status switch
+        {
+            "email_already_used" => "Cet email est déjà utilisé par un compte.",
+            "telephone_already_used" => "Ce numéro est déjà associé à un compte. Connectez-vous par WhatsApp ou Google.",
+            "invalid_phone" => "Numéro de téléphone invalide.",
+            "invalid_email" => "Adresse email invalide.",
+            "weak_password" => "Le mot de passe doit contenir au moins 8 caractères.",
+            _ => "L'inscription a échoué. Merci de réessayer.",
+        };
+    }
+}
