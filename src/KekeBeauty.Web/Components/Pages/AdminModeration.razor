@@ -7,44 +7,140 @@
 
 <PageTitle>Modération</PageTitle>
 @using KekeBeauty.Web.Components.Layout
+@using KekeBeauty.Web.Models
 <AdminHeader ActivePath="/admin/moderation" />
-<main id="main-content" tabindex="-1" class="admin-page admin-legacy"><div class="admin-content">
 
+<main id="main-content" tabindex="-1" class="admin-page flex flex-col relative w-full pt-16 pb-space-xl bg-surface min-h-screen">
+    <div class="flex flex-col w-full px-margin py-space-lg gap-space-lg lg:max-w-2xl lg:mx-auto">
+        @if (_checkingAuth)
+        {
+            <p class="font-body-md text-body-md text-on-surface-variant">Chargement…</p>
+        }
+        else
+        {
+            <div>
+                <h1 class="font-headline-lg text-headline-lg text-text-primary">Modération</h1>
+                <p class="font-body-sm text-body-sm text-on-surface-variant mt-1">Recherchez un compte ou une boutique par nom, téléphone ou e-mail — aucun identifiant technique n'est requis.</p>
+            </div>
 
-@if (_checkingAuth)
-{
-    <p>Chargement…</p>
-}
-else
-{
-    <h1>Modération</h1>
+            <section class="bg-surface-cream rounded-xl p-space-md shadow-sm space-y-space-sm">
+                <h2 class="font-label-lg text-label-lg text-text-primary flex items-center gap-2"><span class="material-symbols-outlined text-secondary">person</span>Compte client ou partenaire</h2>
 
-    <h2>Compte utilisateur (client/partenaire)</h2>
-    <div class="row g-2 mb-3">
-        <div class="col-auto"><input class="form-control" placeholder="Identifiant utilisateur (guid)" @bind="_idUtilisateur"  /></div>
-        <div class="col-auto"><button class="btn btn-outline-danger" @onclick="SuspendreUtilisateurAsync">Suspendre</button></div>
-        <div class="col-auto"><button class="btn btn-outline-success" @onclick="ReactiverUtilisateurAsync">Réactiver</button></div>
+                @if (_selectedUser is null)
+                {
+                    <div class="relative">
+                        <div class="flex items-center gap-2 bg-surface-container-low rounded-xl px-3 py-2.5">
+                            <span class="material-symbols-outlined text-on-surface-variant text-[20px]">search</span>
+                            <input class="w-full bg-transparent font-body-md text-body-md text-text-primary placeholder:text-outline focus:outline-none" placeholder="Nom, téléphone ou e-mail" @bind="_userQuery" @bind:event="oninput" @onkeyup="OnUserKeyUp" />
+                        </div>
+                        @if (_userResults.Count > 0)
+                        {
+                            <div class="absolute z-20 mt-1 w-full bg-surface-cream rounded-xl shadow-lg border border-outline-variant/40 overflow-hidden max-h-72 overflow-y-auto">
+                                @foreach (var u in _userResults)
+                                {
+                                    <button type="button" class="w-full text-left px-3 py-2.5 flex items-center justify-between gap-2 hover:bg-surface-container-low transition-colors" @onclick="() => SelectUser(u)">
+                                        <div class="min-w-0">
+                                            <p class="font-label-md text-label-md text-text-primary truncate">@u.Nom</p>
+                                            <p class="font-body-sm text-body-sm text-on-surface-variant truncate">@u.Telephone @(string.IsNullOrWhiteSpace(u.Email) ? "" : $"· {u.Email}")</p>
+                                        </div>
+                                        <span class="shrink-0 font-label-sm text-label-sm px-2 py-1 rounded-full @(u.EstSuspendu ? "bg-error-container text-on-error-container" : "bg-status-available/10 text-status-available")">@(u.EstSuspendu ? "Suspendu" : u.TypeCompte)</span>
+                                    </button>
+                                }
+                            </div>
+                        }
+                        else if (_userQuery.Trim().Length >= 2 && !_userSearching)
+                        {
+                            <p class="font-body-sm text-body-sm text-on-surface-variant px-1 pt-1">Aucun résultat pour « @_userQuery ».</p>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="flex items-center justify-between gap-3 bg-surface-container-low rounded-xl p-space-sm">
+                        <div class="min-w-0">
+                            <p class="font-label-md text-label-md text-text-primary truncate">@_selectedUser.Nom</p>
+                            <p class="font-body-sm text-body-sm text-on-surface-variant truncate">@_selectedUser.Telephone @(string.IsNullOrWhiteSpace(_selectedUser.Email) ? "" : $"· {_selectedUser.Email}")</p>
+                            <span class="inline-block mt-1 font-label-sm text-label-sm px-2 py-0.5 rounded-full @(_selectedUser.EstSuspendu ? "bg-error-container text-on-error-container" : "bg-status-available/10 text-status-available")">@(_selectedUser.EstSuspendu ? "Suspendu" : "Actif")</span>
+                        </div>
+                        <button type="button" class="shrink-0 font-label-sm text-label-sm text-secondary underline" @onclick="ClearUserSelection">Changer</button>
+                    </div>
+                    <div class="flex gap-2">
+                        <button type="button" class="flex-1 py-2.5 rounded-full bg-error-container text-on-error-container font-label-sm text-label-sm disabled:opacity-50" disabled="@_selectedUser.EstSuspendu" @onclick="SuspendreUtilisateurAsync">Suspendre</button>
+                        <button type="button" class="flex-1 py-2.5 rounded-full bg-status-available/10 text-status-available font-label-sm text-label-sm disabled:opacity-50" disabled="@(!_selectedUser.EstSuspendu)" @onclick="ReactiverUtilisateurAsync">Réactiver</button>
+                    </div>
+                }
+            </section>
+
+            <section class="bg-surface-cream rounded-xl p-space-md shadow-sm space-y-space-sm">
+                <h2 class="font-label-lg text-label-lg text-text-primary flex items-center gap-2"><span class="material-symbols-outlined text-secondary">storefront</span>Établissement</h2>
+
+                @if (_selectedShop is null)
+                {
+                    <div class="relative">
+                        <div class="flex items-center gap-2 bg-surface-container-low rounded-xl px-3 py-2.5">
+                            <span class="material-symbols-outlined text-on-surface-variant text-[20px]">search</span>
+                            <input class="w-full bg-transparent font-body-md text-body-md text-text-primary placeholder:text-outline focus:outline-none" placeholder="Nom de la boutique, gérant ou téléphone" @bind="_shopQuery" @bind:event="oninput" @onkeyup="OnShopKeyUp" />
+                        </div>
+                        @if (_shopResults.Count > 0)
+                        {
+                            <div class="absolute z-20 mt-1 w-full bg-surface-cream rounded-xl shadow-lg border border-outline-variant/40 overflow-hidden max-h-72 overflow-y-auto">
+                                @foreach (var s in _shopResults)
+                                {
+                                    <button type="button" class="w-full text-left px-3 py-2.5 flex items-center justify-between gap-2 hover:bg-surface-container-low transition-colors" @onclick="() => SelectShop(s)">
+                                        <div class="min-w-0">
+                                            <p class="font-label-md text-label-md text-text-primary truncate">@s.NomEtablissement</p>
+                                            <p class="font-body-sm text-body-sm text-on-surface-variant truncate">@s.Gerant · @s.Telephone</p>
+                                        </div>
+                                        <span class="shrink-0 font-label-sm text-label-sm px-2 py-1 rounded-full @(s.EstSuspendu ? "bg-error-container text-on-error-container" : "bg-status-available/10 text-status-available")">@(s.EstSuspendu ? "Suspendue" : s.StatutKyc)</span>
+                                    </button>
+                                }
+                            </div>
+                        }
+                        else if (_shopQuery.Trim().Length >= 2 && !_shopSearching)
+                        {
+                            <p class="font-body-sm text-body-sm text-on-surface-variant px-1 pt-1">Aucun résultat pour « @_shopQuery ».</p>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="flex items-center justify-between gap-3 bg-surface-container-low rounded-xl p-space-sm">
+                        <div class="min-w-0">
+                            <p class="font-label-md text-label-md text-text-primary truncate">@_selectedShop.NomEtablissement</p>
+                            <p class="font-body-sm text-body-sm text-on-surface-variant truncate">@_selectedShop.Gerant · @_selectedShop.Telephone</p>
+                            <span class="inline-block mt-1 font-label-sm text-label-sm px-2 py-0.5 rounded-full @(_selectedShop.EstSuspendu ? "bg-error-container text-on-error-container" : "bg-status-available/10 text-status-available")">@(_selectedShop.EstSuspendu ? "Suspendue" : "Active")</span>
+                        </div>
+                        <button type="button" class="shrink-0 font-label-sm text-label-sm text-secondary underline" @onclick="ClearShopSelection">Changer</button>
+                    </div>
+                    <div class="flex gap-2">
+                        <button type="button" class="flex-1 py-2.5 rounded-full bg-error-container text-on-error-container font-label-sm text-label-sm disabled:opacity-50" disabled="@_selectedShop.EstSuspendu" @onclick="SuspendreEtablissementAsync">Suspendre</button>
+                        <button type="button" class="flex-1 py-2.5 rounded-full bg-status-available/10 text-status-available font-label-sm text-label-sm disabled:opacity-50" disabled="@(!_selectedShop.EstSuspendu)" @onclick="ReactiverEtablissementAsync">Réactiver</button>
+                    </div>
+                }
+            </section>
+
+            <ToastBridge Message="@_message" Severity="@(_success ? "success" : "danger")" OnShown="@(() => _message = null)" />
+        }
     </div>
-
-    <h2>Établissement</h2>
-    <div class="row g-2 mb-3">
-        <div class="col-auto"><input class="form-control" placeholder="Identifiant établissement (guid)" @bind="_idEtablissement"  /></div>
-        <div class="col-auto"><button class="btn btn-outline-danger" @onclick="SuspendreEtablissementAsync">Suspendre</button></div>
-        <div class="col-auto"><button class="btn btn-outline-success" @onclick="ReactiverEtablissementAsync">Réactiver</button></div>
-    </div>
-
-    <ToastBridge Message="@_message" Severity="@(_success ? "success" : "danger")" OnShown="@(() => _message = null)" />
-}
-
-</div></main>
+</main>
 
 @code {
     private string? _apiKey;
     private bool _checkingAuth = true;
-    private string _idUtilisateur = "";
-    private string _idEtablissement = "";
     private bool _success;
     private string? _message;
+
+    private string _userQuery = "";
+    private List<AdminUserItemDto> _userResults = [];
+    private AdminUserItemDto? _selectedUser;
+    private bool _userSearching;
+    private CancellationTokenSource? _userSearchCts;
+
+    private string _shopQuery = "";
+    private List<AdminShopItemDto> _shopResults = [];
+    private AdminShopItemDto? _selectedShop;
+    private bool _shopSearching;
+    private CancellationTokenSource? _shopSearchCts;
 
     protected override async Task OnInitializedAsync()
     {
@@ -58,6 +154,53 @@ else
         _checkingAuth = false;
     }
 
+    private async Task OnUserKeyUp(Microsoft.AspNetCore.Components.Web.KeyboardEventArgs e)
+    {
+        _userSearchCts?.Cancel();
+        if (_userQuery.Trim().Length < 2) { _userResults = []; return; }
+        var cts = new CancellationTokenSource();
+        _userSearchCts = cts;
+        _userSearching = true;
+        try
+        {
+            await Task.Delay(300, cts.Token);
+            var (success, items) = await AdminApi.SearchUsersAsync(_apiKey!, _userQuery, cts.Token);
+            if (!cts.IsCancellationRequested)
+            {
+                _userResults = success ? items.Take(8).ToList() : [];
+                _userSearching = false;
+                StateHasChanged();
+            }
+        }
+        catch (TaskCanceledException) { }
+    }
+
+    private async Task OnShopKeyUp(Microsoft.AspNetCore.Components.Web.KeyboardEventArgs e)
+    {
+        _shopSearchCts?.Cancel();
+        if (_shopQuery.Trim().Length < 2) { _shopResults = []; return; }
+        var cts = new CancellationTokenSource();
+        _shopSearchCts = cts;
+        _shopSearching = true;
+        try
+        {
+            await Task.Delay(300, cts.Token);
+            var (success, items) = await AdminApi.SearchShopsAsync(_apiKey!, _shopQuery, cts.Token);
+            if (!cts.IsCancellationRequested)
+            {
+                _shopResults = success ? items.Take(8).ToList() : [];
+                _shopSearching = false;
+                StateHasChanged();
+            }
+        }
+        catch (TaskCanceledException) { }
+    }
+
+    private void SelectUser(AdminUserItemDto u) { _selectedUser = u; _userResults = []; _userQuery = ""; }
+    private void ClearUserSelection() { _selectedUser = null; }
+    private void SelectShop(AdminShopItemDto s) { _selectedShop = s; _shopResults = []; _shopQuery = ""; }
+    private void ClearShopSelection() { _selectedShop = null; }
+
     private async Task SuspendreUtilisateurAsync() => await RunUtilisateurAsync(AdminApi.SuspendreUtilisateurAsync, "suspendu");
     private async Task ReactiverUtilisateurAsync() => await RunUtilisateurAsync(AdminApi.ReactiverUtilisateurAsync, "réactivé");
     private async Task SuspendreEtablissementAsync() => await RunEtablissementAsync(AdminApi.SuspendreEtablissementAsync, "suspendu");
@@ -65,29 +208,19 @@ else
 
     private async Task RunUtilisateurAsync(Func<string, Guid, CancellationToken, Task<(bool Success, string? Status)>> action, string libelleAction)
     {
-        if (!Guid.TryParse(_idUtilisateur, out var id))
-        {
-            _success = false;
-            _message = "Identifiant invalide.";
-            return;
-        }
-
-        var (success, status) = await action(_apiKey!, id, CancellationToken.None);
+        if (_selectedUser is null) return;
+        var (success, status) = await action(_apiKey!, _selectedUser.IdUtilisateur, CancellationToken.None);
         _success = success;
         _message = success ? $"Compte {libelleAction}." : status == "not_found" ? "Compte introuvable." : "Action impossible.";
+        if (success) _selectedUser.EstSuspendu = !_selectedUser.EstSuspendu;
     }
 
     private async Task RunEtablissementAsync(Func<string, Guid, CancellationToken, Task<(bool Success, string? Status)>> action, string libelleAction)
     {
-        if (!Guid.TryParse(_idEtablissement, out var id))
-        {
-            _success = false;
-            _message = "Identifiant invalide.";
-            return;
-        }
-
-        var (success, status) = await action(_apiKey!, id, CancellationToken.None);
+        if (_selectedShop is null) return;
+        var (success, status) = await action(_apiKey!, _selectedShop.IdEtablissement, CancellationToken.None);
         _success = success;
         _message = success ? $"Établissement {libelleAction}." : status == "not_found" ? "Établissement introuvable." : "Action impossible.";
+        if (success) _selectedShop.EstSuspendu = !_selectedShop.EstSuspendu;
     }
 }
