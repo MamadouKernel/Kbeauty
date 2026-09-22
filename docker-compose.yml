@@ -72,9 +72,23 @@ services:
       Authentication__Google__ClientId: "${GOOGLE_CLIENT_ID:-}"
       Authentication__SessionSigningKey: "${SESSION_SIGNING_KEY:-${ADMIN_SIGNING_KEY:-}}"
     ports:
-      - "${WEB_PORT:-5090}:8080"
+      - "127.0.0.1:${WEB_PORT:-5090}:8080"
     volumes:
       - kekebeauty_web_keys:/app/data-protection-keys
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: kekebeauty-caddy
+    restart: unless-stopped
+    depends_on:
+      - web
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - kekebeauty_caddy_data:/data
+      - kekebeauty_caddy_config:/config
 
   pgadmin:
     image: dpage/pgadmin4:latest
@@ -95,4 +109,6 @@ volumes:
   kekebeauty_pgadmin_data:
   kekebeauty_kyc_storage:
   kekebeauty_web_keys:
+  kekebeauty_caddy_data:
+  kekebeauty_caddy_config:
 

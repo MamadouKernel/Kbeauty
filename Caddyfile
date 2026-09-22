@@ -1,0 +1,3 @@
+kekebeauty.duckdns.org {
+	reverse_proxy web:8080
+}
