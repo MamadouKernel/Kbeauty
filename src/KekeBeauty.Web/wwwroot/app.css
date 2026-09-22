@@ -252,7 +252,7 @@ header { border-bottom: 1px solid #3a0d5209; }
     .admin-mobile-menu { display: block; }
     .admin-mobile-menu summary { display: flex; align-items: center; gap: 8px; cursor: pointer; list-style: none; padding: 10px 14px; background: #eee3f2; border-radius: 12px; color: var(--kb-ink); font-size: 12px; font-weight: 600; }
     .admin-mobile-menu summary::-webkit-details-marker { display: none; }
-    .admin-mobile-menu nav { position: absolute; top: 100%; right: 16px; left: 16px; display: grid; padding: 10px; border: 1px solid var(--kb-line); border-radius: 18px; background: #fffcf8; box-shadow: 0 20px 45px #3a0d5229; max-height: 70svh; overflow-y: auto; }
+    .admin-header .admin-mobile-menu nav { position: absolute; top: 100%; right: 16px; left: 16px; display: grid; padding: 10px; border: 1px solid var(--kb-line); border-radius: 18px; background: #fffcf8; box-shadow: 0 20px 45px #3a0d5229; max-height: 70svh; overflow-y: auto; }
 }
 @media (max-width: 1023px) {
     main.pt-16 { padding-top: calc(64px + env(safe-area-inset-top, 0px)); }
