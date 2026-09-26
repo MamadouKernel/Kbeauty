@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'keke-beauty-v10';
+const CACHE_VERSION = 'keke-beauty-v11';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const PAGE_CACHE = `${CACHE_VERSION}-pages`;
 const OFFLINE_URL = '/offline.html';
