@@ -219,17 +219,17 @@ public sealed class PartnerApiClient
 
             if (photoDevanture is not null && photoDevantureNomFichier is not null)
             {
-                content.Add(new StreamContent(photoDevanture), "photoDevanture", photoDevantureNomFichier);
+                content.Add(CreateFileContent(photoDevanture, photoDevantureNomFichier), "photoDevanture", photoDevantureNomFichier);
             }
 
             if (documentRecto is not null && documentRectoNomFichier is not null)
             {
-                content.Add(new StreamContent(documentRecto), "documentRecto", documentRectoNomFichier);
+                content.Add(CreateFileContent(documentRecto, documentRectoNomFichier), "documentRecto", documentRectoNomFichier);
             }
 
             if (documentVerso is not null && documentVersoNomFichier is not null)
             {
-                content.Add(new StreamContent(documentVerso), "documentVerso", documentVersoNomFichier);
+                content.Add(CreateFileContent(documentVerso, documentVersoNomFichier), "documentVerso", documentVersoNomFichier);
             }
 
             using var request = new HttpRequestMessage(HttpMethod.Post, "partners/applications") { Content = content };
@@ -271,6 +271,20 @@ public sealed class PartnerApiClient
         {
             return null;
         }
+    }
+    private static StreamContent CreateFileContent(Stream stream, string fileName)
+    {
+        var content = new StreamContent(stream);
+        var extension = Path.GetExtension(fileName).ToLowerInvariant();
+        content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(extension switch
+        {
+            ".jpg" or ".jpeg" => "image/jpeg",
+            ".png" => "image/png",
+            ".webp" => "image/webp",
+            ".pdf" => "application/pdf",
+            _ => "application/octet-stream"
+        });
+        return content;
     }
     /// <summary>Feature 008 (abonnement) : souscription depuis l'espace partenaire. Reutilise
     /// l'endpoint existant POST /etablissements/{id}/abonnements (deja fonctionnel, WinPayer TEST).</summary>

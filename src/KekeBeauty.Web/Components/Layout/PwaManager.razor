@@ -1,4 +1,5 @@
 @inject IJSRuntime JS
+@inject NavigationManager Navigation
 @implements IAsyncDisposable
 @rendermode @(new InteractiveServerRenderMode(prerender: false))
 
@@ -10,7 +11,7 @@
 {
     <div class="pwa-banner pwa-update" role="status"><span>Une mise à jour est prête.</span><button type="button" @onclick="ApplyUpdateAsync">Mettre à jour</button></div>
 }
-@if ((_installable || _ios) && !_standalone && !_installedKnown)
+@if ((_installable || _ios) && !_standalone && !_installedKnown && !IsDocumentForm)
 {
     <button class="pwa-install" type="button" @onclick="InstallAsync"><span class="material-symbols-outlined">install_mobile</span><span>Installer l’application</span></button>
 }
@@ -29,6 +30,9 @@
     private bool _ios;
     private bool _installedKnown;
     private bool _showIosHelp;
+    private bool IsDocumentForm => new Uri(Navigation.Uri).AbsolutePath.StartsWith("/partenaire/inscription", StringComparison.OrdinalIgnoreCase);
+    protected override void OnInitialized() => Navigation.LocationChanged += OnLocationChanged;
+    private void OnLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs args) => _ = InvokeAsync(StateHasChanged);
     protected override async Task OnAfterRenderAsync(bool firstRender) { if (!firstRender) return; _reference = DotNetObjectReference.Create(this); var state = await JS.InvokeAsync<PwaState>("kekePwa.register", _reference); Apply(state); await InvokeAsync(StateHasChanged); }
     [JSInvokable] public Task OnPwaStateChanged(PwaState state) { Apply(state); return InvokeAsync(StateHasChanged); }
     [JSInvokable] public Task OnPwaUpdateAvailable() { _updateAvailable = true; return InvokeAsync(StateHasChanged); }
@@ -36,6 +40,6 @@
     private async Task InstallAsync() { if (_ios && !_installable) { _showIosHelp = true; return; } await JS.InvokeAsync<object>("kekePwa.install"); }
     private async Task ApplyUpdateAsync() { await JS.InvokeVoidAsync("kekePwa.applyUpdate"); }
     private async Task MarkInstalledAsync() { await JS.InvokeVoidAsync("kekePwa.markInstalled"); _installedKnown = true; _showIosHelp = false; }
-    public async ValueTask DisposeAsync() { if (_reference is not null) { try { await JS.InvokeVoidAsync("kekePwa.unregister", _reference); } catch { } _reference.Dispose(); } }
+    public async ValueTask DisposeAsync() { Navigation.LocationChanged -= OnLocationChanged; if (_reference is not null) { try { await JS.InvokeVoidAsync("kekePwa.unregister", _reference); } catch { } _reference.Dispose(); } }
     public sealed class PwaState { public bool Online { get; set; } public bool Installable { get; set; } public bool Standalone { get; set; } public bool InstalledKnown { get; set; } public bool Ios { get; set; } }
 }
