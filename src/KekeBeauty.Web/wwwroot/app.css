@@ -1182,3 +1182,6 @@ main select { appearance: none; -webkit-appearance: none; padding-right: 2.5rem;
 .submit-progress .material-symbols-outlined:first-child { flex:0 0 auto; }
 @media(max-width:420px){.mobile-upload-actions{grid-template-columns:1fr}.mobile-upload-actions .premium-upload-button{min-height:3.25rem}}
 .selected-file-label { position:absolute; bottom:22%; font-weight:800; letter-spacing:.04em; }
+.auth-mode-switch { display:grid; grid-template-columns:1fr 1fr; padding:.3rem; gap:.3rem; border-radius:999px; background:#f0e8f2; }
+.auth-mode-switch button { min-height:2.7rem; padding:.55rem .8rem; border-radius:999px; color:#695b6d; font-weight:750; }
+.auth-mode-switch button.active { background:#fff; color:#51006b; box-shadow:0 5px 16px -10px #51006b; }
