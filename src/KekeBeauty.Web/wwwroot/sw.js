@@ -1,9 +1,9 @@
-const CACHE_VERSION = 'keke-beauty-v13';
+const CACHE_VERSION = 'keke-beauty-v14';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const PAGE_CACHE = `${CACHE_VERSION}-pages`;
 const OFFLINE_URL = '/offline.html';
 const STATIC_ASSETS = [
-  '/', OFFLINE_URL, '/app.css', '/manifest.webmanifest', '/img/logo.png',
+  '/', OFFLINE_URL, '/app.css?v=14', '/css/tailwind.css?v=14', '/KekeBeauty.Web.styles.css?v=14', '/manifest.webmanifest', '/img/logo.png',
   '/icons/icon-192.png', '/icons/icon-512.png', '/icons/icon-512-maskable.png',
   '/icons/apple-touch-icon.png', '/fonts/material-symbols-outlined.ttf',
   '/js/keke-pwa.js', '/js/keke-push.js', '/js/keke-google.js'

@@ -89,8 +89,8 @@ h1:focus {
     --kb-shadow: 0 12px 36px -20px #3a0d5238;
 }
 *, *::before, *::after { box-sizing: border-box; }
-html { scroll-padding-top: 7rem; }
-body { min-width: 0; }
+html { max-width: 100%; overflow-x: clip; scroll-padding-top: 7rem; }
+body { width: 100%; min-width: 0; max-width: 100%; overflow-x: clip; }
 main { min-width: 0; min-height: 100svh; }
 main :where(.flex, .grid) > * { min-width: 0; }
 main :where(p, h1, h2, h3, td, dd) { overflow-wrap: anywhere; }
@@ -286,6 +286,32 @@ header { border-bottom: 1px solid #3a0d5209; }
     header .px-margin-desktop { padding-left: 16px; padding-right: 16px; }
     .salon-cover { height: 155px; }
     .role-switcher button { font-size: 10px; }
+}
+
+/* Certains navigateurs Android peuvent ouvrir une PWA avec un viewport proche du mode
+   ordinateur. Le pointeur tactile permet alors de conserver une vraie mise en page mobile. */
+@media (hover: none) and (pointer: coarse) and (max-width: 1200px) {
+    .desktop-header { display: none !important; }
+    .mobile-public-header { display: block !important; }
+    .discovery-page { padding-top: calc(4rem + env(safe-area-inset-top, 0px)) !important; }
+    .discovery-hero {
+        grid-template-columns: minmax(0, 1fr);
+        width: calc(100% - 24px);
+        max-width: 44rem;
+        margin: 12px auto 20px;
+        padding: 24px 18px 14px;
+        border-radius: 22px;
+        gap: 0;
+    }
+    .hero-copy h1 { font-size: clamp(30px, 8vw, 42px); margin: 16px 0 12px; letter-spacing: -1.5px; }
+    .hero-copy p { font-size: 14px; line-height: 1.7; }
+    .hero-art { display: none; }
+    .hero-link { margin-top: 8px; }
+    .hero-search { grid-template-columns: minmax(0, 1fr); gap: 4px; margin-top: 14px; padding: 8px; }
+    .hero-field { padding: 10px 8px; }
+    .hero-field + .hero-field { border-left: 0; border-top: 1px solid var(--kb-line); }
+    .hero-search-button { grid-column: 1; width: 100%; min-height: 48px; margin-top: 6px; }
+    .discovery-content { max-width: 100%; overflow-x: clip; }
 }
 @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
