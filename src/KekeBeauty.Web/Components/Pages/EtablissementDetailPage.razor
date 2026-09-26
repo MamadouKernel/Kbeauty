@@ -141,17 +141,17 @@
             </div>
 
             <div class="mt-space-lg px-margin">
-                <div class="flex items-center gap-1.5 p-1 bg-surface-container rounded-2xl overflow-x-auto scrollbar-none">
-                    <button class="flex-1 py-2 px-3.5 rounded-xl font-label-md text-label-md transition-all text-center whitespace-nowrap @(_tab == "prestations" ? "bg-surface-cream text-primary shadow-sm" : "text-on-surface-variant hover:text-text-primary")" type="button" @onclick='() => _tab = "prestations"'>
+                <div class="salon-detail-tabs flex items-center gap-1.5 p-1 bg-surface-container rounded-2xl overflow-x-auto scrollbar-none" role="tablist" aria-label="Informations du salon">
+                    <button class="shrink-0 py-2 px-3.5 rounded-xl font-label-md text-label-md transition-all text-center whitespace-nowrap @(_tab == "prestations" ? "bg-surface-cream text-primary shadow-sm" : "text-on-surface-variant hover:text-text-primary")" type="button" role="tab" aria-selected="@(_tab == "prestations")" @onclick='() => _tab = "prestations"'>
                         Prestations &amp; Tarifs
                     </button>
-                    <button class="flex-1 py-2 px-3.5 rounded-xl font-label-md text-label-md transition-all text-center whitespace-nowrap @(_tab == "galerie" ? "bg-surface-cream text-primary shadow-sm" : "text-on-surface-variant hover:text-text-primary")" type="button" @onclick='() => _tab = "galerie"'>
+                    <button class="shrink-0 py-2 px-3.5 rounded-xl font-label-md text-label-md transition-all text-center whitespace-nowrap @(_tab == "galerie" ? "bg-surface-cream text-primary shadow-sm" : "text-on-surface-variant hover:text-text-primary")" type="button" role="tab" aria-selected="@(_tab == "galerie")" @onclick='() => _tab = "galerie"'>
                         Réalisations
                     </button>
-                    <button class="flex-1 py-2 px-3.5 rounded-xl font-label-md text-label-md transition-all text-center whitespace-nowrap @(_tab == "avis" ? "bg-surface-cream text-primary shadow-sm" : "text-on-surface-variant hover:text-text-primary")" type="button" @onclick='() => _tab = "avis"'>
+                    <button class="shrink-0 py-2 px-3.5 rounded-xl font-label-md text-label-md transition-all text-center whitespace-nowrap @(_tab == "avis" ? "bg-surface-cream text-primary shadow-sm" : "text-on-surface-variant hover:text-text-primary")" type="button" role="tab" aria-selected="@(_tab == "avis")" @onclick='() => _tab = "avis"'>
                         Avis@(_avis is { NombreAvis: > 0 } ? $" ({_avis.NombreAvis})" : "")
                     </button>
-                    <button class="flex-1 py-2 px-3.5 rounded-xl font-label-md text-label-md transition-all text-center whitespace-nowrap @(_tab == "infos" ? "bg-surface-cream text-primary shadow-sm" : "text-on-surface-variant hover:text-text-primary")" type="button" @onclick="ShowInfosTab">
+                    <button class="shrink-0 py-2 px-3.5 rounded-xl font-label-md text-label-md transition-all text-center whitespace-nowrap @(_tab == "infos" ? "bg-surface-cream text-primary shadow-sm" : "text-on-surface-variant hover:text-text-primary")" type="button" role="tab" aria-selected="@(_tab == "infos")" @onclick="ShowInfosTab">
                         À propos
                     </button>
                 </div>

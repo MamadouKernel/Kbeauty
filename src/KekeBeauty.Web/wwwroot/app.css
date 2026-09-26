@@ -349,6 +349,11 @@ header { border-bottom: 1px solid #3a0d5209; }
 .login-page .role-switcher button { padding: 9px 3px; border-radius: 14px; }
 .salon-card .salon-cover { height: 175px; }
 .mobile-bottom-nav a { white-space: nowrap; }
+.salon-detail-tabs { width: 100%; max-width: 100%; overscroll-behavior-x: contain; scroll-snap-type: x proximity; scroll-padding-inline: 4px; }
+.salon-detail-tabs > button { flex: 0 0 auto; min-width: max-content; scroll-snap-align: start; }
+@media (min-width: 640px) {
+    .salon-detail-tabs > button { flex: 1 1 0; min-width: 0; }
+}
 .search-empty { padding: 36px 20px; text-align: center; background: #f3edf5; border: 1px solid var(--kb-line); border-radius: 22px; }
 .search-empty > span { display: inline-block; padding: 12px; border-radius: 50%; background: #e9ddef; color: #80538f; }
 .search-empty h3 { margin: 12px 0 6px; color: var(--kb-ink); font-weight: 700; font-size: 16px; }
