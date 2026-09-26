@@ -244,6 +244,18 @@ header { border-bottom: 1px solid #3a0d5209; }
 .admin-legacy .alert-danger { background: #fff0f0; color: #a12435; }
 .admin-legacy .alert-success { background: #e8f4ed; color: #17623c; }
 .admin-legacy .alert-warning { background: #fff4df; color: #83541d; }
+.kyc-status-badge { display: inline-flex; align-items: center; min-height: 34px; padding: 7px 12px; border-radius: 999px; font-size: 12px; font-weight: 800; }
+.kyc-status-badge.is-approved { background: #e5f5ed; color: #17623c; }
+.kyc-status-badge.is-rejected { background: #fff0f0; color: #a12435; }
+.kyc-status-badge.is-pending { background: #f2e9f5; color: #652b79; }
+.kyc-decision-summary { display: flex; align-items: flex-start; gap: 14px; margin: 20px 0; padding: 20px; border-radius: 20px; }
+.kyc-decision-summary.is-approved { border: 1px solid #b8dfcc; background: linear-gradient(135deg, #edf9f3, #f9fffc); color: #174f38; }
+.kyc-decision-summary > .material-symbols-outlined { font-size: 34px; }
+.kyc-decision-summary h2 { margin: 0 0 6px; color: #174f38; font-size: 20px; font-weight: 800; }
+.kyc-decision-summary p { margin: 0; color: #35654f; }
+.kyc-decision-summary ul { margin: 12px 0; padding-left: 20px; list-style: disc; color: #35654f; }
+.kyc-decision-summary small { display: block; margin-top: 8px; color: #507563; }
+@media (max-width: 560px) { .kyc-decision-summary { flex-direction: column; padding: 16px; } }
 .admin-legacy .list-group { display: grid; gap: 10px; }
 .admin-legacy .list-group-item { display: block; padding: 16px; background: #f8f5f9; border: 1px solid var(--kb-line); border-radius: 12px; overflow-wrap: anywhere; }
 .admin-legacy .list-group-item-action:hover { background: #eee3f2; }

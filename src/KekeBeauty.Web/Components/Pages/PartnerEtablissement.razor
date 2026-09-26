@@ -50,6 +50,13 @@
                     <div><strong class="block text-on-error-container">Vérification à corriger</strong><p class="text-body-sm text-on-error-container mt-1">@(!string.IsNullOrWhiteSpace(_detail?.MotifRejet) ? _detail.MotifRejet : "Votre boutique reste accessible pour effectuer les corrections, mais elle n’est pas encore visible aux clientes.")</p></div>
                 </aside>
             }
+            else if (_statutKyc == "VALIDE")
+            {
+                <aside class="rounded-2xl border border-status-available/20 bg-status-available/10 px-4 py-4 flex items-start gap-3 mt-space-sm" role="status">
+                    <span class="material-symbols-outlined text-status-available">verified</span>
+                    <div><strong class="block text-status-available">Boutique vérifiée par Keke Beauty</strong><p class="text-body-sm text-on-surface-variant mt-1">Votre fiche est publique et les clientes peuvent la découvrir et réserver vos prestations. Complétez vos services, horaires et photos pour améliorer sa visibilité.</p><a class="inline-flex items-center gap-1 mt-2 font-bold text-primary underline" href="@($"/etablissements/{Id}")">Voir ma fiche publique <span class="material-symbols-outlined text-[16px]">open_in_new</span></a></div>
+                </aside>
+            }
             <section class="relative overflow-hidden rounded-2xl bg-surface-container shadow-sm mt-space-sm">
                 <img class="w-full h-52 sm:h-72 object-cover" src="@($"/media/devanture/{Id}")" alt="Photo de devanture de @(_detail?.NomEtablissement)" />
                 <div class="absolute inset-x-0 bottom-0 px-4 py-3 bg-gradient-to-t from-black/70 to-transparent text-white">

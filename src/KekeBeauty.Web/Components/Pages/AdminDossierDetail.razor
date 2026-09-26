@@ -25,8 +25,28 @@ else if (_dossier is null)
 }
 else
 {
-    <h1>@_dossier.NomEtablissement</h1>
-    <p>Statut KYC : <strong>@_dossier.StatutKyc</strong></p>
+    <div class="flex items-start justify-between gap-3 flex-wrap">
+        <div><h1>@_dossier.NomEtablissement</h1><p>Dossier créé le @_dossier.DateCreation.ToLocalTime().ToString("dd/MM/yyyy à HH:mm")</p></div>
+        <span class="kyc-status-badge @StatusClass(_dossier.StatutKyc)">@StatusLabel(_dossier.StatutKyc)</span>
+    </div>
+
+    @if (_dossier.StatutKyc == "VALIDE")
+    {
+        <section class="kyc-decision-summary is-approved" role="status">
+            <span class="material-symbols-outlined" aria-hidden="true">verified</span>
+            <div>
+                <h2>Boutique vérifiée et publiée</h2>
+                <p>@_dossier.NomEtablissement est maintenant visible dans l’annuaire Keke Beauty et peut recevoir des demandes de rendez-vous.</p>
+                <ul><li>Badge de vérification activé pour le partenaire</li><li>Fiche publique accessible aux clientes</li><li>Réservations et fonctionnalités autorisées selon son abonnement</li></ul>
+                @if (_decisionAt is not null) { <small>Validation confirmée le @_decisionAt.Value.ToLocalTime().ToString("dd/MM/yyyy à HH:mm").</small> }
+                <a class="btn btn-success mt-2" href="@($"/etablissements/{Id}")">Voir la fiche publique</a>
+            </div>
+        </section>
+    }
+    else if (_dossier.StatutKyc == "REJETE")
+    {
+        <KekeAlert Severity="danger" Title="Dossier à corriger">La boutique n’est pas publiée. Le partenaire peut remplacer ses documents depuis son espace puis renvoyer le dossier.</KekeAlert>
+    }
     <p>Numéro service client : @_dossier.NumeroServiceClient</p>
     <p>Position : @_dossier.GpsLatitude, @_dossier.GpsLongitude</p>
     <p>
@@ -49,11 +69,17 @@ else
         }
     </section>
 
-    <KekeAlert Severity="warning" Title="Décision KYC">Vérifiez la lisibilité, la concordance des informations et la présence de toutes les faces avant de valider.</KekeAlert>
-    <button class="btn btn-success" @onclick="ValiderAsync">Valider</button>
-    <div class="mt-3"><textarea class="form-control" rows="2" placeholder="Motif précis du rejet" @bind="_motifRejet"></textarea><button class="btn btn-outline-danger mt-2" disabled="@(string.IsNullOrWhiteSpace(_motifRejet))" @onclick="RejeterAsync">Rejeter avec ce motif</button></div>
+    @if (_dossier.StatutKyc == "EN_ATTENTE")
+    {
+        <KekeAlert Severity="warning" Title="Décision KYC">Vérifiez la lisibilité, la concordance des informations et la présence de toutes les faces avant de valider.</KekeAlert>
+        <button class="btn btn-success" disabled="@_busy" @onclick="ValiderAsync">@(_busy ? "Validation en cours…" : "Valider et publier la boutique")</button>
+        <div class="mt-3"><textarea class="form-control" rows="2" placeholder="Motif précis du rejet, visible par le partenaire" @bind="_motifRejet"></textarea><button class="btn btn-outline-danger mt-2" disabled="@(_busy || string.IsNullOrWhiteSpace(_motifRejet))" @onclick="RejeterAsync">Rejeter et demander une correction</button></div>
+    }
 
-    <ToastBridge Message="@_message" Severity="@(_success ? "success" : "danger")" OnShown="@(() => _message = null)" />
+    @if (!string.IsNullOrWhiteSpace(_message))
+    {
+        <KekeAlert Severity="@(_success ? "success" : "danger")" Title="@(_success ? "Action enregistrée" : "Action impossible")">@_message</KekeAlert>
+    }
 }
 
 </div></main>
@@ -67,7 +93,9 @@ else
     private bool _checkingAuth = true;
     private bool _error;
     private bool _success;
+    private bool _busy;
     private string? _message;
+    private DateTimeOffset? _decisionAt;
     private string? _devantureDataUrl, _rectoDataUrl, _versoDataUrl, _rectoContentType, _versoContentType;
 
     protected override async Task OnInitializedAsync()
@@ -103,27 +131,42 @@ else
 
     private async Task ValiderAsync()
     {
-        var (success, status) = await AdminApi.ValiderDossierAsync(_apiKey!, Id, CancellationToken.None);
-        _success = success;
-        _message = success
-            ? "Dossier validé."
-            : status == "missing_documents"
-                ? "Documents manquants : validation impossible."
-                : "Action impossible.";
-        if (success)
+        if (_busy) return;
+        _busy = true; _message = null;
+        try
         {
-            await LoadAsync();
+            var (success, status) = await AdminApi.ValiderDossierAsync(_apiKey!, Id, CancellationToken.None);
+            _success = success;
+            _message = success
+                ? $"{_dossier?.NomEtablissement} a été validée. Sa fiche est maintenant publique et le partenaire verra immédiatement son statut vérifié."
+                : status == "missing_documents"
+                    ? "Documents manquants : vérifiez la devanture et toutes les faces requises de la pièce d’identité."
+                    : status == "not_found" ? "Ce dossier n’existe plus." : "La validation n’a pas pu être enregistrée. Réessayez.";
+            if (success) { _decisionAt = DateTimeOffset.Now; await LoadAsync(); }
+        }
+        finally
+        {
+            _busy = false;
         }
     }
 
     private async Task RejeterAsync()
     {
-        var (success, status) = await AdminApi.RejeterDossierAsync(_apiKey!, Id, _motifRejet, CancellationToken.None);
-        _success = success;
-        _message = success ? "Dossier rejeté." : "Action impossible.";
-        if (success)
+        if (_busy) return;
+        _busy = true; _message = null;
+        try
         {
-            await LoadAsync();
+            var (success, status) = await AdminApi.RejeterDossierAsync(_apiKey!, Id, _motifRejet, CancellationToken.None);
+            _success = success;
+            _message = success ? "Le dossier a été rejeté. Le motif est visible dans l’espace partenaire afin qu’il puisse corriger et renvoyer ses documents." : status == "motif_requis" ? "Indiquez un motif précis pour aider le partenaire." : "Le rejet n’a pas pu être enregistré.";
+            if (success) { _decisionAt = DateTimeOffset.Now; await LoadAsync(); }
+        }
+        finally
+        {
+            _busy = false;
         }
     }
+
+    private static string StatusLabel(string status) => status switch { "VALIDE" => "Vérifiée", "REJETE" => "À corriger", _ => "En attente d’examen" };
+    private static string StatusClass(string status) => status switch { "VALIDE" => "is-approved", "REJETE" => "is-rejected", _ => "is-pending" };
 }

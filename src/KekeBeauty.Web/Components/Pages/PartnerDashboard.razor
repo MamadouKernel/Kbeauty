@@ -51,6 +51,15 @@
                 </div>
             </section>
 
+            @if (_etablissements.Any(e => e.StatutKyc == "VALIDE"))
+            {
+                <KekeAlert Severity="success" Title="Validation Keke Beauty confirmée">Votre boutique vérifiée est visible par les clientes. Ouvrez-la pour consulter sa fiche publique et compléter les informations qui améliorent les réservations.</KekeAlert>
+            }
+            else if (_etablissements.Any(e => e.StatutKyc == "EN_ATTENTE"))
+            {
+                <KekeAlert Severity="info" Title="Vérification en cours">Vous pouvez déjà configurer vos prestations, horaires, équipe et tarifs. Nous afficherons ici la confirmation dès la validation.</KekeAlert>
+            }
+
             @if (_etablissements.Count == 0)
             {
                 <section class="text-center py-space-lg bg-surface-cream rounded-3xl shadow-[0_20px_50px_-30px_rgba(58,13,82,0.35)] px-space-md border border-outline-variant/40">
