@@ -21,7 +21,7 @@
          depuis son propre domaine (verification d'origine anti-phishing), l'auto-heberger casserait
          la connexion OAuth. -->
     <script src="https://accounts.google.com/gsi/client?hl=fr" async defer></script>
-    <script src="js/keke-google.js"></script>
+    <script src="js/keke-google.js?v=15"></script>
     <script src="js/keke-map.js"></script>
     <script src="js/keke-push.js"></script>
     <script src="js/keke-pwa.js"></script>
@@ -37,14 +37,34 @@
         .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
     </style>
     <!-- Tailwind : build local (npm run build:css), plus de cdn.tailwindcss.com. -->
-    <link rel="stylesheet" href="css/tailwind.css?v=14" />
-    <link rel="stylesheet" href="app.css?v=14" />
-    <link rel="stylesheet" href="KekeBeauty.Web.styles.css?v=14" />
+    <link rel="stylesheet" href="css/tailwind.css?v=15" />
+    <link rel="stylesheet" href="app.css?v=15" />
+    <link rel="stylesheet" href="KekeBeauty.Web.styles.css?v=15" />
     <HeadOutlet />
 </head>
 
 <body class="bg-surface font-body-md text-body-md text-on-surface antialiased pt-safe pb-safe">
     <Routes />
+    <div id="components-reconnect-modal" class="reconnect-modal" aria-live="assertive">
+        <section class="reconnect-card">
+            <img src="/img/logo.png" alt="" />
+            <div class="reconnect-state reconnecting">
+                <span class="reconnect-spinner" aria-hidden="true"></span>
+                <strong>Reconnexion à Keke Beauty…</strong>
+                <p>Gardez cette page ouverte, votre parcours est conservé.</p>
+            </div>
+            <div class="reconnect-state failed">
+                <strong>La connexion prend plus de temps</strong>
+                <p>Vérifiez votre réseau mobile, puis reprenez votre parcours.</p>
+                <button type="button" onclick="location.reload()">Reprendre</button>
+            </div>
+            <div class="reconnect-state rejected">
+                <strong>La session doit être actualisée</strong>
+                <p>Votre saisie locale est conservée sur cet appareil.</p>
+                <button type="button" onclick="location.reload()">Actualiser</button>
+            </div>
+        </section>
+    </div>
     <script src="_framework/blazor.web.js"></script>
     <script>
         if ('serviceWorker' in navigator) {

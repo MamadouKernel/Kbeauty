@@ -191,6 +191,7 @@
     private bool _stepUpEmailSent;
     private ElementReference _codeInputRef;
     private bool _codeScreenFocused;
+    private bool _pendingGoogleCredentialChecked;
 
     protected override void OnInitialized()
     {
@@ -226,6 +227,17 @@
         {
             _googleReference ??= DotNetObjectReference.Create(this);
             await JS.InvokeAsync<bool>("kekeGoogle.render", _googleClientId, _googleReference, "google-signin-button");
+
+            if (!_pendingGoogleCredentialChecked)
+            {
+                _pendingGoogleCredentialChecked = true;
+                var pendingCredential = await JS.InvokeAsync<string?>("kekeGoogle.takePendingCredential");
+                if (!string.IsNullOrWhiteSpace(pendingCredential))
+                {
+                    await ReceiveGoogleCredential(pendingCredential);
+                    return;
+                }
+            }
         }
 
         // Focus automatique du champ de code (clavier physique/collage immediats), une seule fois
@@ -259,39 +271,52 @@
     [JSInvokable]
     public async Task ReceiveGoogleCredential(string credential)
     {
+        if (_busy) return;
         _busy = true; _message = null; await InvokeAsync(StateHasChanged);
-        var deviceTrustToken = _role == 1 ? await PartnerSession.GetDeviceTrustTokenAsync() : await ClientSession.GetDeviceTrustTokenAsync();
-        var (success, body) = await AuthApi.LoginWithGoogleDetailedAsync(credential, CancellationToken.None, _role == 1 ? "partenaire" : null, deviceTrustToken);
-        _busy = false;
 
-        if (success && body?.Status == "step_up_required" && !string.IsNullOrWhiteSpace(body.StepUpTicket))
+        try
         {
-            _stepUpTicket = body.StepUpTicket;
-            _stepUpWhatsAppSent = body.WhatsAppSent;
-            _stepUpEmailSent = body.EmailSent;
-            _code = "";
-            _success = true;
-            _message = body.EmailSent || body.WhatsAppSent
-                ? "Code de vérification envoyé. Nouvel appareil détecté par mesure de sécurité."
-                : "Impossible d'envoyer le code de vérification pour le moment. Merci de réessayer plus tard.";
+            var deviceTrustToken = _role == 1 ? await PartnerSession.GetDeviceTrustTokenAsync() : await ClientSession.GetDeviceTrustTokenAsync();
+            var (success, body) = await AuthApi.LoginWithGoogleDetailedAsync(credential, CancellationToken.None, _role == 1 ? "partenaire" : null, deviceTrustToken);
+
+            if (success && body?.Status == "step_up_required" && !string.IsNullOrWhiteSpace(body.StepUpTicket))
+            {
+                _stepUpTicket = body.StepUpTicket;
+                _stepUpWhatsAppSent = body.WhatsAppSent;
+                _stepUpEmailSent = body.EmailSent;
+                _code = "";
+                _success = true;
+                _message = body.EmailSent || body.WhatsAppSent
+                    ? "Code de vérification envoyé. Nouvel appareil détecté par mesure de sécurité."
+                    : "Impossible d'envoyer le code de vérification pour le moment. Merci de réessayer plus tard.";
+                return;
+            }
+
+            if (success && body?.IdUtilisateur is not null)
+            {
+                await CompleteLoginAsync(body.IdUtilisateur.Value, body.SessionToken, body.DeviceTrustToken);
+                return;
+            }
+
+            _success = false;
+            _message = body?.Status switch
+            {
+                "account_suspended" => "Ce compte est suspendu.",
+                "google_not_configured" => "La connexion Google n’est pas encore configurée.",
+                "network_error" => "Le serveur est momentanément inaccessible. Vérifiez votre réseau puis réessayez.",
+                _ => "La connexion Google a échoué. Merci de réessayer."
+            };
+        }
+        catch
+        {
+            _success = false;
+            _message = "La connexion Google a été interrompue. Vérifiez le réseau puis réessayez.";
+        }
+        finally
+        {
+            _busy = false;
             await InvokeAsync(StateHasChanged);
-            return;
         }
-
-        if (success && body?.IdUtilisateur is not null)
-        {
-            await CompleteLoginAsync(body.IdUtilisateur.Value, body.SessionToken, body.DeviceTrustToken);
-            return;
-        }
-
-        _success = false;
-        _message = body?.Status switch
-        {
-            "account_suspended" => "Ce compte est suspendu.",
-            "google_not_configured" => "La connexion Google n’est pas encore configurée.",
-            _ => "La connexion Google a échoué. Merci de réessayer."
-        };
-        await InvokeAsync(StateHasChanged);
     }
 
     private async Task CompleteLoginAsync(Guid idUtilisateur, string? sessionToken, string? deviceTrustToken)

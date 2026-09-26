@@ -91,6 +91,20 @@ h1:focus {
 *, *::before, *::after { box-sizing: border-box; }
 html { max-width: 100%; overflow-x: clip; scroll-padding-top: 7rem; }
 body { width: 100%; min-width: 0; max-width: 100%; overflow-x: clip; }
+.reconnect-modal { display: none; position: fixed; inset: 0; z-index: 5000; place-items: center; padding: 20px; background: rgba(31, 15, 36, .38); backdrop-filter: blur(8px); }
+.reconnect-modal.components-reconnect-show,
+.reconnect-modal.components-reconnect-failed,
+.reconnect-modal.components-reconnect-rejected { display: grid; }
+.reconnect-card { width: min(390px, 100%); padding: 26px; border: 1px solid rgba(88, 46, 98, .12); border-radius: 26px; background: #fffcf8; color: var(--kb-ink); text-align: center; box-shadow: 0 26px 70px -28px rgba(42, 8, 52, .55); }
+.reconnect-card > img { width: 72px; height: 54px; margin: 0 auto 14px; object-fit: contain; }
+.reconnect-state { display: none; }
+.components-reconnect-show .reconnecting,
+.components-reconnect-failed .failed,
+.components-reconnect-rejected .rejected { display: grid; justify-items: center; gap: 10px; }
+.reconnect-state strong { font-size: 18px; }
+.reconnect-state p { color: var(--kb-muted); font-size: 13px; line-height: 1.6; }
+.reconnect-state button { min-height: 46px; margin-top: 4px; padding: 0 22px; border-radius: 999px; background: var(--kb-ink); color: #fff; font-weight: 700; }
+.reconnect-spinner { width: 34px; height: 34px; border: 3px solid #eaddec; border-top-color: #6c287e; border-radius: 50%; animation: spin 1s linear infinite; }
 main { min-width: 0; min-height: 100svh; }
 main :where(.flex, .grid) > * { min-width: 0; }
 main :where(p, h1, h2, h3, td, dd) { overflow-wrap: anywhere; }

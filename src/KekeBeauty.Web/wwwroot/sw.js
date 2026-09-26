@@ -1,12 +1,12 @@
-const CACHE_VERSION = 'keke-beauty-v14';
+const CACHE_VERSION = 'keke-beauty-v15';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const PAGE_CACHE = `${CACHE_VERSION}-pages`;
 const OFFLINE_URL = '/offline.html';
 const STATIC_ASSETS = [
-  '/', OFFLINE_URL, '/app.css?v=14', '/css/tailwind.css?v=14', '/KekeBeauty.Web.styles.css?v=14', '/manifest.webmanifest', '/img/logo.png',
+  '/', OFFLINE_URL, '/app.css?v=15', '/css/tailwind.css?v=15', '/KekeBeauty.Web.styles.css?v=15', '/manifest.webmanifest', '/img/logo.png',
   '/icons/icon-192.png', '/icons/icon-512.png', '/icons/icon-512-maskable.png',
   '/icons/apple-touch-icon.png', '/fonts/material-symbols-outlined.ttf',
-  '/js/keke-pwa.js', '/js/keke-push.js', '/js/keke-google.js'
+  '/js/keke-pwa.js', '/js/keke-push.js', '/js/keke-google.js?v=15'
 ];
 
 self.addEventListener('install', event => {
@@ -34,7 +34,17 @@ self.addEventListener('fetch', event => {
     event.respondWith(fetch(request).then(response => {
       if (response.ok) caches.open(PAGE_CACHE).then(cache => cache.put(request, response.clone()));
       return response;
-    }).catch(async () => (await caches.match(request)) || (await caches.match(OFFLINE_URL))));
+    }).catch(async () => {
+      const cachedPage = await caches.match(request);
+      if (cachedPage) return cachedPage;
+      // Ne présenter le mode hors connexion que si le navigateur confirme réellement
+      // l'absence de réseau. Une coupure serveur momentanée ne doit pas être confondue avec cela.
+      if (!self.navigator.onLine) return caches.match(OFFLINE_URL);
+      return new Response('Keke Beauty est momentanément indisponible. Réessayez dans quelques instants.', {
+        status: 503,
+        headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Retry-After': '5' }
+      });
+    }));
     return;
   }
 

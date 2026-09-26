@@ -8,7 +8,13 @@ var builder = WebApplication.CreateBuilder(args);
 var keysPath = builder.Configuration["DataProtection:KeysPath"] ?? Path.Combine(builder.Environment.ContentRootPath, "data-protection-keys");
 builder.Services.AddDataProtection().PersistKeysToFileSystem(new DirectoryInfo(keysPath)).SetApplicationName("KekeBeauty.Web");
 builder.Services.AddRazorComponents()
-    .AddInteractiveServerComponents();
+    .AddInteractiveServerComponents(options =>
+    {
+        // Les navigateurs mobiles suspendent parfois l'onglet pendant la fenêtre Google.
+        // Garder le circuit permet de reprendre la connexion au retour sans perdre le parcours.
+        options.DisconnectedCircuitRetentionPeriod = TimeSpan.FromMinutes(10);
+        options.DisconnectedCircuitMaxRetained = 500;
+    });
 
 var apiBaseUrl = builder.Configuration["Api:BaseUrl"] ?? "http://localhost:5080";
 builder.Services.AddTransient<ClientAuthHandler>();

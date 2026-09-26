@@ -1,4 +1,5 @@
 window.kekeGoogle = (() => {
+    const pendingCredentialKey = 'keke-google-pending-credential';
     let dotnetRef = null;
     let initializedClientId = null;
 
@@ -20,7 +21,13 @@ window.kekeGoogle = (() => {
                 client_id: clientId,
                 callback: response => {
                     if (response?.credential && dotnetRef) {
-                        dotnetRef.invokeMethodAsync('ReceiveGoogleCredential', response.credential).catch(() => {});
+                        // Sur mobile, le navigateur peut suspendre le circuit Blazor pendant
+                        // l'ouverture de Google. Conserver brièvement le jeton permet de reprendre
+                        // le traitement après reconnexion ou rechargement de la page.
+                        try { sessionStorage.setItem(pendingCredentialKey, response.credential); } catch { }
+                        dotnetRef.invokeMethodAsync('ReceiveGoogleCredential', response.credential)
+                            .then(() => { try { sessionStorage.removeItem(pendingCredentialKey); } catch { } })
+                            .catch(() => {});
                     }
                 },
                 auto_select: false,
@@ -36,7 +43,17 @@ window.kekeGoogle = (() => {
         return true;
     }
 
+    function takePendingCredential() {
+        try {
+            const credential = sessionStorage.getItem(pendingCredentialKey);
+            if (credential) sessionStorage.removeItem(pendingCredentialKey);
+            return credential;
+        } catch {
+            return null;
+        }
+    }
+
     function clear() { dotnetRef = null; }
     function signOut() { window.google?.accounts?.id?.disableAutoSelect(); }
-    return { render, clear, signOut };
+    return { render, takePendingCredential, clear, signOut };
 })();
