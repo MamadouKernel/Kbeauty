@@ -167,7 +167,7 @@
             <div class="bg-surface-cream rounded-xl p-space-md shadow-[0_4px_20px_-2px_rgba(58,13,82,0.05)] flex flex-col gap-2">
                 <div class="flex items-center gap-2">
                     <span class="material-symbols-outlined text-primary text-[20px]">storefront</span>
-                    <h2 class="font-label-lg text-label-lg text-text-primary">Prestations &amp; Tarifs</h2>
+                    <div class="flex-1"><h2 class="font-label-lg text-label-lg text-text-primary">Prestations &amp; Tarifs</h2>@if (_planUsage is not null) { <p class="text-label-sm text-on-surface-variant">@PrestationUsageLabel</p> }</div>
                 </div>
 
                 @if (_detail is not null)
@@ -200,14 +200,19 @@
                     }
                 }
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-space-sm">
+                @if (PrestationLimitReached && _idPrestationEnEdition is null)
+                {
+                    <KekeAlert Severity="warning" Title="Limite de votre formule atteinte">Votre formule @PlanLabel permet jusqu’à @(_planUsage!.LimitePrestations) prestations. Pour en ajouter davantage, choisissez une formule avec une limite supérieure.</KekeAlert>
+                    <a class="premium-primary-action mt-2" href="@($"/partenaire/etablissements/{Id}/abonnement")"><span class="material-symbols-outlined">workspace_premium</span>Voir les autres abonnements</a>
+                }
+                <fieldset disabled="@(PrestationLimitReached && _idPrestationEnEdition is null)" class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-space-sm disabled:opacity-55">
                     <input class="sm:col-span-2 bg-surface-container-low rounded-lg px-3 py-2.5 text-body-md focus:outline-none" placeholder="Libellé (ex: Tresses Box Braids)" @bind="_libelle" @bind:event="oninput" />
-                    <input class="bg-surface-container-low rounded-lg px-3 py-2.5 text-body-md focus:outline-none" type="number" placeholder="Tarif (FCFA)" @bind="_tarif" />
-                    <input class="bg-surface-container-low rounded-lg px-3 py-2.5 text-body-md focus:outline-none" type="number" placeholder="Durée (min)" @bind="_duree" />
-                </div>
+                    <input class="bg-surface-container-low rounded-lg px-3 py-2.5 text-body-md focus:outline-none" type="number" min="0" placeholder="Tarif (FCFA)" @bind="_tarif" />
+                    <input class="bg-surface-container-low rounded-lg px-3 py-2.5 text-body-md focus:outline-none" type="number" min="1" placeholder="Durée (min)" @bind="_duree" />
+                </fieldset>
                 @if (_idPrestationEnEdition is null)
                 {
-                    <button class="mt-space-xs py-2.5 rounded-full bg-primary-container text-on-primary font-label-md text-label-md shadow-sm" type="button" @onclick="AddPrestationAsync">Ajouter la prestation</button>
+                    <button class="mt-space-xs py-2.5 rounded-full bg-primary-container text-on-primary font-label-md text-label-md shadow-sm disabled:opacity-50" disabled="@PrestationLimitReached" type="button" @onclick="AddPrestationAsync">@(PrestationLimitReached ? "Limite atteinte" : "Ajouter la prestation")</button>
                 }
                 else
                 {
@@ -322,6 +327,7 @@
     private bool _paiementWave;
     private bool _paiementOrangeMoney;
     private bool _paiementMoovMoney;
+    private PlanUsageDto? _planUsage;
     private string _statutKyc = string.Empty;
     private string _shopName = "", _shopDescription = "", _shopPhone = "", _shopHours = "";
     private decimal _shopLat, _shopLng;
@@ -343,9 +349,7 @@
         var (_, _, shops) = await PartnerApi.GetMesEtablissementsAsync(_idPartner.Value, CancellationToken.None);
         _statutKyc = shops.FirstOrDefault(x => x.IdEtablissement == Id)?.StatutKyc ?? string.Empty;
         await LoadDetailAsync();
-        var (_, usage) = await PartnerApi.GetPlanUsageAsync(_idPartner.Value, Id, CancellationToken.None);
-        _paiementMobileAutorise = usage?.PaiementMobile == true && _statutKyc == "VALIDE";
-        _gestionEquipeAutorisee = usage?.GestionEquipe == true;
+        await LoadPlanUsageAsync();
         await LoadEquipeAsync();
         _unavailabilities = await PartnerApi.GetIndisponibilitesAsync(_idPartner.Value, Id, CancellationToken.None);
         _checkingAuth = false;
@@ -432,6 +436,21 @@
         }
     }
 
+    private async Task LoadPlanUsageAsync()
+    {
+        var (_, usage) = await PartnerApi.GetPlanUsageAsync(_idPartner!.Value, Id, CancellationToken.None);
+        _planUsage = usage;
+        _paiementMobileAutorise = usage?.PaiementMobile == true && _statutKyc == "VALIDE";
+        _gestionEquipeAutorisee = usage?.GestionEquipe == true;
+    }
+
+    private bool PrestationLimitReached => _planUsage?.LimitePrestations is int limit
+        && (_detail?.Prestations.Count ?? _planUsage.PrestationsUtilisees) >= limit;
+    private string PlanLabel => !string.IsNullOrWhiteSpace(_planUsage?.Libelle) ? _planUsage.Libelle : _planUsage?.Formule ?? "actuelle";
+    private string PrestationUsageLabel => _planUsage?.LimitePrestations is int limit
+        ? $"{_detail?.Prestations.Count ?? _planUsage.PrestationsUtilisees} sur {limit} prestations · Formule {PlanLabel}"
+        : $"{_detail?.Prestations.Count ?? _planUsage?.PrestationsUtilisees ?? 0} prestations · Formule {PlanLabel}";
+
     private async Task SaveProfileAsync()
     {
         if (_idPartner is null || string.IsNullOrWhiteSpace(_shopName) || string.IsNullOrWhiteSpace(_shopPhone)) return;
@@ -484,7 +503,7 @@
 
     private async Task AddPrestationAsync()
     {
-        if (_idPartner is null || string.IsNullOrWhiteSpace(_libelle))
+        if (_idPartner is null || string.IsNullOrWhiteSpace(_libelle) || PrestationLimitReached)
         {
             return;
         }
@@ -498,7 +517,9 @@
             _tarif = 0;
             _duree = 0;
             await LoadDetailAsync();
+            await LoadPlanUsageAsync();
         }
+        else if (status == "limite_prestations_atteinte") await LoadPlanUsageAsync();
     }
 
     private void StartEdit(PrestationDto prestation)
@@ -547,6 +568,7 @@
         if (success)
         {
             await LoadDetailAsync();
+            await LoadPlanUsageAsync();
         }
     }
 
