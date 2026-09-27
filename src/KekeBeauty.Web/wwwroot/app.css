@@ -87,6 +87,12 @@ h1:focus {
     --kb-paper: #fffcf8;
     --kb-accent: #652b79;
     --kb-shadow: 0 12px 36px -20px #3a0d5238;
+    --kb-motion-fast: 160ms;
+    --kb-motion-base: 280ms;
+    --kb-motion-slow: 520ms;
+    --kb-ease-out: cubic-bezier(.22, 1, .36, 1);
+    --kb-ease-standard: cubic-bezier(.4, 0, .2, 1);
+    --kb-ease-spring: cubic-bezier(.34, 1.56, .64, 1);
 }
 *, *::before, *::after { box-sizing: border-box; }
 html { max-width: 100%; overflow-x: clip; scroll-padding-top: 7rem; }
@@ -119,6 +125,58 @@ button:disabled { cursor: not-allowed; }
 }
 main:focus { outline: none; }
 ::selection { background: #ead5ef; color: #32153f; }
+
+/* Motion system — progressif, performant et commun aux parcours client, partenaire et admin. */
+@keyframes kb-page-enter { from { opacity: .72; transform: translate3d(0, 7px, 0); } to { opacity: 1; transform: translate3d(0, 0, 0); } }
+@keyframes kb-reveal-in { from { opacity: 0; transform: translate3d(0, 18px, 0) scale(.985); } to { opacity: 1; transform: translate3d(0, 0, 0) scale(1); } }
+@keyframes kb-press-wave { from { opacity: .22; transform: translate(-50%, -50%) scale(.15); } to { opacity: 0; transform: translate(-50%, -50%) scale(4.5); } }
+@keyframes kb-success-pop { 0% { transform: scale(.72); opacity: 0; } 65% { transform: scale(1.08); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
+@keyframes kb-soft-pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(101,43,121,.16); } 50% { box-shadow: 0 0 0 8px rgba(101,43,121,0); } }
+
+.kb-page-enter main { animation: kb-page-enter var(--kb-motion-base) var(--kb-ease-out) both; }
+.kb-motion-ready .kb-reveal { opacity: 0; transform: translate3d(0, 18px, 0) scale(.985); }
+.kb-motion-ready .kb-reveal.is-visible { animation: kb-reveal-in var(--kb-motion-slow) var(--kb-ease-out) var(--kb-stagger, 0ms) both; }
+
+:where(button, a) { isolation: isolate; }
+:where(button, a).kb-pressed::before {
+    content: ''; position: absolute; z-index: -1; left: var(--kb-press-x, 50%); top: var(--kb-press-y, 50%);
+    width: 24px; height: 24px; border-radius: 50%; pointer-events: none; background: currentColor;
+    animation: kb-press-wave 420ms var(--kb-ease-out) both;
+}
+:where(button, a):active { transform: scale(.975); }
+
+.desktop-header, .admin-header, .client-flow-header, .staff-premium-header { transition: background-color var(--kb-motion-base) ease, box-shadow var(--kb-motion-base) ease, backdrop-filter var(--kb-motion-base) ease; }
+.desktop-header .brand img, .admin-header img, .client-flow-header img, .staff-premium-header img { transition: transform var(--kb-motion-base) var(--kb-ease-spring); }
+.desktop-header .brand:hover img, .admin-header a:hover img, .client-flow-header a:hover img, .staff-premium-header a:hover img { transform: scale(1.06) rotate(-2deg); }
+.mobile-bottom-nav a, .partner-mobile-nav a, .partner-mobile-nav button { transition: color var(--kb-motion-fast) ease, background var(--kb-motion-fast) ease, transform var(--kb-motion-fast) var(--kb-ease-spring); }
+.mobile-bottom-nav a:active, .partner-mobile-nav a:active, .partner-mobile-nav button:active { transform: translateY(-2px) scale(.96); }
+.mobile-bottom-nav .material-symbols-outlined, .partner-mobile-nav .material-symbols-outlined { transition: transform var(--kb-motion-base) var(--kb-ease-spring); }
+.mobile-bottom-nav a.font-semibold .material-symbols-outlined { transform: translateY(-2px) scale(1.1); }
+
+.flow-alert, .kyc-decision-summary { transition: border-color var(--kb-motion-base) ease, box-shadow var(--kb-motion-base) ease, transform var(--kb-motion-base) var(--kb-ease-out); }
+.flow-alert.is-success > .material-symbols-outlined, .kyc-decision-summary.is-approved > .material-symbols-outlined { animation: kb-success-pop 540ms var(--kb-ease-spring) both; }
+.pwa-install { animation: kb-soft-pulse 2.8s ease-in-out infinite; }
+
+.salon-card, .partner-shop-card, .favorite-card, .plan-card, .request-card, .premium-card, .staff-appointment {
+    will-change: transform; transition: transform var(--kb-motion-base) var(--kb-ease-out), box-shadow var(--kb-motion-base) ease, border-color var(--kb-motion-base) ease;
+}
+@media (hover: hover) {
+    .salon-card:hover, .partner-shop-card:hover, .favorite-card:hover, .plan-card:hover, .request-card:hover, .premium-card:hover { transform: translateY(-4px); }
+    .salon-card:hover img, .partner-shop-card:hover img, .favorite-card:hover img { transform: scale(1.035); }
+}
+
+main :where(input:not([type=checkbox]):not([type=radio]):not([type=file]), select, textarea):focus {
+    transform: translateY(-1px); transition-duration: var(--kb-motion-fast);
+}
+details[open] > summary .material-symbols-outlined:last-child { transform: rotate(180deg); }
+.toast-item { animation: toast-in var(--kb-motion-base) var(--kb-ease-spring); }
+.reconnect-card { animation: kb-reveal-in var(--kb-motion-base) var(--kb-ease-out) both; }
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+    .kb-motion-ready .kb-reveal { opacity: 1 !important; transform: none !important; }
+    .pwa-install { animation: none !important; }
+}
 .scrollbar-none { scrollbar-width: none; }
 .scrollbar-none::-webkit-scrollbar { display: none; }
 .overflow-x-auto { overscroll-behavior-x: contain; }

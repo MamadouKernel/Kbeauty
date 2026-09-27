@@ -1,12 +1,12 @@
-const CACHE_VERSION = 'keke-beauty-v17';
+const CACHE_VERSION = 'keke-beauty-v18';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const PAGE_CACHE = `${CACHE_VERSION}-pages`;
 const OFFLINE_URL = '/offline.html';
 const STATIC_ASSETS = [
-  '/', OFFLINE_URL, '/app.css?v=17', '/css/tailwind.css?v=17', '/KekeBeauty.Web.styles.css?v=17', '/manifest.webmanifest', '/img/logo.png',
+  '/', OFFLINE_URL, '/app.css?v=18', '/css/tailwind.css?v=18', '/KekeBeauty.Web.styles.css?v=18', '/manifest.webmanifest', '/img/logo.png',
   '/icons/icon-192.png', '/icons/icon-512.png', '/icons/icon-512-maskable.png',
   '/icons/apple-touch-icon.png', '/fonts/material-symbols-outlined.ttf',
-  '/js/keke-pwa.js', '/js/keke-push.js', '/js/keke-google.js?v=15'
+  '/js/keke-pwa.js', '/js/keke-push.js', '/js/keke-google.js?v=15', '/js/keke-motion.js?v=18'
 ];
 
 self.addEventListener('install', event => {
