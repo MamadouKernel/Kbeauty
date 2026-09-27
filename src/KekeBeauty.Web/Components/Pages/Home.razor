@@ -45,8 +45,8 @@
             <div class="hero-note"><span class="material-symbols-outlined">calendar_month</span><div>Votre prochain rendez-vous<small>Commence par une envie.</small></div></div>
         </div>
         <div class="hero-search">
-            <label class="hero-field"><span class="material-symbols-outlined" aria-hidden="true">search</span><span><strong>Une envie beauté ?</strong><input aria-label="Rechercher une catégorie" placeholder="Coiffure, spa, onglerie…" @bind="_categorie" @bind:event="oninput" @onkeyup="OnSearchKeyUp" /></span></label>
-            <label class="hero-field"><span class="material-symbols-outlined" aria-hidden="true">location_on</span><span><strong>Où à Abidjan ?</strong><input aria-label="Commune" placeholder="Toutes les communes" @bind="_commune" @bind:event="oninput" @onkeyup="OnSearchKeyUp" /></span></label>
+            <label class="hero-field"><span class="material-symbols-outlined" aria-hidden="true">search</span><span><strong>Une envie beauté ?</strong><select aria-label="Choisir une catégorie" @bind="_categorie"><option value="">Toutes les prestations</option>@foreach(var item in _categories){<option value="@item.Libelle">@item.Libelle</option>}</select></span></label>
+            <label class="hero-field"><span class="material-symbols-outlined" aria-hidden="true">location_on</span><span><strong>Où à Abidjan ?</strong><select aria-label="Choisir une commune" @bind="_commune"><option value="">Toutes les communes</option>@foreach(var commune in _communes){<option value="@commune">@commune</option>}</select></span></label>
             <button class="hero-search-button" type="button" @onclick="SearchAsync">Trouver mon salon <span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span></button>
         </div>
     </section>
@@ -179,6 +179,12 @@
         new("hot_tub", "Espace Spa"),
         new("self_improvement", "Massages"),
         new("face_4", "Soins Visage"),
+    ];
+
+    private static readonly string[] _communes =
+    [
+        "Abobo", "Adjamé", "Anyama", "Attécoubé", "Bingerville", "Cocody", "Koumassi",
+        "Marcory", "Plateau", "Port-Bouët", "Songon", "Treichville", "Yopougon"
     ];
 
     private bool _mapDirty;

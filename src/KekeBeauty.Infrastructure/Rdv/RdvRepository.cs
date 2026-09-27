@@ -12,6 +12,16 @@ public sealed class RdvRepository : IRdvRepository
         _connectionFactory = connectionFactory;
     }
 
+    public async Task<int> GetMinimumBookingNoticeMinutesAsync(CancellationToken cancellationToken)
+    {
+        using var connection = _connectionFactory.CreateConnection();
+        await connection.OpenAsync(cancellationToken);
+        var value = await connection.ExecuteScalarAsync<string?>(new CommandDefinition(
+            "SELECT valeur FROM parametre_plateforme WHERE cle='reservation.delai_minimum_minutes';",
+            cancellationToken: cancellationToken));
+        return int.TryParse(value, out var minutes) ? Math.Clamp(minutes, 0, 10080) : 120;
+    }
+
     public async Task<IReadOnlyList<CreneauOccupe>> GetCreneauxOccupesAsync(Guid idEtablissement, DateOnly date, CancellationToken cancellationToken)
     {
         using var connection = _connectionFactory.CreateConnection();
@@ -362,4 +372,3 @@ public sealed class RdvRepository : IRdvRepository
         return rows.AsList();
     }
 }
-

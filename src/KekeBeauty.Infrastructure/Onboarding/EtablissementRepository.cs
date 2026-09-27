@@ -26,11 +26,13 @@ public sealed class EtablissementRepository : IEtablissementRepository
             @"INSERT INTO etablissement
                 (id_etablissement, nom_etablissement, gps_latitude, gps_longitude, numero_service_client,
                  horaires, statut_kyc, url_photo_devanture, type_document_identite, url_document_recto, url_document_verso, id_utilisateur_gerant, id_commune,
-                 mode_paiement_service, paiement_wave, paiement_orange_money, paiement_moov_money, adresse_texte)
+                 mode_paiement_service, paiement_wave, paiement_orange_money, paiement_moov_money, adresse_texte,
+                 consentement_rgpd_at, version_rgpd, source_creation)
               VALUES
                 (@IdEtablissement, @NomEtablissement, @GpsLatitude, @GpsLongitude, @NumeroServiceClient,
                  @Horaires::jsonb, 'EN_ATTENTE', @UrlPhotoDevanture, @TypeDocumentIdentite, @UrlDocumentRecto, @UrlDocumentVerso, @IdUtilisateurGerant, @IdCommune,
-                 @ModePaiementService, @PaiementWave, @PaiementOrangeMoney, @PaiementMoovMoney, @AdresseTexte)
+                 @ModePaiementService, @PaiementWave, @PaiementOrangeMoney, @PaiementMoovMoney, @AdresseTexte,
+                 CASE WHEN @ConsentementRgpd THEN now() ELSE NULL END, @VersionRgpd, 'AUTONOME')
               RETURNING id_etablissement;",
             new
             {
@@ -50,6 +52,8 @@ public sealed class EtablissementRepository : IEtablissementRepository
                 etablissement.PaiementOrangeMoney,
                 etablissement.PaiementMoovMoney,
                 etablissement.AdresseTexte,
+                etablissement.ConsentementRgpd,
+                etablissement.VersionRgpd,
                 IdCommune = SeedCommuneId,
             },
             transaction: transaction,

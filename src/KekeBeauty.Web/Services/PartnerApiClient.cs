@@ -176,7 +176,8 @@ public sealed class PartnerApiClient
         string numeroServiceClient, string? horaires, string modePaiementService, bool paiementWave, bool paiementOrangeMoney, bool paiementMoovMoney,
         Stream? photoDevanture, string? photoDevantureNomFichier, string typeDocumentIdentite,
         Stream? documentRecto, string? documentRectoNomFichier, Stream? documentVerso, string? documentVersoNomFichier, CancellationToken cancellationToken,
-        string? googleOnboardingToken = null, string? categorie = null, string? partnerSessionToken = null, string? adresseTexte = null)
+        string? googleOnboardingToken = null, string? categorie = null, string? partnerSessionToken = null, string? adresseTexte = null,
+        bool consentementRgpd = false, string versionRgpd = "2026-09")
     {
         try
         {
@@ -192,6 +193,8 @@ public sealed class PartnerApiClient
                 { new StringContent(paiementOrangeMoney.ToString()), "paiementOrangeMoney" },
                 { new StringContent(paiementMoovMoney.ToString()), "paiementMoovMoney" },
                 { new StringContent(typeDocumentIdentite), "typeDocumentIdentite" },
+                { new StringContent(consentementRgpd.ToString()), "consentementRgpd" },
+                { new StringContent(versionRgpd), "versionRgpd" },
             };
 
             if (!string.IsNullOrWhiteSpace(horaires))
@@ -199,7 +202,10 @@ public sealed class PartnerApiClient
                 // Colonne etablissement.horaires typee JSONB (0001_init_schema.sql) : l'API caste
                 // la valeur recue en ::jsonb telle quelle, donc un texte libre doit d'abord etre
                 // encode comme chaine JSON valide (ex: "Lun-Sam 9h-19h" -> "\"Lun-Sam 9h-19h\"").
-                content.Add(new StringContent(System.Text.Json.JsonSerializer.Serialize(horaires)), "horaires");
+                var horairesJson = horaires.TrimStart().StartsWith('{')
+                    ? horaires
+                    : System.Text.Json.JsonSerializer.Serialize(horaires);
+                content.Add(new StringContent(horairesJson), "horaires");
             }
 
             if (!string.IsNullOrWhiteSpace(googleOnboardingToken))

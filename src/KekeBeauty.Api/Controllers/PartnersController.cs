@@ -33,6 +33,8 @@ public sealed class PartnersController : ControllerBase
         [FromForm] string? googleOnboardingToken,
         [FromForm] string? categorie,
         [FromForm] string? adresseTexte,
+        [FromForm] bool consentementRgpd,
+        [FromForm] string? versionRgpd,
         [FromForm] string typeDocumentIdentite,
         IFormFile? photoDevanture,
         IFormFile? documentRecto,
@@ -65,7 +67,9 @@ public sealed class PartnersController : ControllerBase
             googleOnboardingToken,
             categorie,
             authenticatedPartnerId,
-            string.IsNullOrWhiteSpace(adresseTexte) ? null : adresseTexte.Trim());
+            string.IsNullOrWhiteSpace(adresseTexte) ? null : adresseTexte.Trim(),
+            consentementRgpd,
+            string.IsNullOrWhiteSpace(versionRgpd) ? "2026-09" : versionRgpd.Trim());
 
         var result = await _submitUseCase.ExecuteAsync(submission, cancellationToken);
 

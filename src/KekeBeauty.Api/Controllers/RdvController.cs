@@ -70,6 +70,13 @@ public sealed class RdvController : ControllerBase
         return Ok(creneaux);
     }
 
+    [HttpGet("rdv/politique")]
+    public async Task<IActionResult> GetBookingPolicy(CancellationToken cancellationToken)
+    {
+        var minutes = await _requestUseCase.GetMinimumBookingNoticeMinutesAsync(cancellationToken);
+        return Ok(new { delaiMinimumMinutes = minutes });
+    }
+
     [HttpPost("rdv")]
     public async Task<IActionResult> RequestRdv([FromBody] RequestRdvBody body, CancellationToken cancellationToken)
     {
@@ -88,7 +95,7 @@ public sealed class RdvController : ControllerBase
 
         if (!result.Success)
         {
-            return result.Status == "slot_unavailable"
+            return result.Status is "slot_unavailable" or "booking_too_soon"
                 ? Conflict(new { status = result.Status })
                 : BadRequest(new { status = result.Status });
         }

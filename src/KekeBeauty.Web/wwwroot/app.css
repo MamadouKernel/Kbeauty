@@ -237,8 +237,16 @@ header { border-bottom: 1px solid #3a0d5209; }
 .hero-field > span:first-child { color: #845397; font-size: 22px; }
 .hero-field > span:last-child { min-width: 0; flex: 1; }
 .hero-field strong { display: block; font-size: 10px; font-weight: 700; color: var(--kb-ink); margin-bottom: 5px; }
-.hero-field input { width: 100%; font-size: 13px; color: var(--kb-ink); background: transparent; outline: none; }
+.hero-field input, .hero-field select { width: 100%; font-size: 13px; color: var(--kb-ink); background: transparent; outline: none; border: 0; }
 .hero-field input::placeholder { color: #8b7d90; }
+
+.weekly-hours { border: 1px solid var(--kb-line); border-radius: 18px; padding: 14px; }
+.weekly-hours-row { display: grid; grid-template-columns: minmax(92px,1fr) 92px 14px 92px; align-items: center; gap: 8px; padding: 8px 0; border-top: 1px solid var(--kb-line); }
+.weekly-hours-row:first-of-type { border-top: 0; }
+.weekly-hours-row label { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; }
+.weekly-hours-row input[type="time"] { min-width: 0; width: 100%; border: 1px solid var(--kb-line); border-radius: 10px; padding: 7px 5px; background: #fff; }
+.weekly-hours-row input:disabled { opacity: .45; }
+@media (max-width: 420px) { .weekly-hours-row { grid-template-columns: 1fr 78px 10px 78px; gap: 5px; } }
 .hero-search-button { display: flex; align-items: center; justify-content: center; gap: 16px; border-radius: 13px; padding: 18px 22px; background: var(--kb-ink); color: white; font-size: 12px; font-weight: 600; }
 .hero-search-button span { font-size: 18px; }
 .discovery-content { gap: 10px; scroll-margin-top: 7rem; }

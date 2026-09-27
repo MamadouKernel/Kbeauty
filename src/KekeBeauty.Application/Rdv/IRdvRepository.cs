@@ -2,6 +2,7 @@ namespace KekeBeauty.Application.Rdv;
 
 public interface IRdvRepository
 {
+    Task<int> GetMinimumBookingNoticeMinutesAsync(CancellationToken cancellationToken);
     Task<IReadOnlyList<CreneauOccupe>> GetCreneauxOccupesAsync(Guid idEtablissement, DateOnly date, CancellationToken cancellationToken);
 
     /// <summary>Retourne null si l'etablissement n'est pas VALIDE ou la prestation n'existe pas ;
@@ -114,4 +115,3 @@ public sealed class RdvPartenaireRow
     public short? RetardMinutes { get; set; }
     public DateTimeOffset? DateSignalementRetard { get; set; }
 }
-

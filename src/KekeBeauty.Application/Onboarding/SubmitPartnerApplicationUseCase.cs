@@ -24,7 +24,9 @@ public sealed record PartnerApplicationSubmission(
     string? GoogleOnboardingToken = null,
     string? Categorie = null,
     Guid? AuthenticatedPartnerId = null,
-    string? AdresseTexte = null);
+    string? AdresseTexte = null,
+    bool ConsentementRgpd = false,
+    string VersionRgpd = "2026-09");
 
 public sealed class SubmitPartnerApplicationUseCase
 {
@@ -107,7 +109,9 @@ public sealed class SubmitPartnerApplicationUseCase
                 submission.PaiementOrangeMoney,
                 submission.PaiementMoovMoney,
                 submission.Categorie,
-                submission.AdresseTexte),
+                submission.AdresseTexte,
+                submission.ConsentementRgpd,
+                submission.VersionRgpd),
             cancellationToken);
         }
         catch
@@ -141,6 +145,11 @@ public sealed class SubmitPartnerApplicationUseCase
         if (string.IsNullOrWhiteSpace(submission.NumeroServiceClient))
         {
             return "Le numero de service client est obligatoire.";
+        }
+
+        if (!submission.ConsentementRgpd)
+        {
+            return "Votre accord sur le traitement des données du dossier est nécessaire.";
         }
 
         var modePaiement = submission.ModePaiementService?.Trim().ToUpperInvariant();

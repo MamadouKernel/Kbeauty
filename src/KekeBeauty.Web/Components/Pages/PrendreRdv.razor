@@ -82,6 +82,7 @@
             </section>
 
             <section class="mt-space-lg px-gutter">
+                <KekeAlert Severity="info" Title="Réservation anticipée">Réservez au moins @FormatNotice(_minimumNoticeMinutes) avant le rendez-vous. Les créneaux trop proches sont automatiquement indisponibles.</KekeAlert>
                 <div class="flex items-center justify-between mb-space-sm">
                     <div class="flex items-center gap-1.5">
                         <span class="material-symbols-outlined text-primary text-[20px]">calendar_month</span>
@@ -126,7 +127,7 @@
                 <div class="grid grid-cols-3 gap-2.5">
                     @foreach (var heure in CreneauxJournee)
                     {
-                        var occupe = EstOccupe(heure);
+                        var occupe = EstOccupe(heure) || EstTropProche(heure);
                         var selectionne = heure == _heure;
                         @if (occupe)
                         {
@@ -311,6 +312,7 @@
     private string _statutRdvCree = "";
     private string? _statutPaiementCree;
     private string _modePaiementChoisi = "ESPECES";
+    private int _minimumNoticeMinutes = 120;
 
     private PrestationDto? PrestationSelectionnee =>
         Guid.TryParse(_idPrestation, out var id) ? _detail?.Prestations.FirstOrDefault(p => p.IdPrestation == id) : null;
@@ -349,6 +351,7 @@
 
         if (_detail is not null)
         {
+            _minimumNoticeMinutes = await RdvApi.GetMinimumBookingNoticeMinutesAsync(CancellationToken.None);
             _modePaiementChoisi = _detail.ModePaiementService == "EN_LIGNE" ? "EN_LIGNE" : "ESPECES";
             await LoadCreneauxAsync();
         }
@@ -356,6 +359,16 @@
 
     private bool EstOccupe(TimeOnly heure) =>
         _creneaux.Any(c => c.DateHeureDebut.ToLocalTime().TimeOfDay <= heure.ToTimeSpan() && c.DateHeureFin.ToLocalTime().TimeOfDay > heure.ToTimeSpan());
+
+    private bool EstTropProche(TimeOnly heure) =>
+        new DateTimeOffset(_date.ToDateTime(heure), TimeSpan.Zero) < DateTimeOffset.UtcNow.AddMinutes(_minimumNoticeMinutes);
+
+    private static string FormatNotice(int minutes) => minutes switch
+    {
+        < 60 => $"{minutes} minutes",
+        var value when value % 60 == 0 => $"{value / 60} heure{(value / 60 > 1 ? "s" : "")}",
+        _ => $"{minutes / 60} h {minutes % 60:D2} min"
+    };
 
     private async Task SelectDateAsync(DateOnly date)
     {
@@ -402,6 +415,7 @@
             _resultMessage = status switch
             {
                 "slot_unavailable" => "Ce créneau n'est plus disponible. Choisissez-en un autre.",
+                "booking_too_soon" => $"Ce créneau est trop proche. Réservez au moins {FormatNotice(_minimumNoticeMinutes)} à l’avance.",
                 "limite_rdv_atteinte" => "Cette boutique a atteint la limite mensuelle de rendez-vous de sa formule. Vous pouvez la contacter directement ou réessayer le mois prochain.",
                 "unauthorized" => "Session expirée, merci de vous reconnecter.",
                 _ => "La demande de RDV a échoué. Merci de réessayer.",

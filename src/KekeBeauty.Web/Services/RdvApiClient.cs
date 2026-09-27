@@ -41,6 +41,18 @@ public sealed class RdvApiClient
         }
     }
 
+    public async Task<int> GetMinimumBookingNoticeMinutesAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            var policy = await _httpClient.GetFromJsonAsync<BookingPolicyResponse>("rdv/politique", cancellationToken);
+            return Math.Clamp(policy?.DelaiMinimumMinutes ?? 120, 0, 10080);
+        }
+        catch { return 120; }
+    }
+
+    private sealed class BookingPolicyResponse { public int DelaiMinimumMinutes { get; set; } }
+
     /// <summary>Le mode de paiement est impose par la boutique et controle cote API.</summary>
     public async Task<(bool Success, string Status, RequestRdvWithPaiementResponse? Rdv)> RequestRdvAsync(
         Guid idClient, Guid idEtablissement, Guid idPrestation, DateTimeOffset dateHeureDebut, string? modePaiementChoisi, CancellationToken cancellationToken)

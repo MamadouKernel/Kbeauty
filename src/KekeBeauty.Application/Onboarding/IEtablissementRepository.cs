@@ -17,7 +17,9 @@ public sealed record NewEtablissement(
     bool PaiementOrangeMoney,
     bool PaiementMoovMoney,
     string? Categorie,
-    string? AdresseTexte = null);
+    string? AdresseTexte = null,
+    bool ConsentementRgpd = false,
+    string VersionRgpd = "2026-09");
 
 public interface IEtablissementRepository
 {
