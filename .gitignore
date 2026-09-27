@@ -39,3 +39,6 @@ backups/
 *.txt
 *.md
 !README.md
+# Fichiers temporaires de capture du motion design
+artifacts/motion-demo/frames/
+artifacts/motion-demo/*.log
