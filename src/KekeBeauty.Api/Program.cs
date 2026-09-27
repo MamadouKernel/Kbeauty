@@ -95,6 +95,8 @@ builder.Services.AddScoped<RejectApplicationUseCase>();
 builder.Services.AddScoped<AdminApiKeyFilter>();
 builder.Services.AddSingleton<AdminSessionTokenService>();
 builder.Services.AddScoped<IAdminManagementRepository, AdminManagementRepository>();
+builder.Services.AddScoped<CreateAssistedShopUseCase>();
+builder.Services.AddSingleton(TimeProvider.System);
 
 builder.Services.AddScoped<IDirectoryRepository, DirectoryRepository>();
 builder.Services.AddScoped<IFavoriRepository, FavoriRepository>();

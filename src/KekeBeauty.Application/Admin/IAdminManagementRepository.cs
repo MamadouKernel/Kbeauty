@@ -4,7 +4,6 @@ public sealed class AdminUserItem { public Guid IdUtilisateur { get; set; } publ
 public sealed class AdminShopItem { public Guid IdEtablissement { get; set; } public string NomEtablissement { get; set; }=""; public string Gerant { get; set; }=""; public string Telephone { get; set; }=""; public string StatutKyc { get; set; }=""; public bool EstSuspendu { get; set; } public DateTimeOffset DateCreation { get; set; } }
 public sealed class AdminAuditItem { public Guid IdJournal { get; set; } public string NomAdmin { get; set; }=""; public string Action { get; set; }=""; public string? TypeCible { get; set; } public Guid? IdCible { get; set; } public string? Details { get; set; } public DateTimeOffset DateAction { get; set; } }
 public sealed class AdminAccountItem { public Guid IdAdmin {get;set;} public string Nom {get;set;}=""; public string Email {get;set;}=""; public string Role {get;set;}=""; public bool Actif {get;set;} public DateTimeOffset DateCreation {get;set;} public DateTimeOffset? DerniereConnexion {get;set;} }
-public sealed record AssistedShopRequest(string Gerant,string Telephone,string NomBoutique,string Contact,string? Adresse,string? Categorie,decimal Latitude,decimal Longitude);
 public interface IAdminManagementRepository {
  Task<AdminAccount?> FindByEmailAsync(string email,CancellationToken ct); Task<int> CountAdminsAsync(CancellationToken ct);
  Task<AdminAccount?> FindByIdAsync(Guid id,CancellationToken ct);

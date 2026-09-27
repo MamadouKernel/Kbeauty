@@ -3,10 +3,12 @@ namespace KekeBeauty.Application.Rdv;
 public sealed class RequestRdvUseCase
 {
     private readonly IRdvRepository _repository;
+    private readonly TimeProvider _clock;
 
-    public RequestRdvUseCase(IRdvRepository repository)
+    public RequestRdvUseCase(IRdvRepository repository, TimeProvider clock)
     {
         _repository = repository;
+        _clock = clock;
     }
 
     public Task<IReadOnlyList<CreneauOccupe>> GetCreneauxOccupesAsync(Guid idEtablissement, DateOnly date, CancellationToken cancellationToken) =>
@@ -19,7 +21,7 @@ public sealed class RequestRdvUseCase
         Guid idEtablissement, Guid idPrestation, Guid idUtilisateurClient, DateTimeOffset dateHeureDebut, string? modePaiementChoisi, CancellationToken cancellationToken)
     {
         var minimumNotice = await _repository.GetMinimumBookingNoticeMinutesAsync(cancellationToken);
-        if (dateHeureDebut < DateTimeOffset.UtcNow.AddMinutes(minimumNotice))
+        if (dateHeureDebut < _clock.GetUtcNow().AddMinutes(minimumNotice))
         {
             return new RequestRdvResult(false, "booking_too_soon");
         }

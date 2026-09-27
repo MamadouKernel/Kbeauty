@@ -30,9 +30,6 @@ public sealed record PartnerApplicationSubmission(
 
 public sealed class SubmitPartnerApplicationUseCase
 {
-    private static readonly string[] AllowedImageExtensions = { "jpg", "jpeg", "png" };
-    private static readonly string[] AllowedIdentityExtensions = { "jpg", "jpeg", "png", "pdf" };
-
     private readonly IEtablissementRepository _etablissementRepository;
     private readonly IFileStorage _fileStorage;
     private readonly IUtilisateurRepository _utilisateurRepository;
@@ -47,7 +44,7 @@ public sealed class SubmitPartnerApplicationUseCase
 
     public async Task<SubmitApplicationResult> ExecuteAsync(PartnerApplicationSubmission submission, CancellationToken cancellationToken)
     {
-        var validationError = Validate(submission);
+        var validationError = PartnerApplicationValidator.Validate(submission);
         if (validationError is not null)
         {
             return new SubmitApplicationResult(false, "invalid_submission", Message: validationError);
@@ -130,63 +127,4 @@ public sealed class SubmitPartnerApplicationUseCase
 
     private static string NormalizePhone(string value) => new(value.Where(char.IsDigit).ToArray());
 
-    private static string? Validate(PartnerApplicationSubmission submission)
-    {
-        if (string.IsNullOrWhiteSpace(submission.Telephone))
-        {
-            return "Le numero de telephone est obligatoire.";
-        }
-
-        if (string.IsNullOrWhiteSpace(submission.NomEtablissement))
-        {
-            return "Le nom de l'etablissement est obligatoire.";
-        }
-
-        if (string.IsNullOrWhiteSpace(submission.NumeroServiceClient))
-        {
-            return "Le numero de service client est obligatoire.";
-        }
-
-        if (!submission.ConsentementRgpd)
-        {
-            return "Votre accord sur le traitement des données du dossier est nécessaire.";
-        }
-
-        var modePaiement = submission.ModePaiementService?.Trim().ToUpperInvariant();
-        if (modePaiement is not ("ESPECES" or "EN_LIGNE" or "MIXTE"))
-        {
-            return "Le mode de paiement des prestations est invalide.";
-        }
-
-        if (modePaiement != "ESPECES" && !submission.PaiementWave && !submission.PaiementOrangeMoney && !submission.PaiementMoovMoney)
-        {
-            return "Selectionnez au moins un operateur de paiement mobile.";
-        }
-
-        if (submission.PhotoDevanture is null || string.IsNullOrWhiteSpace(submission.PhotoDevantureExtension) ||
-            !AllowedImageExtensions.Contains(submission.PhotoDevantureExtension.TrimStart('.').ToLowerInvariant()))
-        {
-            return "La photo de devanture est obligatoire et doit etre une image (jpg/jpeg/png).";
-        }
-
-        var documentType = submission.TypeDocumentIdentite?.Trim().ToUpperInvariant();
-        if (documentType is not ("CNI" or "PASSEPORT"))
-        {
-            return "Selectionnez une carte nationale d'identite ou un passeport.";
-        }
-        if (submission.DocumentRecto is null || string.IsNullOrWhiteSpace(submission.DocumentRectoExtension) ||
-            !AllowedIdentityExtensions.Contains(submission.DocumentRectoExtension.TrimStart('.').ToLowerInvariant()))
-        {
-            return documentType == "PASSEPORT"
-                ? "La page d'identification du passeport est obligatoire."
-                : "Le recto de la carte d'identite est obligatoire.";
-        }
-        if (documentType == "CNI" && (submission.DocumentVerso is null || string.IsNullOrWhiteSpace(submission.DocumentVersoExtension) ||
-            !AllowedIdentityExtensions.Contains(submission.DocumentVersoExtension.TrimStart('.').ToLowerInvariant())))
-        {
-            return "Le verso de la carte d'identite est obligatoire.";
-        }
-
-        return null;
-    }
 }

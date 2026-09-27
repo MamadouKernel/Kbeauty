@@ -14,14 +14,14 @@ public sealed class PlanAccessRepository : IPlanAccessRepository
     {
         using var connection = _connectionFactory.CreateConnection();
         await connection.OpenAsync(cancellationToken);
-        return await connection.ExecuteScalarAsync<string>(new CommandDefinition(
+        return await connection.ExecuteScalarAsync<string?>(new CommandDefinition(
             @"SELECT COALESCE(
                   (SELECT formule FROM abonnement
                    WHERE id_etablissement = @idEtablissement AND statut_abonnement = 'ACTIF'
                    ORDER BY date_debut_engagement DESC LIMIT 1),
                   (SELECT formule FROM parametre_formule WHERE est_defaut LIMIT 1)
               );",
-            new { idEtablissement }, cancellationToken: cancellationToken));
+            new { idEtablissement }, cancellationToken: cancellationToken)) ?? "FREE";
     }
 
     private const string EntitlementColumns =
