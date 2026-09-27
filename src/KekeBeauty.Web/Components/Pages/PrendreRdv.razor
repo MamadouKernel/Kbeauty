@@ -363,12 +363,22 @@
     private bool EstTropProche(TimeOnly heure) =>
         new DateTimeOffset(_date.ToDateTime(heure), TimeSpan.Zero) < DateTimeOffset.UtcNow.AddMinutes(_minimumNoticeMinutes);
 
-    private static string FormatNotice(int minutes) => minutes switch
+    private static string FormatNotice(int minutes)
     {
-        < 60 => $"{minutes} minutes",
-        var value when value % 60 == 0 => $"{value / 60} heure{(value / 60 > 1 ? "s" : "")}",
-        _ => $"{minutes / 60} h {minutes % 60:D2} min"
-    };
+        if (minutes < 60)
+        {
+            return $"{minutes} minutes";
+        }
+
+        if (minutes % 60 == 0)
+        {
+            var hours = minutes / 60;
+            var suffix = hours > 1 ? "s" : string.Empty;
+            return $"{hours} heure{suffix}";
+        }
+
+        return $"{minutes / 60} h {minutes % 60:D2} min";
+    }
 
     private async Task SelectDateAsync(DateOnly date)
     {
