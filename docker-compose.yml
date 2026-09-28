@@ -104,6 +104,57 @@ services:
     volumes:
       - kekebeauty_pgadmin_data:/var/lib/pgadmin
 
+  prometheus:
+    image: prom/prometheus:v3.13.3
+    container_name: kekebeauty-prometheus
+    restart: unless-stopped
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=15d
+      - --storage.tsdb.retention.size=5GB
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - kekebeauty_prometheus_data:/prometheus
+    mem_limit: 512m
+    cpus: 0.50
+    security_opt:
+      - no-new-privileges:true
+
+  node-exporter:
+    image: prom/node-exporter:v1.12.1
+    container_name: kekebeauty-node-exporter
+    restart: unless-stopped
+    command:
+      - --path.rootfs=/host
+    volumes:
+      - /:/host:ro,rslave
+    mem_limit: 128m
+    cpus: 0.25
+    security_opt:
+      - no-new-privileges:true
+
+  grafana:
+    image: grafana/grafana:13.1.6
+    container_name: kekebeauty-grafana
+    restart: unless-stopped
+    depends_on:
+      - prometheus
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?GRAFANA_ADMIN_PASSWORD is required}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    ports:
+      - "127.0.0.1:${GRAFANA_PORT:-3000}:3000"
+    volumes:
+      - kekebeauty_grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    mem_limit: 512m
+    cpus: 0.50
+    security_opt:
+      - no-new-privileges:true
+
 volumes:
   kekebeauty_postgres_data:
   kekebeauty_pgadmin_data:
@@ -111,4 +162,5 @@ volumes:
   kekebeauty_web_keys:
   kekebeauty_caddy_data:
   kekebeauty_caddy_config:
-
+  kekebeauty_prometheus_data:
+  kekebeauty_grafana_data:
