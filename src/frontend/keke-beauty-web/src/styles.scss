@@ -1,0 +1,585 @@
+/*
+ * Keke Beauty — global design tokens and primitives.
+ * Source of truth: design-system/keke-beauty/MASTER.md (Soft UI Evolution) + PRD §6.2 violet palette.
+ * Fonts are self-hosted (no third-party request): Plus Jakarta Sans for everything, Playfair Display italic for accents.
+ * Their @font-face rules are loaded from node_modules via the `styles` array in angular.json.
+ */
+
+:root {
+  /* Plum scale (deeper and warmer than the first release): 600 is the interactive primary, 700 the "luxe" plum of the brand. */
+  --kb-primary-50: #f8f3fa;
+  --kb-primary-100: #efe3f4;
+  --kb-primary-200: #dcc3e7;
+  --kb-primary-300: #c39ad5;
+  --kb-primary-400: #a56bbf;
+  --kb-primary-500: #8a43a5;
+  --kb-primary-600: #6a2a85;
+  --kb-primary-700: #511368;
+  --kb-primary-800: #3f0f52;
+  --kb-primary-900: #2d0a3a;
+
+  /* Warm ivory paper instead of cold lavender, with a gold accent for small touches. */
+  --kb-bg: #fffcf8;
+  --kb-surface: #fffdfa;
+  --kb-ink: #27102f;
+  --kb-ink-muted: #6b5c70;
+  --kb-border: #eadfee;
+  --kb-gold: #c9a36a;
+  --kb-gold-soft: #f4ead9;
+  --kb-danger: #c62828;
+  --kb-success: #17703f;
+  --kb-warning: #8a5a00;
+  --kb-plum-gradient: linear-gradient(135deg, #7b358e 0%, #4b0d61 55%, #2b0739 100%);
+
+  --radius-sm: 0.75rem;
+  --radius-md: 1.125rem;
+  --radius-lg: 1.625rem;
+  --radius-xl: 2rem;
+  --radius-pill: 999px;
+
+  --shadow-soft: 0 1px 2px rgb(47 8 60 / 5%), 0 14px 38px -26px rgb(47 8 60 / 36%);
+  --shadow-lift: 0 2px 4px rgb(47 8 60 / 6%), 0 26px 64px -30px rgb(47 8 60 / 46%);
+  --shadow-luxe: 0 24px 70px -34px rgb(47 8 60 / 42%), 0 8px 24px -18px rgb(47 8 60 / 24%);
+
+  /* One clean sans for everything; a serif italic is kept for one expressive word per heading. */
+  --font-display: 'Plus Jakarta Sans Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-body: 'Plus Jakarta Sans Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-accent: 'Playfair Display Variable', Georgia, 'Times New Roman', serif;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: var(--font-body);
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--kb-ink);
+  background:
+    radial-gradient(circle at 8% -5%, rgb(138 67 165 / 11%), transparent 460px),
+    radial-gradient(circle at 100% 14%, rgb(201 163 106 / 13%), transparent 520px), var(--kb-bg);
+  background-repeat: no-repeat;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.025em;
+  text-wrap: balance;
+}
+
+/* The one expressive word of a heading: serif italic in plum, like a signature. */
+h1 em,
+h2 em,
+.accent {
+  font-family: var(--font-accent);
+  font-style: italic;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--kb-primary-500);
+}
+
+p {
+  margin: 0;
+  text-wrap: pretty;
+}
+
+ul,
+ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+a {
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 3px solid var(--kb-primary-400);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+.container {
+  width: min(100% - 2rem, 1180px);
+  margin-inline: auto;
+
+  @media (min-width: 768px) {
+    width: min(100% - 3rem, 1180px);
+  }
+
+  @media (min-width: 1536px) {
+    width: min(100% - 6rem, 1400px);
+  }
+}
+
+/* Large screens: everything is in rem, so scaling the root scales the whole interface (TV, 4K, video wall). */
+@media (min-width: 1920px) {
+  html {
+    font-size: 112.5%;
+  }
+}
+
+@media (min-width: 2560px) {
+  html {
+    font-size: 150%;
+  }
+}
+
+@media (min-width: 3440px) {
+  html {
+    font-size: 200%;
+  }
+}
+
+/* Watches and very narrow screens (< 320px): tighter gutters, no clipped words. */
+@media (max-width: 319px) {
+  html {
+    font-size: 87.5%;
+  }
+
+  .container {
+    width: calc(100% - 1rem);
+  }
+}
+
+body {
+  overflow-wrap: break-word;
+}
+
+.skip-link {
+  position: absolute;
+  top: -4rem;
+  left: 1rem;
+  z-index: 100;
+  padding: 0.75rem 1.25rem;
+  border-radius: var(--radius-sm);
+  background: var(--kb-primary-800);
+  color: #fff;
+  font-weight: 600;
+  transition: top 160ms ease;
+
+  &:focus {
+    top: 1rem;
+  }
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--kb-primary-600);
+
+  &::before {
+    content: '';
+    width: 0.4rem;
+    height: 0.4rem;
+    flex: none;
+    border-radius: 50%;
+    background: var(--kb-gold);
+  }
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 3rem;
+  padding: 0.75rem 1.5rem;
+  border: 1.5px solid transparent;
+  border-radius: var(--radius-pill);
+  font: inherit;
+  font-weight: 600;
+  max-width: 100%;
+  text-align: center;
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    transform 200ms var(--ease-out),
+    box-shadow 200ms var(--ease-out),
+    background-color 200ms ease;
+
+  svg {
+    flex: none;
+    width: 1.125rem;
+    height: 1.125rem;
+  }
+
+  @media (max-width: 479px) {
+    white-space: normal;
+  }
+
+  &:hover {
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+.btn-primary {
+  color: #fff;
+  background: var(--kb-plum-gradient);
+  box-shadow: var(--shadow-soft);
+
+  &:hover {
+    box-shadow: var(--shadow-lift);
+  }
+}
+
+.btn-light {
+  color: var(--kb-primary-800);
+  background: #fff;
+  box-shadow: var(--shadow-soft);
+
+  &:hover {
+    box-shadow: var(--shadow-lift);
+  }
+}
+
+.btn-ghost {
+  color: var(--kb-primary-700);
+  border-color: var(--kb-primary-200);
+  background: transparent;
+
+  &:hover {
+    background: var(--kb-primary-50);
+  }
+}
+
+.btn-sm {
+  min-height: 2.75rem;
+  padding: 0.5rem 1.125rem;
+  font-size: 0.9375rem;
+}
+
+.btn[disabled] {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ───────── Map (Leaflet) ───────── */
+.kb-pin span {
+  display: block;
+  width: 28px;
+  height: 28px;
+  border: 3px solid #fff;
+  border-radius: 50% 50% 50% 0;
+  background: linear-gradient(135deg, var(--kb-primary-400), var(--kb-primary-700));
+  box-shadow: 0 4px 10px rgb(54 23 79 / 35%);
+  transform: rotate(-45deg);
+}
+
+/* The pin of the card being looked at on the full-screen map. */
+.kb-pin--active span {
+  width: 36px;
+  height: 36px;
+  margin: -4px 0 0 -4px;
+  background: linear-gradient(135deg, var(--kb-gold), var(--kb-primary-700));
+  box-shadow: 0 6px 16px rgb(54 23 79 / 50%);
+}
+
+.kb-popup-link {
+  padding: 0.5rem 0.875rem;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--kb-primary-600);
+  color: #fff;
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* ───────── Authentication pages ───────── */
+.auth-page {
+  display: grid;
+  place-items: start center;
+  min-height: 70vh;
+  padding-block: clamp(2rem, 6vw, 4.5rem);
+  background:
+    radial-gradient(60% 50% at 15% 0%, var(--kb-primary-100), transparent 70%),
+    radial-gradient(45% 45% at 95% 20%, #f3d9f1, transparent 70%);
+}
+
+.auth-card {
+  display: grid;
+  gap: 1rem;
+  width: min(100% - 2rem, 30rem);
+  padding: clamp(1.5rem, 4vw, 2.5rem);
+  border: 1px solid var(--kb-border);
+  border-radius: var(--radius-lg);
+  background: #fff;
+  box-shadow: var(--shadow-lift);
+
+  h1 {
+    font-size: clamp(1.75rem, 1.4rem + 1.4vw, 2.25rem);
+  }
+
+  form {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .field {
+    display: grid;
+    gap: 0.375rem;
+
+    label {
+      font-size: 0.875rem;
+      font-weight: 600;
+    }
+
+    input.p-inputtext {
+      width: 100%;
+      min-height: 3rem;
+    }
+  }
+}
+
+.auth-lead {
+  color: var(--kb-ink-muted);
+}
+
+.auth-switch {
+  text-align: center;
+  color: var(--kb-ink-muted);
+}
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.875rem;
+  color: var(--kb-ink-muted);
+
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--kb-border);
+  }
+}
+
+.link {
+  font-weight: 600;
+  color: var(--kb-primary-600);
+  text-underline-offset: 0.2em;
+}
+
+.field-error {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--kb-danger);
+}
+
+.form-error,
+.form-success {
+  padding: 0.75rem 1rem;
+  border: 1px solid;
+  border-radius: var(--radius-sm);
+  font-size: 0.9375rem;
+  font-weight: 500;
+}
+
+.form-error {
+  color: var(--kb-danger);
+  border-color: color-mix(in srgb, var(--kb-danger) 30%, white);
+  background: color-mix(in srgb, var(--kb-danger) 7%, white);
+}
+
+.form-success {
+  color: var(--kb-success);
+  border-color: color-mix(in srgb, var(--kb-success) 30%, white);
+  background: color-mix(in srgb, var(--kb-success) 8%, white);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ───────── Back-office (shared by the /admin pages) ───────── */
+.admin-page {
+  display: grid;
+  gap: 1.25rem;
+  padding-block: clamp(1.5rem, 4vw, 3rem);
+}
+
+.admin-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 0.75rem;
+
+  label {
+    display: grid;
+    gap: 0.25rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+}
+
+.admin-input {
+  min-height: 2.75rem;
+  padding: 0.5rem 0.75rem;
+  border: 1.5px solid var(--kb-border);
+  border-radius: var(--radius-md);
+  background: #fff;
+  font: inherit;
+}
+
+.table-scroll {
+  position: relative; /* contains the absolutely positioned .visually-hidden cell labels */
+  overflow-x: auto;
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid var(--kb-border);
+  border-radius: var(--radius-md);
+
+  th,
+  td {
+    padding: 0.625rem 0.875rem;
+    text-align: left;
+    border-bottom: 1px solid var(--kb-border);
+    vertical-align: top;
+  }
+
+  th {
+    font-size: 0.8125rem;
+    background: var(--kb-primary-50);
+    color: var(--kb-primary-800);
+  }
+}
+
+.admin-card {
+  display: grid;
+  gap: 0.75rem;
+  align-content: start;
+  padding: 1.25rem;
+  border: 1px solid var(--kb-border);
+  border-radius: var(--radius-lg);
+  background: #fff;
+  box-shadow: var(--shadow-lift);
+}
+
+.admin-cards {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+}
+
+.badge {
+  display: inline-block;
+  width: fit-content;
+  padding: 0.125rem 0.75rem;
+  border-radius: var(--radius-pill);
+  background: var(--kb-primary-50);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--kb-primary-700);
+
+  &[data-tone='ok'] {
+    background: color-mix(in srgb, var(--kb-success) 12%, white);
+    color: var(--kb-success);
+  }
+
+  &[data-tone='bad'] {
+    background: color-mix(in srgb, var(--kb-danger) 10%, white);
+    color: var(--kb-danger);
+  }
+}
+
+.pager {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+/* Reserve the viewport for the page content: while data loads the footer would otherwise sit high up and jump down
+   when the results arrive (measured CLS 0.69 on the search page, target 0.1). */
+main#contenu {
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+/* Grid and flex items default to min-width:auto, so wide content (steppers, tables, long words, inputs) would
+   stretch a page past the viewport. :where() keeps specificity at zero so components can still override it. */
+main :where(div, section, form, ul, ol, fieldset, article, header, li, label, p-stepper) {
+  min-width: 0;
+}
+
+main :where(input, select, textarea) {
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* One explicit column that may shrink: an implicit `auto` column would grow to fit the widest child (tables). */
+.container.page,
+.admin-page {
+  grid-template-columns: minmax(0, 1fr);
+}

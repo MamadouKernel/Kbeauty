@@ -1,166 +1,178 @@
+name: keke-beauty
+
+# Local stack (PRD §4): PostGIS, MinIO (S3-compatible), API, web.
+# Credentials below are development defaults only; override through a .env file (see .env.example).
 services:
   postgres:
-    image: postgres:16-alpine
-    container_name: kekebeauty-postgres
+    image: postgis/postgis:16-3.4
     restart: unless-stopped
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-kekebeauty}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
-      POSTGRES_DB: ${POSTGRES_DB:-kekebeauty}
+      POSTGRES_DB: kekebeauty
+      POSTGRES_USER: keke
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-keke_dev}
     ports:
-      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+      # 5434 on the host: 5432/5433 are commonly taken by other local PostgreSQL containers.
+      - "5434:5432"
     volumes:
-      - kekebeauty_postgres_data:/var/lib/postgresql/data
-      - ./db/init:/docker-entrypoint-initdb.d:ro
+      - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-kekebeauty} -d ${POSTGRES_DB:-kekebeauty}"]
+      test: ["CMD-SHELL", "pg_isready -U keke -d kekebeauty"]
       interval: 5s
+      timeout: 3s
+      retries: 20
+
+  minio:
+    # MinIO no longer publishes official images on Docker Hub or Quay; this is the Bitnami legacy mirror
+    # of the same MinIO server (S3 API on 9000, console on 9001). Swap for a pinned image in production.
+    image: bitnamilegacy/minio:latest
+    restart: unless-stopped
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-keke_minio}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-keke_minio_dev}
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - miniodata:/bitnami/minio/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fs http://localhost:9000/minio/health/live || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  redis:
+    # SignalR backplane: lets several API servers push live updates (calendar, agenda, notifications) to every connected browser.
+    image: redis:7-alpine
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  jaeger:
+    # Optional trace viewer: `docker compose --profile observability up -d`, set OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317 in .env,
+    # then open http://localhost:16686.
+    image: jaegertracing/all-in-one:1.62.0
+    restart: unless-stopped
+    profiles: ["observability"]
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
+    ports:
+      - "16686:16686" # web UI
+
+  mailpit:
+    image: axllent/mailpit:latest
+    restart: unless-stopped
+    ports:
+      - "8025:8025" # web inbox
+    healthcheck:
+      test: ["CMD", "/mailpit", "readyz"]
+      interval: 10s
       timeout: 5s
-      retries: 10
+      retries: 5
 
   api:
-    build:
-      context: .
-      dockerfile: src/KekeBeauty.Api/Dockerfile
-    container_name: kekebeauty-api
+    build: ./src/backend
     restart: unless-stopped
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      # The API is only reachable through the web container's nginx: trust its X-Forwarded-* headers (real client IP for rate limits).
+      Proxy__TrustForwardedHeaders: "true"
+      # Development relay: every e-mail the API sends shows up in the Mailpit inbox (http://localhost:8025).
+      # Payments: the simulated gateway by default; see .env.example to try the WiniPayer TEST sandbox.
+      Payments__Provider: ${PAYMENTS_PROVIDER:-Fake}
+      Payments__Winipay__ApplyKey: ${WINIPAY_APPLY_KEY:-}
+      Payments__Winipay__Token: ${WINIPAY_TOKEN:-}
+      Payments__Winipay__Env: ${WINIPAY_ENV:-test}
+      Payments__ApiBaseUrl: ${PAYMENTS_PUBLIC_URL:-http://localhost:4200}
+      Payments__WebBaseUrl: ${PAYMENTS_PUBLIC_URL:-http://localhost:4200}
+      Email__Provider: ${EMAIL_PROVIDER:-}
+      Email__Smtp__Host: mailpit
+      Email__Smtp__Port: "1025"
+      Email__Smtp__Security: None
+      Email__Smtp__FromAddress: noreply@keke-beauty.local
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__Default: Host=postgres;Port=5432;Database=kekebeauty;Username=keke;Password=${POSTGRES_PASSWORD:-keke_dev}
+      Database__MigrateOnStartup: "true"
+      Database__SeedOnStartup: "true"
+      # Fictional establishments for local demos only; never enable outside development.
+      Database__SeedDemoData: "true"
+      # Object storage (photos in public-media, identity documents in private-kyc). Same credentials as the minio service.
+      Storage__ServiceUrl: http://minio:9000
+      Storage__AccessKey: ${MINIO_ROOT_USER:-keke_minio}
+      Storage__SecretKey: ${MINIO_ROOT_PASSWORD:-keke_minio_dev}
+      # Optional initial SuperAdmin (created only when both are set; it must enrol in 2FA at first sign-in).
+      Admin__Email: ${ADMIN_EMAIL:-}
+      Admin__Password: ${ADMIN_PASSWORD:-}
+      # Optional Google sign-in (disabled until a Google OAuth client ID is provided).
+      Auth__Google__Enabled: ${GOOGLE_AUTH_ENABLED:-false}
+      Auth__Google__ClientId: ${GOOGLE_CLIENT_ID:-}
+      # LeTexto (SMS and e-mail campaigns). Disabled until LETEXTO_ENABLED=true and the key and senders are filled in (see .env.example).
+      LeTexto__Enabled: ${LETEXTO_ENABLED:-false}
+      LeTexto__ApiKey: ${LETEXTO_API_KEY:-}
+      LeTexto__SmsSender: ${LETEXTO_SMS_SENDER:-}
+      LeTexto__EmailFrom: ${LETEXTO_EMAIL_FROM:-}
+      LeTexto__PublicApiUrl: ${PAYMENTS_PUBLIC_URL:-http://localhost:4200}
+      LeTexto__WebhookSecret: ${LETEXTO_WEBHOOK_SECRET:-}
+      # Web Push (VAPID). Empty = keys are generated once and kept in the database.
+      Push__PublicKey: ${PUSH_VAPID_PUBLIC_KEY:-}
+      Push__PrivateKey: ${PUSH_VAPID_PRIVATE_KEY:-}
+      Push__Subject: ${PUSH_VAPID_SUBJECT:-mailto:contact@kekebeauty.example}
+      # Several API servers: SignalR relays through Redis.
+      Redis__ConnectionString: ${REDIS_CONNECTION:-redis:6379}
+      # OpenTelemetry traces and metrics: empty = off. With the `observability` profile use http://jaeger:4317.
+      OpenTelemetry__OtlpEndpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
+      # Database backups taken by the SuperAdmin from the back-office; ScheduledEnabled adds a nightly one.
+      Backups__ScheduledEnabled: ${BACKUPS_SCHEDULED:-false}
+      Backups__RetentionDays: ${BACKUPS_RETENTION_DAYS:-14}
+      Media__MaxVideoMegabytes: ${MEDIA_MAX_VIDEO_MB:-50}
+    ports:
+      - "8080:8080"
     depends_on:
       postgres:
         condition: service_healthy
-    environment:
-      ConnectionStrings__Default: "Host=postgres;Port=5432;Database=${POSTGRES_DB:-kekebeauty};Username=${POSTGRES_USER:-kekebeauty};Password=${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}"
-      Zavu__ApiKey: "${ZAVU_API_KEY:-}"
-      Admin__ApiKey: "${ADMIN_API_KEY:-}"
-      Admin__BootstrapPassword: "${ADMIN_API_KEY:-}"
-      Admin__BootstrapEmail: "${ADMIN_EMAIL:-admin@kekebeauty.ci}"
-      Admin__SigningKey: "${ADMIN_SIGNING_KEY:-}"
-      Authentication__Google__ClientId: "${GOOGLE_CLIENT_ID:-}"
-      Authentication__SessionSigningKey: "${SESSION_SIGNING_KEY:-${ADMIN_SIGNING_KEY:-}}"
-      Billing__WiniPayer__Env: "${WINIPAYER_ENV:-test}"
-      Billing__WiniPayer__MerchantApply: "${WINIPAYER_MERCHANT_APPLY:-}"
-      Billing__WiniPayer__TestTokenKey: "${WINIPAYER_TEST_TOKEN_KEY:-}"
-      Billing__WiniPayer__TestPrivateKey: "${WINIPAYER_TEST_PRIVATE_KEY:-}"
-      Billing__WiniPayer__ProdTokenKey: "${WINIPAYER_PROD_TOKEN_KEY:-}"
-      Billing__WiniPayer__ProdPrivateKey: "${WINIPAYER_PROD_PRIVATE_KEY:-}"
-      Payments__Wave__ApiBaseUrl: "${WAVE_API_BASE_URL:-https://api.wave.com/}"
-      Payments__Wave__ApiKey: "${WAVE_API_KEY:-}"
-      Payments__Wave__SigningSecret: "${WAVE_SIGNING_SECRET:-}"
-      Push__VapidPublicKey: "${VAPID_PUBLIC_KEY:-}"
-      Push__VapidPrivateKey: "${VAPID_PRIVATE_KEY:-}"
-      Push__VapidSubject: "${VAPID_SUBJECT:-mailto:contact@kekebeauty.local}"
-      Email__Smtp__Host: "${SMTP_HOST:-}"
-      Email__Smtp__Port: "${SMTP_PORT:-587}"
-      Email__Smtp__User: "${SMTP_USER:-}"
-      Email__Smtp__Password: "${SMTP_PASSWORD:-}"
-      Email__Smtp__From: "${SMTP_FROM:-no-reply@kekebeauty.local}"
-    ports:
-      - "${API_PORT:-5080}:8080"
-    volumes:
-      - kekebeauty_kyc_storage:/app/storage
+      minio:
+        condition: service_healthy
+      mailpit:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      # The aspnet runtime image has no curl/wget; probe liveness through bash's /dev/tcp.
+      test:
+        - CMD
+        - bash
+        - -c
+        - >-
+          exec 3<>/dev/tcp/127.0.0.1/8080 &&
+          printf 'GET /health/live HTTP/1.0\r\n\r\n' >&3 &&
+          head -n1 <&3 | grep -q 200
+      interval: 5s
+      timeout: 3s
+      retries: 30
+      start_period: 10s
 
   web:
-    build:
-      context: .
-      dockerfile: src/KekeBeauty.Web/Dockerfile
-    container_name: kekebeauty-web
+    build: ./src/frontend/keke-beauty-web
     restart: unless-stopped
-    depends_on:
-      - api
     environment:
-      Api__BaseUrl: "http://api:8080"
-      DataProtection__KeysPath: "/app/data-protection-keys"
-      Authentication__Google__ClientId: "${GOOGLE_CLIENT_ID:-}"
-      Authentication__SessionSigningKey: "${SESSION_SIGNING_KEY:-${ADMIN_SIGNING_KEY:-}}"
+      # Yango: empty = the official go.link route (opens the Yango app on a phone); `off` hides the option.
+      YANGO_URL_TEMPLATE: ${YANGO_URL_TEMPLATE:-}
+      # Map tiles: empty = OpenStreetMap (development). In production use a provider with a service-level agreement.
+      MAP_TILES_URL: ${MAP_TILES_URL:-}
+      MAP_TILES_ATTRIBUTION: ${MAP_TILES_ATTRIBUTION:-}
     ports:
-      - "127.0.0.1:${WEB_PORT:-5090}:8080"
-    volumes:
-      - kekebeauty_web_keys:/app/data-protection-keys
-
-  caddy:
-    image: caddy:2-alpine
-    container_name: kekebeauty-caddy
-    restart: unless-stopped
+      - "4200:80"
     depends_on:
-      - web
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile:ro
-      - kekebeauty_caddy_data:/data
-      - kekebeauty_caddy_config:/config
-
-  pgadmin:
-    image: dpage/pgadmin4:latest
-    container_name: kekebeauty-pgadmin
-    restart: unless-stopped
-    depends_on:
-      - postgres
-    environment:
-      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@kekebeauty.example.com}
-      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:?PGADMIN_PASSWORD is required}
-    ports:
-      - "127.0.0.1:${PGADMIN_PORT:-5050}:80"
-    volumes:
-      - kekebeauty_pgadmin_data:/var/lib/pgadmin
-
-  prometheus:
-    image: prom/prometheus:v3.13.3
-    container_name: kekebeauty-prometheus
-    restart: unless-stopped
-    command:
-      - --config.file=/etc/prometheus/prometheus.yml
-      - --storage.tsdb.path=/prometheus
-      - --storage.tsdb.retention.time=15d
-      - --storage.tsdb.retention.size=5GB
-    volumes:
-      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
-      - kekebeauty_prometheus_data:/prometheus
-    mem_limit: 512m
-    cpus: 0.50
-    security_opt:
-      - no-new-privileges:true
-
-  node-exporter:
-    image: prom/node-exporter:v1.12.1
-    container_name: kekebeauty-node-exporter
-    restart: unless-stopped
-    command:
-      - --path.rootfs=/host
-    volumes:
-      - /:/host:ro,rslave
-    mem_limit: 128m
-    cpus: 0.25
-    security_opt:
-      - no-new-privileges:true
-
-  grafana:
-    image: grafana/grafana:13.1.6
-    container_name: kekebeauty-grafana
-    restart: unless-stopped
-    depends_on:
-      - prometheus
-    environment:
-      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
-      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?GRAFANA_ADMIN_PASSWORD is required}
-      GF_USERS_ALLOW_SIGN_UP: "false"
-    ports:
-      - "127.0.0.1:${GRAFANA_PORT:-3000}:3000"
-    volumes:
-      - kekebeauty_grafana_data:/var/lib/grafana
-      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
-      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
-    mem_limit: 512m
-    cpus: 0.50
-    security_opt:
-      - no-new-privileges:true
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1/"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
 
 volumes:
-  kekebeauty_postgres_data:
-  kekebeauty_pgadmin_data:
-  kekebeauty_kyc_storage:
-  kekebeauty_web_keys:
-  kekebeauty_caddy_data:
-  kekebeauty_caddy_config:
-  kekebeauty_prometheus_data:
-  kekebeauty_grafana_data:
+  pgdata:
+  miniodata:

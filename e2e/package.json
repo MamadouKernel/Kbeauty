@@ -1,0 +1,18 @@
+{
+  "name": "keke-beauty-e2e",
+  "private": true,
+  "version": "0.0.0",
+  "description": "End-to-end tests (Playwright) run against the docker compose stack: web on 4200, API on 8080, Mailpit on 8025.",
+  "scripts": {
+    "test": "playwright test",
+    "test:desktop": "playwright test --project=desktop",
+    "test:mobile": "playwright test --project=mobile",
+    "report": "playwright show-report"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "4.10.2",
+    "@playwright/test": "1.55.0",
+    "@types/node": "24.3.0",
+    "typescript": "5.9.2"
+  }
+}

@@ -1,0 +1,202 @@
+<section class="hero" aria-labelledby="hero-title">
+  <div class="hero__glow" aria-hidden="true"></div>
+
+  <div class="container hero__grid">
+    <div class="hero__copy">
+      <p class="eyebrow">Salons • Spa • Onglerie</p>
+      <h1 id="hero-title">Votre moment <em>beauté</em>, à deux pas de chez vous.</h1>
+      <p class="lead">
+        Trouvez le salon, le spa ou l'onglerie qui vous ressemble : photos, tarifs clairs,
+        itinéraire en un geste et réservation en ligne.
+      </p>
+
+      <form class="search" (ngSubmit)="search()" aria-label="Rechercher un établissement">
+        <div class="field">
+          <label for="search-category">Quel soin&nbsp;?</label>
+          <p-select
+            inputId="search-category"
+            name="category"
+            [options]="options()"
+            optionLabel="name"
+            optionValue="slug"
+            placeholder="Tous les soins"
+            [showClear]="true"
+            [ngModel]="selectedSlug()"
+            (ngModelChange)="selectedSlug.set($event)"
+          />
+        </div>
+
+        <div class="field">
+          <label for="search-text">Quelle prestation&nbsp;?</label>
+          <input
+            pInputText
+            id="search-text"
+            name="text"
+            type="text"
+            autocomplete="off"
+            placeholder="Tresses, manucure, massage…"
+            [ngModel]="text()"
+            (ngModelChange)="text.set($event)"
+          />
+        </div>
+
+        <button type="submit" class="btn btn-primary">
+          <svg lucideSearch aria-hidden="true"></svg>
+          Rechercher
+        </button>
+      </form>
+
+      <ul class="trust">
+        <li><svg lucideCamera aria-hidden="true"></svg>Photos et vidéos</li>
+        <li><svg lucideBadgeCheck aria-hidden="true"></svg>Tarifs clairs</li>
+        <li><svg lucideCalendarCheck aria-hidden="true"></svg>Réservation en ligne</li>
+      </ul>
+    </div>
+
+    <div class="hero__visual" aria-hidden="true">
+      <div class="pill">
+        <span class="pill__icon"><svg lucideSparkles></svg></span>
+        <span class="pill__label">Keke Beauty</span>
+        <span class="pill__sub">Salons • Spa • Onglerie</span>
+      </div>
+      <p class="float-chip float-chip--b"><svg lucideMapPin></svg>Autour de moi</p>
+      <p class="float-chip float-chip--a"><svg lucideCalendarCheck></svg>Réservez en ligne</p>
+    </div>
+  </div>
+</section>
+
+<section id="categories" class="section" aria-labelledby="categories-title">
+  <div class="container">
+    <header class="section__head">
+      <p class="eyebrow">Univers beauté</p>
+      <h2 id="categories-title">Que souhaitez-vous <em>aujourd'hui</em>&nbsp;?</h2>
+    </header>
+
+    @if (categories.error()) {
+      <div class="state" role="alert">
+        <p>Impossible de charger les catégories pour le moment.</p>
+        <button type="button" class="btn btn-ghost" (click)="categories.reload()">Réessayer</button>
+      </div>
+    } @else if (categories.isLoading()) {
+      <ul class="cat-grid" aria-busy="true" aria-label="Chargement des catégories">
+        @for (item of skeletons; track item) {
+          <li class="cat-card cat-card--skeleton"></li>
+        }
+      </ul>
+    } @else {
+      <ul class="cat-grid">
+        @for (category of categories.value(); track category.id) {
+          <li>
+            <button
+              type="button"
+              class="cat-card"
+              [class.is-selected]="selectedSlug() === category.slug"
+              [attr.aria-pressed]="selectedSlug() === category.slug"
+              (click)="toggle(category.slug)"
+            >
+              <span class="cat-card__icon"><app-category-icon [name]="category.icon" /></span>
+              <span>{{ category.name }}</span>
+            </button>
+          </li>
+        }
+      </ul>
+    }
+  </div>
+</section>
+
+<section class="section section--featured" aria-labelledby="featured-title">
+  <div class="container">
+    <header class="section__head section__head--row">
+      <div>
+        <p class="eyebrow">À la une</p>
+        <h2 id="featured-title">Les adresses du <em>moment</em></h2>
+      </div>
+      <a class="link-more" routerLink="/etablissements">Voir tout l'annuaire →</a>
+    </header>
+
+    @if (featured.hasValue() && featured.value().length > 0) {
+      <ul class="featured-grid">
+        @for (item of featured.value(); track item.id) {
+          <li><app-establishment-card [establishment]="item" /></li>
+        }
+      </ul>
+    } @else if (featured.isLoading()) {
+      <ul class="featured-grid" aria-busy="true" aria-label="Chargement des établissements">
+        @for (item of skeletons.slice(0, 4); track item) {
+          <li class="featured-skeleton"></li>
+        }
+      </ul>
+    }
+  </div>
+</section>
+
+<section id="comment-ca-marche" class="section section--tint" aria-labelledby="steps-title">
+  <div class="container">
+    <header class="section__head">
+      <p class="eyebrow">Simple comme bonjour</p>
+      <h2 id="steps-title">Comment ça marche</h2>
+    </header>
+
+    <ol class="steps">
+      <li class="step">
+        <span class="step__num" aria-hidden="true">01</span>
+        <span class="step__icon"><svg lucideSearch aria-hidden="true"></svg></span>
+        <h3>Cherchez</h3>
+        <p>
+          Filtrez par catégorie, par commune ou autour de vous, et découvrez les établissements en
+          images.
+        </p>
+      </li>
+      <li class="step">
+        <span class="step__num" aria-hidden="true">02</span>
+        <span class="step__icon"><svg lucideMapPin aria-hidden="true"></svg></span>
+        <h3>Comparez</h3>
+        <p>
+          Prestations, tarifs, horaires : tout est sur la fiche. Appelez ou lancez l'itinéraire en
+          un geste.
+        </p>
+      </li>
+      <li class="step">
+        <span class="step__num" aria-hidden="true">03</span>
+        <span class="step__icon"><svg lucideCalendarCheck aria-hidden="true"></svg></span>
+        <h3>Réservez</h3>
+        <p>
+          Choisissez un créneau disponible et recevez la confirmation de l'établissement par SMS.
+        </p>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<section id="professionnels" class="section" aria-labelledby="pro-title">
+  <div class="container">
+    <div class="pro">
+      <div class="pro__copy">
+        <p class="eyebrow">Professionnels de la beauté</p>
+        <h2 id="pro-title">Faites rayonner votre établissement.</h2>
+        <p>
+          Une fiche soignée, vos prestations et vos tarifs, des demandes de rendez-vous qui arrivent
+          en temps réel. Inscrivez-vous en quelques minutes.
+        </p>
+        <ul class="pro__list">
+          <li>
+            <svg lucideCircleCheck aria-hidden="true"></svg>Visibilité auprès des clients autour de
+            vous
+          </li>
+          <li>
+            <svg lucideCircleCheck aria-hidden="true"></svg>Agenda en ligne et notifications par SMS
+          </li>
+          <li>
+            <svg lucideCircleCheck aria-hidden="true"></svg>Abonnement simple, mensuel ou annuel
+          </li>
+        </ul>
+        <div class="pro__actions">
+          <a class="btn btn-light" routerLink="/inscription" [queryParams]="{ type: 'partenaire' }">
+            <svg lucideStore aria-hidden="true"></svg>
+            Inscrire mon établissement
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

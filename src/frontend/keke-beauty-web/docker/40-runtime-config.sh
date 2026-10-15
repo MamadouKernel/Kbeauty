@@ -1,0 +1,29 @@
+#!/bin/sh
+# Writes /config.json from environment variables when the web container starts (nginx runs
+# /docker-entrypoint.d/*.sh before the server). Lets one image serve any environment.
+set -eu
+
+escape() {
+  printf '%s' "$1" | sed 's/\\/\\\\/g; s/"/\\"/g'
+}
+
+# nginx needs an explicit resolver to look the API up at request time (see nginx.conf).
+nameserver=$(awk '/^nameserver/ { print $2; exit }' /etc/resolv.conf)
+printf 'resolver %s valid=10s ipv6=off;\n' "${nameserver:-127.0.0.11}" > /etc/nginx/resolver.inc
+
+yango=$(escape "${YANGO_URL_TEMPLATE:-}")
+
+# Map tiles: an https template ({z}/{x}/{y}, optional {s}). Anything else falls back to OpenStreetMap in the app.
+# The tile host is also allowed in the Content-Security-Policy (img-src) through $csp_map_tiles.
+tiles_url="${MAP_TILES_URL:-}"
+tiles_host=$(printf '%s' "$tiles_url" | sed -n 's#^https://\([A-Za-z0-9.{}*-]*\)/.*#\1#p' | sed 's/{s}/*/g')
+if [ -z "$tiles_host" ]; then
+  # No provider configured: the site's own cached tile proxy (nginx.conf, /tiles/), served from the same origin.
+  tiles_url="/tiles/{z}/{x}/{y}.png"
+  tiles_host="tile.openstreetmap.org"
+fi
+printf 'set $csp_map_tiles "https://%s";\n' "$tiles_host" > /etc/nginx/map-tiles.inc
+
+tiles=$(escape "$tiles_url")
+attribution=$(escape "${MAP_TILES_ATTRIBUTION:-}")
+printf '{ "yangoUrlTemplate": "%s", "mapTilesUrl": "%s", "mapAttribution": "%s" }\n' "$yango" "$tiles" "$attribution" > /usr/share/nginx/html/config.json

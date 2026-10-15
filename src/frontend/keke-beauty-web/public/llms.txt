@@ -1,0 +1,10 @@
+# Keke Beauty
+
+> Annuaire géolocalisé des salons de coiffure, spas, espaces massage et ongleries d'Abidjan (Côte d'Ivoire), avec réservation de rendez-vous en ligne.
+
+## Pages publiques
+
+- [Établissements](/etablissements): recherche par catégorie, quartier, proximité ou nom
+- [Tarifs](/tarifs): formules proposées aux professionnels
+- [Conditions d'utilisation](/cgu): règles d'utilisation du service
+- [Politique de confidentialité](/confidentialite): traitement des données personnelles

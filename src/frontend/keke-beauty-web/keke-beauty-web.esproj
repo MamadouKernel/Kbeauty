@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.VisualStudio.JavaScript.Sdk/1.0.6887863">
+  <PropertyGroup>
+    <!-- F5 in Visual Studio runs the Angular dev server (proxies /api and /health to http://localhost:8080). -->
+    <StartupCommand>npm start</StartupCommand>
+    <BuildCommand>npm run build</BuildCommand>
+    <ProductionBuildCommand>npm run build</ProductionBuildCommand>
+    <BuildOutputFolder>$(MSBuildProjectDirectory)\dist\keke-beauty-web\browser</BuildOutputFolder>
+    <JavaScriptTestRoot>src\</JavaScriptTestRoot>
+    <!-- Keep `dotnet build KekeBeauty.sln` fast and offline-friendly: install/build the frontend explicitly. -->
+    <ShouldRunNpmInstall>false</ShouldRunNpmInstall>
+    <ShouldRunBuildScript>false</ShouldRunBuildScript>
+  </PropertyGroup>
+</Project>

@@ -1,0 +1,12 @@
+# Overrides for running the end-to-end suite (e2e/) against the local stack:
+#
+#   docker compose -f docker-compose.yml -f docker-compose.e2e.yml up -d
+#
+# The suite creates dozens of accounts from one IP address within minutes, which the default per-IP limits (30 sign-in related
+# requests a minute) rightly refuse. The limits stay on, only raised; the suite checks that they still answer 429.
+services:
+  api:
+    environment:
+      Auth__AuthPermitPerMinute: "600"
+      RateLimits__GlobalPerMinute: "100000"
+      RateLimits__BookingPerMinute: "10000"

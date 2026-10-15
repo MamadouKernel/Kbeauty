@@ -1,44 +1,27 @@
-.env
-node_modules/
-dist/
-build/
-*.log
-.DS_Store
-Thumbs.db
-
-# Outillage local (IDE / agents) - jamais partage dans le depot applicatif
-.claude/
-.vscode/
-.idea/
-
-# .NET
+# Build output
 bin/
 obj/
-publish/
-.vs/
-*.user
-test-results/
+dist/
+.angular/
+coverage/
 TestResults/
-*.trx
-*.cobertura.xml
-coverage*.json
-coverage*.xml
 
-# Config locale susceptible de contenir des secrets (voir appsettings.Development.json,
-# qui lui reste suivi car il ne contient jamais de secret - utiliser dotnet user-secrets a la place)
-appsettings.*.local.json
-appsettings.local.json
+# Dependencies
+node_modules/
 
+# Local configuration and secrets
+.env
+.env.*
+!.env.example
+appsettings.Local.json
+.claude/settings.local.json
+
+# IDE
+.vs/
+.idea/
+*.user
 backups/
 
-# Documents et notes (specs, CDC, docs internes) - restent en local, jamais sur le depot.
-# README.md est la seule exception (page d'accueil du depot).
-*.pdf
-*.docx
-*.doc
-*.txt
-*.md
-!README.md
-# Fichiers temporaires de capture du motion design
-artifacts/motion-demo/frames/
-artifacts/motion-demo/*.log
+# End-to-end test output
+e2e/test-results/
+e2e/playwright-report/

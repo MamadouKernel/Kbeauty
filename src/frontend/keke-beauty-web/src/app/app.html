@@ -1,0 +1,293 @@
+<a class="skip-link" href="#contenu">Aller au contenu principal</a>
+
+<header class="site-header">
+  <div class="container">
+    <div class="site-header__bar">
+      <a class="brand" routerLink="/" aria-label="Keke Beauty — accueil">
+        <span class="brand__mark"><svg lucideMapPin aria-hidden="true"></svg></span>
+        <span class="brand__name">Keke <span>Beauty</span></span>
+      </a>
+
+      <nav class="site-nav" aria-label="Navigation principale">
+        <a routerLink="/etablissements" routerLinkActive="is-active">
+          <svg lucideStore aria-hidden="true"></svg>
+          Établissements
+        </a>
+        <a routerLink="/" fragment="categories">
+          <svg lucideLayoutGrid aria-hidden="true"></svg>
+          Catégories
+        </a>
+        <a routerLink="/" fragment="comment-ca-marche">
+          <svg lucideSparkles aria-hidden="true"></svg>
+          Comment ça marche
+        </a>
+        <a routerLink="/" fragment="professionnels">
+          <svg lucideBriefcaseBusiness aria-hidden="true"></svg>
+          Professionnels
+        </a>
+      </nav>
+
+      <div class="site-header__actions">
+        @if (auth.user()) {
+          <app-notification-bell />
+        }
+        <div class="menu">
+          @if (auth.user(); as user) {
+            <button
+              type="button"
+              class="menu__trigger menu__trigger--user"
+              data-menu-trigger="account"
+              aria-haspopup="menu"
+              [attr.aria-expanded]="openMenu() === 'account'"
+              aria-controls="menu-account"
+              (click)="toggle('account')"
+            >
+              <span class="avatar" aria-hidden="true">{{ initial() }}</span>
+              <span class="menu__label hide-sm">{{ user.firstName }}</span>
+              <svg lucideChevronDown class="menu__chevron" aria-hidden="true"></svg>
+              <span class="visually-hidden">Menu du compte de {{ user.firstName }}</span>
+            </button>
+
+            @if (openMenu() === 'account') {
+              <div
+                id="menu-account"
+                class="menu__panel"
+                role="menu"
+                aria-label="Mon compte"
+                data-menu-panel="account"
+                tabindex="-1"
+                (keydown)="navigate($event)"
+              >
+                <div class="menu__head">
+                  <span class="avatar avatar--lg" aria-hidden="true">{{ initial() }}</span>
+                  <span>
+                    <strong>{{ user.firstName }} {{ user.lastName }}</strong>
+                    <small>{{ user.email }}</small>
+                  </span>
+                </div>
+                <a class="menu__item" role="menuitem" routerLink="/compte">
+                  <span class="menu__icon"
+                    ><svg lucideCircleUserRound aria-hidden="true"></svg
+                  ></span>
+                  Mon compte
+                </a>
+                @if (isPartner()) {
+                  <a class="menu__item" role="menuitem" routerLink="/pro">
+                    <span class="menu__icon"
+                      ><svg lucideLayoutDashboard aria-hidden="true"></svg
+                    ></span>
+                    Mon espace pro
+                  </a>
+                }
+                @if (isAdmin()) {
+                  <a class="menu__item" role="menuitem" routerLink="/admin">
+                    <span class="menu__icon"><svg lucideShieldCheck aria-hidden="true"></svg></span>
+                    Administration
+                  </a>
+                }
+                <div class="menu__sep" role="separator"></div>
+                <button
+                  type="button"
+                  class="menu__item menu__item--danger"
+                  role="menuitem"
+                  (click)="logout()"
+                >
+                  <span class="menu__icon"><svg lucideLogOut aria-hidden="true"></svg></span>
+                  Se déconnecter
+                </button>
+              </div>
+            }
+          } @else {
+            <button
+              type="button"
+              class="menu__trigger menu__trigger--guest"
+              data-menu-trigger="account"
+              aria-haspopup="menu"
+              [attr.aria-expanded]="openMenu() === 'account'"
+              aria-controls="menu-account"
+              (click)="toggle('account')"
+            >
+              <svg lucideCircleUserRound class="menu__lead" aria-hidden="true"></svg>
+              <span class="menu__label">Rejoindre</span>
+              <svg lucideChevronDown class="menu__chevron" aria-hidden="true"></svg>
+            </button>
+
+            @if (openMenu() === 'account') {
+              <div
+                id="menu-account"
+                class="menu__panel"
+                role="menu"
+                aria-label="Connexion et inscription"
+                data-menu-panel="account"
+                tabindex="-1"
+                (keydown)="navigate($event)"
+              >
+                <a class="menu__item" role="menuitem" routerLink="/connexion">
+                  <span class="menu__icon"><svg lucideLogIn aria-hidden="true"></svg></span>
+                  <span>
+                    Se connecter
+                    <small>J'ai déjà un compte</small>
+                  </span>
+                </a>
+                <a class="menu__item" role="menuitem" routerLink="/inscription">
+                  <span class="menu__icon"><svg lucideUserPlus aria-hidden="true"></svg></span>
+                  <span>
+                    Créer un compte
+                    <small>Réservez en quelques clics</small>
+                  </span>
+                </a>
+                <div class="menu__sep" role="separator"></div>
+                <a
+                  class="menu__item menu__item--accent"
+                  role="menuitem"
+                  routerLink="/inscription"
+                  [queryParams]="{ type: 'partenaire' }"
+                >
+                  <span class="menu__icon"><svg lucideStore aria-hidden="true"></svg></span>
+                  <span>
+                    Inscrire mon établissement
+                    <small>Salon, spa, onglerie…</small>
+                  </span>
+                </a>
+              </div>
+            }
+          }
+        </div>
+
+        <button
+          type="button"
+          class="burger"
+          data-menu-trigger="mobile"
+          [attr.aria-expanded]="openMenu() === 'mobile'"
+          aria-controls="mobile-nav"
+          (click)="toggle('mobile')"
+        >
+          @if (openMenu() === 'mobile') {
+            <svg lucideX aria-hidden="true"></svg>
+          } @else {
+            <svg lucideMenu aria-hidden="true"></svg>
+          }
+          <span class="visually-hidden">{{
+            openMenu() === 'mobile' ? 'Fermer le menu' : 'Ouvrir le menu'
+          }}</span>
+        </button>
+      </div>
+    </div>
+
+    @if (openMenu() === 'mobile') {
+      <nav id="mobile-nav" class="sheet" aria-label="Menu mobile">
+        <a routerLink="/etablissements" routerLinkActive="is-active">
+          <svg lucideStore aria-hidden="true"></svg>
+          Établissements
+        </a>
+        <a routerLink="/" fragment="categories">
+          <svg lucideLayoutGrid aria-hidden="true"></svg>
+          Catégories
+        </a>
+        <a routerLink="/" fragment="comment-ca-marche">
+          <svg lucideSparkles aria-hidden="true"></svg>
+          Comment ça marche
+        </a>
+        <a routerLink="/" fragment="professionnels">
+          <svg lucideBriefcaseBusiness aria-hidden="true"></svg>
+          Professionnels
+        </a>
+        @if (isPartner()) {
+          <a routerLink="/pro">
+            <svg lucideLayoutDashboard aria-hidden="true"></svg>
+            Mon espace pro
+          </a>
+        }
+        @if (isAdmin()) {
+          <a routerLink="/admin">
+            <svg lucideShieldCheck aria-hidden="true"></svg>
+            Administration
+          </a>
+        }
+      </nav>
+    }
+  </div>
+</header>
+
+<main id="contenu">
+  <router-outlet />
+</main>
+
+<nav class="tabbar" aria-label="Navigation rapide">
+  <a routerLink="/" routerLinkActive="is-active" [routerLinkActiveOptions]="{ exact: true }">
+    <svg lucideSparkles aria-hidden="true"></svg>
+    Explorer
+  </a>
+  <!-- The map has its own tab: it is the quickest way to find a salon close by. -->
+  <a
+    routerLink="/etablissements"
+    [queryParams]="{ vue: 'carte' }"
+    routerLinkActive="is-active"
+    [routerLinkActiveOptions]="{
+      exact: true,
+      queryParams: 'subset',
+      paths: 'exact',
+      matrixParams: 'ignored',
+      fragment: 'ignored',
+    }"
+  >
+    <svg lucideMap aria-hidden="true"></svg>
+    Carte
+  </a>
+  <!-- Signed out, the guard of the page sends the visitor to the sign-in page and brings them back. -->
+  <a routerLink="/compte/rendez-vous" routerLinkActive="is-active">
+    <svg lucideCalendarDays aria-hidden="true"></svg>
+    Mes RDV
+  </a>
+  <a
+    [routerLink]="auth.user() ? '/compte' : '/connexion'"
+    routerLinkActive="is-active"
+    [routerLinkActiveOptions]="{ exact: true }"
+  >
+    <svg lucideCircleUserRound aria-hidden="true"></svg>
+    {{ auth.user() ? 'Mon espace' : 'Connexion' }}
+  </a>
+</nav>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="site-footer__grid">
+      <div class="site-footer__brand">
+        <a class="brand" routerLink="/" aria-label="Keke Beauty — accueil">
+          <span class="brand__mark"><svg lucideMapPin aria-hidden="true"></svg></span>
+          <span class="brand__name">Keke <span>Beauty</span></span>
+        </a>
+        <p>L'annuaire des salons, spas et ongleries d'Abidjan. Trouvez, comparez, réservez.</p>
+      </div>
+
+      <nav aria-label="Découvrir">
+        <h2>Découvrir</h2>
+        <ul>
+          <li><a routerLink="/" fragment="categories">Catégories</a></li>
+          <li><a routerLink="/" fragment="comment-ca-marche">Comment ça marche</a></li>
+          <li>
+            <a routerLink="/inscription" [queryParams]="{ type: 'partenaire' }"
+              >Espace professionnels</a
+            >
+          </li>
+        </ul>
+      </nav>
+
+      <div>
+        <h2>État du service</h2>
+        <app-api-status-badge />
+      </div>
+    </div>
+
+    <div class="site-footer__legal">
+      <p>© {{ year }} Keke Beauty · Abidjan, Côte d'Ivoire</p>
+      <nav aria-label="Informations légales">
+        <a routerLink="/cgu">Conditions d'utilisation</a>
+        <a routerLink="/confidentialite">Confidentialité</a>
+        <a routerLink="/mentions-legales">Mentions légales</a>
+        <a routerLink="/tarifs">Tarifs</a>
+      </nav>
+      <p>Salons • Spa • Onglerie</p>
+    </div>
+  </div>
+</footer>

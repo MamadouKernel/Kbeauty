@@ -1,0 +1,8 @@
+# Keke Beauty: the directory and listings are public; account areas are not meant to be indexed.
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /pro
+Disallow: /compte
+Disallow: /paiement
+Disallow: /api/

@@ -1,248 +1,138 @@
 # Keke Beauty
 
-Annuaire géolocalisé de salons de beauté (B2C clients + B2B établissements), avec prise de RDV et
-abonnement. Voir le cahier des charges : `CDC_Keke Beauty.pdf`.
+Annuaire géolocalisé des salons de coiffure, spas, massages et ongleries, avec réservation en ligne.
+Spécification de référence : [PRD_Keke_Beauty.md](PRD_Keke_Beauty.md). Design : [design-system/keke-beauty/MASTER.md](design-system/keke-beauty/MASTER.md).
 
-## Méthodologie
+**Avancement : lots 0 à 4** (socle, identité, annuaire, partenaire et KYC, rendez-vous) — voir [specs](specs).
 
-- **Spec-Driven Development** : [Spec Kit](https://github.com/github/spec-kit) — constitution →
-  specify → plan → tasks → implement. Voir [.specify/memory/constitution.md](.specify/memory/constitution.md).
-- **Conception des données** : MERISE complet (RG, DD, MCD, MLD, MPD, MCT, MOT) — voir [docs/merise/](docs/merise/).
-- **Gestion de projet** : Scrum — voir [docs/scrum/](docs/scrum/) (Product Backlog, Sprints).
+## Démarrage rapide (Docker)
 
-## Base de données
-
-PostgreSQL 16, conteneurisé via Docker Desktop.
+Sous Windows, double-cliquez sur **`start.cmd`** (ou lancez-le dans un terminal) : il démarre Docker Compose, donc **la base
+PostgreSQL/PostGIS en premier**, puis le stockage, l'API et le site, et attend que l'API réponde. `start.cmd build` reconstruit
+d'abord l'API et le site après des changements de code ; `stop.cmd` arrête tout **sans effacer les données**. Les services
+redémarrent d'eux-mêmes avec Docker (`restart: unless-stopped`).
 
 ```bash
-cp .env.example .env         # première fois seulement
-docker compose up -d postgres
-./scripts/db/migrate.sh
+docker compose up --build   # équivalent, sur tout système
 ```
 
-Vérifier le schéma :
+| Service | URL |
+|---|---|
+| Web | http://localhost:4200 |
+| API (OpenAPI) | http://localhost:8080/openapi/v1.json |
+| Santé de l'API | http://localhost:8080/health/ready |
+| Console MinIO | http://localhost:9001 |
+| PostgreSQL/PostGIS | `localhost:5434` (base `kekebeauty`, utilisateur `keke`) |
+
+Les migrations et le seed (Côte d'Ivoire, communes d'Abidjan, 7 catégories) s'appliquent au démarrage de l'API.
+
+## Authentification (lot 1)
+
+Connexion par **e-mail + mot de passe**, avec **Google Authenticator (TOTP) obligatoire pour tous** ; connexion Google
+prête mais **désactivée** (WhatsApp : désactivé, non implémenté).
+
+- **Premier compte :** `/inscription` → l'e-mail de confirmation est *journalisé* en développement :
+  `docker compose logs api | findstr confirmation-email` (aucun SMTP réel avant le lot des notifications).
+- **Première connexion :** scanner le QR code avec Google Authenticator, saisir le code, **conserver les 10 codes de récupération**.
+- **SuperAdmin initial (optionnel) :** définir `ADMIN_EMAIL` et `ADMIN_PASSWORD` dans `.env` (voir `.env.example`).
+- **Connexion Google :** créer un client OAuth « Application Web » (origine `http://localhost:4200`), puis
+  `GOOGLE_AUTH_ENABLED=true` et `GOOGLE_CLIENT_ID=...` dans `.env`.
+- **Documentation de l'API :** http://localhost:8080/scalar (ouverte directement au lancement depuis Visual Studio).
+
+## Annuaire (lot 2)
+
+- **Recherche :** http://localhost:4200/etablissements (catégorie, région › ville › commune, texte sans accents, « autour de moi », réservation en ligne) ; les filtres sont dans l'URL.
+- **Vue carte :** OpenStreetMap + Leaflet, sans clé. Les tuiles passent par le cache du serveur web (`/tiles/…`, `nginx.conf`) ; pour un fort trafic, `MAP_TILES_URL` pointe vers un fournisseur sous contrat. Chaque point affiche nom, téléphone, commune, quartier (ligne d'adresse) et nombre de prestations.
+- **Fiche :** `/etablissements/{slug}` (carrousel, prestations, horaires, Appeler, S'y rendre).
+- **Données de démonstration :** 10 établissements fictifs à Abidjan, créés si `Database:SeedDemoData=true` (activé en développement et dans `docker-compose.yml`, **jamais en production**).
+- **Yango :** le format du lien profond n'étant pas publié, renseigner `YANGO_URL_TEMPLATE` (avec `{lat}` et `{lng}`) dans `.env` pour afficher l'option.
+- Régénérer les visuels : `node scripts/generate-demo-media.cjs` ; le client TypeScript : `npm run api:types`.
+
+## Espace partenaire et KYC (lot 3)
+
+- **Partenaire :** s'inscrire avec le profil « Professionnel » (`/inscription?type=partenaire`), puis `/pro` : assistant en 6 étapes (infos, localisation, horaires, photos, pièce d'identité, récapitulatif), prestations (`/pro/etablissements/{id}/prestations`) et galerie (`.../galerie`).
+- **Admin :** `/admin/kyc` (file des dossiers, visionneuse des pièces, décision). Un compte `Admin` est créé par un SuperAdmin (le SuperAdmin initial se définit via `ADMIN_EMAIL` / `ADMIN_PASSWORD`).
+- **Stockage :** MinIO (`public-media` pour les photos, servies via `/api/v1/files/...`, `private-kyc` pour les pièces, jamais publiques). Sans MinIO (tests), `Storage:Provider=Memory`.
+- **Limite de photos :** `Media:MaxPhotos` (5 par défaut, en attendant les plans d'abonnement du lot 6).
+
+## Rendez-vous (lot 4)
+
+- **Client :** bouton « Réserver » sur la fiche → `/etablissements/{slug}/reserver` (prestations, professionnel, jour et heure, téléphone pour le SMS) ; `/compte/rendez-vous` pour suivre, annuler ou répondre à une reprogrammation ; cloche de notifications dans la barre de navigation.
+- **Partenaire :** `/pro/etablissements/{id}/agenda` (demandes en direct, agenda, ressources, indisponibilités, paramètres de réservation, statistiques). La réservation s'active dans « Paramètres » une fois la fiche publiée, avec au moins une prestation réservable et des horaires.
+- **Garanties :** une contrainte d'exclusion PostgreSQL rend la double réservation impossible (409 « Ce créneau vient d'être réservé ») ; les calendriers ouverts se mettent à jour en direct (SignalR, `/hubs/*`).
+- **SMS :** journalisés en développement (`LoggingSmsSender`) ; branchez Infobip ou Twilio derrière `ISmsSender`.
+
+## Abonnements et paiement (lot 5)
+
+- **Formules :** Gratuit et Premium (réservation en ligne, statistiques, mise en avant, 30 photos), modifiables par un admin (`PUT /api/v1/admin/plans/{id}`) ; un changement de prix n'affecte pas les abonnements en cours. Page publique `/tarifs`, espace partenaire `/pro/etablissements/{id}/abonnement`.
+- **Paiement :** passerelle `IPaymentGateway`. `Payments:Provider=Fake` (développement et tests : page `/paiement/simulation`, refusée en production) `Winipay` (`Payments:Winipay:ApplyKey|Token|Env`, voir `docs/DEPLOYMENT.md` §7) ou `CinetPay` ; les deux sont écrites d'après leur documentation et **non testées sur leur bac à sable** faute de clés. Le webhook (`/api/v1/webhooks/payments/{provider}`) est idempotent, authentifie l'appel (signature ou URL de rappel signée) puis relit le statut, le montant et la devise auprès du fournisseur.
+- **Cycle de vie :** engagement de 12 mois, facture suivante 3 jours avant l'échéance, rappels J-3/J0/J+3/J+7, impayé après 7 jours de grâce = réservation et statistiques fermées (la fiche reste visible), résiliation effective à la fin de l'engagement. Factures numérotées `KB-AAAA-NNNNNN`, PDF téléchargeable.
+- **Tâche de fond :** `BillingMaintenance` (toutes les heures, `Billing:MaintenanceEnabled`).
+
+## Back-office (lot 6)
+
+- **Accès :** `/admin` (rôles Admin ou SuperAdmin ; double authentification obligatoire). Sections : dossiers KYC, utilisateurs, établissements, finances, paramètres, journal d'audit, administrateurs (SuperAdmin).
+- **Motif obligatoire** pour suspendre un compte ou une fiche et retirer une photo ; tout est tracé (`admin.audit_logs`, avec IP) et consultable sous « Journal d'audit ».
+- **Finances :** abonnements par formule, revenu récurrent mensuel, encaissements par moyen de paiement, impayés avec relance manuelle, export CSV.
+- **Paramètres :** formules et tarifs, catégories, zones, délai de grâce d'impayé, modèles de messages (variables `{etablissement}`, `{date}`, `{heure}`, `{client}`, `{montant}`, `{facture}`…).
+- **Administrateurs :** un SuperAdmin nomme un compte existant (e-mail confirmé) ; la personne configure la double authentification à sa prochaine connexion.
+
+## Durcissement et mise en production (lot 7)
+
+- **Documentation :** [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) (architecture, variables, sauvegardes, exploitation), [docs/PRODUCTION-CHECKLIST.md](docs/PRODUCTION-CHECKLIST.md) (ce qui reste à faire avant l'ouverture) et [docs/ETAT-DES-FONCTIONNALITES.md](docs/ETAT-DES-FONCTIONNALITES.md).
+- **Sécurité :** CSP stricte et en-têtes (nginx et API), limitation de débit globale par IP réelle (`Proxy__TrustForwardedHeaders=true` derrière nginx), `Cache-Control: no-store` sur l'API.
+- **Données personnelles :** consentement à l'inscription, export JSON et suppression de compte depuis « Mon compte », pages `/cgu` et `/confidentialite` (textes de départ à faire valider).
+- **PWA :** manifeste, icônes et service worker (fichiers statiques seulement).
+- **E-mails :** renseignez `Email__Smtp__Host` (et le reste de la section) ; sans cela ils ne sont que journalisés.
+
+## Mesures, sauvegardes et audits
+
+- **Performance :** `KEKE_PERF=1 dotnet test src/backend/tests/KekeBeauty.IntegrationTests --filter PerformanceTests` charge 50 000 fiches dans une base jetable et mesure recherche et disponibilités (budgets du cahier des charges).
+- **Sauvegarde :** `scripts/backup-postgres.sh [dossier]` ; `scripts/verify-restore.sh` prouve qu'une restauration fonctionne (base jetable, comparaison des volumes). Voir `docs/DEPLOYMENT.md` §4.
+- **Résultats des audits** (Lighthouse, ZAP, dépendances) : `docs/PRODUCTION-CHECKLIST.md`.
+
+## Développement local (sans conteneur pour l'API et le web)
 
 ```bash
-docker exec kekebeauty-postgres psql -U kekebeauty -d kekebeautyDb -c "\dt"
+docker compose up -d postgres minio
+dotnet run --project src/backend/src/KekeBeauty.Api --urls http://localhost:8080
+cd src/frontend/keke-beauty-web && npm ci && npm start
 ```
 
-Toute évolution du schéma se fait en ajoutant un nouveau fichier `db/migrations/NNNN_description.sql`
-puis en relançant `./scripts/db/migrate.sh` — jamais par modification manuelle directe.
+Le serveur de dev Angular (http://localhost:4200) proxifie `/api` et `/health` vers l'API sur le port 8080.
 
-Détails : [specs/001-infra-postgres/quickstart.md](specs/001-infra-postgres/quickstart.md).
-
-## API backend (.NET 8)
-
-Architecture en couches : `KekeBeauty.Domain` (entités) → `KekeBeauty.Application` (interfaces/cas
-d'usage) → `KekeBeauty.Infrastructure` (accès données, Dapper/Npgsql) → `KekeBeauty.Api` (ASP.NET Core).
-
-**Convention pour ajouter une future capacité métier** (ex. authentification, annuaire, RDV) :
-1. Entité dans `src/KekeBeauty.Domain/Entities/` (déjà présentes, une par table MERISE)
-2. Interface + cas d'usage dans `src/KekeBeauty.Application/<Domaine>/`
-3. Implémentation (Dapper) dans `src/KekeBeauty.Infrastructure/<Domaine>/`
-4. Contrôleur/endpoint dans `src/KekeBeauty.Api/`
+## Qualité
 
 ```bash
-docker compose up -d --build
-curl http://localhost:${API_PORT:-5080}/health       # sante applicative
-curl http://localhost:${API_PORT:-5080}/health/db    # lecture/ecriture reelle sur la base
+cd src/frontend/keke-beauty-web
+npm run lint            # ESLint (angular-eslint + règles d'accessibilité des templates)
+npm run format:check    # Prettier
+npm run api:types       # régénère le client TypeScript depuis http://localhost:8080/openapi/v1.json
+cd ../../.. && dotnet format KekeBeauty.sln --verify-no-changes
 ```
 
-Détails : [specs/002-scaffold-dotnet/quickstart.md](specs/002-scaffold-dotnet/quickstart.md).
+PrimeNG est épinglé en **21.1.10 (MIT, version gratuite, sans clé de licence)** avec Angular 21 : PrimeNG 22 exige une licence PrimeUI.
 
-### Authentification client (OTP WhatsApp via Zavu)
+## Tests
 
 ```bash
-curl -X POST http://localhost:${API_PORT:-5080}/auth/otp/request -H "Content-Type: application/json" -d '{"telephone":"+225XXXXXXXXXX"}'
-curl -X POST http://localhost:${API_PORT:-5080}/auth/otp/verify  -H "Content-Type: application/json" -d '{"telephone":"+225XXXXXXXXXX","code":"123456"}'
+dotnet test KekeBeauty.sln                  # unitaires + intégration (Testcontainers, Docker requis)
+cd src/frontend/keke-beauty-web && npx ng test --no-watch
 ```
 
-⚠️ **Dépendance externe** : l'envoi réel du code passe par WhatsApp via [Zavu](https://zavu.dev). Tant
-que le projet Zavu Keke Beauty n'est pas configuré (`Zavu:ApiKey` dans `.env`), `/auth/otp/request`
-retourne `502 send_failed` de façon explicite — comportement attendu, pas un bug.
+## Ouvrir dans Visual Studio
 
-Détails : [specs/003-auth-client/quickstart.md](specs/003-auth-client/quickstart.md).
+Ouvrir `KekeBeauty.sln` (racine) : il regroupe l'API, le SharedKernel, l'Infrastructure, les 8 modules, les tests
+et le frontend Angular (projet JavaScript `keke-beauty-web.esproj`, Visual Studio 2022 17.8+ avec la charge de travail Node.js).
 
-### Inscription et validation KYC des établissements partenaires
+- Lancer `npm ci` une fois dans `src/frontend/keke-beauty-web` (l'installation npm n'est pas automatique au build).
+- Démarrage multiple : définir `KekeBeauty.Api` (profil http, port 8080 via `--urls` si besoin) **et** `keke-beauty-web` comme projets de démarrage.
 
-```bash
-curl -X POST http://localhost:${API_PORT:-5080}/partners/applications \
-  -F "telephone=+225XXXXXXXXXX" -F "nomEtablissement=..." -F "gpsLatitude=..." -F "gpsLongitude=..." \
-  -F "numeroServiceClient=..." -F "photoDevanture=@./devanture.jpg" -F "pieceIdentite=@./piece.jpg"
+## Structure
 
-# Connexion nominative (conserver le champ token renvoye dans ADMIN_TOKEN)
-curl -X POST -H "Content-Type: application/json" -d '{"email":"admin@kekebeauty.ci","motDePasse":"..."}' "http://localhost:${API_PORT:-5080}/admin/auth/login"
-
-# Endpoints admin proteges par jeton signe et roles
-curl -H "X-Admin-Token: $ADMIN_TOKEN" "http://localhost:${API_PORT:-5080}/admin/applications?statut=EN_ATTENTE"
-curl -X POST -H "X-Admin-Token: $ADMIN_TOKEN" "http://localhost:${API_PORT:-5080}/admin/applications/<id>/validate"
 ```
-
-Les endpoints /admin/* utilisent des comptes nominatifs, un jeton signé de 30 minutes et les rôles
-SUPER_ADMIN, KYC, SUPPORT et COMPTABLE. ADMIN_API_KEY sert uniquement de mot de passe
-du premier super-administrateur lorsque la table des comptes est vide ; configurez aussi un
-ADMIN_SIGNING_KEY long et aléatoire. La notification de rejet au gérant dépend de Zavu.
-
-Détails : [specs/004-onboarding-partenaire/quickstart.md](specs/004-onboarding-partenaire/quickstart.md).
-
-### Recherche et fiche établissement (annuaire client)
-
-```bash
-curl "http://localhost:${API_PORT:-5080}/etablissements?categorie=Spa&commune=Cocody"
-curl "http://localhost:${API_PORT:-5080}/etablissements/<id>"
-
-# Mecanisme minimal temporaire (FR-008) pour tester la recherche sans gestion partenaire encore construite
-curl -X POST -H "X-Admin-Token: $ADMIN_TOKEN" -H "Content-Type: application/json" \
-  -d '{"libelleCategorie":"Spa"}' "http://localhost:${API_PORT:-5080}/admin/applications/<id>/categories"
-curl -X POST -H "X-Admin-Token: $ADMIN_TOKEN" -H "Content-Type: application/json" \
-  -d '{"libellePrestation":"...","tarif":15000,"dureeMinutes":60}' \
-  "http://localhost:${API_PORT:-5080}/admin/applications/<id>/prestations"
+KekeBeauty.sln   Solution Visual Studio (projets .NET)
+src/backend/     .NET 10 : Api, SharedKernel, Infrastructure, 8 modules métier, tests
+src/frontend/    Workspace Angular + PrimeNG (preset Keke Beauty)
+specs/           Artefacts Spec Kit (spec, plan, tâches) par lot
 ```
-
-Seuls les établissements `VALIDE` avec au moins une catégorie apparaissent en recherche ; la fiche
-d'un établissement non validé répond `404`, identique à un identifiant inexistant (pas de fuite
-d'information).
-
-Détails : [specs/005-recherche-annuaire/quickstart.md](specs/005-recherche-annuaire/quickstart.md).
-
-### Gestion des prestations/catégories par le partenaire (self-service)
-
-```bash
-# OTP generalise au type PARTENAIRE (feature 006)
-curl -X POST http://localhost:${API_PORT:-5080}/auth/otp/request -H "Content-Type: application/json" \
-  -d '{"telephone":"+225XXXXXXXXXX","typeCompte":"Partenaire"}'
-
-curl -X POST -H "X-Partner-Id: $PARTNER_ID" -H "Content-Type: application/json" \
-  -d '{"libellePrestation":"...","tarif":5000,"dureeMinutes":30}' \
-  "http://localhost:${API_PORT:-5080}/partenaire/etablissements/<id>/prestations"
-```
-
-⚠️ **Dette technique documentée** : `X-Partner-Id` (l'`idUtilisateur` obtenu après OTP) tient lieu de
-preuve d'identité — aucune session/JWT n'est encore construite dans le projet (même compromis que la
-clé admin). Toute action est vérifiée contre `id_utilisateur_gerant` de l'établissement cible (`403`
-sinon). Remplace le mécanisme admin temporaire de la feature 005 pour l'usage courant.
-
-Détails : [specs/006-gestion-prestations/quickstart.md](specs/006-gestion-prestations/quickstart.md).
-
-### Prise de rendez-vous
-
-```bash
-curl "http://localhost:${API_PORT:-5080}/etablissements/<id>/creneaux?date=2026-09-20"
-
-curl -X POST -H "X-Client-Id: $CLIENT_ID" -H "Content-Type: application/json" \
-  -d '{"idEtablissement":"<id>","idPrestation":"<idPrestation>","dateHeureDebut":"2026-09-20T10:00:00Z"}' \
-  http://localhost:${API_PORT:-5080}/rdv
-
-curl -X POST -H "X-Partner-Id: $PARTNER_ID" "http://localhost:${API_PORT:-5080}/partenaire/etablissements/<id>/rdv/<idRdv>/confirmer"
-```
-
-Le chevauchement de créneaux est détecté de façon atomique en base (`INSERT ... WHERE NOT EXISTS`)
-pour éviter toute double réservation en cas de demandes simultanées. `X-Client-Id` suit le même
-compromis technique que `X-Partner-Id` (pas de session/JWT).
-
-Détails : [specs/007-prise-rdv/quickstart.md](specs/007-prise-rdv/quickstart.md).
-
-### Abonnement et paiement
-
-```bash
-curl -X POST -H "X-Partner-Id: $PARTNER_ID" -H "Content-Type: application/json" \
-  -d '{"periodicite":"MENSUEL"}' \
-  "http://localhost:${API_PORT:-5080}/etablissements/<id>/abonnements"
-# -> { "idAbonnement", "statut": "IMPAYE", "checkoutUrl": "https://checkout.winipayer.com/..." }
-
-curl -H "X-Admin-Token: $ADMIN_TOKEN" "http://localhost:${API_PORT:-5080}/admin/abonnements?statut=IMPAYE"
-curl -X POST -H "X-Admin-Token: $ADMIN_TOKEN" "http://localhost:${API_PORT:-5080}/admin/abonnements/<id>/relance"
-curl -H "X-Admin-Token: $ADMIN_TOKEN" "http://localhost:${API_PORT:-5080}/admin/tarifs"
-curl -X PUT -H "X-Admin-Token: $ADMIN_TOKEN" -H "Content-Type: application/json" \
-  -d '{"montant":50000}' "http://localhost:${API_PORT:-5080}/admin/tarifs/ANNUEL"
-```
-
-L'agrégateur de paiement est **WiniPayer** (compte marchand "Keke Beauty" créé, environnement TEST
-— voir `.env` `WINIPAYER_*`). WiniPayer fonctionne par lien de paiement hébergé : la souscription
-crée l'abonnement `IMPAYE` et retourne `checkoutUrl` (à ouvrir pour payer) ; le résultat réel arrive
-via `POST /webhooks/winipayer/callback`, signé (`sha256(privateKey+uuid+crypto+amount+created_at)`)
-et idempotent. Un seul abonnement `ACTIF` par établissement, vérifié atomiquement en base (même
-pattern que le chevauchement de RDV). La modification du tarif standard n'affecte que les
-souscriptions futures. Si un callback est raté, `POST /admin/abonnements/<id>/verifier-paiement`
-interroge directement WiniPayer pour réconcilier. Le passage en PROD reste explicitement désactivé
-tant que `WINIPAYER_PROD_TOKEN_KEY`/`WINIPAYER_PROD_PRIVATE_KEY` ne sont pas renseignées.
-
-Détails : [specs/008-abonnement-paiement/quickstart.md](specs/008-abonnement-paiement/quickstart.md).
-
-### Modération back-office (suspension/réactivation)
-
-```bash
-curl -X POST -H "X-Admin-Token: $ADMIN_TOKEN" "http://localhost:${API_PORT:-5080}/admin/utilisateurs/<id>/suspendre"
-curl -X POST -H "X-Admin-Token: $ADMIN_TOKEN" "http://localhost:${API_PORT:-5080}/admin/etablissements/<id>/suspendre"
-```
-
-Un compte suspendu ne peut plus demander de code OTP (`403`). Un établissement suspendu disparaît de
-l'annuaire et ne peut plus recevoir de nouvelle demande de RDV ni de souscription d'abonnement. La
-suspension est orthogonale à `statutKyc` : la réactivation restaure exactement l'état antérieur.
-
-Détails : [specs/009-moderation-back-office/quickstart.md](specs/009-moderation-back-office/quickstart.md).
-
-## Frontend web (Blazor — parcours client)
-
-```bash
-docker compose up -d --build api web
-```
-
-Ouvrir `http://localhost:${WEB_PORT:-5090}` : recherche annuaire, fiche établissement (appel,
-itinéraire, prestations), connexion OTP, prise de RDV. Architecture : `KekeBeauty.Web` (Blazor Web
-App, render mode Server) appelle `KekeBeauty.Api` via `HttpClient` (config `Api:BaseUrl`, réseau
-Docker interne — pas de CORS). Session client (`idUtilisateur` après OTP) conservée en
-`ProtectedLocalStorage`, cohérent avec la dette technique déjà documentée côté API (`X-Client-Id`,
-pas de vraie session/JWT).
-
-⚠️ Le parcours OTP dépend de Zavu (même dépendance externe que le reste du projet) : sans
-`Zavu:ApiKey` configurée, la demande de code échoue de façon explicite dans l'interface (message
-d'erreur visible, jamais un écran vide).
-
-Détails : [specs/010-frontend-client-annuaire-rdv/quickstart.md](specs/010-frontend-client-annuaire-rdv/quickstart.md).
-
-## Frontend web (Blazor — parcours partenaire)
-
-Toujours dans `KekeBeauty.Web`. Ouvrir `http://localhost:${WEB_PORT:-5090}/partenaire/login` :
-connexion OTP (type PARTENAIRE), tableau de bord listant les établissements du gérant, gestion des
-prestations (ajout/modification/suppression) et catégories, consultation et traitement des
-demandes de RDV (confirmer/refuser).
-
-Deux endpoints backend minimaux ont été ajoutés pour ce parcours (aucun n'existait) :
-`GET /partenaire/etablissements` (découverte "mes établissements") et
-`GET /partenaire/etablissements/{id}/rdv` (liste des RDV, protégé par `PartnerOwnershipFilter`
-existant). Même dette technique que le reste du projet (`X-Partner-Id`, pas de session/JWT).
-
-Détails : [specs/011-frontend-partenaire/quickstart.md](specs/011-frontend-partenaire/quickstart.md).
-
-## Frontend web (Blazor — parcours admin)
-
-Toujours dans `KekeBeauty.Web`. Ouvrir `http://localhost:${WEB_PORT:-5090}/admin/login` :
-connexion par clé API admin, gestion des dossiers KYC (liste/détail/validation/rejet), modération
-(suspension/réactivation par identifiant), suivi et tarification des abonnements. Aucun ajout
-backend n'a été nécessaire — l'API admin existante (004/008/009) couvre tous les besoins.
-
-⚠️ **Bug de prerendering corrigé** : toute page Blazor qui lit une session (`ProtectedLocalStorage`)
-dans `OnInitializedAsync` doit désactiver le prerendering statique
-(`@rendermode @(new InteractiveServerRenderMode(prerender: false))`), sinon la lecture échoue
-silencieusement pendant le rendu statique et provoque une redirection immédiate vers la page de
-connexion. Appliqué à toutes les pages concernées (client, partenaire, admin).
-
-Détails : [specs/012-frontend-admin/quickstart.md](specs/012-frontend-admin/quickstart.md).
-
-## pgAdmin (optionnel)
-
-```bash
-docker compose up -d pgadmin
-```
-
-Accessible sur `http://localhost:${PGADMIN_PORT:-5050}` (identifiants dans `.env`).
-
-### Connexion et création de compte avec Google
-
-Définissez `GOOGLE_CLIENT_ID` avec l'identifiant d'un client OAuth 2.0 de type **Application Web**,
-puis ajoutez les origines du site (par exemple `http://localhost:5090` en développement et le
-domaine HTTPS de production) dans **Origines JavaScript autorisées** de Google Cloud Console.
-Le même Client ID est transmis à l'interface et à l'API. L'API valide la signature, l'audience et
-l'adresse email vérifiée du jeton Google avant de créer ou retrouver le compte client. Aucun secret
-Google n'est exposé au navigateur et le bouton n'est pas affiché lorsque le Client ID est absent.
