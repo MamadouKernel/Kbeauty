@@ -3,7 +3,7 @@
 Situation au 13 octobre 2026, par exigence du cahier des charges (`PRD_Keke_Beauty.md`).
 Légende : ✅ implémenté et testé · 🟡 implémenté, avec une réserve (ce qui n'a pas pu être vérifié est dit) · ⏸ implémenté mais **désactivé** volontairement · ❌ non implémenté.
 
-Tests : 198 unitaires + 173 d'intégration (PostgreSQL et Redis réels via Testcontainers) + 146 Vitest + **106 tests de bout en bout** dans un vrai navigateur (ordinateur et téléphone), dont 30 attaques rejouées (`docs/PENTEST.md`).
+Tests : 198 unitaires + 176 d'intégration (PostgreSQL et Redis réels via Testcontainers) + 153 Vitest + **108 tests de bout en bout** dans un vrai navigateur (ordinateur et téléphone), dont 30 attaques rejouées (`docs/PENTEST.md`).
 
 ## Écarts assumés par rapport au cahier des charges
 
