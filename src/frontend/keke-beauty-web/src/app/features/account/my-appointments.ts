@@ -18,6 +18,7 @@ import {
 } from '../../core/booking/booking.service';
 import { formatMoney } from '../../core/format/format';
 import { MOBILE_MONEY_LABELS } from '../../core/format/payment-methods';
+import { PassQr } from '../../shared/pass-qr/pass-qr';
 import { NotificationService } from '../../core/notifications/notification.service';
 import { ReviewService } from '../../core/reviews/review.service';
 import { ReviewForm } from '../../shared/review-form/review-form';
@@ -31,7 +32,7 @@ const ACTIVE = new Set(['Pending', 'Confirmed', 'RescheduleProposed']);
 @Component({
   selector: 'app-my-appointments',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, ReviewForm, StarRating],
+  imports: [RouterLink, ReviewForm, StarRating, PassQr],
   styles: `
     .page {
       display: grid;
@@ -131,6 +132,21 @@ const ACTIVE = new Set(['Pending', 'Confirmed', 'RescheduleProposed']);
               </div>
               <p class="when">{{ when(a.startsAt) }}</p>
               <p class="meta">{{ summary(a) }}</p>
+              @if (a.status === 'Confirmed') {
+                <div class="actions">
+                  <button
+                    class="btn btn-light btn-sm"
+                    type="button"
+                    [attr.aria-expanded]="openPass() === a.id"
+                    (click)="openPass.set(openPass() === a.id ? null : a.id)"
+                  >
+                    {{ openPass() === a.id ? 'Masquer mon pass' : 'Mon pass QR' }}
+                  </button>
+                </div>
+                @if (openPass() === a.id) {
+                  <app-pass-qr [appointmentId]="a.id" />
+                }
+              }
               @if (a.servicePayment; as sp) {
                 <p class="meta">
                   Réglé à l'établissement ({{ methodLabel(sp.method)
@@ -271,6 +287,7 @@ export class MyAppointments {
   /** What the client already reviewed: a completed visit without review offers "Donner mon avis". */
   protected readonly reviews = resource({ loader: () => this.reviewService.mine() });
   protected readonly openReview = signal<string | null>(null);
+  protected readonly openPass = signal<string | null>(null);
   protected readonly busy = signal(false);
   protected readonly error = signal('');
 

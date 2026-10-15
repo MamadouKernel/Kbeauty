@@ -13,6 +13,7 @@ export type AvailabilityDay = Schemas['AvailabilityDay'];
 export type AvailabilitySlot = Schemas['AvailabilitySlot'];
 export type Appointment = Schemas['AppointmentDto'];
 export type BookingRequest = Schemas['BookingRequest'];
+export type AppointmentPass = Schemas['PassDto'];
 
 export const APPOINTMENT_STATUS: Readonly<
   Record<string, { label: string; tone: 'ok' | 'wait' | 'bad' | 'done' }>
@@ -32,6 +33,13 @@ export const APPOINTMENT_STATUS: Readonly<
 @Injectable({ providedIn: 'root' })
 export class BookingService {
   private readonly http = inject(HttpClient);
+
+  /** The signed token shown as a QR code at the establishment. */
+  pass(appointmentId: string): Promise<AppointmentPass> {
+    return firstValueFrom(
+      this.http.get<AppointmentPass>(`/api/v1/appointments/${appointmentId}/pass`),
+    );
+  }
 
   info(slug: string): Promise<BookingInfo> {
     return firstValueFrom(

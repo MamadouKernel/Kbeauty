@@ -17,6 +17,7 @@ public static class AgendaEndpoints
         MapPayments(group);
         MapResources(group);
         MapAppointments(group);
+        MapCounter(group);
         return app;
     }
 
@@ -87,6 +88,26 @@ public static class AgendaEndpoints
         group.MapDelete(timeOff + "/{timeOffId:guid}", async (Guid id, Guid timeOffId, ClaimsPrincipal user, ResourceService service, CancellationToken ct) =>
                 PartnerEndpoints.NoContentOr(await service.DeleteTimeOffAsync(user.UserId(), id, timeOffId, ct)))
             .Produces(StatusCodes.Status204NoContent).ProducesProblem(StatusCodes.Status404NotFound);
+    }
+
+    private static void MapCounter(RouteGroupBuilder group)
+    {
+        group.MapPost("/establishments/{id:guid}/counter", async (Guid id, CounterRequest input, ClaimsPrincipal user, CounterService service, CancellationToken ct) =>
+            {
+                var result = await service.CreateAsync(user.UserId(), id, input, ct);
+                return result.IsSuccess ? Results.Created($"/api/v1/pro/establishments/{id}/appointments", result.Value) : ProblemResults.From(result.Error);
+            })
+            .Produces<PartnerAppointmentDto>(StatusCodes.Status201Created)
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status404NotFound)
+            .ProducesProblem(StatusCodes.Status409Conflict);
+
+        group.MapPost("/establishments/{id:guid}/pass/verify", async (Guid id, PassVerifyInput input, ClaimsPrincipal user, PassService service, CancellationToken ct) =>
+                Respond(await service.VerifyAsync(user.UserId(), id, input.Token ?? string.Empty, ct)))
+            .Produces<PassCheckDto>()
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status403Forbidden)
+            .ProducesProblem(StatusCodes.Status404NotFound);
     }
 
     private static void MapAppointments(RouteGroupBuilder group)

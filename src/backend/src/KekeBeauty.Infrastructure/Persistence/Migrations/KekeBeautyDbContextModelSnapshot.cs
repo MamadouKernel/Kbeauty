@@ -2327,7 +2327,7 @@ namespace KekeBeauty.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(20)")
                         .HasColumnName("client_phone");
 
-                    b.Property<Guid>("ClientUserId")
+                    b.Property<Guid?>("ClientUserId")
                         .HasColumnType("uuid")
                         .HasColumnName("client_user_id");
 
@@ -2406,6 +2406,11 @@ namespace KekeBeauty.Infrastructure.Persistence.Migrations
                         .HasPrecision(12, 2)
                         .HasColumnType("numeric(12,2)")
                         .HasColumnName("total_price");
+
+                    b.Property<string>("WalkInName")
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)")
+                        .HasColumnName("walk_in_name");
 
                     b.HasKey("Id")
                         .HasName("pk_appointments");

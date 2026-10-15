@@ -16,7 +16,7 @@ public static class ProblemResults
         "backup.not_ready" => StatusCodes.Status409Conflict,
         "file.too_large" or "media.video_too_large" => StatusCodes.Status413PayloadTooLarge,
         "plan.feature_required" => StatusCodes.Status402PaymentRequired,
-        "admin.forbidden" => StatusCodes.Status403Forbidden,
+        "admin.forbidden" or "pass.foreign" => StatusCodes.Status403Forbidden,
         "payment.gateway_error" or "payout.gateway_error" => StatusCodes.Status502BadGateway,
         _ when code.EndsWith(".locked", StringComparison.Ordinal)
             || code.EndsWith(".incomplete", StringComparison.Ordinal)

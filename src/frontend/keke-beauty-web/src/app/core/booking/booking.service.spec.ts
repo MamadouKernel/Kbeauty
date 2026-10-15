@@ -35,6 +35,16 @@ describe('BookingService', () => {
     await pending;
   });
 
+  it('asks the API for the pass of one appointment', async () => {
+    const pending = service.pass('a1');
+
+    const request = http.expectOne('/api/v1/appointments/a1/pass');
+    expect(request.request.method).toBe('GET');
+    request.flush({ token: 'abc', expiresAt: '2026-10-12T10:30:00Z' });
+
+    expect((await pending).token).toBe('abc');
+  });
+
   it('omits the resource when there is no preference', async () => {
     const pending = service.availability('e1', '2026-10-12', '2026-10-12', ['a'], null);
 

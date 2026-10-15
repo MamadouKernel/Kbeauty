@@ -150,6 +150,18 @@ export const routes: Routes = [
         loadComponent: () => import('./features/pro/reviews/pro-reviews').then((m) => m.ProReviews),
       },
       {
+        path: 'etablissements/:id/comptoir',
+        title: 'Comptoir — Keke Beauty',
+        loadComponent: () =>
+          import('./features/pro/counter/counter-page').then((m) => m.ProCounter),
+      },
+      {
+        path: 'etablissements/:id/scanner',
+        title: 'Scanner un pass — Keke Beauty',
+        loadComponent: () =>
+          import('./features/pro/counter/scanner-page').then((m) => m.ProScanner),
+      },
+      {
         path: 'etablissements/:id/galerie',
         title: 'Galerie photos — Keke Beauty',
         loadComponent: () => import('./features/pro/gallery/pro-gallery').then((m) => m.ProGallery),

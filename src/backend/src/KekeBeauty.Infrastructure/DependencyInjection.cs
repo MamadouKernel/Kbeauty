@@ -103,6 +103,8 @@ public static class DependencyInjection
         services.AddScoped<AvailabilityService>();
         services.AddScoped<BookingService>();
         services.AddScoped<AgendaService>();
+        services.AddScoped<CounterService>();
+        services.AddScoped<PassService>();
         services.AddScoped<ResourceService>();
         services.AddSingleton<AppointmentMaintenance>();
         services.AddHostedService(provider => provider.GetRequiredService<AppointmentMaintenance>());

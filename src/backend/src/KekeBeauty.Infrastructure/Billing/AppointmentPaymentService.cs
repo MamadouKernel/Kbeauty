@@ -100,7 +100,7 @@ public sealed class AppointmentPaymentService(
         {
             AppointmentId = appointment.Id,
             EstablishmentId = appointment.EstablishmentId,
-            ClientUserId = appointment.ClientUserId,
+            ClientUserId = appointment.ClientUserId ?? throw new InvalidOperationException("An online payment needs a client account."),
             Kind = plan.Kind,
             Amount = plan.Amount,
             CurrencyCode = plan.Currency,
@@ -467,6 +467,6 @@ public sealed class AppointmentPaymentService(
             ["heure"] = local.ToString("HH:mm", CultureInfo.InvariantCulture),
             ["motif"] = string.Empty,
         };
-        await notifications.NotifyAsync(appointment.ClientUserId, template, title, body, appointment.ClientPhone, ct, variables);
+        await notifications.NotifyAsync(record.ClientUserId, template, title, body, appointment.ClientPhone, ct, variables);
     }
 }

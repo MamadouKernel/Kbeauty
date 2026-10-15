@@ -80,10 +80,12 @@ public sealed class AppointmentWorkflow(
             .Where(e => e.Id == appointment.EstablishmentId)
             .Select(e => new { e.Name, e.OwnerUserId, e.Timezone })
             .FirstAsync(ct);
-        var client = await db.Users.AsNoTracking().Where(u => u.Id == appointment.ClientUserId)
-            .Select(u => new { u.FirstName, u.LastName }).FirstAsync(ct);
+        var client = appointment.ClientUserId is { } clientUserId
+            ? await db.Users.AsNoTracking().Where(u => u.Id == clientUserId)
+                .Select(u => new { u.FirstName, u.LastName }).FirstAsync(ct)
+            : null;
         var zone = ZoneOf(info.Timezone);
-        var clientName = $"{client.FirstName} {client.LastName}".Trim();
+        var clientName = appointment.WalkInName ?? $"{client?.FirstName} {client?.LastName}".Trim();
 
         // A slot held for a client who has not paid yet: the calendar changes, but nobody is told and nothing is shown to the partner.
         if (appointment.AwaitingPayment)
@@ -109,9 +111,9 @@ public sealed class AppointmentWorkflow(
             ["heure"] = shown.ToString("HH:mm", System.Globalization.CultureInfo.InvariantCulture),
             ["motif"] = appointment.RejectionReason ?? string.Empty,
         };
-        if (message.ForClient is { } forClient)
+        if (message.ForClient is { } forClient && appointment.ClientUserId is { } recipient)
         {
-            await notifications.NotifyAsync(appointment.ClientUserId, message.Template, forClient.Title, forClient.Body, appointment.ClientPhone, ct, variables);
+            await notifications.NotifyAsync(recipient, message.Template, forClient.Title, forClient.Body, appointment.ClientPhone, ct, variables);
         }
 
         if (message.ForPartner is { } forPartner && info.OwnerUserId is { } owner)

@@ -77,6 +77,15 @@ public static class AppointmentEndpoints
             .ProducesProblem(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status409Conflict);
 
+        appointments.MapGet("/{id:guid}/pass", async (Guid id, ClaimsPrincipal user, PassService service, CancellationToken ct) =>
+            {
+                var result = await service.IssueAsync(user.UserId(), id, ct);
+                return result.IsSuccess ? Results.Ok(result.Value) : ProblemResults.From(result.Error);
+            })
+            .Produces<PassDto>()
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status404NotFound);
+
         app.MapGet("/api/v1/me/appointments", async (ClaimsPrincipal user, BookingService service, CancellationToken ct) =>
                 Results.Ok(await service.ListMineAsync(user.UserId(), ct)))
             .WithTags("Booking")

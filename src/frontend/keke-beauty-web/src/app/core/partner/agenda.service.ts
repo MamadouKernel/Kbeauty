@@ -15,6 +15,8 @@ export type Stats = Schemas['StatsDto'];
 export type AcceptedPayments = Schemas['AcceptedPaymentsDto'];
 export type PaymentSettings = Schemas['PaymentSettingsDto'];
 export type PartnerPayments = Schemas['PartnerPaymentsView'];
+export type CounterRequest = Schemas['CounterRequest'];
+export type PassCheck = Schemas['PassCheckDto'];
 
 /** Partner agenda API (`/api/v1/pro`): appointments, resources, closures, settings, statistics (PRD AGD-01 to 08). */
 @Injectable({ providedIn: 'root' })
@@ -40,6 +42,25 @@ export class AgendaService {
         `${this.base}/establishments/${establishmentId}/appointments`,
         { params },
       ),
+    );
+  }
+
+  /** Walk-in recorded at the counter: confirmed at once, the client has no account. */
+  counter(establishmentId: string, input: CounterRequest): Promise<PartnerAppointment> {
+    return firstValueFrom(
+      this.http.post<PartnerAppointment>(
+        `${this.base}/establishments/${establishmentId}/counter`,
+        input,
+      ),
+    );
+  }
+
+  /** Checks a client's pass (the scanned token or a pasted link) against this establishment. */
+  verifyPass(establishmentId: string, token: string): Promise<PassCheck> {
+    return firstValueFrom(
+      this.http.post<PassCheck>(`${this.base}/establishments/${establishmentId}/pass/verify`, {
+        token,
+      }),
     );
   }
 

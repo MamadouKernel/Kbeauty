@@ -28,8 +28,8 @@ Légende : ✅ présent · 🟡 partiel · ⬜ à faire · ➕ n'existe pas en V
 | 17 | Admin : KYC, utilisateurs, établissements, abonnements, audit, paiements | ✅ | — |
 | 18 | Admin : rôles fins (SUPER_ADMIN, KYC, SUPPORT, COMPTABLE) | 🟡 | 6 |
 | 19 | PWA, notifications push | 🟡 (PWA oui, push web non) | 6 |
-| 20 | **Comptoir** : RDV d'un client sans compte (walk-in) | ⬜ | **2** |
-| 21 | **Pass QR client** + **scanner QR partenaire** | ⬜ | **2** |
+| 20 | **Comptoir** : RDV d'un client sans compte (walk-in) | ✅ | 2 |
+| 21 | **Pass QR client** + **scanner QR partenaire** | ✅ | 2 |
 | 22 | **Portail collaboratrice** : planning du jour | ⬜ | 3 |
 | 23 | **Poste de travail** : chrono début / fin de soin | ⬜ | 3 |
 | 24 | **Fiche technique cliente** (notes de soin, allergies) | ⬜ | 3 |

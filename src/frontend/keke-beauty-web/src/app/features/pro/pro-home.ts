@@ -192,6 +192,16 @@ import { PartnerService, STATUS_LABELS } from '../../core/partner/partner.servic
                           [routerLink]="['/pro/etablissements', e.id, 'avis']"
                           >Avis clients</a
                         >
+                        <a
+                          class="btn btn-ghost btn-sm"
+                          [routerLink]="['/pro/etablissements', e.id, 'comptoir']"
+                          >Comptoir</a
+                        >
+                        <a
+                          class="btn btn-ghost btn-sm"
+                          [routerLink]="['/pro/etablissements', e.id, 'scanner']"
+                          >Scanner un pass</a
+                        >
                       }
                     }
                     @if (e.status === 'Active') {

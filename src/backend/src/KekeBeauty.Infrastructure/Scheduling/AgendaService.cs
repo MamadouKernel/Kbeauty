@@ -349,7 +349,7 @@ public sealed class AgendaService(
             return [];
         }
 
-        var clientIds = appointments.Select(a => a.ClientUserId).Distinct().ToList();
+        var clientIds = appointments.Where(a => a.ClientUserId != null).Select(a => a.ClientUserId!.Value).Distinct().ToList();
         var resourceIds = appointments.Select(a => a.ResourceId).Distinct().ToList();
         var appointmentIds = appointments.Select(a => a.Id).ToList();
 
@@ -362,10 +362,10 @@ public sealed class AgendaService(
 
         return appointments.Select(a =>
         {
-            var client = clients.GetValueOrDefault(a.ClientUserId);
+            var client = a.ClientUserId is { } clientId ? clients.GetValueOrDefault(clientId) : null;
             return new PartnerAppointmentDto(
                 a.Id, a.EstablishmentId, a.ResourceId, resources.GetValueOrDefault(a.ResourceId),
-                client is null ? "Client" : $"{client.FirstName} {client.LastName}".Trim(),
+                a.WalkInName ?? (client is null ? "Client" : $"{client.FirstName} {client.LastName}".Trim()),
                 a.ClientPhone, a.StartsAt, a.EndsAt, a.Status.ToString(), a.TotalPrice, a.CurrencyCode,
                 a.ClientNote, a.RejectionReason, a.ProposedStartsAt, a.ExpiresAt,
                 lines.GetValueOrDefault(a.Id) ?? [], a.CreatedAt, ServicePaymentOf(a));

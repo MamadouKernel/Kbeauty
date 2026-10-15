@@ -51,6 +51,7 @@ public sealed class AppointmentConfiguration : IEntityTypeConfiguration<Appointm
         builder.Property(x => x.CurrencyCode).HasMaxLength(3).IsRequired();
         builder.Property(x => x.ClientNote).HasMaxLength(500);
         builder.Property(x => x.ClientPhone).HasMaxLength(20);
+        builder.Property(x => x.WalkInName).HasMaxLength(80);
         builder.Property(x => x.ServicePaidMethod).HasMaxLength(40);
         builder.Property(x => x.ServicePaidReference).HasMaxLength(60);
         builder.Property(x => x.RejectionReason).HasMaxLength(500);

@@ -46,7 +46,12 @@ public enum AppointmentStatus
 public sealed class Appointment : Entity
 {
     public required Guid EstablishmentId { get; set; }
-    public required Guid ClientUserId { get; set; }
+    /// <summary>Null for a walk-in recorded at the counter by the establishment: the client has no account.</summary>
+    public Guid? ClientUserId { get; set; }
+
+    /// <summary>Name given at the counter; only set for a walk-in.</summary>
+    public string? WalkInName { get; set; }
+
     public required Guid ResourceId { get; set; }
     public required DateTimeOffset StartsAt { get; set; }
     public required DateTimeOffset EndsAt { get; set; }

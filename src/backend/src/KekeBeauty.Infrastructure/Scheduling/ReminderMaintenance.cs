@@ -51,7 +51,7 @@ public sealed class ReminderMaintenance(
         var now = clock.GetUtcNow();
         var horizon = now.AddHours(hours);
         var due = await db.Appointments
-            .Where(a => a.Status == AppointmentStatus.Confirmed
+            .Where(a => a.Status == AppointmentStatus.Confirmed && a.ClientUserId != null
                 && a.StartsAt > now && a.StartsAt <= horizon
                 && (first ? a.FirstReminderSentAt == null : a.SecondReminderSentAt == null))
             .OrderBy(a => a.StartsAt)
@@ -85,7 +85,7 @@ public sealed class ReminderMaintenance(
                     ["motif"] = string.Empty,
                 };
                 var body = $"Rappel : votre rendez-vous chez {establishment.Name} a lieu le {variables["date"]} à {variables["heure"]}.";
-                await notifications.NotifyAsync(appointment.ClientUserId, "appointment.reminder", "Rappel de rendez-vous", body, appointment.ClientPhone, ct, variables, isReminder: true);
+                await notifications.NotifyAsync(appointment.ClientUserId!.Value, "appointment.reminder", "Rappel de rendez-vous", body, appointment.ClientPhone, ct, variables, isReminder: true);
 
                 MarkSent(appointment, first, now);
                 await db.SaveChangesAsync(ct);
