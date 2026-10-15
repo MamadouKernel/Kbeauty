@@ -23,7 +23,7 @@ const ENTITY_TYPES = [
   imports: [FormsModule, DatePipe],
   styles: `
     code {
-      font-size: 0.8125rem;
+      font-size: var(--fs-xs);
       word-break: break-word;
     }
   `,

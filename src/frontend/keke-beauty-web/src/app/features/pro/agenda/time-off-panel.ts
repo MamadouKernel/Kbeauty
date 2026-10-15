@@ -45,7 +45,7 @@ import { toInstant } from './agenda-page';
       gap: 0.375rem;
 
       label {
-        font-size: 0.875rem;
+        font-size: var(--fs-sm);
         font-weight: 600;
       }
       input.p-inputtext,

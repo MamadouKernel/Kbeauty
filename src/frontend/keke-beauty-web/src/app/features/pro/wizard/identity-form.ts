@@ -69,7 +69,7 @@ const STATUS_MESSAGES: Readonly<Record<string, string>> = {
       gap: 0.375rem;
 
       label {
-        font-size: 0.875rem;
+        font-size: var(--fs-sm);
         font-weight: 600;
       }
     }
@@ -101,7 +101,7 @@ const STATUS_MESSAGES: Readonly<Record<string, string>> = {
       background: #fff;
     }
     .doc__state {
-      font-size: 0.875rem;
+      font-size: var(--fs-sm);
       font-weight: 600;
       color: var(--kb-ink-muted);
     }
@@ -111,10 +111,10 @@ const STATUS_MESSAGES: Readonly<Record<string, string>> = {
     .doc input[type='file'] {
       max-width: 100%;
       font: inherit;
-      font-size: 0.875rem;
+      font-size: var(--fs-sm);
     }
     .privacy {
-      font-size: 0.875rem;
+      font-size: var(--fs-sm);
       color: var(--kb-ink-muted);
     }
   `,

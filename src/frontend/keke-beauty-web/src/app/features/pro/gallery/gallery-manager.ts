@@ -113,7 +113,7 @@ function readVideoPreview(file: File): Promise<VideoPreview | null> {
       border-radius: var(--radius-pill);
       background: var(--kb-primary-600);
       color: #fff;
-      font-size: 0.75rem;
+      font-size: var(--fs-2xs);
       font-weight: 600;
     }
     .tools {

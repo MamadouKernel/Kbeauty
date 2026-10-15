@@ -107,7 +107,7 @@ const TOAST_MS = 6000;
       border: 0;
       background: transparent;
       font: inherit;
-      font-size: 0.8125rem;
+      font-size: var(--fs-xs);
       font-weight: 600;
       color: var(--kb-primary-600);
       cursor: pointer;
@@ -150,11 +150,11 @@ const TOAST_MS = 6000;
         background: var(--kb-primary-600);
       }
       span {
-        font-size: 0.875rem;
+        font-size: var(--fs-sm);
         color: var(--kb-ink-muted);
       }
       time {
-        font-size: 0.75rem;
+        font-size: var(--fs-2xs);
         color: var(--kb-ink-muted);
       }
     }
@@ -184,7 +184,7 @@ const TOAST_MS = 6000;
 
       span {
         color: var(--kb-ink-muted);
-        font-size: 0.9375rem;
+        font-size: var(--fs-md);
       }
     }
   `,

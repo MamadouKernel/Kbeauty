@@ -66,7 +66,7 @@ const ACTIVE = new Set(['Pending', 'Confirmed', 'RescheduleProposed']);
     .status {
       padding: 0.125rem 0.75rem;
       border-radius: var(--radius-pill);
-      font-size: 0.8125rem;
+      font-size: var(--fs-xs);
       font-weight: 700;
       background: var(--kb-primary-50);
       color: var(--kb-primary-700);
@@ -85,7 +85,7 @@ const ACTIVE = new Set(['Pending', 'Confirmed', 'RescheduleProposed']);
     }
     .meta {
       color: var(--kb-ink-muted);
-      font-size: 0.9375rem;
+      font-size: var(--fs-md);
     }
     .actions {
       display: flex;

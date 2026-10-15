@@ -35,7 +35,7 @@ import type { PartnerServiceItem } from '../../../core/partner/partner.service';
       padding: 0.0625rem 0.625rem;
       border-radius: var(--radius-pill);
       background: var(--kb-primary-50);
-      font-size: 0.8125rem;
+      font-size: var(--fs-xs);
       font-weight: 600;
       color: var(--kb-primary-700);
     }
@@ -57,7 +57,7 @@ import type { PartnerServiceItem } from '../../../core/partner/partner.service';
       gap: 0.375rem;
 
       label {
-        font-size: 0.875rem;
+        font-size: var(--fs-sm);
         font-weight: 600;
       }
       input.p-inputtext {
@@ -74,7 +74,7 @@ import type { PartnerServiceItem } from '../../../core/partner/partner.service';
     }
     legend {
       padding: 0;
-      font-size: 0.875rem;
+      font-size: var(--fs-sm);
       font-weight: 600;
     }
     .check {

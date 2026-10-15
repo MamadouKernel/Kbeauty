@@ -81,7 +81,7 @@ const ROLE_LABELS: Record<string, string> = {
       border-radius: var(--radius-pill);
       background: var(--kb-primary-50);
       color: var(--kb-primary-800);
-      font-size: 0.8125rem;
+      font-size: var(--fs-xs);
       font-weight: 600;
     }
     .chip svg {
@@ -105,7 +105,7 @@ const ROLE_LABELS: Record<string, string> = {
       gap: 0.375rem;
     }
     .field label {
-      font-size: 0.875rem;
+      font-size: var(--fs-sm);
       font-weight: 600;
     }
     .field input {

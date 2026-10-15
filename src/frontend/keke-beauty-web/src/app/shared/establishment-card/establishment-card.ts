@@ -70,7 +70,7 @@ import { StarRating } from '../star-rating/star-rating';
       border-radius: var(--radius-pill);
       background: rgb(255 255 255 / 92%);
       color: var(--kb-primary-800);
-      font-size: 0.75rem;
+      font-size: var(--fs-2xs);
       font-weight: 700;
       backdrop-filter: blur(6px);
     }
@@ -89,7 +89,7 @@ import { StarRating } from '../star-rating/star-rating';
       font-size: 1.1875rem;
     }
     .categories {
-      font-size: 0.8125rem;
+      font-size: var(--fs-xs);
       font-weight: 600;
       color: var(--kb-primary-600);
     }
@@ -97,7 +97,7 @@ import { StarRating } from '../star-rating/star-rating';
       display: flex;
       align-items: center;
       gap: 0.375rem;
-      font-size: 0.875rem;
+      font-size: var(--fs-sm);
       color: var(--kb-ink-muted);
     }
     .place svg {
@@ -107,7 +107,7 @@ import { StarRating } from '../star-rating/star-rating';
     }
     .price {
       margin-top: 0.25rem;
-      font-size: 0.875rem;
+      font-size: var(--fs-sm);
       font-weight: 600;
     }
     .cta {
@@ -117,7 +117,7 @@ import { StarRating } from '../star-rating/star-rating';
       border-radius: var(--radius-pill);
       background: var(--kb-primary-50);
       color: var(--kb-primary-700);
-      font-size: 0.8125rem;
+      font-size: var(--fs-xs);
       font-weight: 700;
       transition:
         background 200ms ease,

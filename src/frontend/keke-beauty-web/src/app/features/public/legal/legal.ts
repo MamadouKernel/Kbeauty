@@ -53,7 +53,7 @@ const OTHERS: Record<LegalSlug, readonly { slug: LegalSlug; label: string }[]> =
     }
     .updated {
       margin: 0;
-      font-size: 0.875rem;
+      font-size: var(--fs-sm);
       color: var(--kb-ink-muted);
     }
     nav ul {

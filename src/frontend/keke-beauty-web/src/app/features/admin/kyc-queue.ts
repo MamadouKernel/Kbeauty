@@ -57,7 +57,7 @@ const TABS = [
       border-bottom: 1px solid var(--kb-border);
     }
     th {
-      font-size: 0.8125rem;
+      font-size: var(--fs-xs);
       text-transform: uppercase;
       letter-spacing: 0.04em;
       color: var(--kb-ink-muted);

@@ -121,7 +121,7 @@ const STEPS = [
 
       label,
       legend {
-        font-size: 0.875rem;
+        font-size: var(--fs-sm);
         font-weight: 600;
       }
       input.p-inputtext {
@@ -199,7 +199,7 @@ const STEPS = [
       font-weight: 500;
     }
     .coords {
-      font-size: 0.875rem;
+      font-size: var(--fs-sm);
       color: var(--kb-ink-muted);
     }
     .stepper {

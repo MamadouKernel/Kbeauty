@@ -79,7 +79,7 @@ function limit(value: unknown): number | null {
     label {
       display: grid;
       gap: 0.25rem;
-      font-size: 0.875rem;
+      font-size: var(--fs-sm);
       font-weight: 600;
       min-width: 0;
     }
@@ -90,14 +90,14 @@ function limit(value: unknown): number | null {
     }
     .hint {
       margin: 0;
-      font-size: 0.8125rem;
+      font-size: var(--fs-xs);
       color: var(--kb-ink-muted);
       font-weight: 400;
     }
     ul.preview {
       margin: 0;
       padding-left: 1.125rem;
-      font-size: 0.875rem;
+      font-size: var(--fs-sm);
     }
     ul.preview li[data-off='true'] {
       color: var(--kb-ink-muted);

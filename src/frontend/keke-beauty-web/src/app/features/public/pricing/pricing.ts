@@ -49,7 +49,7 @@ import { formatMoney } from '../../../core/format/format';
       font-weight: 700;
     }
     .price small {
-      font-size: 0.875rem;
+      font-size: var(--fs-sm);
       font-weight: 400;
       color: var(--kb-ink-muted);
     }

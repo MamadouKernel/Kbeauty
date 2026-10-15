@@ -95,7 +95,7 @@ function minutes(time: string): number {
       align-items: center;
       gap: 0.375rem;
       margin: 0;
-      font-size: 0.8125rem;
+      font-size: var(--fs-xs);
       font-weight: 700;
       color: var(--kb-primary-700);
     }
@@ -174,7 +174,7 @@ function minutes(time: string): number {
       gap: 0.375rem;
       padding: 0.25rem 0.75rem;
       border-radius: var(--radius-pill);
-      font-size: 0.8125rem;
+      font-size: var(--fs-xs);
       font-weight: 700;
     }
     .open[data-open='true'] {
@@ -196,7 +196,7 @@ function minutes(time: string): number {
       border-radius: var(--radius-pill);
       background: var(--kb-primary-50);
       color: var(--kb-primary-800);
-      font-size: 0.8125rem;
+      font-size: var(--fs-xs);
       font-weight: 600;
     }
     .place {
@@ -298,7 +298,7 @@ function minutes(time: string): number {
     }
     h3 {
       font-family: var(--font-body);
-      font-size: 0.8125rem;
+      font-size: var(--fs-xs);
       font-weight: 700;
       letter-spacing: 0.1em;
       text-transform: uppercase;

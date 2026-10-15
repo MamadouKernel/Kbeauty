@@ -100,7 +100,7 @@ const CHECK_ICONS: Readonly<Record<string, string>> = { ok: '✓', warning: '!',
       width: 1.5rem;
       height: 1.5rem;
       border-radius: 50%;
-      font-size: 0.8125rem;
+      font-size: var(--fs-xs);
       font-weight: 800;
       color: #fff;
     }

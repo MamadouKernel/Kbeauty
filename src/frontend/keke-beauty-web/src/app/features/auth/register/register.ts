@@ -20,7 +20,7 @@ import { AuthService } from '../../../core/auth/auth.service';
       display: flex;
       align-items: flex-start;
       gap: 0.5rem;
-      font-size: 0.9375rem;
+      font-size: var(--fs-md);
     }
     .roles {
       display: grid;
@@ -36,7 +36,7 @@ import { AuthService } from '../../../core/auth/auth.service';
     legend {
       padding: 0;
       margin-bottom: 0.375rem;
-      font-size: 0.875rem;
+      font-size: var(--fs-sm);
       font-weight: 600;
     }
     .role {
@@ -64,10 +64,10 @@ import { AuthService } from '../../../core/auth/auth.service';
         pointer-events: none;
       }
       strong {
-        font-size: 0.9375rem;
+        font-size: var(--fs-md);
       }
       span {
-        font-size: 0.8125rem;
+        font-size: var(--fs-xs);
         color: var(--kb-ink-muted);
       }
     }
@@ -80,7 +80,7 @@ import { AuthService } from '../../../core/auth/auth.service';
       }
     }
     .hint {
-      font-size: 0.8125rem;
+      font-size: var(--fs-xs);
       color: var(--kb-ink-muted);
     }
   `,

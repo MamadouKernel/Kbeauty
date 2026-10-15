@@ -65,7 +65,7 @@ import { PartnerService, STATUS_LABELS } from '../../core/partner/partner.servic
       padding: 0.125rem 0.75rem;
       border-radius: var(--radius-pill);
       background: var(--kb-primary-50);
-      font-size: 0.8125rem;
+      font-size: var(--fs-xs);
       font-weight: 700;
       color: var(--kb-primary-700);
     }
@@ -87,7 +87,7 @@ import { PartnerService, STATUS_LABELS } from '../../core/partner/partner.servic
     .missing {
       padding-left: 1.25rem;
       list-style: disc;
-      font-size: 0.9375rem;
+      font-size: var(--fs-md);
       color: var(--kb-ink-muted);
     }
     .empty {

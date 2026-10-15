@@ -59,7 +59,7 @@ const PAGE_SIZE = 10;
       grid-template-columns: 2.25rem 1fr 2rem;
       align-items: center;
       gap: 0.5rem;
-      font-size: 0.8125rem;
+      font-size: var(--fs-xs);
     }
     .track {
       height: 0.5rem;
@@ -88,7 +88,7 @@ const PAGE_SIZE = 10;
     }
     .date {
       color: var(--kb-ink-muted);
-      font-size: 0.8125rem;
+      font-size: var(--fs-xs);
     }
     .comment {
       margin: 0;
@@ -102,10 +102,10 @@ const PAGE_SIZE = 10;
       border-left: 3px solid var(--kb-primary-300);
       border-radius: 0 0.5rem 0.5rem 0;
       background: var(--kb-primary-50);
-      font-size: 0.9375rem;
+      font-size: var(--fs-md);
     }
     .reply strong {
-      font-size: 0.8125rem;
+      font-size: var(--fs-xs);
       color: var(--kb-primary-700);
     }
     .reply p {

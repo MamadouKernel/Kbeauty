@@ -33,7 +33,7 @@ import { StarRating } from '../../../shared/star-rating/star-rating';
     }
     .date {
       color: var(--kb-ink-muted);
-      font-size: 0.8125rem;
+      font-size: var(--fs-xs);
     }
     .comment {
       margin: 0;
@@ -64,7 +64,7 @@ import { StarRating } from '../../../shared/star-rating/star-rating';
       border-radius: var(--radius-pill);
       background: color-mix(in srgb, var(--kb-danger) 10%, white);
       color: var(--kb-danger);
-      font-size: 0.8125rem;
+      font-size: var(--fs-xs);
       font-weight: 700;
     }
     .state {

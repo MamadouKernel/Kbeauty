@@ -35,7 +35,7 @@ const MAX_SENDER_LENGTH = 11;
     }
     .hint {
       margin: 0;
-      font-size: 0.875rem;
+      font-size: var(--fs-sm);
       color: var(--kb-ink-muted);
     }
   `,

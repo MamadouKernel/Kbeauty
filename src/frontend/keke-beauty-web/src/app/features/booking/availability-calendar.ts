@@ -64,7 +64,7 @@ const WEEKDAYS = ['lun.', 'mar.', 'mer.', 'jeu.', 'ven.', 'sam.', 'dim.'];
     .weekday {
       padding-block: 0.25rem;
       text-align: center;
-      font-size: 0.75rem;
+      font-size: var(--fs-2xs);
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.04em;
@@ -118,7 +118,7 @@ const WEEKDAYS = ['lun.', 'mar.', 'mer.', 'jeu.', 'ven.', 'sam.', 'dim.'];
       flex-wrap: wrap;
       gap: 0.5rem 1.25rem;
       margin-top: 0.75rem;
-      font-size: 0.8125rem;
+      font-size: var(--fs-xs);
       color: var(--kb-ink-muted);
     }
     .legend span::before {

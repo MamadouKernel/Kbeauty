@@ -85,7 +85,7 @@ function gridStart(month: Date): Date {
       background: linear-gradient(135deg, var(--kb-primary-500), var(--kb-primary-700));
       color: #fff;
       font-family: var(--font-body);
-      font-size: 0.9375rem;
+      font-size: var(--fs-md);
       font-weight: 700;
     }
     .choices {
@@ -203,7 +203,7 @@ function gridStart(month: Date): Date {
       gap: 0.375rem;
 
       label {
-        font-size: 0.875rem;
+        font-size: var(--fs-sm);
         font-weight: 600;
       }
       input.p-inputtext {
@@ -247,7 +247,7 @@ function gridStart(month: Date): Date {
       display: inline-flex;
       align-items: center;
       gap: 0.5rem;
-      font-size: 0.8125rem;
+      font-size: var(--fs-xs);
       color: var(--kb-ink-muted);
     }
     .live::before {

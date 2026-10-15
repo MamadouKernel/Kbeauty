@@ -55,7 +55,7 @@ const EMPTY: Draft = {
     label {
       display: grid;
       gap: 0.25rem;
-      font-size: 0.875rem;
+      font-size: var(--fs-sm);
       font-weight: 600;
       min-width: 0;
     }
@@ -66,14 +66,14 @@ const EMPTY: Draft = {
     }
     .hint {
       margin: 0;
-      font-size: 0.8125rem;
+      font-size: var(--fs-xs);
       color: var(--kb-ink-muted);
       font-weight: 400;
     }
     table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 0.9375rem;
+      font-size: var(--fs-md);
     }
     th,
     td {

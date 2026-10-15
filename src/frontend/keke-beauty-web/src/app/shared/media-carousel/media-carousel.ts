@@ -84,7 +84,7 @@ import type { MediaItem } from '../../core/establishments/establishment.service'
       border-radius: var(--radius-pill);
       background: rgb(54 23 79 / 72%);
       color: #fff;
-      font-size: 0.8125rem;
+      font-size: var(--fs-xs);
       font-weight: 600;
     }
     .thumbs {

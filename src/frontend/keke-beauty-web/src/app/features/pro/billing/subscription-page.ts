@@ -68,7 +68,7 @@ interface PendingChange {
     }
     .promo label {
       font-weight: 600;
-      font-size: 0.875rem;
+      font-size: var(--fs-sm);
     }
     .was {
       font-size: 1rem;
@@ -101,7 +101,7 @@ interface PendingChange {
       font-weight: 700;
     }
     .price small {
-      font-size: 0.875rem;
+      font-size: var(--fs-sm);
       font-weight: 400;
       color: var(--kb-ink-muted);
     }
@@ -129,7 +129,7 @@ interface PendingChange {
       padding: 0.125rem 0.75rem;
       border-radius: var(--radius-pill);
       background: var(--kb-primary-50);
-      font-size: 0.8125rem;
+      font-size: var(--fs-xs);
       font-weight: 700;
       color: var(--kb-primary-700);
     }
@@ -144,7 +144,7 @@ interface PendingChange {
     table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 0.9375rem;
+      font-size: var(--fs-md);
     }
     th,
     td {

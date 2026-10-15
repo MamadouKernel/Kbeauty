@@ -12,7 +12,7 @@ import { ChangeDetectionStrategy, Component, computed, input } from '@angular/co
       display: inline-flex;
       align-items: center;
       gap: 0.375rem;
-      font-size: 0.875rem;
+      font-size: var(--fs-sm);
     }
     .stars {
       position: relative;

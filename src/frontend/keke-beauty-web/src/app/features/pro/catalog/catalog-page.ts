@@ -86,7 +86,7 @@ const PRICE_TYPES = [
       display: grid;
     }
     .row__meta {
-      font-size: 0.875rem;
+      font-size: var(--fs-sm);
       color: var(--kb-ink-muted);
     }
     .tools {
@@ -133,7 +133,7 @@ const PRICE_TYPES = [
       gap: 0.375rem;
 
       label {
-        font-size: 0.875rem;
+        font-size: var(--fs-sm);
         font-weight: 600;
       }
       input.p-inputtext {
@@ -161,7 +161,7 @@ const PRICE_TYPES = [
       padding: 0.0625rem 0.5rem;
       border-radius: var(--radius-pill);
       background: var(--kb-primary-50);
-      font-size: 0.75rem;
+      font-size: var(--fs-2xs);
       font-weight: 600;
       color: var(--kb-primary-700);
     }

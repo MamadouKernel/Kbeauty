@@ -122,7 +122,7 @@ function startOfDay(date: Date): Date {
       border-radius: var(--radius-pill);
       background: var(--kb-danger);
       color: #fff;
-      font-size: 0.75rem;
+      font-size: var(--fs-2xs);
       font-weight: 800;
       line-height: 1.5rem;
       text-align: center;
@@ -172,7 +172,7 @@ function startOfDay(date: Date): Date {
     .day-title {
       margin-top: 0.5rem;
       font-family: var(--font-body);
-      font-size: 0.9375rem;
+      font-size: var(--fs-md);
       font-weight: 700;
       text-transform: capitalize;
       color: var(--kb-primary-700);
@@ -199,7 +199,7 @@ function startOfDay(date: Date): Date {
     .status {
       padding: 0.125rem 0.75rem;
       border-radius: var(--radius-pill);
-      font-size: 0.8125rem;
+      font-size: var(--fs-xs);
       font-weight: 700;
       background: var(--kb-primary-50);
       color: var(--kb-primary-700);
@@ -218,7 +218,7 @@ function startOfDay(date: Date): Date {
     }
     .meta {
       color: var(--kb-ink-muted);
-      font-size: 0.9375rem;
+      font-size: var(--fs-md);
     }
     .actions {
       display: flex;
@@ -237,7 +237,7 @@ function startOfDay(date: Date): Date {
       label {
         display: grid;
         gap: 0.25rem;
-        font-size: 0.875rem;
+        font-size: var(--fs-sm);
         font-weight: 600;
       }
       input {

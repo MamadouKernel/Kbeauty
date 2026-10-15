@@ -70,7 +70,7 @@ const MAX_COMMENT = 1000;
     }
     .count {
       margin-left: auto;
-      font-size: 0.8125rem;
+      font-size: var(--fs-xs);
       color: var(--kb-ink-muted);
     }
   `,

@@ -93,7 +93,7 @@ const SORT_TO_API: Record<string, string> = {
     .field label,
     legend {
       padding: 0;
-      font-size: 0.75rem;
+      font-size: var(--fs-2xs);
       font-weight: 600;
       letter-spacing: 0.06em;
       text-transform: uppercase;
@@ -111,7 +111,7 @@ const SORT_TO_API: Record<string, string> = {
       gap: 0.75rem;
     }
     .near .hint {
-      font-size: 0.875rem;
+      font-size: var(--fs-sm);
       color: var(--kb-ink-muted);
     }
     .check {

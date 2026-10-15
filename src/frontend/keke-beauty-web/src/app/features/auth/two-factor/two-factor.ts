@@ -47,7 +47,7 @@ type Phase = 'loading' | 'setup' | 'verify' | 'recovery' | 'expired';
       padding: 0.5rem 0.75rem;
       border-radius: var(--radius-sm);
       background: var(--kb-primary-50);
-      font-size: 0.9375rem;
+      font-size: var(--fs-md);
       letter-spacing: 0.08em;
       word-break: break-all;
       text-align: center;
@@ -74,7 +74,7 @@ type Phase = 'loading' | 'setup' | 'verify' | 'recovery' | 'expired';
       display: flex;
       gap: 0.625rem;
       align-items: flex-start;
-      font-size: 0.9375rem;
+      font-size: var(--fs-md);
     }
     .confirm input {
       width: 1.25rem;

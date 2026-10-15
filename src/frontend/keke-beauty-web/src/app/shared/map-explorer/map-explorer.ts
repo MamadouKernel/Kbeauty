@@ -90,7 +90,7 @@ import { StarRating } from '../star-rating/star-rating';
       align-items: center;
       gap: 0.25rem;
       margin: 0;
-      font-size: 0.8125rem;
+      font-size: var(--fs-xs);
       color: var(--kb-ink-muted);
     }
     .place svg {
@@ -124,7 +124,7 @@ import { StarRating } from '../star-rating/star-rating';
       padding: 0.25rem 0.75rem;
       border-radius: var(--radius-pill);
       background: rgb(255 255 255 / 94%);
-      font-size: 0.8125rem;
+      font-size: var(--fs-xs);
       font-weight: 700;
       box-shadow: var(--shadow-soft);
     }

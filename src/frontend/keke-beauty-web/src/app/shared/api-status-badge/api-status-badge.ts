@@ -35,7 +35,7 @@ import { HealthService } from '../../core/health/health.service';
       border-radius: var(--radius-pill);
       border: 1px solid var(--kb-border);
       background: var(--kb-surface);
-      font-size: 0.8125rem;
+      font-size: var(--fs-xs);
       font-weight: 600;
       white-space: nowrap;
       color: var(--kb-ink-muted);

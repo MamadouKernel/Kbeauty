@@ -57,7 +57,7 @@ import { ChannelService, NotificationPreferences } from '../../core/notification
     }
     .hint {
       margin: 0;
-      font-size: 0.875rem;
+      font-size: var(--fs-sm);
       color: var(--kb-ink-muted);
     }
   `,

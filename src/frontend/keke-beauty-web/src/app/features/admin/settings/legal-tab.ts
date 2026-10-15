@@ -22,7 +22,7 @@ import { problemMessage } from '../../../core/auth/auth.models';
     label {
       display: grid;
       gap: 0.25rem;
-      font-size: 0.875rem;
+      font-size: var(--fs-sm);
       font-weight: 600;
     }
     textarea {
@@ -33,7 +33,7 @@ import { problemMessage } from '../../../core/auth/auth.models';
     }
     .hint {
       margin: 0;
-      font-size: 0.875rem;
+      font-size: var(--fs-sm);
       color: var(--kb-ink-muted);
     }
     label.check {
