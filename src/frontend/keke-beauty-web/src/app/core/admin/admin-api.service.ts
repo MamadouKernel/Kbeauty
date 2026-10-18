@@ -35,6 +35,21 @@ export type LegalInput = Schemas['LegalDocumentInput'];
 export type Payout = Schemas['PayoutDto'];
 export type PayoutRun = Schemas['PayoutRunReport'];
 export type Refund = Schemas['RefundDto'];
+
+/** A transfer to a collaborator (hand-written until the API types are regenerated). */
+export interface CollaboratorPayoutRow {
+  readonly id: string;
+  readonly establishmentName: string;
+  readonly collaboratorName: string;
+  readonly commissionAmount: number;
+  readonly tipAmount: number;
+  readonly amount: number;
+  readonly currencyCode: string;
+  readonly operator: string;
+  readonly accountMasked: string;
+  readonly status: string;
+  readonly createdAt: string;
+}
 export type Backup = Schemas['BackupDto'];
 export type Plan = Schemas['PlanDto'];
 export type PlanUpdate = Schemas['PlanUpdate'];
@@ -293,6 +308,12 @@ export class AdminApiService {
   payEstablishment(id: string): Promise<Payout> {
     return firstValueFrom(
       this.http.post<Payout>(`${this.base}/payouts/establishments/${id}`, null),
+    );
+  }
+
+  collaboratorPayouts(): Promise<CollaboratorPayoutRow[]> {
+    return firstValueFrom(
+      this.http.get<CollaboratorPayoutRow[]>(`${this.base}/collaborator-payouts`),
     );
   }
 

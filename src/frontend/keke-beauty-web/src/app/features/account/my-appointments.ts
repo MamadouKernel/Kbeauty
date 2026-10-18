@@ -115,6 +115,12 @@ const ACTIVE = new Set(['Pending', 'Confirmed', 'RescheduleProposed']);
         <h1>Mes rendez-vous</h1>
       </div>
 
+      @if (returnedFromTip) {
+        <p class="badge" data-tone="ok" role="status">
+          Merci pour votre pourboire ! Il est en cours de vérification et sera ajouté dès que le
+          paiement est reçu.
+        </p>
+      }
       @if (returnedFromPayment) {
         <p class="badge" data-tone="ok" role="status">
           Merci ! Votre paiement est en cours de vérification : cette page se met à jour dès qu'il
@@ -200,6 +206,12 @@ const ACTIVE = new Set(['Pending', 'Confirmed', 'RescheduleProposed']);
                   </button>
                 </div>
               } @else if (a.canCancel) {
+                @if (a.lateCancelFee) {
+                  <p class="meta">
+                    Annulation tardive : {{ money(a.lateCancelFee) }} seront retenus sur votre
+                    paiement, le reste vous est remboursé.
+                  </p>
+                }
                 <div class="actions">
                   <button
                     class="btn btn-ghost btn-sm"
@@ -326,6 +338,10 @@ export class MyAppointments {
   protected readonly returnedFromPayment =
     inject(ActivatedRoute).snapshot.queryParamMap.has('paiement');
 
+  /** The payment provider sends the client back here with `?pourboire=<transaction>` after a tip. */
+  protected readonly returnedFromTip =
+    inject(ActivatedRoute).snapshot.queryParamMap.has('pourboire');
+
   protected readonly appointments = resource({ loader: () => this.booking.mine() });
   private readonly reviewService = inject(ReviewService);
   /** What the client already reviewed: a completed visit without review offers "Donner mon avis". */
@@ -418,8 +434,21 @@ export class MyAppointments {
     return formatMoney(amount);
   }
 
-  protected tip(a: Appointment, amount: number): Promise<void> {
-    return this.run(() => this.booking.tip(a.id, amount));
+  protected async tip(a: Appointment, amount: number): Promise<void> {
+    this.busy.set(true);
+    this.error.set('');
+    try {
+      const result = await this.booking.tip(a.id, amount);
+      if (result.paymentUrl) {
+        window.location.assign(result.paymentUrl);
+        return;
+      }
+    } catch (error) {
+      this.error.set(problemMessage(error));
+    }
+
+    this.busy.set(false);
+    this.appointments.reload();
   }
 
   protected methodLabel(method: string): string {
@@ -469,8 +498,13 @@ export class MyAppointments {
   }
 
   protected cancel(a: Appointment): Promise<void> {
-    return confirm('Annuler ce rendez-vous ?')
-      ? this.run(() => this.booking.cancel(a.id))
+    const fee = a.lateCancelFee ?? 0;
+    const question =
+      fee > 0
+        ? `Annuler maintenant ? ${formatMoney(fee)} seront retenus sur votre paiement (frais d’annulation tardive).`
+        : 'Annuler ce rendez-vous ?';
+    return confirm(question)
+      ? this.run(() => this.booking.cancel(a.id, fee > 0))
       : Promise.resolve();
   }
 

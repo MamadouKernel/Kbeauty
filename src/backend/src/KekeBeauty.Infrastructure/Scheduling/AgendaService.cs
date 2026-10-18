@@ -39,10 +39,11 @@ public sealed class AgendaService(
         if (!AllowedSteps.Contains(input.SlotStepMinutes)
             || input.MinLeadMinutes is < 0 or > MaxMinutesSetting
             || input.CancelLimitMinutes is < 0 or > MaxMinutesSetting
-            || input.MaxHorizonDays is < 1 or > 365)
+            || input.MaxHorizonDays is < 1 or > 365
+            || input.LateCancelFeePercent is < 0 or > 100)
         {
             return Result.Failure<BookingSettingsDto>(SchedulingErrors.Invalid(
-                "Paramètres invalides : pas de 5, 10, 15, 20, 30 ou 60 minutes ; horizon de 1 à 365 jours ; délais de 0 à 7 jours."));
+                "Paramètres invalides : pas de 5, 10, 15, 20, 30 ou 60 minutes ; horizon de 1 à 365 jours ; délais de 0 à 7 jours ; frais d'annulation tardive de 0 à 100 %."));
         }
 
         if (input.BookingEnabled)
@@ -65,6 +66,7 @@ public sealed class AgendaService(
         e.MaxHorizonDays = input.MaxHorizonDays;
         e.CancelLimitMinutes = input.CancelLimitMinutes;
         e.SlotStepMinutes = input.SlotStepMinutes;
+        e.LateCancelFeePercent = input.LateCancelFeePercent;
         await db.SaveChangesAsync(ct);
         return Result.Success(ToSettings(e));
     }
@@ -382,7 +384,7 @@ public sealed class AgendaService(
     }
 
     private static BookingSettingsDto ToSettings(Establishment e) =>
-        new(e.BookingEnabled, e.AutoConfirm, e.MinLeadMinutes, e.MaxHorizonDays, e.CancelLimitMinutes, e.SlotStepMinutes);
+        new(e.BookingEnabled, e.AutoConfirm, e.MinLeadMinutes, e.MaxHorizonDays, e.CancelLimitMinutes, e.SlotStepMinutes, e.LateCancelFeePercent);
 
     private static string? Trim(string? value) =>
         string.IsNullOrWhiteSpace(value) ? null : value.Trim()[..Math.Min(value.Trim().Length, 500)];

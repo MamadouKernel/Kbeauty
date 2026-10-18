@@ -157,6 +157,52 @@ const REFUND_LABELS: Record<string, string> = {
           <p class="form-error" role="alert">Impossible de charger les remboursements.</p>
         }
       </section>
+
+      <section class="admin-card" aria-labelledby="collab-title">
+        <h2 id="collab-title">Versements aux collaboratrices</h2>
+        <p>
+          Les pourboires payés en ligne et les commissions avancées par la plateforme, versés par
+          mobile money à la demande des établissements.
+        </p>
+        @if (collaboratorPayouts.hasValue()) {
+          @if (collaboratorPayouts.value().length === 0) {
+            <p>Aucun versement pour l'instant.</p>
+          } @else {
+            <div class="table-scroll">
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th scope="col">Date</th>
+                    <th scope="col">Collaboratrice</th>
+                    <th scope="col">Établissement</th>
+                    <th scope="col">Commissions</th>
+                    <th scope="col">Pourboires</th>
+                    <th scope="col">Total</th>
+                    <th scope="col">État</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (c of collaboratorPayouts.value(); track c.id) {
+                    <tr>
+                      <td>{{ c.createdAt | date: 'dd/MM/yyyy HH:mm' }}</td>
+                      <td>{{ c.collaboratorName }}</td>
+                      <td>{{ c.establishmentName }}</td>
+                      <td>
+                        {{ money({ amount: c.commissionAmount, currencyCode: c.currencyCode }) }}
+                      </td>
+                      <td>{{ money({ amount: c.tipAmount, currencyCode: c.currencyCode }) }}</td>
+                      <td>{{ money(c) }}</td>
+                      <td>{{ c.status }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+        } @else if (collaboratorPayouts.error()) {
+          <p class="form-error" role="alert">Impossible de charger les versements.</p>
+        }
+      </section>
     </div>
   `,
 })
@@ -168,6 +214,9 @@ export class PayoutsPage {
   protected readonly message = signal<string | null>(null);
   protected readonly payouts = resource({ loader: () => this.api.payouts() });
   protected readonly refunds = resource({ loader: () => this.api.refunds() });
+  protected readonly collaboratorPayouts = resource({
+    loader: () => this.api.collaboratorPayouts(),
+  });
 
   protected money(item: { amount: number; currencyCode: string }): string {
     return formatMoney(item.amount, item.currencyCode);

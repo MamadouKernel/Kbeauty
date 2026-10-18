@@ -93,6 +93,12 @@ public sealed class AppointmentMaintenance(
 
             appointment.ProposedStartsAt = null;
             appointment.ProposedEndsAt = null;
+            if (to == AppointmentStatus.Completed && appointment.CommissionAmount is null
+                && await db.Resources.AsNoTracking().FirstOrDefaultAsync(r => r.Id == appointment.ResourceId, ct) is { } resource)
+            {
+                CommissionService.Snapshot(appointment, resource);
+            }
+
             await db.SaveChangesAsync(ct);
             if (to != AppointmentStatus.Completed)
             {

@@ -1,5 +1,7 @@
 using FluentAssertions;
+using KekeBeauty.Infrastructure.Billing;
 using KekeBeauty.Infrastructure.Scheduling;
+using KekeBeauty.Modules.Billing.Domain;
 using KekeBeauty.Modules.Scheduling.Domain;
 
 namespace KekeBeauty.UnitTests;
@@ -71,5 +73,54 @@ public sealed class TeamRulesTests
         CommissionService.IsFinished(Booking(AppointmentStatus.Confirmed, TimeSpan.Zero, a => a.FinishedAt = Now)).Should().BeTrue();
         CommissionService.IsFinished(Booking(AppointmentStatus.Confirmed, TimeSpan.Zero)).Should().BeFalse();
         CommissionService.IsFinished(Booking(AppointmentStatus.NoShow, TimeSpan.Zero, a => a.FinishedAt = Now)).Should().BeFalse();
+    }
+}
+
+public sealed class LateFeeRulesTests
+{
+    private static AppointmentPayment Paid(decimal amount, decimal platformFee) => new()
+    {
+        AppointmentId = Guid.NewGuid(),
+        EstablishmentId = Guid.NewGuid(),
+        ClientUserId = Guid.NewGuid(),
+        Kind = AppointmentPaymentKind.Full,
+        Amount = amount,
+        PlatformFee = platformFee,
+        NetAmount = amount - platformFee,
+    };
+
+    [Theory]
+    [InlineData(10_000, 30, 10_000, 3_000)]
+    [InlineData(10_000, 30, 2_000, 2_000)]
+    [InlineData(10_000, 0, 10_000, 0)]
+    [InlineData(3_333, 10, 3_333, 334)]
+    [InlineData(10_000, 100, 10_000, 10_000)]
+    public void The_fee_is_a_share_of_the_price_never_above_what_was_paid(double total, int percent, double paid, double expected) =>
+        PaymentRules.LateFee((decimal)total, percent, (decimal)paid).Should().Be((decimal)expected);
+
+    [Fact]
+    public void A_late_cancellation_splits_the_payment_between_the_client_and_the_establishment()
+    {
+        var retention = PaymentRules.Retention(Paid(10_000, 500), 10_000, 30)!;
+
+        retention.Fee.Should().Be(3_000);
+        retention.Refund.Should().Be(7_000);
+        retention.RetainedNet.Should().Be(2_850, "the platform keeps its 5 % of the fee");
+        (retention.Refund + retention.Fee).Should().Be(10_000);
+    }
+
+    [Fact]
+    public void Nothing_is_kept_without_a_fee_percent()
+    {
+        PaymentRules.Retention(Paid(10_000, 0), 10_000, 0).Should().BeNull();
+    }
+
+    [Fact]
+    public void A_deposit_smaller_than_the_fee_is_kept_whole()
+    {
+        var retention = PaymentRules.Retention(Paid(3_000, 0), 10_000, 50)!;
+
+        retention.Fee.Should().Be(3_000);
+        retention.Refund.Should().Be(0);
     }
 }

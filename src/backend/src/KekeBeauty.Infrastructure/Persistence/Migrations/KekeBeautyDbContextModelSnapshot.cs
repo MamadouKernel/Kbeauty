@@ -365,6 +365,11 @@ namespace KekeBeauty.Infrastructure.Persistence.Migrations
                         .HasColumnType("numeric(12,2)")
                         .HasColumnName("platform_fee");
 
+                    b.Property<decimal?>("RefundAmount")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)")
+                        .HasColumnName("refund_amount");
+
                     b.Property<string>("RefundError")
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)")
@@ -383,6 +388,11 @@ namespace KekeBeauty.Infrastructure.Persistence.Migrations
                     b.Property<DateTimeOffset?>("RefundedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("refunded_at");
+
+                    b.Property<decimal?>("RetainedNet")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)")
+                        .HasColumnName("retained_net");
 
                     b.Property<string>("Status")
                         .IsRequired()
@@ -403,6 +413,161 @@ namespace KekeBeauty.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("ix_appointment_payments_establishment_id_status");
 
                     b.ToTable("appointment_payments", "billing");
+                });
+
+            modelBuilder.Entity("KekeBeauty.Modules.Billing.Domain.CollaboratorPayout", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Account")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("account");
+
+                    b.Property<string>("AccountName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("account_name");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)")
+                        .HasColumnName("amount");
+
+                    b.Property<decimal>("CommissionAmount")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)")
+                        .HasColumnName("commission_amount");
+
+                    b.Property<DateTimeOffset?>("CompletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("completed_at");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<string>("CurrencyCode")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("character varying(3)")
+                        .HasColumnName("currency_code");
+
+                    b.Property<string>("Error")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("error");
+
+                    b.Property<Guid>("EstablishmentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("establishment_id");
+
+                    b.Property<string>("Operator")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("operator");
+
+                    b.Property<string>("Provider")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("provider");
+
+                    b.Property<string>("ProviderReference")
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)")
+                        .HasColumnName("provider_reference");
+
+                    b.Property<Guid?>("SettledAgainstPayoutId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("settled_against_payout_id");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("status");
+
+                    b.Property<decimal>("TipAmount")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)")
+                        .HasColumnName("tip_amount");
+
+                    b.Property<string>("TransactionId")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("transaction_id");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_collaborator_payouts");
+
+                    b.HasIndex("TransactionId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_collaborator_payouts_transaction_id");
+
+                    b.HasIndex("EstablishmentId", "CreatedAt")
+                        .HasDatabaseName("ix_collaborator_payouts_establishment_id_created_at");
+
+                    b.HasIndex("UserId", "CreatedAt")
+                        .HasDatabaseName("ix_collaborator_payouts_user_id_created_at");
+
+                    b.ToTable("collaborator_payouts", "billing");
+                });
+
+            modelBuilder.Entity("KekeBeauty.Modules.Billing.Domain.CollaboratorPayoutAccount", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Account")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("account");
+
+                    b.Property<string>("AccountName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("account_name");
+
+                    b.Property<string>("Operator")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("operator");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_collaborator_payout_accounts");
+
+                    b.HasIndex("UserId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_collaborator_payout_accounts_user_id");
+
+                    b.ToTable("collaborator_payout_accounts", "billing");
                 });
 
             modelBuilder.Entity("KekeBeauty.Modules.Billing.Domain.Invoice", b =>
@@ -557,6 +722,10 @@ namespace KekeBeauty.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(10)")
                         .HasColumnName("status");
 
+                    b.Property<Guid?>("TipPaymentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("tip_payment_id");
+
                     b.HasKey("Id")
                         .HasName("pk_payments");
 
@@ -569,6 +738,9 @@ namespace KekeBeauty.Infrastructure.Persistence.Migrations
                     b.HasIndex("ProviderTransactionId")
                         .IsUnique()
                         .HasDatabaseName("ix_payments_provider_transaction_id");
+
+                    b.HasIndex("TipPaymentId")
+                        .HasDatabaseName("ix_payments_tip_payment_id");
 
                     b.HasIndex("Status", "CreatedAt")
                         .HasDatabaseName("ix_payments_status_created_at");
@@ -1001,6 +1173,81 @@ namespace KekeBeauty.Infrastructure.Persistence.Migrations
                     b.ToTable("subscriptions", "billing");
                 });
 
+            modelBuilder.Entity("KekeBeauty.Modules.Billing.Domain.TipPayment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)")
+                        .HasColumnName("amount");
+
+                    b.Property<Guid>("AppointmentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("appointment_id");
+
+                    b.Property<Guid>("ClientUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("client_user_id");
+
+                    b.Property<Guid?>("CollaboratorPayoutId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("collaborator_payout_id");
+
+                    b.Property<Guid>("CollaboratorUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("collaborator_user_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("CurrencyCode")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("character varying(3)")
+                        .HasColumnName("currency_code");
+
+                    b.Property<Guid>("EstablishmentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("establishment_id");
+
+                    b.Property<DateTimeOffset?>("PaidAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("paid_at");
+
+                    b.Property<Guid?>("PaymentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("payment_id");
+
+                    b.Property<string>("PaymentUrl")
+                        .HasMaxLength(600)
+                        .HasColumnType("character varying(600)")
+                        .HasColumnName("payment_url");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("status");
+
+                    b.HasKey("Id")
+                        .HasName("pk_tip_payments");
+
+                    b.HasIndex("AppointmentId")
+                        .HasDatabaseName("ix_tip_payments_appointment_id");
+
+                    b.HasIndex("CollaboratorPayoutId")
+                        .HasDatabaseName("ix_tip_payments_collaborator_payout_id");
+
+                    b.HasIndex("CollaboratorUserId", "EstablishmentId", "Status")
+                        .HasDatabaseName("ix_tip_payments_collaborator_user_id_establishment_id_status");
+
+                    b.ToTable("tip_payments", "billing");
+                });
+
             modelBuilder.Entity("KekeBeauty.Modules.Catalog.Domain.BeautyCategory", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1107,6 +1354,10 @@ namespace KekeBeauty.Infrastructure.Persistence.Migrations
                     b.Property<bool>("IsFeatured")
                         .HasColumnType("boolean")
                         .HasColumnName("is_featured");
+
+                    b.Property<int>("LateCancelFeePercent")
+                        .HasColumnType("integer")
+                        .HasColumnName("late_cancel_fee_percent");
 
                     b.Property<double>("Latitude")
                         .ValueGeneratedOnAddOrUpdate()
@@ -1417,6 +1668,46 @@ namespace KekeBeauty.Infrastructure.Persistence.Migrations
                         {
                             t.HasCheckConstraint("ck_reviews_rating", "rating BETWEEN 1 AND 5");
                         });
+                });
+
+            modelBuilder.Entity("KekeBeauty.Modules.Catalog.Domain.ReviewPhoto", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("kind");
+
+                    b.Property<Guid>("ReviewId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("review_id");
+
+                    b.Property<string>("StorageKey")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("storage_key");
+
+                    b.Property<string>("ThumbKey")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("thumb_key");
+
+                    b.HasKey("Id")
+                        .HasName("pk_review_photos");
+
+                    b.HasIndex("ReviewId")
+                        .HasDatabaseName("ix_review_photos_review_id");
+
+                    b.ToTable("review_photos", "catalog");
                 });
 
             modelBuilder.Entity("KekeBeauty.Modules.Catalog.Domain.Service", b =>
@@ -2331,6 +2622,19 @@ namespace KekeBeauty.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("client_user_id");
 
+                    b.Property<Guid?>("CollaboratorPayoutId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("collaborator_payout_id");
+
+                    b.Property<decimal?>("CommissionAmount")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)")
+                        .HasColumnName("commission_amount");
+
+                    b.Property<Guid?>("CommissionUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("commission_user_id");
+
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
@@ -2427,6 +2731,9 @@ namespace KekeBeauty.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id")
                         .HasName("pk_appointments");
+
+                    b.HasIndex("CollaboratorPayoutId")
+                        .HasDatabaseName("ix_appointments_collaborator_payout_id");
 
                     b.HasIndex("ResourceId")
                         .HasDatabaseName("ix_appointments_resource_id");
@@ -2983,6 +3290,16 @@ namespace KekeBeauty.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_reviews_establishments_establishment_id");
+                });
+
+            modelBuilder.Entity("KekeBeauty.Modules.Catalog.Domain.ReviewPhoto", b =>
+                {
+                    b.HasOne("KekeBeauty.Modules.Catalog.Domain.Review", null)
+                        .WithMany()
+                        .HasForeignKey("ReviewId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_review_photos_reviews_review_id");
                 });
 
             modelBuilder.Entity("KekeBeauty.Modules.Catalog.Domain.Service", b =>

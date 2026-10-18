@@ -167,7 +167,7 @@ public sealed class BookingService(
         return await ProjectAsync(appointments, ct);
     }
 
-    public async Task<Result<AppointmentDto>> CancelAsync(Guid clientId, Guid id, CancellationToken ct)
+    public async Task<Result<AppointmentDto>> CancelAsync(Guid clientId, Guid id, bool acceptLateFee, CancellationToken ct)
     {
         var appointment = await db.Appointments.FirstOrDefaultAsync(a => a.Id == id && a.ClientUserId == clientId, ct);
         if (appointment is null)
@@ -175,18 +175,54 @@ public sealed class BookingService(
             return Result.Failure<AppointmentDto>(SchedulingErrors.AppointmentNotFound);
         }
 
+        KekeBeauty.Modules.Billing.Domain.AppointmentPayment? lateSplit = null;
         if (appointment.Status != AppointmentStatus.RescheduleProposed)
         {
-            var limit = await db.Establishments.AsNoTracking().Where(e => e.Id == appointment.EstablishmentId)
-                .Select(e => e.CancelLimitMinutes).FirstAsync(ct);
-            if (AppointmentStateMachine.IsActive(appointment.Status) && appointment.StartsAt - time.GetUtcNow() < TimeSpan.FromMinutes(limit))
+            var rules = await db.Establishments.AsNoTracking().Where(e => e.Id == appointment.EstablishmentId)
+                .Select(e => new { e.CancelLimitMinutes, e.LateCancelFeePercent }).FirstAsync(ct);
+            if (AppointmentStateMachine.IsActive(appointment.Status) && appointment.StartsAt - time.GetUtcNow() < TimeSpan.FromMinutes(rules.CancelLimitMinutes))
             {
-                return Result.Failure<AppointmentDto>(SchedulingErrors.TooLate);
+                // Late: only possible when the establishment keeps a fee out of an online payment, and the client accepts it.
+                var retention = await payments.LateRetentionAsync(appointment, rules.LateCancelFeePercent, ct);
+                // A fee only makes sense before the visit: once it has started, the usual refusal applies.
+                if (retention is null || appointment.StartsAt <= time.GetUtcNow() || appointment.StartedAt != null)
+                {
+                    return Result.Failure<AppointmentDto>(SchedulingErrors.TooLate);
+                }
+
+                if (!acceptLateFee)
+                {
+                    return Result.Failure<AppointmentDto>(SchedulingErrors.FeeNotAccepted(retention.Fee));
+                }
+
+                retention.Record.RefundAmount = retention.Refund;
+                retention.Record.RetainedNet = retention.RetainedNet;
+                await db.SaveChangesAsync(ct);
+                lateSplit = retention.Record;
             }
         }
 
-        return await TransitionAsync(appointment, AppointmentStatus.CancelledByClient, clientId, comment: null, ct);
+        try
+        {
+            var cancelled = await TransitionAsync(appointment, AppointmentStatus.CancelledByClient, clientId, comment: null, ct);
+            if (cancelled.IsFailure && lateSplit is not null)
+            {
+                await ClearLateSplitAsync(lateSplit.Id);
+            }
+
+            return cancelled;
+        }
+        catch when (lateSplit is not null)
+        {
+            // The cancellation did not go through: the fee must not stay on the payment.
+            await ClearLateSplitAsync(lateSplit.Id);
+            throw;
+        }
     }
+
+    private Task ClearLateSplitAsync(Guid paymentId) =>
+        db.AppointmentPayments.Where(p => p.Id == paymentId)
+            .ExecuteUpdateAsync(set => set.SetProperty(p => p.RefundAmount, (decimal?)null).SetProperty(p => p.RetainedNet, (decimal?)null));
 
     public async Task<Result<AppointmentDto>> AcceptRescheduleAsync(Guid clientId, Guid id, CancellationToken ct)
     {
@@ -279,7 +315,7 @@ public sealed class BookingService(
         var appointmentIds = appointments.Select(a => a.Id).ToList();
 
         var establishments = await db.Establishments.AsNoTracking().Where(e => establishmentIds.Contains(e.Id))
-            .Select(e => new { e.Id, e.Name, e.Slug, e.CancelLimitMinutes })
+            .Select(e => new { e.Id, e.Name, e.Slug, e.CancelLimitMinutes, e.LateCancelFeePercent })
             .ToDictionaryAsync(e => e.Id, ct);
         var resources = await db.Resources.AsNoTracking().Where(r => resourceIds.Contains(r.Id))
             .ToDictionaryAsync(r => r.Id, r => r.Name, ct);
@@ -296,18 +332,26 @@ public sealed class BookingService(
         return appointments.Select(a =>
         {
             var e = establishments[a.EstablishmentId];
+            var late = a.Status != AppointmentStatus.RescheduleProposed && a.StartsAt - now < TimeSpan.FromMinutes(e.CancelLimitMinutes);
+            var fee = 0m;
+            if (late && AppointmentStateMachine.IsActive(a.Status) && e.LateCancelFeePercent > 0
+                && paymentInfo.TryGetValue(a.Id, out var paid) && paid.Status == "Paid")
+            {
+                fee = KekeBeauty.Infrastructure.Billing.PaymentRules.LateFee(a.TotalPrice, e.LateCancelFeePercent, paid.Amount);
+            }
+
             return new AppointmentDto(
                 a.Id, a.EstablishmentId, e.Name, e.Slug, resources.GetValueOrDefault(a.ResourceId),
                 a.StartsAt, a.EndsAt, a.Status.ToString(), a.TotalPrice, a.CurrencyCode, a.ClientNote, a.RejectionReason,
                 a.ProposedStartsAt, a.ProposedEndsAt, a.ExpiresAt,
-                AppointmentStateMachine.IsActive(a.Status)
-                    && (a.Status == AppointmentStatus.RescheduleProposed || a.StartsAt - now >= TimeSpan.FromMinutes(e.CancelLimitMinutes)),
+                AppointmentStateMachine.IsActive(a.Status) && (!late || fee > 0),
                 lines.GetValueOrDefault(a.Id) ?? [],
                 a.CreatedAt,
                 paymentInfo.GetValueOrDefault(a.Id),
                 AgendaService.ServicePaymentOf(a),
                 a.TipAmount,
-                tippable.Contains(a.Id));
+                tippable.Contains(a.Id),
+                fee);
         }).ToList();
     }
 }

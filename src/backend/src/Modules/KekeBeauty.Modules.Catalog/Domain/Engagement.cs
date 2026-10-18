@@ -34,6 +34,23 @@ public sealed class Review : Entity
     public DateTimeOffset CreatedAt { get; init; } = DateTimeOffset.UtcNow;
 }
 
+public enum ReviewPhotoKind
+{
+    Before,
+    After,
+    Other,
+}
+
+/// <summary>A photo a client attached to her review, usually the before and the after of a treatment.</summary>
+public sealed class ReviewPhoto : Entity
+{
+    public required Guid ReviewId { get; init; }
+    public required ReviewPhotoKind Kind { get; init; }
+    public required string StorageKey { get; init; }
+    public string? ThumbKey { get; init; }
+    public DateTimeOffset CreatedAt { get; init; } = DateTimeOffset.UtcNow;
+}
+
 /// <summary>An establishment a client saved to find again.</summary>
 public sealed class Favorite
 {

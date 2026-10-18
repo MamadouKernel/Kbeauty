@@ -233,8 +233,14 @@ public sealed class TeamService(KekeBeautyDbContext db, TimeProvider time)
             return Result.Failure<TeamAppointmentDto>(SchedulingErrors.InvalidTransition);
         }
 
+        var resource = await db.Resources.AsNoTracking().FirstAsync(r => r.Id == appointment.ResourceId, ct);
+        var commission = appointment.CommissionAmount ?? CommissionService.CommissionOf(appointment.TotalPrice, resource.CommissionPercent);
+        var commissionUser = appointment.CommissionUserId ?? resource.UserId;
         var changed = await db.Appointments.Where(a => a.Id == appointmentId && a.FinishedAt == null)
-            .ExecuteUpdateAsync(set => set.SetProperty(a => a.FinishedAt, finished), ct);
+            .ExecuteUpdateAsync(set => set
+                .SetProperty(a => a.FinishedAt, finished)
+                .SetProperty(a => a.CommissionAmount, (decimal?)commission)
+                .SetProperty(a => a.CommissionUserId, commissionUser), ct);
         if (changed == 0)
         {
             return Result.Failure<TeamAppointmentDto>(SchedulingErrors.InvalidTransition);

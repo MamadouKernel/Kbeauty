@@ -43,6 +43,7 @@ public static class ProblemResults
             || code.EndsWith(".hold_expired", StringComparison.Ordinal)
             || code.EndsWith(".nothing_to_pay", StringComparison.Ordinal)
             || code.EndsWith(".in_progress", StringComparison.Ordinal)
+            || code.EndsWith(".fee_not_accepted", StringComparison.Ordinal)
             || code.EndsWith(".not_disputable", StringComparison.Ordinal)
             || code.EndsWith(".already_filed", StringComparison.Ordinal)
             || code.EndsWith(".already_resolved", StringComparison.Ordinal)

@@ -48,6 +48,10 @@ public sealed class KekeBeautyDbContext(DbContextOptions<KekeBeautyDbContext> op
     public DbSet<TimeOff> TimeOffs => Set<TimeOff>();
     public DbSet<ClientTechnicalNote> ClientTechnicalNotes => Set<ClientTechnicalNote>();
     public DbSet<Dispute> Disputes => Set<Dispute>();
+    public DbSet<TipPayment> TipPayments => Set<TipPayment>();
+    public DbSet<CollaboratorPayout> CollaboratorPayouts => Set<CollaboratorPayout>();
+    public DbSet<CollaboratorPayoutAccount> CollaboratorPayoutAccounts => Set<CollaboratorPayoutAccount>();
+    public DbSet<ReviewPhoto> ReviewPhotos => Set<ReviewPhoto>();
     public DbSet<Appointment> Appointments => Set<Appointment>();
     public DbSet<AppointmentLine> AppointmentLines => Set<AppointmentLine>();
     public DbSet<AppointmentStatusHistory> AppointmentHistory => Set<AppointmentStatusHistory>();

@@ -26,6 +26,7 @@ public sealed class PaymentProcessor(
     EntitlementService entitlements,
     NotificationService notifications,
     AppointmentPaymentService appointmentPayments,
+    TipPaymentService tipPayments,
     TimeProvider time,
     ILogger<PaymentProcessor> logger)
 {
@@ -119,6 +120,12 @@ public sealed class PaymentProcessor(
         if (mismatch)
         {
             logger.LogError("Refused payment {Payment}: the provider reported another amount or currency", payment.Id);
+        }
+
+        if (payment.TipPaymentId is not null)
+        {
+            await tipPayments.OnSettledAsync(payment, status == PaymentStatus.Succeeded, ct);
+            return;
         }
 
         if (payment.AppointmentPaymentId is not null)

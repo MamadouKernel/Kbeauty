@@ -104,3 +104,63 @@ describe('elapsed', () => {
     expect(elapsed(start, Date.parse('2026-10-18T09:59:58Z'))).toBe('00:00:00');
   });
 });
+
+describe('TeamService payouts', () => {
+  let service: TeamService;
+  let http: HttpTestingController;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [provideHttpClient(), provideHttpClientTesting()],
+    });
+    service = TestBed.inject(TeamService);
+    http = TestBed.inject(HttpTestingController);
+  });
+
+  afterEach(() => http.verify());
+
+  it('saves the collaborator payout account', async () => {
+    const input = {
+      operator: 'wave-cote-divoire',
+      account: '07 00 00 99 88',
+      accountName: 'Awa Koné',
+    };
+    const pending = service.savePayoutAccount(input);
+
+    const request = http.expectOne('/api/v1/team/payout-account');
+    expect(request.request.method).toBe('PUT');
+    expect(request.request.body).toEqual(input);
+    request.flush({
+      configured: true,
+      operator: input.operator,
+      accountMasked: '•••• 9988',
+      accountName: 'Awa Koné',
+    });
+
+    expect((await pending).configured).toBe(true);
+  });
+
+  it('reads what the collaborator is owed and has received', async () => {
+    const pending = service.myPayouts();
+
+    http
+      .expectOne('/api/v1/team/payouts')
+      .flush({ account: { configured: false }, owed: [], history: [] });
+
+    expect((await pending).history).toEqual([]);
+  });
+
+  it('lets the owner see and pay what a collaborator is owed', async () => {
+    const view = service.ownerPayouts('e1');
+    http
+      .expectOne('/api/v1/pro/establishments/e1/team-payouts')
+      .flush({ owed: [], history: [], availableBalance: 7000 });
+    expect((await view).availableBalance).toBe(7000);
+
+    const paid = service.payCollaborator('e1', 'u1');
+    const request = http.expectOne('/api/v1/pro/establishments/e1/team-payouts/u1');
+    expect(request.request.method).toBe('POST');
+    request.flush({ id: 'p1', amount: 3500, status: 'Succeeded' });
+    expect((await paid).amount).toBe(3500);
+  });
+});

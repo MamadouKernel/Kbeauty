@@ -100,6 +100,17 @@ public sealed class Appointment : Entity
     /// <summary>Tip the client left for the collaborator after the treatment (0 when none).</summary>
     public decimal TipAmount { get; set; }
 
+    /// <summary>
+    /// What the collaborator earned on this service and who she was, frozen when the service was done: a later change of rate or of
+    /// person never rewrites history. Null until then (older rows fall back to the resource current rate).
+    /// </summary>
+    public decimal? CommissionAmount { get; set; }
+
+    public Guid? CommissionUserId { get; set; }
+
+    /// <summary>Set once the commission has been paid to the collaborator (<c>billing.collaborator_payouts</c>).</summary>
+    public Guid? CollaboratorPayoutId { get; set; }
+
     public DateTimeOffset? FirstReminderSentAt { get; set; }
 
     public DateTimeOffset? SecondReminderSentAt { get; set; }

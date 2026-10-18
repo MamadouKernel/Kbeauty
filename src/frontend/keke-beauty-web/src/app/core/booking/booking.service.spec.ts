@@ -125,3 +125,46 @@ describe('date helpers', () => {
     ).not.toThrow();
   });
 });
+
+describe('BookingService late cancellation and tips', () => {
+  let service: BookingService;
+  let http: HttpTestingController;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [provideHttpClient(), provideHttpClientTesting()],
+    });
+    service = TestBed.inject(BookingService);
+    http = TestBed.inject(HttpTestingController);
+  });
+
+  afterEach(() => http.verify());
+
+  it('cancels without accepting a fee unless asked to', async () => {
+    const plain = service.cancel('a1');
+    const first = http.expectOne('/api/v1/appointments/a1/cancel');
+    expect(first.request.body).toEqual({ acceptLateFee: false });
+    first.flush({ id: 'a1' });
+    await plain;
+
+    const withFee = service.cancel('a1', true);
+    const second = http.expectOne('/api/v1/appointments/a1/cancel');
+    expect(second.request.body).toEqual({ acceptLateFee: true });
+    second.flush({ id: 'a1' });
+    await withFee;
+  });
+
+  it('gets the payment page of a tip, or a plain confirmation when payments are off', async () => {
+    const online = service.tip('a1', 500);
+    const request = http.expectOne('/api/v1/appointments/a1/tip');
+    expect(request.request.body).toEqual({ amount: 500 });
+    request.flush({ amount: 500, status: 'Awaiting', paymentUrl: 'https://pay.example/x?tx=KT1' });
+    expect((await online).paymentUrl).toBe('https://pay.example/x?tx=KT1');
+
+    const direct = service.tip('a2', 1000);
+    http
+      .expectOne('/api/v1/appointments/a2/tip')
+      .flush({ amount: 1000, status: 'Recorded', paymentUrl: null });
+    expect((await direct).status).toBe('Recorded');
+  });
+});

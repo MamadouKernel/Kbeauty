@@ -68,6 +68,14 @@ public sealed class AppointmentPayment : Entity
     public string? RefundProviderReference { get; set; }
     public DateTimeOffset? RefundedAt { get; set; }
     public string? RefundError { get; set; }
+
+    /// <summary>
+    /// What goes back to the client when only a part is refunded (late-cancellation fee kept). Null means the whole <see cref="Amount"/>.
+    /// </summary>
+    public decimal? RefundAmount { get; set; }
+
+    /// <summary>What the establishment earns from a payment that was only partly refunded (the retained part, net of the platform fee).</summary>
+    public decimal? RetainedNet { get; set; }
 }
 
 public enum PayoutStatus
@@ -94,4 +102,75 @@ public sealed class Payout : Entity
     public Guid? CreatedBy { get; init; }
     public DateTimeOffset CreatedAt { get; init; } = DateTimeOffset.UtcNow;
     public DateTimeOffset? CompletedAt { get; set; }
+}
+
+public enum TipPaymentStatus
+{
+    /// <summary>The client was sent to the payment page and has not paid yet.</summary>
+    Awaiting,
+
+    Paid,
+
+    /// <summary>The provider refused the payment.</summary>
+    Failed,
+}
+
+/// <summary>A tip a client pays online for the collaborator who served her. The platform holds it until it is paid out to the collaborator.</summary>
+public sealed class TipPayment : Entity
+{
+    public required Guid AppointmentId { get; init; }
+    public required Guid EstablishmentId { get; init; }
+    public required Guid ClientUserId { get; init; }
+    public required Guid CollaboratorUserId { get; init; }
+    public required decimal Amount { get; init; }
+    public string CurrencyCode { get; init; } = "XOF";
+    public TipPaymentStatus Status { get; set; } = TipPaymentStatus.Awaiting;
+
+    /// <summary>The gateway transaction (<see cref="Payment"/>) the client pays through.</summary>
+    public Guid? PaymentId { get; set; }
+
+    public string? PaymentUrl { get; set; }
+    public DateTimeOffset CreatedAt { get; init; } = DateTimeOffset.UtcNow;
+    public DateTimeOffset? PaidAt { get; set; }
+
+    /// <summary>Set once the tip has been included in a payout to the collaborator.</summary>
+    public Guid? CollaboratorPayoutId { get; set; }
+}
+
+/// <summary>Where a collaborator is paid: her own mobile-money account, chosen by her.</summary>
+public sealed class CollaboratorPayoutAccount : Entity
+{
+    public required Guid UserId { get; init; }
+    public required string Operator { get; set; }
+    public required string Account { get; set; }
+    public required string AccountName { get; set; }
+    public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;
+}
+
+/// <summary>
+/// A transfer to a collaborator: the commissions of her finished services plus the tips paid online for her.
+/// Commissions are advanced by the platform against the establishment's balance (netted from its next payout); tips are the platform's to pay.
+/// </summary>
+public sealed class CollaboratorPayout : Entity
+{
+    public required Guid UserId { get; init; }
+    public required Guid EstablishmentId { get; init; }
+    public required decimal CommissionAmount { get; set; }
+    public required decimal TipAmount { get; set; }
+    public required decimal Amount { get; set; }
+    public string CurrencyCode { get; init; } = "XOF";
+    public required string Operator { get; init; }
+    public required string Account { get; init; }
+    public required string AccountName { get; init; }
+    public required string Provider { get; init; }
+    public required string TransactionId { get; init; }
+    public string? ProviderReference { get; set; }
+    public PayoutStatus Status { get; set; } = PayoutStatus.Pending;
+    public string? Error { get; set; }
+    public Guid? CreatedBy { get; init; }
+    public DateTimeOffset CreatedAt { get; init; } = DateTimeOffset.UtcNow;
+    public DateTimeOffset? CompletedAt { get; set; }
+
+    /// <summary>The establishment payout this advance was deducted from; null while the advance is still outstanding.</summary>
+    public Guid? SettledAgainstPayoutId { get; set; }
 }

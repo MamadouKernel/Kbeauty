@@ -61,6 +61,21 @@ public sealed class PayoutService(
     private static readonly AppointmentStatus[] Held = [AppointmentStatus.Pending, AppointmentStatus.Confirmed, AppointmentStatus.RescheduleProposed];
     private static readonly AppointmentStatus[] Done = [AppointmentStatus.Completed, AppointmentStatus.NoShow];
 
+    /// <summary>
+    /// Online payments an establishment can be paid out for: those of appointments that took place, and the part kept from
+    /// late-cancelled ones; never while a claim about the appointment is open (Keke Protect).
+    /// </summary>
+    private IQueryable<AppointmentPayment> Payable() =>
+        from p in db.AppointmentPayments
+        join a in db.Appointments on p.AppointmentId equals a.Id
+        where p.PayoutId == null
+              && !db.Disputes.Any(d => d.AppointmentId == a.Id && d.Status == DisputeStatus.Open)
+              && ((p.Status == AppointmentPaymentStatus.Paid && Done.Contains(a.Status))
+                  || (p.RetainedNet != null && a.Status == AppointmentStatus.CancelledByClient
+                      && (p.Status == AppointmentPaymentStatus.Paid || p.Status == AppointmentPaymentStatus.RefundPending
+                          || p.Status == AppointmentPaymentStatus.Refunded || p.Status == AppointmentPaymentStatus.RefundFailed)))
+        select p;
+
     // ───────── Partner settings ─────────
 
     public async Task<Result<PaymentSettingsDto>> GetSettingsAsync(Guid userId, Guid establishmentId, CancellationToken ct)
@@ -137,10 +152,13 @@ public sealed class PayoutService(
                               join a in db.Appointments on p.AppointmentId equals a.Id
                               where p.PayoutId == null && Held.Contains(a.Status)
                               select (decimal?)p.NetAmount).SumAsync(ct) ?? 0;
-        var payable = await (from p in paid
-                             join a in db.Appointments on p.AppointmentId equals a.Id
-                             where p.PayoutId == null && Done.Contains(a.Status) && !db.Disputes.Any(d => d.AppointmentId == a.Id && d.Status == DisputeStatus.Open)
-                             select (decimal?)p.NetAmount).SumAsync(ct) ?? 0;
+        var gross = await Payable().Where(p => p.EstablishmentId == establishmentId).SumAsync(p => (decimal?)(p.RetainedNet ?? p.NetAmount), ct) ?? 0;
+
+        // Commissions already advanced to collaborators are not payable to the establishment any more.
+        var advanced = await db.CollaboratorPayouts
+            .Where(c => c.EstablishmentId == establishmentId && c.Status != PayoutStatus.Failed && c.SettledAgainstPayoutId == null)
+            .SumAsync(c => (decimal?)c.CommissionAmount, ct) ?? 0;
+        var payable = Math.Max(0, gross - advanced);
         var paidOut = await db.Payouts.AsNoTracking().Where(p => p.EstablishmentId == establishmentId && p.Status == PayoutStatus.Succeeded)
             .SumAsync(p => (decimal?)p.Amount, ct) ?? 0;
         var configured = PayoutOperators.IsKnown(establishment?.PayoutOperator) && !string.IsNullOrWhiteSpace(establishment?.PayoutAccount);
@@ -168,7 +186,7 @@ public sealed class PayoutService(
                join e in db.Establishments.AsNoTracking() on p.EstablishmentId equals e.Id
                where p.Status == AppointmentPaymentStatus.RefundPending || p.Status == AppointmentPaymentStatus.RefundFailed || p.Status == AppointmentPaymentStatus.Refunded
                orderby p.CreatedAt descending
-               select new RefundDto(p.Id, p.AppointmentId, e.Name, p.Amount, p.CurrencyCode, p.Status.ToString(), p.RefundError, p.CreatedAt, p.RefundedAt))
+               select new RefundDto(p.Id, p.AppointmentId, e.Name, p.RefundAmount ?? p.Amount, p.CurrencyCode, p.Status.ToString(), p.RefundError, p.CreatedAt, p.RefundedAt))
             .Take(100).ToListAsync(ct);
 
     /// <summary>Pays one establishment what it is owed.</summary>
@@ -185,10 +203,10 @@ public sealed class PayoutService(
             return Result.Failure<PayoutDto>(PayoutErrors.NoDestination);
         }
 
-        var ids = await (from p in db.AppointmentPayments
-                         join a in db.Appointments on p.AppointmentId equals a.Id
-                         where p.EstablishmentId == establishmentId && p.Status == AppointmentPaymentStatus.Paid && p.PayoutId == null && Done.Contains(a.Status) && !db.Disputes.Any(d => d.AppointmentId == a.Id && d.Status == DisputeStatus.Open)
-                         select p.Id).ToListAsync(ct);
+        // One money movement per establishment at a time: the claim and the netting below read the same balance.
+        await using var transaction = await db.Database.BeginTransactionAsync(ct);
+        await EstablishmentLock.AcquireAsync(db, establishmentId, ct);
+        var ids = await Payable().Where(p => p.EstablishmentId == establishmentId).Select(p => p.Id).ToListAsync(ct);
         if (ids.Count == 0)
         {
             return Result.Failure<PayoutDto>(PayoutErrors.NothingToPay);
@@ -210,14 +228,31 @@ public sealed class PayoutService(
         };
         var payoutId = payout.Id;
         var claimed = await db.AppointmentPayments
-            .Where(p => ids.Contains(p.Id) && p.PayoutId == null && p.Status == AppointmentPaymentStatus.Paid)
+            .Where(p => ids.Contains(p.Id) && p.PayoutId == null && (p.Status == AppointmentPaymentStatus.Paid || p.RetainedNet != null))
             .ExecuteUpdateAsync(set => set.SetProperty(p => p.PayoutId, (Guid?)payoutId), ct);
         if (claimed == 0)
         {
             return Result.Failure<PayoutDto>(PayoutErrors.NothingToPay);
         }
 
-        var amount = await db.AppointmentPayments.Where(p => p.PayoutId == payoutId).SumAsync(p => p.NetAmount, ct);
+        var gross = await db.AppointmentPayments.Where(p => p.PayoutId == payoutId).SumAsync(p => p.RetainedNet ?? p.NetAmount, ct);
+
+        // Commissions already advanced to collaborators are deducted: that money already left the platform for this establishment.
+        var amount = gross;
+        var advances = await db.CollaboratorPayouts
+            .Where(c => c.EstablishmentId == establishmentId && c.Status == PayoutStatus.Succeeded && c.SettledAgainstPayoutId == null && c.CommissionAmount > 0)
+            .OrderBy(c => c.CreatedAt).ToListAsync(ct);
+        foreach (var advance in advances)
+        {
+            if (advance.CommissionAmount > amount)
+            {
+                break;
+            }
+
+            amount -= advance.CommissionAmount;
+            advance.SettledAgainstPayoutId = payoutId;
+        }
+
         payout.Amount = amount;
         db.Payouts.Add(payout);
         if (admin is not null)
@@ -225,9 +260,21 @@ public sealed class PayoutService(
             Audit.Add(db, admin, time, "payout.create", "Payout", payoutId, new { establishmentId, amount, claimed });
         }
 
+        if (amount <= 0)
+        {
+            // Everything was already advanced to collaborators: the books are settled, no transfer is needed.
+            payout.Status = PayoutStatus.Succeeded;
+            payout.CompletedAt = time.GetUtcNow();
+            await db.SaveChangesAsync(ct);
+            await transaction.CommitAsync(ct);
+            return Result.Success(Map(payout, establishment.Name));
+        }
+
+        await db.SaveChangesAsync(ct);
+        await transaction.CommitAsync(ct);
+
         try
         {
-            await db.SaveChangesAsync(ct);
             payout.ProviderReference = await gateway.SendAsync(
                 new PayoutRequest(transactionId, payout.Operator, payout.AccountName, PhoneNumbers.ToE164(payout.Account)?.TrimStart('+') ?? payout.Account, amount, $"Reversement Keke Beauty — {establishment.Name}"), ct);
             await db.SaveChangesAsync(ct);
@@ -246,10 +293,7 @@ public sealed class PayoutService(
     /// <summary>Pays every establishment that is owed something and has a payment account.</summary>
     public async Task<PayoutRunReport> RunAllAsync(AdminContext admin, CancellationToken ct)
     {
-        var due = await (from p in db.AppointmentPayments.AsNoTracking()
-                         join a in db.Appointments.AsNoTracking() on p.AppointmentId equals a.Id
-                         where p.Status == AppointmentPaymentStatus.Paid && p.PayoutId == null && Done.Contains(a.Status) && !db.Disputes.Any(d => d.AppointmentId == a.Id && d.Status == DisputeStatus.Open)
-                         select p.EstablishmentId).Distinct().ToListAsync(ct);
+        var due = await Payable().Select(p => p.EstablishmentId).Distinct().ToListAsync(ct);
 
         int payouts = 0, skipped = 0;
         decimal total = 0;
@@ -326,6 +370,7 @@ public sealed class PayoutService(
         payout.Error = error.Length > 500 ? error[..500] : error;
         payout.CompletedAt = time.GetUtcNow();
         await db.AppointmentPayments.Where(p => p.PayoutId == payout.Id).ExecuteUpdateAsync(set => set.SetProperty(p => p.PayoutId, (Guid?)null), ct);
+        await db.CollaboratorPayouts.Where(c => c.SettledAgainstPayoutId == payout.Id).ExecuteUpdateAsync(set => set.SetProperty(c => c.SettledAgainstPayoutId, (Guid?)null), ct);
         await db.SaveChangesAsync(ct);
     }
 

@@ -6,6 +6,7 @@ using KekeBeauty.Modules.Catalog.Domain;
 using KekeBeauty.Modules.Scheduling.Domain;
 using KekeBeauty.SharedKernel;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Npgsql;
 
 namespace KekeBeauty.Infrastructure.Reviews;
@@ -32,7 +33,8 @@ public sealed record ReviewDto(
     DateTimeOffset CreatedAt,
     string? ReplyText,
     DateTimeOffset? RepliedAt,
-    string Status = "Published");
+    string Status = "Published",
+    IReadOnlyList<ReviewPhotoDto>? Photos = null);
 
 /// <summary>Average, number and how many reviews each star count got (<c>Distribution[0]</c> = 1 star … <c>[4]</c> = 5 stars).</summary>
 public sealed record RatingSummary(double? Average, int Count, IReadOnlyList<int> Distribution);
@@ -49,8 +51,10 @@ public sealed record HideReviewInput(string Reason);
 public sealed record MyReviewDto(Guid ReviewId, Guid AppointmentId, Guid EstablishmentId, int Rating);
 
 /// <summary>Clients' reviews (a real, completed visit is required) and the establishment's answers.</summary>
-public sealed class OpinionService(KekeBeautyDbContext db, TimeProvider time)
+public sealed class OpinionService(KekeBeautyDbContext db, TimeProvider time, IConfiguration configuration)
 {
+    private readonly string _mediaBaseUrl = MediaUrls.BaseUrl(configuration);
+
     public const int MaxCommentLength = 1000;
     public const int MaxReplyLength = 600;
     public const int PageSizeDefault = 10;
@@ -205,7 +209,8 @@ public sealed class OpinionService(KekeBeautyDbContext db, TimeProvider time)
         var listedTotal = await listed.CountAsync(ct);
         var items = await listed.OrderByDescending(r => r.CreatedAt).Skip((page - 1) * pageSize).Take(pageSize).ToListAsync(ct);
         var authors = await AuthorsAsync(items.Select(r => r.UserId).Distinct().ToList(), ct);
-        return new ReviewsPage(summary, items.Select(r => ToDto(r, authors)).ToList(), page, pageSize, listedTotal);
+        var photos = await ReviewPhotoService.ForReviewsAsync(db, _mediaBaseUrl, items.Select(r => r.Id).ToList(), ct);
+        return new ReviewsPage(summary, items.Select(r => ToDto(r, authors, photos)).ToList(), page, pageSize, listedTotal);
     }
 
     private async Task<Dictionary<Guid, string>> AuthorsAsync(IReadOnlyList<Guid> userIds, CancellationToken ct) =>
@@ -225,9 +230,9 @@ public sealed class OpinionService(KekeBeautyDbContext db, TimeProvider time)
         return initial.Length == 0 ? first : $"{first} {char.ToUpperInvariant(initial[0])}.";
     }
 
-    private static ReviewDto ToDto(Review r, IReadOnlyDictionary<Guid, string> authors) =>
+    private static ReviewDto ToDto(Review r, IReadOnlyDictionary<Guid, string> authors, IReadOnlyDictionary<Guid, IReadOnlyList<ReviewPhotoDto>>? photos = null) =>
         new(r.Id, r.Rating, r.Status == ReviewStatus.Hidden ? null : r.Comment, authors.GetValueOrDefault(r.UserId, "Ancien client"), r.CreatedAt,
-            r.ReplyText, r.RepliedAt, r.Status.ToString());
+            r.ReplyText, r.RepliedAt, r.Status.ToString(), r.Status == ReviewStatus.Hidden ? null : photos?.GetValueOrDefault(r.Id));
 }
 
 /// <summary>The establishments a client saved.</summary>

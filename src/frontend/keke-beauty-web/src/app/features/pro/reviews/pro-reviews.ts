@@ -2,13 +2,14 @@ import { ChangeDetectionStrategy, Component, inject, input, resource, signal } f
 import { RouterLink } from '@angular/router';
 import { problemMessage } from '../../../core/auth/auth.models';
 import { ReviewService } from '../../../core/reviews/review.service';
+import { ReviewPhotos } from '../../../shared/review-photos/review-photos';
 import { StarRating } from '../../../shared/star-rating/star-rating';
 
 /** `/pro/etablissements/:id/avis` — what clients wrote about the establishment, and the owner's public answers. */
 @Component({
   selector: 'app-pro-reviews',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, StarRating],
+  imports: [RouterLink, StarRating, ReviewPhotos],
   styles: `
     .page {
       display: grid;
@@ -104,6 +105,7 @@ import { StarRating } from '../../../shared/star-rating/star-rating';
             @if (review.comment) {
               <p class="comment">{{ review.comment }}</p>
             }
+            <app-review-photos [photos]="review.photos" [author]="review.authorName" />
             @if (review.status === 'Published') {
               @if (review.replyText && editing() !== review.id) {
                 <p class="answer"><strong>Votre réponse :</strong> {{ review.replyText }}</p>

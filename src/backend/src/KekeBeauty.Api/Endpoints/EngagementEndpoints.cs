@@ -1,8 +1,10 @@
 using System.Security.Claims;
 using KekeBeauty.Api.Http;
+using KekeBeauty.Infrastructure.Partner;
 using KekeBeauty.Infrastructure.Reviews;
 using KekeBeauty.Infrastructure.Search;
 using KekeBeauty.SharedKernel;
+using Microsoft.AspNetCore.Mvc;
 
 namespace KekeBeauty.Api.Endpoints;
 
@@ -26,6 +28,30 @@ public static class EngagementEndpoints
             .WithTags("Reviews").RequireAuthorization()
             .Produces<ReviewDto>(StatusCodes.Status201Created).ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status404NotFound).ProducesProblem(StatusCodes.Status409Conflict);
+
+        // Client: before / after photos on her own review.
+        app.MapPost("/api/v1/reviews/{id:guid}/photos", async (Guid id, IFormFile file, [FromForm] string? kind, ClaimsPrincipal user, ReviewPhotoService service, CancellationToken ct) =>
+            {
+                if (file.Length > ImageProcessor.MaxUploadBytes)
+                {
+                    return ProblemResults.From(new Error("file.too_large", "Le fichier dépasse 10 Mo."));
+                }
+
+                await using var stream = file.OpenReadStream();
+                var result = await service.AddAsync(user.UserId(), id, kind, stream, ct);
+                return result.IsSuccess ? Results.Created($"/api/v1/reviews/{id}/photos/{result.Value.Id}", result.Value) : ProblemResults.From(result.Error);
+            })
+            .WithTags("Reviews").RequireAuthorization()
+            .DisableAntiforgery()
+            .WithMetadata(new RequestSizeLimitAttribute(PartnerEndpoints.UploadRequestLimit))
+            .Accepts<IFormFile>("multipart/form-data")
+            .Produces<ReviewPhotoDto>(StatusCodes.Status201Created).ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status404NotFound).ProducesProblem(StatusCodes.Status409Conflict).ProducesProblem(StatusCodes.Status413PayloadTooLarge);
+
+        app.MapDelete("/api/v1/reviews/{id:guid}/photos/{photoId:guid}", async (Guid id, Guid photoId, ClaimsPrincipal user, ReviewPhotoService service, CancellationToken ct) =>
+                PartnerEndpoints.NoContentOr(await service.DeleteAsync(user.UserId(), id, photoId, ct)))
+            .WithTags("Reviews").RequireAuthorization()
+            .Produces(StatusCodes.Status204NoContent).ProducesProblem(StatusCodes.Status404NotFound);
 
         app.MapGet("/api/v1/me/reviews", async (ClaimsPrincipal user, OpinionService service, CancellationToken ct) =>
                 Results.Ok(await service.MineAsync(user.UserId(), ct)))

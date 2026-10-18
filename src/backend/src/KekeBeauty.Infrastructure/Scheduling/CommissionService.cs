@@ -17,8 +17,8 @@ public sealed class CommissionService(KekeBeautyDbContext db, TimeProvider time)
     public const int MaxPeriodDays = 366;
     public const int DefaultPeriodDays = 30;
 
-    private static readonly Error NotTippable = new("tip.not_tippable", "Un pourboire se laisse après un soin terminé, pour une collaboratrice identifiée.");
-    private static readonly Error AlreadyTipped = new("tip.already_tipped", "Vous avez déjà laissé un pourboire pour ce rendez-vous.");
+    public static readonly Error NotTippable = new("tip.not_tippable", "Un pourboire se laisse après un soin terminé, pour une collaboratrice identifiée.");
+    public static readonly Error AlreadyTipped = new("tip.already_tipped", "Vous avez déjà laissé un pourboire pour ce rendez-vous.");
     private static readonly Error TeamNotFound = new("team.not_found", "Collaboratrice introuvable.");
 
     /// <summary>What a collaborator earned on every resource she serves.</summary>
@@ -46,27 +46,35 @@ public sealed class CommissionService(KekeBeautyDbContext db, TimeProvider time)
     }
 
     /// <summary>The client thanks the person who served her. One tip per appointment, only once the treatment is over.</summary>
-    public async Task<Result<decimal>> TipAsync(Guid clientId, Guid appointmentId, decimal amount, CancellationToken ct)
+    /// <summary>Validates a tip request and returns the appointment it is for; nothing is written.</summary>
+    public async Task<Result<Appointment>> CheckTipAsync(Guid clientId, Guid appointmentId, decimal amount, CancellationToken ct)
     {
         var appointment = await db.Appointments.FirstOrDefaultAsync(a => a.Id == appointmentId && a.ClientUserId == clientId, ct);
         if (appointment is null)
         {
-            return Result.Failure<decimal>(SchedulingErrors.AppointmentNotFound);
+            return Result.Failure<Appointment>(SchedulingErrors.AppointmentNotFound);
         }
 
         if (amount < MinTip || amount > MaxTip || amount != decimal.Truncate(amount))
         {
-            return Result.Failure<decimal>(SchedulingErrors.Invalid($"Le pourboire doit être un montant entier compris entre {MinTip:0} et {MaxTip:0}."));
+            return Result.Failure<Appointment>(SchedulingErrors.Invalid($"Le pourboire doit être un montant entier compris entre {MinTip:0} et {MaxTip:0}."));
         }
 
         if (!await IsTippableAsync(appointment, ct))
         {
-            return Result.Failure<decimal>(NotTippable);
+            return Result.Failure<Appointment>(NotTippable);
         }
 
-        if (appointment.TipAmount > 0)
+        return appointment.TipAmount > 0 ? Result.Failure<Appointment>(AlreadyTipped) : Result.Success(appointment);
+    }
+
+    /// <summary>Records a tip handed over directly (no online payment on the platform). One per appointment.</summary>
+    public async Task<Result<decimal>> TipAsync(Guid clientId, Guid appointmentId, decimal amount, CancellationToken ct)
+    {
+        var allowed = await CheckTipAsync(clientId, appointmentId, amount, ct);
+        if (allowed.IsFailure)
         {
-            return Result.Failure<decimal>(AlreadyTipped);
+            return Result.Failure<decimal>(allowed.Error);
         }
 
         // Conditional write: two simultaneous requests cannot both succeed.
@@ -81,6 +89,18 @@ public sealed class CommissionService(KekeBeautyDbContext db, TimeProvider time)
 
     public static bool IsFinished(Appointment a) =>
         a.Status == AppointmentStatus.Completed || (a.Status == AppointmentStatus.Confirmed && a.FinishedAt != null);
+
+    /// <summary>Freezes what the collaborator earned on a service that is done (once), so that later changes never rewrite history.</summary>
+    public static void Snapshot(Appointment appointment, Resource resource)
+    {
+        if (appointment.CommissionAmount is not null)
+        {
+            return;
+        }
+
+        appointment.CommissionAmount = CommissionOf(appointment.TotalPrice, resource.CommissionPercent);
+        appointment.CommissionUserId = resource.UserId;
+    }
 
     public static decimal CommissionOf(decimal price, decimal percent) => decimal.Round(price * percent / 100m, 0, MidpointRounding.AwayFromZero);
 
@@ -118,7 +138,7 @@ public sealed class CommissionService(KekeBeautyDbContext db, TimeProvider time)
                 a.FinishedAt ?? a.EndsAt,
                 a.WalkInName ?? (a.ClientUserId is { } id && names.TryGetValue(id, out var name) ? name : "Cliente"),
                 a.TotalPrice,
-                CommissionOf(a.TotalPrice, resource.CommissionPercent),
+                a.CommissionAmount ?? CommissionOf(a.TotalPrice, resource.CommissionPercent),
                 a.TipAmount)).ToList();
             var revenue = lines.Sum(l => l.ServicePrice);
             var commission = lines.Sum(l => l.Commission);

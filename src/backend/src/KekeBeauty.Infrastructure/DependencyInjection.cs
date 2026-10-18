@@ -108,6 +108,9 @@ public static class DependencyInjection
         services.AddScoped<TeamService>();
         services.AddScoped<CommissionService>();
         services.AddScoped<DisputeService>();
+        services.AddScoped<KekeBeauty.Infrastructure.Billing.TipPaymentService>();
+        services.AddScoped<KekeBeauty.Infrastructure.Billing.CollaboratorPayoutService>();
+        services.AddScoped<KekeBeauty.Infrastructure.Reviews.ReviewPhotoService>();
         services.AddScoped<ResourceService>();
         services.AddSingleton<AppointmentMaintenance>();
         services.AddHostedService(provider => provider.GetRequiredService<AppointmentMaintenance>());

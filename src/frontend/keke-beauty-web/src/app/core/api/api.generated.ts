@@ -8275,6 +8275,8 @@ export interface components {
       /** Format: double */
       tipAmount?: number;
       canTip?: boolean;
+      /** Format: double */
+      lateCancelFee?: number;
     };
     AppointmentLineDto: {
       name: string;
@@ -8408,6 +8410,8 @@ export interface components {
       cancelLimitMinutes: number;
       /** Format: int32 */
       slotStepMinutes: number;
+      /** Format: int32 */
+      lateCancelFeePercent?: number;
     };
     CancelInput: {
       reason: null | string;
@@ -9464,6 +9468,13 @@ export interface components {
       identity: null | components['schemas']['ReviewIdentity'];
       checks: components['schemas']['KycCheck'][];
     };
+    ReviewPhotoDto: {
+      /** Format: uuid */
+      id: string;
+      kind: string;
+      url: string;
+      thumbUrl: null | string;
+    };
     ReviewDto: {
       /** Format: uuid */
       id: string;
@@ -9478,6 +9489,7 @@ export interface components {
       repliedAt: null | string;
       /** @default Published */
       status: string;
+      photos?: null | components['schemas']['ReviewPhotoDto'][];
     };
     ReviewIdentity: {
       status: string;

@@ -113,6 +113,22 @@ const STEPS = [5, 10, 15, 20, 30, 60];
             (ngModelChange)="patch({ cancelLimitMinutes: +$event })"
           />
         </label>
+        <label
+          >Frais d'annulation tardive (% du prix retenu sur le paiement en ligne)
+          <input
+            type="number"
+            name="lateFee"
+            min="0"
+            max="100"
+            [ngModel]="s.lateCancelFeePercent ?? 0"
+            (ngModelChange)="patch({ lateCancelFeePercent: +$event })"
+          />
+        </label>
+        <p class="hint">
+          Passé le délai ci-dessus, une cliente qui a payé en ligne peut encore annuler : ce
+          pourcentage du prix reste à l'établissement, le reste lui est remboursé. À 0 %,
+          l'annulation tardive reste refusée.
+        </p>
         @if (error()) {
           <p class="form-error" role="alert">{{ error() }}</p>
         }

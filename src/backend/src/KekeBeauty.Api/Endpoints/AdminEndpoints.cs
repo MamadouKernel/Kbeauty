@@ -116,6 +116,9 @@ public static class AdminEndpoints
                 Respond(await service.PayAsync(Context(user, http), id, ct)))
             .Produces<KekeBeauty.Infrastructure.Billing.PayoutDto>().ProducesProblem(StatusCodes.Status400BadRequest).ProducesProblem(StatusCodes.Status404NotFound).ProducesProblem(StatusCodes.Status502BadGateway);
 
+        group.MapGet("/collaborator-payouts", async (KekeBeauty.Infrastructure.Billing.CollaboratorPayoutService service, CancellationToken ct) => Results.Ok(await service.AllAsync(ct)))
+            .Produces<IReadOnlyList<KekeBeauty.Infrastructure.Billing.CollaboratorPayoutDto>>();
+
         group.MapGet("/refunds", async (KekeBeauty.Infrastructure.Billing.PayoutService service, CancellationToken ct) => Results.Ok(await service.RefundsAsync(ct)))
             .Produces<IReadOnlyList<KekeBeauty.Infrastructure.Billing.RefundDto>>();
 

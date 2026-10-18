@@ -190,6 +190,10 @@ public sealed class Payment : Entity
     public Guid? InvoiceId { get; init; }
 
     public Guid? AppointmentPaymentId { get; init; }
+
+    /// <summary>The tip this payment settles, when it is one (see <see cref="TipPayment"/>).</summary>
+    public Guid? TipPaymentId { get; init; }
+
     public required string Provider { get; init; }
     public required string ProviderTransactionId { get; init; }
 

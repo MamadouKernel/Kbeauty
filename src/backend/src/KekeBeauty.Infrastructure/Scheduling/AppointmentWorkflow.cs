@@ -18,6 +18,9 @@ public static class SchedulingErrors
     public static readonly Error TooLate = new("appointment.too_late", "Il est trop tard pour annuler ce rendez-vous en ligne : contactez directement l'établissement.");
 
     public static Error Invalid(string message) => new("validation.failed", message);
+
+    public static Error FeeNotAccepted(decimal fee) =>
+        new("appointment.fee_not_accepted", $"Annuler maintenant retient {fee:0} F CFA sur votre paiement (frais d'annulation tardive). Confirmez pour continuer.");
 }
 
 /// <summary>

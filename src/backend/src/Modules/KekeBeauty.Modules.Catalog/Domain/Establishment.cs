@@ -64,6 +64,12 @@ public sealed class Establishment : Entity
     public int MinLeadMinutes { get; set; } = 120;
     public int MaxHorizonDays { get; set; } = 60;
     public int CancelLimitMinutes { get; set; } = 120;
+
+    /// <summary>
+    /// Share of the price kept when a client cancels after the cancellation limit (0 = late cancellation is refused). It is taken
+    /// from the online payment, so it only applies to appointments that were paid online.
+    /// </summary>
+    public int LateCancelFeePercent { get; set; }
     public int SlotStepMinutes { get; set; } = 15;
 
     /// <summary>Online payment of appointments (effective only when the admins switched the feature on).</summary>

@@ -15,6 +15,12 @@ export type Appointment = Schemas['AppointmentDto'];
 export type BookingRequest = Schemas['BookingRequest'];
 export type AppointmentPass = Schemas['PassDto'];
 
+export interface TipResult {
+  readonly amount: number;
+  readonly status: string;
+  readonly paymentUrl: string | null;
+}
+
 export const APPOINTMENT_STATUS: Readonly<
   Record<string, { label: string; tone: 'ok' | 'wait' | 'bad' | 'done' }>
 > = {
@@ -86,15 +92,19 @@ export class BookingService {
     return firstValueFrom(this.http.post<Appointment>(`/api/v1/appointments/${id}/pay`, {}));
   }
 
-  /** A tip for the collaborator who served me, once the treatment is finished (whole amount, one per appointment). */
-  tip(id: string, amount: number): Promise<{ amount: number }> {
-    return firstValueFrom(
-      this.http.post<{ amount: number }>(`/api/v1/appointments/${id}/tip`, { amount }),
-    );
+  /**
+   * A tip for the collaborator who served me, once the treatment is finished (whole amount, one per appointment).
+   * With online payments the answer carries the payment page to go to; otherwise the tip is simply recorded.
+   */
+  tip(id: string, amount: number): Promise<TipResult> {
+    return firstValueFrom(this.http.post<TipResult>(`/api/v1/appointments/${id}/tip`, { amount }));
   }
 
-  cancel(id: string): Promise<Appointment> {
-    return firstValueFrom(this.http.post<Appointment>(`/api/v1/appointments/${id}/cancel`, {}));
+  /** After the cancellation limit, a cancellation only goes through when the client accepts the fee shown on the appointment. */
+  cancel(id: string, acceptLateFee = false): Promise<Appointment> {
+    return firstValueFrom(
+      this.http.post<Appointment>(`/api/v1/appointments/${id}/cancel`, { acceptLateFee }),
+    );
   }
 
   acceptReschedule(id: string): Promise<Appointment> {

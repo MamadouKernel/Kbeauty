@@ -11,7 +11,11 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { problemMessage } from '../../../core/auth/auth.models';
 import { formatMoney } from '../../../core/format/format';
-import { TeamService, type TeamMember } from '../../../core/team/team.service';
+import {
+  TeamService,
+  type CollaboratorOwed,
+  type TeamMember,
+} from '../../../core/team/team.service';
 
 /**
  * `/pro/etablissements/:id/equipe` — who works here: link each person to her account (by e-mail), set her commission,
@@ -193,6 +197,85 @@ import { TeamService, type TeamMember } from '../../../core/team/team.service';
           </p>
         </section>
       }
+
+      @if (payouts.hasValue()) {
+        @let v = payouts.value();
+        <section aria-labelledby="pay" class="card">
+          <h2 id="pay">Verser les gains</h2>
+          <p class="meta">
+            Les pourboires payés en ligne sont versés tels quels. Les commissions sont avancées sur
+            votre solde Keke Beauty ({{ money(v.availableBalance) }} disponibles) et déduites de
+            votre prochain reversement.
+          </p>
+          @if (message()) {
+            <p class="badge" data-tone="ok" role="status">{{ message() }}</p>
+          }
+          <table>
+            <thead>
+              <tr>
+                <th>Collaboratrice</th>
+                <th class="num">Commissions</th>
+                <th class="num">Pourboires</th>
+                <th class="num">Payable maintenant</th>
+                <th><span class="visually-hidden">Action</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (o of v.owed; track o.userId) {
+                <tr>
+                  <td>{{ o.collaboratorName }}</td>
+                  <td class="num">{{ money(o.commission) }}</td>
+                  <td class="num">{{ money(o.tips) }}</td>
+                  <td class="num">{{ money(o.payable) }}</td>
+                  <td>
+                    @if (!o.hasAccount) {
+                      <span class="meta">Compte de paiement non renseigné</span>
+                    } @else {
+                      <button
+                        class="btn btn-primary btn-sm"
+                        type="button"
+                        [disabled]="busy() || o.payable <= 0"
+                        (click)="pay(o)"
+                      >
+                        Payer par mobile money
+                      </button>
+                    }
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="5">Rien à verser pour le moment.</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+          @if (v.history.length > 0) {
+            <details>
+              <summary>Derniers versements</summary>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Collaboratrice</th>
+                    <th class="num">Montant</th>
+                    <th>Compte</th>
+                    <th>État</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (h of v.history; track h.id) {
+                    <tr>
+                      <td>{{ h.collaboratorName }}</td>
+                      <td class="num">{{ money(h.amount) }}</td>
+                      <td>{{ h.operator }} {{ h.accountMasked }}</td>
+                      <td>{{ payoutState(h.status) }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </details>
+          }
+        </section>
+      }
     </div>
   `,
 })
@@ -214,6 +297,12 @@ export class ProTeam {
     params: () => this.id(),
     loader: ({ params }) => this.team.ownerCommissions(params),
   });
+
+  protected readonly payouts = resource({
+    params: () => this.id(),
+    loader: ({ params }) => this.team.ownerPayouts(params),
+  });
+  protected readonly message = signal('');
 
   protected readonly totals = computed(() => {
     const all = this.commissions.hasValue() ? this.commissions.value() : [];
@@ -246,6 +335,19 @@ export class ProTeam {
     return formatMoney(amount);
   }
 
+  protected payoutState(status: string): string {
+    return { Succeeded: 'Versé', Pending: 'En cours', Failed: 'Échec' }[status] ?? status;
+  }
+
+  protected pay(o: CollaboratorOwed): Promise<void> {
+    return confirm(`Verser ${formatMoney(o.payable)} à ${o.collaboratorName} ?`)
+      ? this.run(async () => {
+          const payout = await this.team.payCollaborator(this.id(), o.userId);
+          this.message.set(`${formatMoney(payout.amount)} versés à ${o.collaboratorName}.`);
+        })
+      : Promise.resolve();
+  }
+
   protected save(m: TeamMember): Promise<void> {
     const typed = this.emailOf(m).trim();
     // Unchanged e-mail: only the rate moves.
@@ -269,6 +371,7 @@ export class ProTeam {
   private async run(action: () => Promise<unknown>): Promise<void> {
     this.busy.set(true);
     this.error.set('');
+    this.message.set('');
     try {
       await action();
     } catch (error) {
@@ -277,6 +380,7 @@ export class ProTeam {
       this.busy.set(false);
       this.members.reload();
       this.commissions.reload();
+      this.payouts.reload();
     }
   }
 }

@@ -9,6 +9,7 @@ import {
   untracked,
 } from '@angular/core';
 import type { components } from '../../../core/api/api.generated';
+import { ReviewPhotos } from '../../../shared/review-photos/review-photos';
 import { StarRating } from '../../../shared/star-rating/star-rating';
 
 type ReviewsPage = components['schemas']['ReviewsPage'];
@@ -20,7 +21,7 @@ const PAGE_SIZE = 10;
 @Component({
   selector: 'app-reviews-section',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [StarRating],
+  imports: [StarRating, ReviewPhotos],
   styles: `
     :host {
       display: grid;
@@ -168,6 +169,7 @@ const PAGE_SIZE = 10;
             @if (review.comment) {
               <p class="comment">{{ review.comment }}</p>
             }
+            <app-review-photos [photos]="review.photos" [author]="review.authorName" />
             @if (review.replyText) {
               <div class="reply">
                 <strong>Réponse de l'établissement</strong>

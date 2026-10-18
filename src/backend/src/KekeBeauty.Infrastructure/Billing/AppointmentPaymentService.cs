@@ -29,6 +29,9 @@ public sealed record AppointmentPaymentDto(
 /// <summary>What a booking will cost online, shown to the client before they confirm.</summary>
 public sealed record PaymentQuote(string Kind, decimal Amount, string CurrencyCode, int DepositPercent, decimal Total, decimal OnTheSpot);
 
+/// <summary>A payment cancelled after the limit: the fee kept, the part refunded and the establishment's net share of the fee.</summary>
+public sealed record LateCancelRetention(AppointmentPayment Record, decimal Fee, decimal Refund, decimal RetainedNet);
+
 /// <summary>The pricing rule of online payments: pure, so that the quote shown to the client and the amount charged can never differ.</summary>
 public static class PaymentRules
 {
@@ -52,6 +55,23 @@ public static class PaymentRules
         var fee = decimal.Truncate(amount * platformFeePercent / 100m);
         var kind = amount >= total ? AppointmentPaymentKind.Full : AppointmentPaymentKind.Deposit;
         return new PaymentPlan(kind, amount, fee, amount - fee, currency, establishment.DepositPercent);
+    }
+
+    /// <summary>The late-cancellation fee: a share of the price, never more than what the client paid online.</summary>
+    public static decimal LateFee(decimal total, int feePercent, decimal paid) =>
+        feePercent <= 0 ? 0 : Math.Min(Math.Ceiling(total * feePercent / 100m), paid);
+
+    /// <summary>Splits an online payment cancelled late: what goes back to the client and what the establishment keeps (net of the platform fee).</summary>
+    public static LateCancelRetention? Retention(AppointmentPayment record, decimal total, int feePercent)
+    {
+        var fee = LateFee(total, feePercent, record.Amount);
+        if (fee <= 0)
+        {
+            return null;
+        }
+
+        var platformShare = record.Amount <= 0 ? 0 : decimal.Truncate(record.PlatformFee * fee / record.Amount);
+        return new LateCancelRetention(record, fee, record.Amount - fee, fee - platformShare);
     }
 
     public static PaymentQuote Quote(PaymentPlan plan, decimal total) => new(plan.Kind.ToString(), plan.Amount, plan.Currency, plan.DepositPercent, total, total - plan.Amount);
@@ -312,11 +332,32 @@ public sealed class AppointmentPaymentService(
         }
     }
 
+    // ───────── Late cancellation ─────────
+
+    /// <summary>What the establishment keeps if the client cancels now, or null when it keeps nothing (no fee set, or not paid online).</summary>
+    public async Task<LateCancelRetention?> LateRetentionAsync(Appointment appointment, int feePercent, CancellationToken ct)
+    {
+        if (feePercent <= 0)
+        {
+            return null;
+        }
+
+        var record = await db.AppointmentPayments
+            .Where(p => p.AppointmentId == appointment.Id && p.Status == AppointmentPaymentStatus.Paid)
+            .OrderByDescending(p => p.CreatedAt).FirstOrDefaultAsync(ct);
+        return record is null ? null : PaymentRules.Retention(record, appointment.TotalPrice, feePercent);
+    }
+
     // ───────── Refunds ─────────
 
     /// <summary>Starts the transfer that gives the client's money back. Safe to call twice: only one caller claims the refund.</summary>
     public async Task RefundAsync(AppointmentPayment record, Appointment appointment, CancellationToken ct)
     {
+        if (record.RefundAmount is 0)
+        {
+            return; // the whole payment is kept as a late-cancellation fee: nothing goes back
+        }
+
         var claimed = await db.AppointmentPayments
             .Where(p => p.Id == record.Id && (p.Status == AppointmentPaymentStatus.Paid || p.Status == AppointmentPaymentStatus.RefundFailed))
             .ExecuteUpdateAsync(set => set.SetProperty(p => p.Status, AppointmentPaymentStatus.RefundPending).SetProperty(p => p.RefundError, (string?)null), ct);
@@ -342,7 +383,7 @@ public sealed class AppointmentPaymentService(
         {
             var name = await db.Users.AsNoTracking().Where(u => u.Id == record.ClientUserId).Select(u => u.FirstName + " " + u.LastName).FirstAsync(ct);
             record.RefundProviderReference = await payouts.SendAsync(
-                new PayoutRequest(transactionId, operatorId, name.Trim(), account.TrimStart('+'), record.Amount, "Remboursement rendez-vous Keke Beauty"), ct);
+                new PayoutRequest(transactionId, operatorId, name.Trim(), account.TrimStart('+'), record.RefundAmount ?? record.Amount, "Remboursement rendez-vous Keke Beauty"), ct);
             await db.SaveChangesAsync(ct);
             await CheckRefundAsync(record, appointment, ct);
         }

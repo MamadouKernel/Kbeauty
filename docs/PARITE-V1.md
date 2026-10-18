@@ -33,17 +33,17 @@ Légende : ✅ présent · 🟡 partiel · ⬜ à faire · ➕ n'existe pas en V
 | 22 | **Portail collaboratrice** : planning du jour | ✅ | 3 |
 | 23 | **Poste de travail** : chrono début / fin de soin | ✅ | 3 |
 | 24 | **Fiche technique cliente** (notes de soin, allergies) | ✅ | 3 |
-| 25 | **Commissions collaboratrice** + pourboires | ✅ (calcul et suivi ; le versement reste à l'établissement) | 3 |
-| 26 | **Pourboire** après un soin | 🟡 (enregistré ; pas encore encaissé en ligne) | 3 |
-| 27 | Avis avec photos avant / après | ⬜ | 3 |
-| 28 | **Keke Protect** (retard / annulation tardive, politique) | 🟡 (délai de grâce avant « absente » et versement suspendu pendant un litige ; pas de frais d'annulation tardive) | 4 |
+| 25 | **Commissions collaboratrice** + pourboires | ✅ (commission figée à la fin du soin ; versement par mobile money) | 3 |
+| 26 | **Pourboire** après un soin | ✅ (payé en ligne, versé à la collaboratrice) | 3 |
+| 27 | Avis avec photos avant / après | ✅ (4 photos au plus, masquées avec l'avis) | 3 |
+| 28 | **Keke Protect** (retard / annulation tardive, politique) | ✅ (délai de grâce avant « absente », versement suspendu pendant un litige, frais d'annulation tardive paramétrables) | 4 |
 | 29 | Litiges (ouverture client, traitement admin) | ✅ (+ réponse de l'établissement) | 4 |
 | 30 | Remboursements (demande, validation admin) | ✅ (la demande passe par le litige ; l'admin valide, le remboursement part au moyen de paiement) | 4 |
 | 31 | Reçus / justificatifs partenaire, finances détaillées | 🟡 | 5 |
 | 32 | Tableau de bord admin analytique | 🟡 | 5 |
 | 33 | Formules multiples, avantages, promotions d'un salon | ⬜ | 5 |
 | 34 | Gestionnaire d'inactivité (déconnexion auto) | ⬜ | 6 |
-| 35 | Paiement des collaboratrices (Wave) | ⬜ (gateway fictive d'abord) | 3b |
+| 35 | Paiement des collaboratrices (Wave) | ✅ (Wave, Orange, MTN, Moov ; passerelle fictive en test, WiniPayer en production) | 3 |
 
 ## 2. Apports V1.0.1 que la V1 n'a pas (à conserver et étendre)
 
@@ -52,7 +52,7 @@ Légende : ✅ présent · 🟡 partiel · ⬜ à faire · ➕ n'existe pas en V
 | Essai gratuit, changement de formule au prorata, codes promo, remise directe | ✅ |
 | Carte plein écran avec pins informatifs, tuiles OSM mises en cache | ✅ |
 | Vidéos de réalisations, mises à jour automatiques de l'appli | ✅ |
-| Architecture modulaire testée (211 unitaires, 186 intégration, 172 front, 111 E2E) | ✅ |
+| Architecture modulaire testée (219 unitaires, 191 intégration, 180 front, 113 E2E) | ✅ |
 | Lighthouse mobile 100 / 100 / 100 / 100 | ✅ |
 
 ## 3. Idées au-delà de la V1 (après la parité)
@@ -72,8 +72,8 @@ Légende : ✅ présent · 🟡 partiel · ⬜ à faire · ➕ n'existe pas en V
 
 1. **Design** : échelle typographique fluide et sobre, jetons d'espacement, tailles par écran.
 2. **Comptoir + Pass QR + scanner** (partenaire).
-3. **Équipe** : portail collaboratrice, chrono, fiche technique, commissions, pourboires ✅ ; reste (lot 3b) : avis avec photos avant / après, encaissement en ligne des pourboires, paiement Wave des collaboratrices.
-4. **Confiance** : Keke Protect, litiges, remboursements ✅ ; reste : frais d'annulation tardive paramétrables par l'établissement.
+3. **Équipe** : portail collaboratrice, chrono, fiche technique, commissions, pourboires, avis avec photos, paiement des collaboratrices ✅.
+4. **Confiance** : Keke Protect, litiges, remboursements, frais d'annulation tardive ✅.
 5. **Finances & pilotage** : reçus, finances détaillées, tableau de bord admin, formules/avantages.
 6. **Accès & sécurité** : Google, OTP WhatsApp, appareil de confiance, rôles admin fins, push web, inactivité.
 7. **Au-delà de la V1** : liste d'attente, fidélité, cartes cadeaux, groupes, recommandations.

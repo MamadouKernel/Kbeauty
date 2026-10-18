@@ -62,7 +62,8 @@ public sealed record AppointmentDto(
     KekeBeauty.Infrastructure.Billing.AppointmentPaymentDto? Payment = null,
     ServicePaymentInfo? ServicePayment = null,
     decimal TipAmount = 0,
-    bool CanTip = false);
+    bool CanTip = false,
+    decimal LateCancelFee = 0);
 
 /// <summary>The establishment's record that the service was paid: when, how (Cash or an operator id) and the mobile-money transaction reference.</summary>
 public sealed record ServicePaymentInfo(DateTimeOffset PaidAt, string Method, string? Reference);
@@ -91,6 +92,9 @@ public sealed record PartnerAppointmentDto(
 
 public sealed record RejectInput(string? Reason);
 
+/// <summary>A client cancel request: after the cancellation limit it only goes through when she accepts the fee.</summary>
+public sealed record CancelByClientInput(bool AcceptLateFee);
+
 public sealed record RescheduleProposal(DateTimeOffset StartsAt, string? Comment);
 
 public sealed record CancelInput(string? Reason);
@@ -109,7 +113,8 @@ public sealed record BookingSettingsDto(
     int MinLeadMinutes,
     int MaxHorizonDays,
     int CancelLimitMinutes,
-    int SlotStepMinutes);
+    int SlotStepMinutes,
+    int LateCancelFeePercent = 0);
 
 public sealed record StatsDto(
     int Views,

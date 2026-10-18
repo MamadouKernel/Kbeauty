@@ -52,8 +52,8 @@ public static class AppointmentEndpoints
             .ProducesProblem(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status409Conflict);
 
-        appointments.MapPost("/{id:guid}/cancel", async (Guid id, ClaimsPrincipal user, BookingService service, CancellationToken ct) =>
-                Respond(await service.CancelAsync(user.UserId(), id, ct)))
+        appointments.MapPost("/{id:guid}/cancel", async (Guid id, CancelByClientInput? input, ClaimsPrincipal user, BookingService service, CancellationToken ct) =>
+                Respond(await service.CancelAsync(user.UserId(), id, input?.AcceptLateFee ?? false, ct)))
             .Produces<AppointmentDto>()
             .ProducesProblem(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status409Conflict);
@@ -86,15 +86,16 @@ public static class AppointmentEndpoints
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status404NotFound);
 
-        appointments.MapPost("/{id:guid}/tip", async (Guid id, TipInput input, ClaimsPrincipal user, CommissionService service, CancellationToken ct) =>
+        appointments.MapPost("/{id:guid}/tip", async (Guid id, TipInput input, ClaimsPrincipal user, KekeBeauty.Infrastructure.Billing.TipPaymentService service, CancellationToken ct) =>
             {
                 var result = await service.TipAsync(user.UserId(), id, input.Amount, ct);
-                return result.IsSuccess ? Results.Ok(new TipInput(result.Value)) : ProblemResults.From(result.Error);
+                return result.IsSuccess ? Results.Ok(result.Value) : ProblemResults.From(result.Error);
             })
-            .Produces<TipInput>()
+            .Produces<KekeBeauty.Infrastructure.Billing.TipResultDto>()
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status404NotFound)
-            .ProducesProblem(StatusCodes.Status409Conflict);
+            .ProducesProblem(StatusCodes.Status409Conflict)
+            .ProducesProblem(StatusCodes.Status502BadGateway);
 
         app.MapGet("/api/v1/me/appointments", async (ClaimsPrincipal user, BookingService service, CancellationToken ct) =>
                 Results.Ok(await service.ListMineAsync(user.UserId(), ct)))

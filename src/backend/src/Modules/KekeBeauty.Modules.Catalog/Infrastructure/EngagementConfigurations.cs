@@ -24,6 +24,21 @@ public sealed class ReviewConfiguration : IEntityTypeConfiguration<Review>
     }
 }
 
+public sealed class ReviewPhotoConfiguration : IEntityTypeConfiguration<ReviewPhoto>
+{
+    public void Configure(EntityTypeBuilder<ReviewPhoto> builder)
+    {
+        builder.ToTable("review_photos", "catalog");
+        builder.HasKey(x => x.Id);
+        builder.Property(x => x.Id).ValueGeneratedNever();
+        builder.Property(x => x.Kind).HasConversion<string>().HasMaxLength(10);
+        builder.Property(x => x.StorageKey).HasMaxLength(300).IsRequired();
+        builder.Property(x => x.ThumbKey).HasMaxLength(300);
+        builder.HasOne<Review>().WithMany().HasForeignKey(x => x.ReviewId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasIndex(x => x.ReviewId);
+    }
+}
+
 public sealed class FavoriteConfiguration : IEntityTypeConfiguration<Favorite>
 {
     public void Configure(EntityTypeBuilder<Favorite> builder)

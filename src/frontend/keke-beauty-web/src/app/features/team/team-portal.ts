@@ -11,6 +11,7 @@ import { FormsModule } from '@angular/forms';
 import { problemMessage } from '../../core/auth/auth.models';
 import { formatInZone } from '../../core/booking/booking.service';
 import { formatMoney } from '../../core/format/format';
+import { MOBILE_MONEY_LABELS } from '../../core/format/payment-methods';
 import {
   TeamService,
   elapsed,
@@ -304,6 +305,88 @@ type Step = 'todo' | 'running' | 'done' | 'absent';
           }
         </section>
       }
+
+      @if (payouts.hasValue()) {
+        @let p = payouts.value();
+        <section aria-labelledby="payout-title" class="card">
+          <h2 id="payout-title">Mes versements</h2>
+          @if (p.account.configured) {
+            <p>
+              Vos gains sont versés sur <strong>{{ operatorLabel(p.account.operator) }}</strong>
+              {{ p.account.accountMasked }} ({{ p.account.accountName }}).
+            </p>
+          } @else {
+            <p class="hint">
+              Indiquez votre compte de paiement mobile : votre établissement pourra vous y verser
+              vos commissions et vos pourboires.
+            </p>
+          }
+          <form class="stack" (ngSubmit)="saveAccount()">
+            <label class="stack">
+              Opérateur
+              <select class="admin-input" name="operator" [(ngModel)]="operator">
+                @for (o of operators; track o.value) {
+                  <option [value]="o.value">{{ o.label }}</option>
+                }
+              </select>
+            </label>
+            <label class="stack">
+              Numéro de paiement mobile
+              <input
+                class="admin-input"
+                name="account"
+                inputmode="tel"
+                autocomplete="off"
+                placeholder="07 00 00 00 00"
+                [(ngModel)]="account"
+              />
+            </label>
+            <label class="stack">
+              Nom du titulaire du compte
+              <input class="admin-input" name="holder" autocomplete="off" [(ngModel)]="holder" />
+            </label>
+            <div class="actions">
+              <button class="btn btn-primary btn-sm" type="submit" [disabled]="busy()">
+                {{ p.account.configured ? 'Mettre à jour' : 'Enregistrer mon compte' }}
+              </button>
+            </div>
+          </form>
+
+          @for (o of p.owed; track o.establishmentId) {
+            @if (o.commission > 0 || o.tips > 0) {
+              <p>
+                <strong>{{ o.establishmentName }}</strong> vous doit encore
+                {{ money(o.commission) }} de commissions et {{ money(o.tips) }} de pourboires.
+              </p>
+            }
+          }
+          @if (p.history.length > 0) {
+            <details>
+              <summary>Versements reçus</summary>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Établissement</th>
+                    <th class="num">Montant</th>
+                    <th>État</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (h of p.history; track h.id) {
+                    <tr>
+                      <td>{{ shortDate(h.createdAt) }}</td>
+                      <td>{{ h.establishmentName }}</td>
+                      <td class="num">{{ money(h.amount) }}</td>
+                      <td>{{ payoutState(h.status) }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </details>
+          }
+        </section>
+      }
     </div>
   `,
 })
@@ -324,6 +407,15 @@ export class TeamPortal {
     loader: ({ params }) => this.team.planning(params || undefined),
   });
   protected readonly commissions = resource({ loader: () => this.team.commissions() });
+  protected readonly payouts = resource({ loader: () => this.team.myPayouts() });
+
+  protected readonly operators = Object.entries(MOBILE_MONEY_LABELS).map(([value, label]) => ({
+    value,
+    label,
+  }));
+  protected operator = 'wave-cote-divoire';
+  protected account = '';
+  protected holder = '';
 
   /** The planning's own date (yyyy-mm-dd), whatever the browser's timezone. */
   protected readonly date = computed(() =>
@@ -435,6 +527,35 @@ export class TeamPortal {
         notes: this.notes.trim() || null,
       });
       this.openNote.set(null);
+    });
+  }
+
+  protected operatorLabel(id: string | null): string {
+    return (id && MOBILE_MONEY_LABELS[id]) || id || '';
+  }
+
+  protected payoutState(status: string): string {
+    return { Succeeded: 'Versé', Pending: 'En cours', Failed: 'Échec' }[status] ?? status;
+  }
+
+  protected shortDate(instant: string): string {
+    return formatInZone(instant, 'Africa/Abidjan', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    });
+  }
+
+  protected saveAccount(): Promise<void> {
+    return this.run(async () => {
+      await this.team.savePayoutAccount({
+        operator: this.operator,
+        account: this.account,
+        accountName: this.holder,
+      });
+      this.account = '';
+      this.holder = '';
+      this.payouts.reload();
     });
   }
 

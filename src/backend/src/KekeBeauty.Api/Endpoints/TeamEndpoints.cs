@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using KekeBeauty.Api.Http;
+using KekeBeauty.Infrastructure.Billing;
 using KekeBeauty.Infrastructure.Scheduling;
 using KekeBeauty.SharedKernel;
 using Microsoft.AspNetCore.Mvc;
@@ -43,12 +44,25 @@ public static class TeamEndpoints
                 Respond(await service.ForCollaboratorAsync(user.UserId(), from, to, ct)))
             .Produces<IReadOnlyList<CommissionSummaryDto>>().ProducesProblem(StatusCodes.Status400BadRequest).ProducesProblem(StatusCodes.Status404NotFound);
 
+        group.MapGet("/payout-account", async (ClaimsPrincipal user, CollaboratorPayoutService service, CancellationToken ct) =>
+                Results.Ok(await service.GetAccountAsync(user.UserId(), ct)))
+            .Produces<CollaboratorAccountView>();
+
+        group.MapPut("/payout-account", async (CollaboratorAccountInput input, ClaimsPrincipal user, CollaboratorPayoutService service, CancellationToken ct) =>
+                Respond(await service.SaveAccountAsync(user.UserId(), input, ct)))
+            .Produces<CollaboratorAccountView>().ProducesProblem(StatusCodes.Status400BadRequest);
+
+        group.MapGet("/payouts", async (ClaimsPrincipal user, CollaboratorPayoutService service, CancellationToken ct) =>
+                Results.Ok(await service.MineAsync(user.UserId(), ct)))
+            .Produces<MyPayoutsView>();
+
         return app;
     }
 
     /// <summary>Owner side of the team, mounted under the partner group (role PartnerOwner).</summary>
     public static void MapOwnerTeam(RouteGroupBuilder group)
     {
+        MapOwnerPayouts(group);
         const string team = "/establishments/{id:guid}/team";
 
         group.MapGet(team, async (Guid id, ClaimsPrincipal user, TeamService service, CancellationToken ct) =>
@@ -66,6 +80,21 @@ public static class TeamEndpoints
         group.MapGet("/establishments/{id:guid}/commissions", async (Guid id, [FromQuery] DateOnly? from, [FromQuery] DateOnly? to, ClaimsPrincipal user, CommissionService service, CancellationToken ct) =>
                 Respond(await service.ForOwnerAsync(user.UserId(), id, from, to, ct)))
             .Produces<IReadOnlyList<CommissionSummaryDto>>().ProducesProblem(StatusCodes.Status400BadRequest).ProducesProblem(StatusCodes.Status404NotFound);
+    }
+
+    private static void MapOwnerPayouts(RouteGroupBuilder group)
+    {
+        group.MapGet("/establishments/{id:guid}/team-payouts", async (Guid id, ClaimsPrincipal user, CollaboratorPayoutService service, CancellationToken ct) =>
+                Respond(await service.ViewAsync(user.UserId(), id, ct)))
+            .Produces<CollaboratorPayoutsView>().ProducesProblem(StatusCodes.Status404NotFound);
+
+        group.MapPost("/establishments/{id:guid}/team-payouts/{userId:guid}", async (Guid id, Guid userId, ClaimsPrincipal user, CollaboratorPayoutService service, CancellationToken ct) =>
+                Respond(await service.PayAsync(user.UserId(), id, userId, ct)))
+            .Produces<CollaboratorPayoutDto>()
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status404NotFound)
+            .ProducesProblem(StatusCodes.Status409Conflict)
+            .ProducesProblem(StatusCodes.Status502BadGateway);
     }
 
     private static IResult Respond<T>(Result<T> result) => result.IsSuccess ? Results.Ok(result.Value) : ProblemResults.From(result.Error);

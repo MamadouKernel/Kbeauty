@@ -104,6 +104,7 @@ public sealed class PaymentConfiguration : IEntityTypeConfiguration<Payment>
         builder.HasIndex(x => new { x.Status, x.CreatedAt });
         builder.HasOne<Invoice>().WithMany().HasForeignKey(x => x.InvoiceId).OnDelete(DeleteBehavior.Cascade);
         builder.HasIndex(x => x.AppointmentPaymentId);
+        builder.HasIndex(x => x.TipPaymentId);
     }
 }
 
@@ -148,6 +149,8 @@ public sealed class AppointmentPaymentConfiguration : IEntityTypeConfiguration<A
         builder.Property(x => x.RefundTransactionId).HasMaxLength(60);
         builder.Property(x => x.RefundProviderReference).HasMaxLength(120);
         builder.Property(x => x.RefundError).HasMaxLength(500);
+        builder.Property(x => x.RefundAmount).HasPrecision(12, 2);
+        builder.Property(x => x.RetainedNet).HasPrecision(12, 2);
         builder.HasIndex(x => x.AppointmentId);
         builder.HasIndex(x => new { x.EstablishmentId, x.Status });
         builder.HasIndex(x => x.PayoutId);
@@ -172,6 +175,62 @@ public sealed class PayoutConfiguration : IEntityTypeConfiguration<Payout>
         builder.Property(x => x.Status).HasConversion<string>().HasMaxLength(10);
         builder.Property(x => x.Error).HasMaxLength(500);
         builder.HasIndex(x => x.TransactionId).IsUnique();
+        builder.HasIndex(x => new { x.EstablishmentId, x.CreatedAt });
+    }
+}
+
+public sealed class TipPaymentConfiguration : IEntityTypeConfiguration<TipPayment>
+{
+    public void Configure(EntityTypeBuilder<TipPayment> builder)
+    {
+        builder.ToTable("tip_payments", "billing");
+        builder.HasKey(x => x.Id);
+        builder.Property(x => x.Id).ValueGeneratedNever();
+        builder.Property(x => x.Amount).HasPrecision(12, 2);
+        builder.Property(x => x.CurrencyCode).HasMaxLength(3).IsRequired();
+        builder.Property(x => x.Status).HasConversion<string>().HasMaxLength(10);
+        builder.Property(x => x.PaymentUrl).HasMaxLength(600);
+        builder.HasIndex(x => x.AppointmentId);
+        builder.HasIndex(x => new { x.CollaboratorUserId, x.EstablishmentId, x.Status });
+        builder.HasIndex(x => x.CollaboratorPayoutId);
+    }
+}
+
+public sealed class CollaboratorPayoutAccountConfiguration : IEntityTypeConfiguration<CollaboratorPayoutAccount>
+{
+    public void Configure(EntityTypeBuilder<CollaboratorPayoutAccount> builder)
+    {
+        builder.ToTable("collaborator_payout_accounts", "billing");
+        builder.HasKey(x => x.Id);
+        builder.Property(x => x.Id).ValueGeneratedNever();
+        builder.Property(x => x.Operator).HasMaxLength(40).IsRequired();
+        builder.Property(x => x.Account).HasMaxLength(30).IsRequired();
+        builder.Property(x => x.AccountName).HasMaxLength(100).IsRequired();
+        builder.HasIndex(x => x.UserId).IsUnique();
+    }
+}
+
+public sealed class CollaboratorPayoutConfiguration : IEntityTypeConfiguration<CollaboratorPayout>
+{
+    public void Configure(EntityTypeBuilder<CollaboratorPayout> builder)
+    {
+        builder.ToTable("collaborator_payouts", "billing");
+        builder.HasKey(x => x.Id);
+        builder.Property(x => x.Id).ValueGeneratedNever();
+        builder.Property(x => x.CommissionAmount).HasPrecision(12, 2);
+        builder.Property(x => x.TipAmount).HasPrecision(12, 2);
+        builder.Property(x => x.Amount).HasPrecision(12, 2);
+        builder.Property(x => x.CurrencyCode).HasMaxLength(3).IsRequired();
+        builder.Property(x => x.Operator).HasMaxLength(40).IsRequired();
+        builder.Property(x => x.Account).HasMaxLength(30).IsRequired();
+        builder.Property(x => x.AccountName).HasMaxLength(100).IsRequired();
+        builder.Property(x => x.Provider).HasMaxLength(20).IsRequired();
+        builder.Property(x => x.TransactionId).HasMaxLength(60).IsRequired();
+        builder.Property(x => x.ProviderReference).HasMaxLength(120);
+        builder.Property(x => x.Status).HasConversion<string>().HasMaxLength(10);
+        builder.Property(x => x.Error).HasMaxLength(500);
+        builder.HasIndex(x => x.TransactionId).IsUnique();
+        builder.HasIndex(x => new { x.UserId, x.CreatedAt });
         builder.HasIndex(x => new { x.EstablishmentId, x.CreatedAt });
     }
 }

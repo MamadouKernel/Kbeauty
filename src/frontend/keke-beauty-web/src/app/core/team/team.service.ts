@@ -80,6 +80,69 @@ export interface TeamAssignment {
   readonly commissionPercent: number;
 }
 
+export interface PayoutAccount {
+  readonly configured: boolean;
+  readonly operator: string | null;
+  readonly accountMasked: string | null;
+  readonly accountName: string | null;
+}
+
+export interface PayoutAccountInput {
+  readonly operator: string;
+  readonly account: string;
+  readonly accountName: string;
+}
+
+export interface CollaboratorPayout {
+  readonly id: string;
+  readonly establishmentId: string;
+  readonly establishmentName: string;
+  readonly userId: string;
+  readonly collaboratorName: string;
+  readonly commissionAmount: number;
+  readonly tipAmount: number;
+  readonly amount: number;
+  readonly currencyCode: string;
+  readonly operator: string;
+  readonly accountMasked: string;
+  readonly status: string;
+  readonly error: string | null;
+  readonly createdAt: string;
+  readonly completedAt: string | null;
+}
+
+/** What one establishment owes a collaborator, as she sees it. */
+export interface MyOwed {
+  readonly establishmentId: string;
+  readonly establishmentName: string;
+  readonly commission: number;
+  readonly tips: number;
+}
+
+export interface MyPayouts {
+  readonly account: PayoutAccount;
+  readonly owed: readonly MyOwed[];
+  readonly history: readonly CollaboratorPayout[];
+}
+
+/** What an establishment owes one collaborator, as the owner sees it. `payableCommission` is what its balance can advance now. */
+export interface CollaboratorOwed {
+  readonly userId: string;
+  readonly collaboratorName: string;
+  readonly commission: number;
+  readonly payableCommission: number;
+  readonly tips: number;
+  readonly payable: number;
+  readonly hasAccount: boolean;
+  readonly currencyCode: string;
+}
+
+export interface TeamPayoutsView {
+  readonly owed: readonly CollaboratorOwed[];
+  readonly history: readonly CollaboratorPayout[];
+  readonly availableBalance: number;
+}
+
 /** Collaborator portal (`/api/v1/team`) and the owner's team management (`/api/v1/pro/establishments/:id/team`). */
 @Injectable({ providedIn: 'root' })
 export class TeamService {
@@ -130,7 +193,35 @@ export class TeamService {
     );
   }
 
+  payoutAccount(): Promise<PayoutAccount> {
+    return firstValueFrom(this.http.get<PayoutAccount>('/api/v1/team/payout-account'));
+  }
+
+  savePayoutAccount(input: PayoutAccountInput): Promise<PayoutAccount> {
+    return firstValueFrom(this.http.put<PayoutAccount>('/api/v1/team/payout-account', input));
+  }
+
+  myPayouts(): Promise<MyPayouts> {
+    return firstValueFrom(this.http.get<MyPayouts>('/api/v1/team/payouts'));
+  }
+
   // ───────── Owner ─────────
+
+  ownerPayouts(establishmentId: string): Promise<TeamPayoutsView> {
+    return firstValueFrom(
+      this.http.get<TeamPayoutsView>(`/api/v1/pro/establishments/${establishmentId}/team-payouts`),
+    );
+  }
+
+  /** Sends a collaborator what she is owed (her commissions and tips) to her mobile-money account. */
+  payCollaborator(establishmentId: string, userId: string): Promise<CollaboratorPayout> {
+    return firstValueFrom(
+      this.http.post<CollaboratorPayout>(
+        `/api/v1/pro/establishments/${establishmentId}/team-payouts/${userId}`,
+        {},
+      ),
+    );
+  }
 
   members(establishmentId: string): Promise<TeamMember[]> {
     return firstValueFrom(

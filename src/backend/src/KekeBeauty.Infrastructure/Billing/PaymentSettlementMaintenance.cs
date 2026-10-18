@@ -23,6 +23,7 @@ public sealed class PaymentSettlementMaintenance(
         await using var scope = scopes.CreateAsyncScope();
         var refunds = await scope.ServiceProvider.GetRequiredService<AppointmentPaymentService>().CheckPendingRefundsAsync(ct);
         var payouts = await scope.ServiceProvider.GetRequiredService<PayoutService>().CheckPendingAsync(ct);
-        return refunds + payouts;
+        var collaborators = await scope.ServiceProvider.GetRequiredService<CollaboratorPayoutService>().CheckPendingAsync(ct);
+        return refunds + payouts + collaborators;
     }
 }
