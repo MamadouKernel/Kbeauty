@@ -2353,6 +2353,10 @@ namespace KekeBeauty.Infrastructure.Persistence.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("expires_at");
 
+                    b.Property<DateTimeOffset?>("FinishedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("finished_at");
+
                     b.Property<DateTimeOffset?>("FirstReminderSentAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("first_reminder_sent_at");
@@ -2392,6 +2396,10 @@ namespace KekeBeauty.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(60)")
                         .HasColumnName("service_paid_reference");
 
+                    b.Property<DateTimeOffset?>("StartedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("started_at");
+
                     b.Property<DateTimeOffset>("StartsAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("starts_at");
@@ -2401,6 +2409,11 @@ namespace KekeBeauty.Infrastructure.Persistence.Migrations
                         .HasMaxLength(30)
                         .HasColumnType("character varying(30)")
                         .HasColumnName("status");
+
+                    b.Property<decimal>("TipAmount")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)")
+                        .HasColumnName("tip_amount");
 
                     b.Property<decimal>("TotalPrice")
                         .HasPrecision(12, 2)
@@ -2514,6 +2527,48 @@ namespace KekeBeauty.Infrastructure.Persistence.Migrations
                     b.ToTable("appointment_status_history", "scheduling");
                 });
 
+            modelBuilder.Entity("KekeBeauty.Modules.Scheduling.Domain.ClientTechnicalNote", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Allergies")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("allergies");
+
+                    b.Property<Guid>("ClientUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("client_user_id");
+
+                    b.Property<Guid>("EstablishmentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("establishment_id");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("notes");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<Guid>("UpdatedByUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("updated_by_user_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_client_technical_notes");
+
+                    b.HasIndex("EstablishmentId", "ClientUserId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_client_technical_notes_establishment_id_client_user_id");
+
+                    b.ToTable("client_technical_notes", "scheduling");
+                });
+
             modelBuilder.Entity("KekeBeauty.Modules.Scheduling.Domain.OpeningHour", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2554,6 +2609,11 @@ namespace KekeBeauty.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
+                    b.Property<decimal>("CommissionPercent")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("numeric(5,2)")
+                        .HasColumnName("commission_percent");
+
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
@@ -2572,11 +2632,18 @@ namespace KekeBeauty.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(120)")
                         .HasColumnName("name");
 
+                    b.Property<Guid?>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
                     b.HasKey("Id")
                         .HasName("pk_resources");
 
                     b.HasIndex("EstablishmentId")
                         .HasDatabaseName("ix_resources_establishment_id");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("ix_resources_user_id");
 
                     b.ToTable("resources", "scheduling");
                 });

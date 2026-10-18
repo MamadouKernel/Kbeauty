@@ -18,6 +18,7 @@ public static class AgendaEndpoints
         MapResources(group);
         MapAppointments(group);
         MapCounter(group);
+        TeamEndpoints.MapOwnerTeam(group);
         return app;
     }
 

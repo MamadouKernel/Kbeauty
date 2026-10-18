@@ -86,6 +86,16 @@ public static class AppointmentEndpoints
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status404NotFound);
 
+        appointments.MapPost("/{id:guid}/tip", async (Guid id, TipInput input, ClaimsPrincipal user, CommissionService service, CancellationToken ct) =>
+            {
+                var result = await service.TipAsync(user.UserId(), id, input.Amount, ct);
+                return result.IsSuccess ? Results.Ok(new TipInput(result.Value)) : ProblemResults.From(result.Error);
+            })
+            .Produces<TipInput>()
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status404NotFound)
+            .ProducesProblem(StatusCodes.Status409Conflict);
+
         app.MapGet("/api/v1/me/appointments", async (ClaimsPrincipal user, BookingService service, CancellationToken ct) =>
                 Results.Ok(await service.ListMineAsync(user.UserId(), ct)))
             .WithTags("Booking")

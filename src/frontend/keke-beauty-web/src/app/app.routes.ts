@@ -108,6 +108,12 @@ export const routes: Routes = [
       import('./features/billing/payment-simulation').then((m) => m.PaymentSimulation),
   },
   {
+    path: 'equipe',
+    title: 'Mon planning — Keke Beauty',
+    canActivate: [authGuard, roleGuard('PartnerStaff')],
+    loadComponent: () => import('./features/team/team-portal').then((m) => m.TeamPortal),
+  },
+  {
     path: 'pro',
     canActivate: [authGuard, roleGuard('PartnerOwner')],
     children: [
@@ -154,6 +160,11 @@ export const routes: Routes = [
         title: 'Comptoir — Keke Beauty',
         loadComponent: () =>
           import('./features/pro/counter/counter-page').then((m) => m.ProCounter),
+      },
+      {
+        path: 'etablissements/:id/equipe',
+        title: 'Équipe et commissions — Keke Beauty',
+        loadComponent: () => import('./features/pro/team/pro-team').then((m) => m.ProTeam),
       },
       {
         path: 'etablissements/:id/scanner',

@@ -237,6 +237,23 @@ const ACTIVE = new Set(['Pending', 'Confirmed', 'RescheduleProposed']);
                 @if (a.rejectionReason) {
                   <p class="meta">Motif : {{ a.rejectionReason }}</p>
                 }
+                @if (a.canTip) {
+                  <div class="actions" role="group" aria-label="Laisser un pourboire">
+                    <span class="meta">Un petit merci ?</span>
+                    @for (amount of tipAmounts; track amount) {
+                      <button
+                        class="btn btn-light btn-sm"
+                        type="button"
+                        [disabled]="busy()"
+                        (click)="tip(a, amount)"
+                      >
+                        {{ money(amount) }}
+                      </button>
+                    }
+                  </div>
+                } @else if (a.tipAmount) {
+                  <p class="meta">Pourboire laissé : {{ money(a.tipAmount) }}. Merci !</p>
+                }
                 @if (a.status === 'Completed') {
                   @if (reviewOf(a.id); as review) {
                     <p class="meta">
@@ -339,6 +356,17 @@ export class MyAppointments {
   protected summary(a: Appointment): string {
     const names = a.lines.map((l) => l.name).join(', ');
     return `${names} · ${formatMoney(a.totalPrice, a.currencyCode)}${a.resourceName ? ` · ${a.resourceName}` : ''}`;
+  }
+
+  /** Quick amounts offered for a tip (XOF); the server accepts any whole amount from 100 to 100 000. */
+  protected readonly tipAmounts = [500, 1000, 2000, 5000] as const;
+
+  protected money(amount: number): string {
+    return formatMoney(amount);
+  }
+
+  protected tip(a: Appointment, amount: number): Promise<void> {
+    return this.run(() => this.booking.tip(a.id, amount));
   }
 
   protected methodLabel(method: string): string {

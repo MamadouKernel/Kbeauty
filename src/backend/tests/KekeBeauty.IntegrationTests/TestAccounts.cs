@@ -30,6 +30,9 @@ internal static partial class TestAccounts
     public static Task<UserSession> PartnerAsync(ApiFixture api, string firstName = "Awa", string lastName = "Koné") =>
         SignUpAsync(api, "PartnerOwner", promoteTo: null, firstName, lastName);
 
+    /// <summary>A collaborator account (role PartnerStaff), as it is once an owner has linked it to a resource.</summary>
+    public static Task<UserSession> StaffAsync(ApiFixture api) => SignUpAsync(api, "Client", promoteTo: "PartnerStaff");
+
     /// <summary>A fresh Admin (the seeded SuperAdmin is left alone: another test enrols it and expects a first login).</summary>
     public static Task<UserSession> AdminAsync(ApiFixture api) => SignUpAsync(api, "Client", promoteTo: "Admin");
 

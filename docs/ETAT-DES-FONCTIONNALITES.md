@@ -3,7 +3,7 @@
 Situation au 13 octobre 2026, par exigence du cahier des charges (`PRD_Keke_Beauty.md`).
 Légende : ✅ implémenté et testé · 🟡 implémenté, avec une réserve (ce qui n'a pas pu être vérifié est dit) · ⏸ implémenté mais **désactivé** volontairement · ❌ non implémenté.
 
-Tests : 198 unitaires + 178 d'intégration (PostgreSQL et Redis réels via Testcontainers) + 156 Vitest + **109 tests de bout en bout** dans un vrai navigateur (ordinateur et téléphone), dont 30 attaques rejouées (`docs/PENTEST.md`).
+Tests : 210 unitaires + 181 d'intégration (dont 3 nouveaux, écrits mais non encore exécutés) (PostgreSQL et Redis réels via Testcontainers) + 165 Vitest + **109 tests de bout en bout** dans un vrai navigateur (ordinateur et téléphone), dont 30 attaques rejouées (`docs/PENTEST.md`).
 
 ## Écarts assumés par rapport au cahier des charges
 
@@ -34,6 +34,8 @@ Tests : 198 unitaires + 178 d'intégration (PostgreSQL et Redis réels via Testc
 | Avis clients | ✅ | Un avis (1 à 5 étoiles, commentaire facultatif) **uniquement après un rendez-vous terminé**, une seule fois par rendez-vous (index unique), dans les 90 jours ; auteur affiché « Awa K. » ; **réponse publique du partenaire** (page `/pro/etablissements/{id}/avis`) ; masquage par un administrateur avec motif (API, pas encore d'écran) ; note moyenne sur les cartes, la fiche et un tri **Mieux notés** |
 | Comptoir (cliente sans compte) | ✅ | Le partenaire enregistre une cliente présente (`/pro/etablissements/{id}/comptoir`) : prestations, nom, téléphone facultatif, paiement reçu ; rendez-vous **confirmé aussitôt** sur la première personne libre, sans règle de délai ; pas de notification (la cliente n'a pas de compte) ni de rappel ; une cliente de comptoir ne peut pas laisser d'avis |
 | Pass QR et scanner | ✅ | La cliente affiche un **QR code** depuis « Mes rendez-vous » (jeton signé, limité dans le temps, valable jusqu'à 6 h après la fin du rendez-vous) ; le partenaire le lit avec la caméra (navigateurs qui savent le faire) ou le colle (`/pro/etablissements/{id}/scanner`) ; un pass d'un autre établissement est refusé |
+| Équipe et portail collaboratrice | ✅ | Le propriétaire lie une ressource au compte d'une collaboratrice (par e-mail) et fixe sa commission (`/pro/etablissements/{id}/equipe`) ; la collaboratrice (rôle `PartnerStaff`) voit **uniquement ses rendez-vous du jour** (`/equipe`), démarre et termine chaque soin avec un chrono, ouvre la **fiche technique** de la cliente (allergies en alerte, notes de soin) et suit ses gains (commission = part du prix du soin terminé, plus pourboires) ; le propriétaire voit le même récapitulatif par ressource, sans versement automatique |
+| Pourboire | 🟡 | Après un soin terminé servi par une collaboratrice identifiée, la cliente laisse un pourboire (100 à 100 000 F, une seule fois) depuis « Mes rendez-vous » ; il est enregistré et ajouté aux gains de la collaboratrice, mais **pas encore encaissé en ligne** |
 | Favoris | ✅ | Cœur sur les cartes, la carte plein écran et la fiche, page **Mes favoris** ; un visiteur non connecté est envoyé se connecter puis ramené |
 | Carte plein écran | ✅ | La carte est l'écran principal, avec un carrousel de salons en bas (nom, commune et quartier, téléphone, nombre de prestations, note, **Détails** / **Réserver**) : glisser les cartes déplace la carte, toucher un point avance sa carte ; filtres repliés derrière « Filtres » ; utilisable au clavier |
 | Navigation mobile | ✅ | Quatre onglets : **Explorer, Carte, Mes RDV, Mon espace** |

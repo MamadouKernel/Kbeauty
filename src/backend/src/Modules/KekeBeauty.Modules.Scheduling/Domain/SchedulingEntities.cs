@@ -8,6 +8,13 @@ public sealed class Resource : Entity
     public required Guid EstablishmentId { get; set; }
     public required string Name { get; set; }
     public bool IsActive { get; set; } = true;
+
+    /// <summary>The collaborator's account (role PartnerStaff) when the resource is a person who signs in to the team portal.</summary>
+    public Guid? UserId { get; set; }
+
+    /// <summary>Share of each finished service's price paid to the collaborator, 0 to 100.</summary>
+    public decimal CommissionPercent { get; set; }
+
     public DateTimeOffset CreatedAt { get; init; } = DateTimeOffset.UtcNow;
 }
 
@@ -85,6 +92,14 @@ public sealed class Appointment : Entity
 
     public string? ServicePaidReference { get; set; }
 
+    /// <summary>Service timer of the team portal: when the collaborator started and finished the treatment.</summary>
+    public DateTimeOffset? StartedAt { get; set; }
+
+    public DateTimeOffset? FinishedAt { get; set; }
+
+    /// <summary>Tip the client left for the collaborator after the treatment (0 when none).</summary>
+    public decimal TipAmount { get; set; }
+
     public DateTimeOffset? FirstReminderSentAt { get; set; }
 
     public DateTimeOffset? SecondReminderSentAt { get; set; }
@@ -110,4 +125,15 @@ public sealed class AppointmentStatusHistory : Entity
     public Guid? ActorUserId { get; init; }
     public DateTimeOffset At { get; init; } = DateTimeOffset.UtcNow;
     public string? Comment { get; init; }
+}
+
+/// <summary>Treatment notes of a client in one establishment: allergies and what to remember next time.</summary>
+public sealed class ClientTechnicalNote : Entity
+{
+    public required Guid EstablishmentId { get; init; }
+    public required Guid ClientUserId { get; init; }
+    public string? Allergies { get; set; }
+    public string? Notes { get; set; }
+    public Guid UpdatedByUserId { get; set; }
+    public DateTimeOffset UpdatedAt { get; set; }
 }

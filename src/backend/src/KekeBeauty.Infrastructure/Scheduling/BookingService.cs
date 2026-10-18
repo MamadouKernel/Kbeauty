@@ -289,6 +289,10 @@ public sealed class BookingService(
 
         var now = time.GetUtcNow();
         var paymentInfo = await payments.InfoForAsync(appointments, ct);
+        var staffed = await db.Resources.AsNoTracking().Where(r => resourceIds.Contains(r.Id) && r.UserId != null).Select(r => r.Id).ToListAsync(ct);
+        var tippable = appointments
+            .Where(a => a.TipAmount == 0 && a.WalkInName == null && staffed.Contains(a.ResourceId) && CommissionService.IsFinished(a))
+            .Select(a => a.Id).ToHashSet();
         return appointments.Select(a =>
         {
             var e = establishments[a.EstablishmentId];
@@ -301,7 +305,9 @@ public sealed class BookingService(
                 lines.GetValueOrDefault(a.Id) ?? [],
                 a.CreatedAt,
                 paymentInfo.GetValueOrDefault(a.Id),
-                AgendaService.ServicePaymentOf(a));
+                AgendaService.ServicePaymentOf(a),
+                a.TipAmount,
+                tippable.Contains(a.Id));
         }).ToList();
     }
 }

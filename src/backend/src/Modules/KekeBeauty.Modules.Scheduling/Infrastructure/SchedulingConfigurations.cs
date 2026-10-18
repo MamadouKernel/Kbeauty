@@ -12,7 +12,22 @@ public sealed class ResourceConfiguration : IEntityTypeConfiguration<Resource>
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Id).ValueGeneratedNever();
         builder.Property(x => x.Name).HasMaxLength(120).IsRequired();
+        builder.Property(x => x.CommissionPercent).HasPrecision(5, 2);
         builder.HasIndex(x => x.EstablishmentId);
+        builder.HasIndex(x => x.UserId);
+    }
+}
+
+public sealed class ClientTechnicalNoteConfiguration : IEntityTypeConfiguration<ClientTechnicalNote>
+{
+    public void Configure(EntityTypeBuilder<ClientTechnicalNote> builder)
+    {
+        builder.ToTable("client_technical_notes", "scheduling");
+        builder.HasKey(x => x.Id);
+        builder.Property(x => x.Id).ValueGeneratedNever();
+        builder.Property(x => x.Allergies).HasMaxLength(500);
+        builder.Property(x => x.Notes).HasMaxLength(2000);
+        builder.HasIndex(x => new { x.EstablishmentId, x.ClientUserId }).IsUnique();
     }
 }
 
@@ -52,6 +67,7 @@ public sealed class AppointmentConfiguration : IEntityTypeConfiguration<Appointm
         builder.Property(x => x.ClientNote).HasMaxLength(500);
         builder.Property(x => x.ClientPhone).HasMaxLength(20);
         builder.Property(x => x.WalkInName).HasMaxLength(80);
+        builder.Property(x => x.TipAmount).HasPrecision(12, 2);
         builder.Property(x => x.ServicePaidMethod).HasMaxLength(40);
         builder.Property(x => x.ServicePaidReference).HasMaxLength(60);
         builder.Property(x => x.RejectionReason).HasMaxLength(500);

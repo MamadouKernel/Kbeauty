@@ -88,6 +88,10 @@ export class App {
     () => this.auth.user()?.roles.includes('PartnerOwner') ?? false,
   );
 
+  protected readonly isStaff = computed(
+    () => this.auth.user()?.roles.includes('PartnerStaff') ?? false,
+  );
+
   protected readonly initial = computed(
     () => this.auth.user()?.firstName.charAt(0).toUpperCase() ?? '',
   );

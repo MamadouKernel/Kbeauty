@@ -86,6 +86,13 @@ export class BookingService {
     return firstValueFrom(this.http.post<Appointment>(`/api/v1/appointments/${id}/pay`, {}));
   }
 
+  /** A tip for the collaborator who served me, once the treatment is finished (whole amount, one per appointment). */
+  tip(id: string, amount: number): Promise<{ amount: number }> {
+    return firstValueFrom(
+      this.http.post<{ amount: number }>(`/api/v1/appointments/${id}/tip`, { amount }),
+    );
+  }
+
   cancel(id: string): Promise<Appointment> {
     return firstValueFrom(this.http.post<Appointment>(`/api/v1/appointments/${id}/cancel`, {}));
   }

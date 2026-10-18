@@ -130,6 +130,7 @@ app.MapPartnerKycEndpoints();
 app.MapAdminReviewEndpoints();
 app.MapAppointmentEndpoints();
 app.MapAgendaEndpoints();
+app.MapTeamEndpoints();
 app.MapNotificationEndpoints();
 app.MapBillingEndpoints();
 app.MapEngagementEndpoints();

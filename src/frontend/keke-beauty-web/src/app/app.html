@@ -71,6 +71,14 @@
                   ></span>
                   Mon compte
                 </a>
+                @if (isStaff()) {
+                  <a class="menu__item" role="menuitem" routerLink="/equipe">
+                    <span class="menu__icon"
+                      ><svg lucideLayoutDashboard aria-hidden="true"></svg
+                    ></span>
+                    Mon planning
+                  </a>
+                }
                 @if (isPartner()) {
                   <a class="menu__item" role="menuitem" routerLink="/pro">
                     <span class="menu__icon"
@@ -192,6 +200,12 @@
           <svg lucideBriefcaseBusiness aria-hidden="true"></svg>
           Professionnels
         </a>
+        @if (isStaff()) {
+          <a routerLink="/equipe">
+            <svg lucideLayoutDashboard aria-hidden="true"></svg>
+            Mon planning
+          </a>
+        }
         @if (isPartner()) {
           <a routerLink="/pro">
             <svg lucideLayoutDashboard aria-hidden="true"></svg>

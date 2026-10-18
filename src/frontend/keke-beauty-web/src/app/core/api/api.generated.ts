@@ -8272,6 +8272,9 @@ export interface components {
       createdAt: string;
       payment?: null | components['schemas']['AppointmentPaymentDto'];
       servicePayment?: null | components['schemas']['ServicePaymentInfo'];
+      /** Format: double */
+      tipAmount?: number;
+      canTip?: boolean;
     };
     AppointmentLineDto: {
       name: string;

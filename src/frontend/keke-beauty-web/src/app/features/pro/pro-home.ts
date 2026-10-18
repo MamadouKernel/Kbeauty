@@ -202,6 +202,11 @@ import { PartnerService, STATUS_LABELS } from '../../core/partner/partner.servic
                           [routerLink]="['/pro/etablissements', e.id, 'scanner']"
                           >Scanner un pass</a
                         >
+                        <a
+                          class="btn btn-ghost btn-sm"
+                          [routerLink]="['/pro/etablissements', e.id, 'equipe']"
+                          >Équipe</a
+                        >
                       }
                     }
                     @if (e.status === 'Active') {

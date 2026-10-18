@@ -81,6 +81,7 @@ public static class IdentityModule
             });
         services.AddAuthorizationBuilder()
             .AddPolicy("Partner", policy => policy.RequireRole(AppRoles.PartnerOwner))
+            .AddPolicy("Staff", policy => policy.RequireRole(AppRoles.PartnerStaff))
             .AddPolicy("Admin", policy => policy.RequireRole(AppRoles.Admin, AppRoles.SuperAdmin))
             .AddPolicy("SuperAdmin", policy => policy.RequireRole(AppRoles.SuperAdmin));
 

@@ -141,8 +141,13 @@ public sealed class ResourceService(KekeBeautyDbContext db, TimeProvider time, K
         }
         else
         {
+            var staffUserId = resource.UserId;
             db.Resources.Remove(resource);
             await db.SaveChangesAsync(ct);
+            if (staffUserId is { } staff)
+            {
+                await TeamService.DropStaffRoleIfUnusedAsync(db, staff, ct);
+            }
         }
 
         return Result.Success();

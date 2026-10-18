@@ -60,7 +60,9 @@ public sealed record AppointmentDto(
     IReadOnlyList<AppointmentLineDto> Lines,
     DateTimeOffset CreatedAt,
     KekeBeauty.Infrastructure.Billing.AppointmentPaymentDto? Payment = null,
-    ServicePaymentInfo? ServicePayment = null);
+    ServicePaymentInfo? ServicePayment = null,
+    decimal TipAmount = 0,
+    bool CanTip = false);
 
 /// <summary>The establishment's record that the service was paid: when, how (Cash or an operator id) and the mobile-money transaction reference.</summary>
 public sealed record ServicePaymentInfo(DateTimeOffset PaidAt, string Method, string? Reference);
