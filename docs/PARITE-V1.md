@@ -52,7 +52,7 @@ Légende : ✅ présent · 🟡 partiel · ⬜ à faire · ➕ n'existe pas en V
 | Essai gratuit, changement de formule au prorata, codes promo, remise directe | ✅ |
 | Carte plein écran avec pins informatifs, tuiles OSM mises en cache | ✅ |
 | Vidéos de réalisations, mises à jour automatiques de l'appli | ✅ |
-| Architecture modulaire testée (211 unitaires, 186 intégration, 172 front, 108 E2E) | ✅ |
+| Architecture modulaire testée (211 unitaires, 186 intégration, 172 front, 111 E2E) | ✅ |
 | Lighthouse mobile 100 / 100 / 100 / 100 | ✅ |
 
 ## 3. Idées au-delà de la V1 (après la parité)
