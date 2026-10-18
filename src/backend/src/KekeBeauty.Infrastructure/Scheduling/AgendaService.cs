@@ -124,12 +124,21 @@ public sealed class AgendaService(
     public Task<Result<PartnerAppointmentDto>> CancelAsync(Guid userId, Guid appointmentId, string? reason, CancellationToken ct) =>
         ActAsync(userId, appointmentId, AppointmentStatus.CancelledByEstablishment, reason, ct, a => a.RejectionReason = Trim(reason));
 
+    /// <summary>How long after the start of an appointment the client may still arrive before she can be marked absent.</summary>
+    public static readonly TimeSpan NoShowGrace = TimeSpan.FromMinutes(15);
+
     public async Task<Result<PartnerAppointmentDto>> NoShowAsync(Guid userId, Guid appointmentId, CancellationToken ct)
     {
         var appointment = await OwnedAppointmentAsync(userId, appointmentId, ct);
         if (appointment is not null && appointment.StartsAt > time.GetUtcNow())
         {
             return Result.Failure<PartnerAppointmentDto>(SchedulingErrors.Invalid("Le rendez-vous n'a pas encore commencé."));
+        }
+
+        // Keke Protect: a client running late is not absent yet.
+        if (appointment is not null && appointment.StartsAt + NoShowGrace > time.GetUtcNow())
+        {
+            return Result.Failure<PartnerAppointmentDto>(SchedulingErrors.Invalid($"Attendez {NoShowGrace.TotalMinutes:0} minutes après l'heure du rendez-vous avant de déclarer la cliente absente."));
         }
 
         return await ActAsync(userId, appointmentId, AppointmentStatus.NoShow, comment: null, ct, _ => { });

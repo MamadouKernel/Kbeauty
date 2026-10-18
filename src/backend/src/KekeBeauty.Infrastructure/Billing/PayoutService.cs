@@ -139,7 +139,7 @@ public sealed class PayoutService(
                               select (decimal?)p.NetAmount).SumAsync(ct) ?? 0;
         var payable = await (from p in paid
                              join a in db.Appointments on p.AppointmentId equals a.Id
-                             where p.PayoutId == null && Done.Contains(a.Status)
+                             where p.PayoutId == null && Done.Contains(a.Status) && !db.Disputes.Any(d => d.AppointmentId == a.Id && d.Status == DisputeStatus.Open)
                              select (decimal?)p.NetAmount).SumAsync(ct) ?? 0;
         var paidOut = await db.Payouts.AsNoTracking().Where(p => p.EstablishmentId == establishmentId && p.Status == PayoutStatus.Succeeded)
             .SumAsync(p => (decimal?)p.Amount, ct) ?? 0;
@@ -187,7 +187,7 @@ public sealed class PayoutService(
 
         var ids = await (from p in db.AppointmentPayments
                          join a in db.Appointments on p.AppointmentId equals a.Id
-                         where p.EstablishmentId == establishmentId && p.Status == AppointmentPaymentStatus.Paid && p.PayoutId == null && Done.Contains(a.Status)
+                         where p.EstablishmentId == establishmentId && p.Status == AppointmentPaymentStatus.Paid && p.PayoutId == null && Done.Contains(a.Status) && !db.Disputes.Any(d => d.AppointmentId == a.Id && d.Status == DisputeStatus.Open)
                          select p.Id).ToListAsync(ct);
         if (ids.Count == 0)
         {
@@ -248,7 +248,7 @@ public sealed class PayoutService(
     {
         var due = await (from p in db.AppointmentPayments.AsNoTracking()
                          join a in db.Appointments.AsNoTracking() on p.AppointmentId equals a.Id
-                         where p.Status == AppointmentPaymentStatus.Paid && p.PayoutId == null && Done.Contains(a.Status)
+                         where p.Status == AppointmentPaymentStatus.Paid && p.PayoutId == null && Done.Contains(a.Status) && !db.Disputes.Any(d => d.AppointmentId == a.Id && d.Status == DisputeStatus.Open)
                          select p.EstablishmentId).Distinct().ToListAsync(ct);
 
         int payouts = 0, skipped = 0;

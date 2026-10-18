@@ -47,6 +47,7 @@ public sealed class KekeBeautyDbContext(DbContextOptions<KekeBeautyDbContext> op
     public DbSet<ResourceServiceLink> ResourceServiceLinks => Set<ResourceServiceLink>();
     public DbSet<TimeOff> TimeOffs => Set<TimeOff>();
     public DbSet<ClientTechnicalNote> ClientTechnicalNotes => Set<ClientTechnicalNote>();
+    public DbSet<Dispute> Disputes => Set<Dispute>();
     public DbSet<Appointment> Appointments => Set<Appointment>();
     public DbSet<AppointmentLine> AppointmentLines => Set<AppointmentLine>();
     public DbSet<AppointmentStatusHistory> AppointmentHistory => Set<AppointmentStatusHistory>();

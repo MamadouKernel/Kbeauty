@@ -127,6 +127,50 @@ public sealed class AppointmentStatusHistory : Entity
     public string? Comment { get; init; }
 }
 
+public enum DisputeReason
+{
+    SalonClosed,
+    LateOrAbsent,
+    ServiceNotAsDescribed,
+    Other,
+}
+
+public enum DisputeStatus
+{
+    Open,
+    Resolved,
+}
+
+public enum DisputeResolution
+{
+    /// <summary>The claim is upheld: the client is refunded what she paid online.</summary>
+    RefundedClient,
+
+    /// <summary>The claim is dismissed: the establishment keeps what it earned.</summary>
+    RejectedClaim,
+}
+
+/// <summary>
+/// A client claim about a past appointment (Keke Protect). While it is open, the money the platform holds for that
+/// appointment is not paid out to the establishment. One claim per appointment.
+/// </summary>
+public sealed class Dispute : Entity
+{
+    public required Guid AppointmentId { get; init; }
+    public required Guid EstablishmentId { get; init; }
+    public required Guid ClientUserId { get; init; }
+    public required DisputeReason Reason { get; init; }
+    public required string Description { get; init; }
+    public DisputeStatus Status { get; set; } = DisputeStatus.Open;
+    public DisputeResolution? Resolution { get; set; }
+    public string? PartnerResponse { get; set; }
+    public DateTimeOffset? PartnerRespondedAt { get; set; }
+    public string? AdminNote { get; set; }
+    public Guid? ResolvedBy { get; set; }
+    public DateTimeOffset? ResolvedAt { get; set; }
+    public DateTimeOffset CreatedAt { get; init; } = DateTimeOffset.UtcNow;
+}
+
 /// <summary>Treatment notes of a client in one establishment: allergies and what to remember next time.</summary>
 public sealed class ClientTechnicalNote : Entity
 {

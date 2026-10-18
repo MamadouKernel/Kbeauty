@@ -3,7 +3,7 @@
 Situation au 13 octobre 2026, par exigence du cahier des charges (`PRD_Keke_Beauty.md`).
 Légende : ✅ implémenté et testé · 🟡 implémenté, avec une réserve (ce qui n'a pas pu être vérifié est dit) · ⏸ implémenté mais **désactivé** volontairement · ❌ non implémenté.
 
-Tests : 210 unitaires + 181 d'intégration (dont 3 nouveaux, écrits mais non encore exécutés) (PostgreSQL et Redis réels via Testcontainers) + 165 Vitest + **109 tests de bout en bout** dans un vrai navigateur (ordinateur et téléphone), dont 30 attaques rejouées (`docs/PENTEST.md`).
+Tests : 211 unitaires + 186 d'intégration (PostgreSQL et Redis réels via Testcontainers) + 172 Vitest + **109 tests de bout en bout** dans un vrai navigateur (ordinateur et téléphone), dont 30 attaques rejouées (`docs/PENTEST.md`).
 
 ## Écarts assumés par rapport au cahier des charges
 
@@ -36,6 +36,8 @@ Tests : 210 unitaires + 181 d'intégration (dont 3 nouveaux, écrits mais non en
 | Pass QR et scanner | ✅ | La cliente affiche un **QR code** depuis « Mes rendez-vous » (jeton signé, limité dans le temps, valable jusqu'à 6 h après la fin du rendez-vous) ; le partenaire le lit avec la caméra (navigateurs qui savent le faire) ou le colle (`/pro/etablissements/{id}/scanner`) ; un pass d'un autre établissement est refusé |
 | Équipe et portail collaboratrice | ✅ | Le propriétaire lie une ressource au compte d'une collaboratrice (par e-mail) et fixe sa commission (`/pro/etablissements/{id}/equipe`) ; la collaboratrice (rôle `PartnerStaff`) voit **uniquement ses rendez-vous du jour** (`/equipe`), démarre et termine chaque soin avec un chrono, ouvre la **fiche technique** de la cliente (allergies en alerte, notes de soin) et suit ses gains (commission = part du prix du soin terminé, plus pourboires) ; le propriétaire voit le même récapitulatif par ressource, sans versement automatique |
 | Pourboire | 🟡 | Après un soin terminé servi par une collaboratrice identifiée, la cliente laisse un pourboire (100 à 100 000 F, une seule fois) depuis « Mes rendez-vous » ; il est enregistré et ajouté aux gains de la collaboratrice, mais **pas encore encaissé en ligne** |
+| Keke Protect : litiges et remboursement | ✅ | Une cliente signale un problème (salon fermé, retard, prestation non conforme, autre) sur un rendez-vous passé depuis moins de 7 jours, depuis « Mes rendez-vous » ; **le versement du rendez-vous est suspendu** tant que le litige est ouvert ; l'établissement répond (`/pro/etablissements/{id}/litiges`) ; un administrateur tranche (`/admin/litiges`) : **cliente remboursée** de son paiement en ligne (même mécanisme que les annulations) ou litige rejeté, ce qui libère le versement ; un seul litige par rendez-vous, tout est tracé dans le journal d'audit |
+| Délai de grâce « absente » | ✅ | Une cliente ne peut être déclarée absente que 15 minutes après l'heure du rendez-vous |
 | Favoris | ✅ | Cœur sur les cartes, la carte plein écran et la fiche, page **Mes favoris** ; un visiteur non connecté est envoyé se connecter puis ramené |
 | Carte plein écran | ✅ | La carte est l'écran principal, avec un carrousel de salons en bas (nom, commune et quartier, téléphone, nombre de prestations, note, **Détails** / **Réserver**) : glisser les cartes déplace la carte, toucher un point avance sa carte ; filtres repliés derrière « Filtres » ; utilisable au clavier |
 | Navigation mobile | ✅ | Quatre onglets : **Explorer, Carte, Mes RDV, Mon espace** |

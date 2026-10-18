@@ -13,6 +13,7 @@ const SECTIONS: readonly Section[] = [
   { path: '/admin/utilisateurs', label: 'Utilisateurs' },
   { path: '/admin/etablissements', label: 'Établissements' },
   { path: '/admin/finances', label: 'Finances' },
+  { path: '/admin/litiges', label: 'Litiges' },
   { path: '/admin/parametres', label: 'Paramètres' },
   { path: '/admin/journal', label: 'Journal d’audit' },
   { path: '/admin/administrateurs', label: 'Administrateurs', superOnly: true },

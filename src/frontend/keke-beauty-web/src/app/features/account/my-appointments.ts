@@ -18,6 +18,14 @@ import {
 } from '../../core/booking/booking.service';
 import { formatMoney } from '../../core/format/format';
 import { MOBILE_MONEY_LABELS } from '../../core/format/payment-methods';
+import {
+  DISPUTE_REASONS,
+  DISPUTE_RESOLUTIONS,
+  DisputeService,
+  canDispute,
+  type Dispute,
+} from '../../core/disputes/dispute.service';
+import { DisputeForm } from '../../shared/dispute-form/dispute-form';
 import { PassQr } from '../../shared/pass-qr/pass-qr';
 import { NotificationService } from '../../core/notifications/notification.service';
 import { ReviewService } from '../../core/reviews/review.service';
@@ -32,7 +40,7 @@ const ACTIVE = new Set(['Pending', 'Confirmed', 'RescheduleProposed']);
 @Component({
   selector: 'app-my-appointments',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, ReviewForm, StarRating, PassQr],
+  imports: [RouterLink, ReviewForm, StarRating, PassQr, DisputeForm],
   styles: `
     .page {
       display: grid;
@@ -279,6 +287,25 @@ const ACTIVE = new Set(['Pending', 'Confirmed', 'RescheduleProposed']);
                     </div>
                   }
                 }
+                @if (disputeOf(a.id); as dispute) {
+                  <p class="meta">Litige : {{ disputeLabel(dispute) }}</p>
+                } @else if (openDispute() === a.id) {
+                  <app-dispute-form
+                    [appointmentId]="a.id"
+                    (submitted)="disputeSent()"
+                    (cancelled)="openDispute.set(null)"
+                  />
+                } @else if (canReport(a)) {
+                  <div class="actions">
+                    <button
+                      class="btn btn-ghost btn-sm"
+                      type="button"
+                      (click)="openDispute.set(a.id)"
+                    >
+                      Signaler un problème
+                    </button>
+                  </div>
+                }
               </article>
             }
           </section>
@@ -304,6 +331,10 @@ export class MyAppointments {
   /** What the client already reviewed: a completed visit without review offers "Donner mon avis". */
   protected readonly reviews = resource({ loader: () => this.reviewService.mine() });
   protected readonly openReview = signal<string | null>(null);
+  private readonly disputeService = inject(DisputeService);
+  /** Claims already filed (Keke Protect): one per appointment, shown instead of the "report" button. */
+  protected readonly disputes = resource({ loader: () => this.disputeService.mine() });
+  protected readonly openDispute = signal<string | null>(null);
   protected readonly openPass = signal<string | null>(null);
   protected readonly busy = signal(false);
   protected readonly error = signal('');
@@ -327,6 +358,28 @@ export class MyAppointments {
     return this.reviews.hasValue()
       ? this.reviews.value().find((r) => r.appointmentId === appointmentId)
       : undefined;
+  }
+
+  protected disputeOf(appointmentId: string): Dispute | undefined {
+    return this.disputes.hasValue()
+      ? this.disputes.value().find((d) => d.appointmentId === appointmentId)
+      : undefined;
+  }
+
+  protected canReport(a: Appointment): boolean {
+    return canDispute(a.status, a.endsAt);
+  }
+
+  protected disputeLabel(d: Dispute): string {
+    const reason = DISPUTE_REASONS[d.reason] ?? d.reason;
+    return d.status === 'Open'
+      ? `${reason} — en cours d’examen`
+      : `${reason} — ${DISPUTE_RESOLUTIONS[d.resolution ?? ''] ?? 'clos'}`;
+  }
+
+  protected disputeSent(): void {
+    this.openDispute.set(null);
+    this.disputes.reload();
   }
 
   protected reviewSent(): void {

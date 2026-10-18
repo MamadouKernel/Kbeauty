@@ -167,6 +167,12 @@ export const routes: Routes = [
         loadComponent: () => import('./features/pro/team/pro-team').then((m) => m.ProTeam),
       },
       {
+        path: 'etablissements/:id/litiges',
+        title: 'Litiges clients — Keke Beauty',
+        loadComponent: () =>
+          import('./features/pro/disputes/pro-disputes').then((m) => m.ProDisputes),
+      },
+      {
         path: 'etablissements/:id/scanner',
         title: 'Scanner un pass — Keke Beauty',
         loadComponent: () =>
@@ -214,6 +220,11 @@ export const routes: Routes = [
         path: 'finances',
         title: 'Finances — Keke Beauty',
         loadComponent: () => import('./features/admin/finance-page').then((m) => m.FinancePage),
+      },
+      {
+        path: 'litiges',
+        title: 'Litiges — Keke Beauty',
+        loadComponent: () => import('./features/admin/admin-disputes').then((m) => m.AdminDisputes),
       },
       {
         path: 'reversements',

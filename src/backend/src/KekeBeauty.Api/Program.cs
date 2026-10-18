@@ -131,6 +131,7 @@ app.MapAdminReviewEndpoints();
 app.MapAppointmentEndpoints();
 app.MapAgendaEndpoints();
 app.MapTeamEndpoints();
+app.MapDisputeEndpoints();
 app.MapNotificationEndpoints();
 app.MapBillingEndpoints();
 app.MapEngagementEndpoints();

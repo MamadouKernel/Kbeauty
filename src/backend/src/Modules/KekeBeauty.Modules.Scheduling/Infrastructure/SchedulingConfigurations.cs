@@ -18,6 +18,26 @@ public sealed class ResourceConfiguration : IEntityTypeConfiguration<Resource>
     }
 }
 
+public sealed class DisputeConfiguration : IEntityTypeConfiguration<Dispute>
+{
+    public void Configure(EntityTypeBuilder<Dispute> builder)
+    {
+        builder.ToTable("disputes", "scheduling");
+        builder.HasKey(x => x.Id);
+        builder.Property(x => x.Id).ValueGeneratedNever();
+        builder.Property(x => x.Reason).HasConversion<string>().HasMaxLength(30);
+        builder.Property(x => x.Status).HasConversion<string>().HasMaxLength(20);
+        builder.Property(x => x.Resolution).HasConversion<string>().HasMaxLength(30);
+        builder.Property(x => x.Description).HasMaxLength(1000).IsRequired();
+        builder.Property(x => x.PartnerResponse).HasMaxLength(1000);
+        builder.Property(x => x.AdminNote).HasMaxLength(500);
+        builder.HasIndex(x => x.AppointmentId).IsUnique();
+        builder.HasIndex(x => new { x.Status, x.CreatedAt });
+        builder.HasIndex(x => new { x.EstablishmentId, x.CreatedAt });
+        builder.HasIndex(x => x.ClientUserId);
+    }
+}
+
 public sealed class ClientTechnicalNoteConfiguration : IEntityTypeConfiguration<ClientTechnicalNote>
 {
     public void Configure(EntityTypeBuilder<ClientTechnicalNote> builder)

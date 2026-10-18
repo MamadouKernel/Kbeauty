@@ -2569,6 +2569,92 @@ namespace KekeBeauty.Infrastructure.Persistence.Migrations
                     b.ToTable("client_technical_notes", "scheduling");
                 });
 
+            modelBuilder.Entity("KekeBeauty.Modules.Scheduling.Domain.Dispute", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("AdminNote")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("admin_note");
+
+                    b.Property<Guid>("AppointmentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("appointment_id");
+
+                    b.Property<Guid>("ClientUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("client_user_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("description");
+
+                    b.Property<Guid>("EstablishmentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("establishment_id");
+
+                    b.Property<DateTimeOffset?>("PartnerRespondedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("partner_responded_at");
+
+                    b.Property<string>("PartnerResponse")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("partner_response");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("reason");
+
+                    b.Property<string>("Resolution")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("resolution");
+
+                    b.Property<DateTimeOffset?>("ResolvedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("resolved_at");
+
+                    b.Property<Guid?>("ResolvedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("resolved_by");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("status");
+
+                    b.HasKey("Id")
+                        .HasName("pk_disputes");
+
+                    b.HasIndex("AppointmentId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_disputes_appointment_id");
+
+                    b.HasIndex("ClientUserId")
+                        .HasDatabaseName("ix_disputes_client_user_id");
+
+                    b.HasIndex("EstablishmentId", "CreatedAt")
+                        .HasDatabaseName("ix_disputes_establishment_id_created_at");
+
+                    b.HasIndex("Status", "CreatedAt")
+                        .HasDatabaseName("ix_disputes_status_created_at");
+
+                    b.ToTable("disputes", "scheduling");
+                });
+
             modelBuilder.Entity("KekeBeauty.Modules.Scheduling.Domain.OpeningHour", b =>
                 {
                     b.Property<Guid>("Id")

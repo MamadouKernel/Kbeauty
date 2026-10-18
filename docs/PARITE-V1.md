@@ -36,9 +36,9 @@ Légende : ✅ présent · 🟡 partiel · ⬜ à faire · ➕ n'existe pas en V
 | 25 | **Commissions collaboratrice** + pourboires | ✅ (calcul et suivi ; le versement reste à l'établissement) | 3 |
 | 26 | **Pourboire** après un soin | 🟡 (enregistré ; pas encore encaissé en ligne) | 3 |
 | 27 | Avis avec photos avant / après | ⬜ | 3 |
-| 28 | **Keke Protect** (retard / annulation tardive, politique) | ⬜ | 4 |
-| 29 | Litiges (ouverture client, traitement admin) | ⬜ | 4 |
-| 30 | Remboursements (demande, validation admin) | ⬜ | 4 |
+| 28 | **Keke Protect** (retard / annulation tardive, politique) | 🟡 (délai de grâce avant « absente » et versement suspendu pendant un litige ; pas de frais d'annulation tardive) | 4 |
+| 29 | Litiges (ouverture client, traitement admin) | ✅ (+ réponse de l'établissement) | 4 |
+| 30 | Remboursements (demande, validation admin) | ✅ (la demande passe par le litige ; l'admin valide, le remboursement part au moyen de paiement) | 4 |
 | 31 | Reçus / justificatifs partenaire, finances détaillées | 🟡 | 5 |
 | 32 | Tableau de bord admin analytique | 🟡 | 5 |
 | 33 | Formules multiples, avantages, promotions d'un salon | ⬜ | 5 |
@@ -52,7 +52,7 @@ Légende : ✅ présent · 🟡 partiel · ⬜ à faire · ➕ n'existe pas en V
 | Essai gratuit, changement de formule au prorata, codes promo, remise directe | ✅ |
 | Carte plein écran avec pins informatifs, tuiles OSM mises en cache | ✅ |
 | Vidéos de réalisations, mises à jour automatiques de l'appli | ✅ |
-| Architecture modulaire testée (210 unitaires, 179 intégration, 165 front, 108 E2E) | ✅ |
+| Architecture modulaire testée (211 unitaires, 186 intégration, 172 front, 108 E2E) | ✅ |
 | Lighthouse mobile 100 / 100 / 100 / 100 | ✅ |
 
 ## 3. Idées au-delà de la V1 (après la parité)
@@ -73,7 +73,7 @@ Légende : ✅ présent · 🟡 partiel · ⬜ à faire · ➕ n'existe pas en V
 1. **Design** : échelle typographique fluide et sobre, jetons d'espacement, tailles par écran.
 2. **Comptoir + Pass QR + scanner** (partenaire).
 3. **Équipe** : portail collaboratrice, chrono, fiche technique, commissions, pourboires ✅ ; reste (lot 3b) : avis avec photos avant / après, encaissement en ligne des pourboires, paiement Wave des collaboratrices.
-4. **Confiance** : Keke Protect, litiges, remboursements.
+4. **Confiance** : Keke Protect, litiges, remboursements ✅ ; reste : frais d'annulation tardive paramétrables par l'établissement.
 5. **Finances & pilotage** : reçus, finances détaillées, tableau de bord admin, formules/avantages.
 6. **Accès & sécurité** : Google, OTP WhatsApp, appareil de confiance, rôles admin fins, push web, inactivité.
 7. **Au-delà de la V1** : liste d'attente, fidélité, cartes cadeaux, groupes, recommandations.
