@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { LucideCalendarCheck, LucideCircleCheck, LucideMapPin, LucideStar } from '@lucide/angular';
+import { LucideCalendarCheck, LucideCircleCheck, LucideStar } from '@lucide/angular';
 
 /**
  * Frame of the sign-in, sign-up and account-recovery pages: an illustrated plum panel (the promise of the service) next to
@@ -9,7 +9,7 @@ import { LucideCalendarCheck, LucideCircleCheck, LucideMapPin, LucideStar } from
 @Component({
   selector: 'app-auth-layout',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, LucideCalendarCheck, LucideCircleCheck, LucideMapPin, LucideStar],
+  imports: [RouterLink, LucideCalendarCheck, LucideCircleCheck, LucideStar],
   styles: `
     :host {
       display: block;
@@ -57,15 +57,17 @@ import { LucideCalendarCheck, LucideCircleCheck, LucideMapPin, LucideStar } from
       .mark {
         display: inline-grid;
         place-items: center;
-        width: 2.25rem;
-        height: 2.25rem;
+        width: 2.5rem;
+        height: 2.5rem;
+        padding: 0.3rem;
         border-radius: 0.8rem;
-        background: rgb(255 255 255 / 16%);
-        box-shadow: inset 0 1px 0 rgb(255 255 255 / 30%);
+        background: #fff;
+        box-shadow: 0 8px 20px -8px rgb(20 0 30 / 55%);
       }
-      svg {
-        width: 1.15rem;
-        height: 1.15rem;
+      .mark img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
       }
       em {
         font-style: normal;
@@ -159,7 +161,9 @@ import { LucideCalendarCheck, LucideCircleCheck, LucideMapPin, LucideStar } from
       <div class="auth-shell">
         <div class="aside">
           <a class="logo" routerLink="/" aria-label="Keke Beauty — accueil">
-            <span class="mark"><svg lucideMapPin aria-hidden="true"></svg></span>
+            <span class="mark"
+              ><img src="/brand/logo-mark.png" alt="" width="40" height="40" decoding="async"
+            /></span>
             <span>Keke <em>Beauty</em></span>
           </a>
 
