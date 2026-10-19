@@ -27,7 +27,12 @@ import {
   GeolocationService,
   type Position,
 } from '../../../core/geo/geolocation.service';
-import { GrowthService } from '../../../core/growth/growth.service';
+import {
+  GrowthService,
+  progressToReward,
+  type LoyaltyCard,
+} from '../../../core/growth/growth.service';
+import { AuthService } from '../../../core/auth/auth.service';
 import { CategoryIcon } from '../../../shared/category-icon/category-icon';
 import { EstablishmentCard } from '../../../shared/establishment-card/establishment-card';
 
@@ -67,7 +72,29 @@ export class Home {
   });
 
   private readonly growth = inject(GrowthService);
+  private readonly auth = inject(AuthService);
   private readonly geolocation = inject(GeolocationService);
+
+  /** A logged-in client's loyalty cards; nothing is fetched for visitors. */
+  protected readonly loyalty = resource({
+    params: () => ({ signedIn: !!this.auth.user() }),
+    loader: ({ params }) => (params.signedIn ? this.growth.myLoyalty() : Promise.resolve([])),
+  });
+
+  /** The one card to nudge on the home page: a reward ready first, otherwise the closest to the next one. */
+  protected readonly loyaltyTeaser = computed<LoyaltyCard | null>(() => {
+    const cards = this.loyalty.hasValue() ? this.loyalty.value() : [];
+    const active = cards.filter((c) => c.programActive && c.points > 0 && c.rewardThreshold > 0);
+    if (active.length === 0) {
+      return null;
+    }
+    return [...active].sort((a, b) => {
+      const reward = (b.rewardsAvailable > 0 ? 1 : 0) - (a.rewardsAvailable > 0 ? 1 : 0);
+      return reward !== 0
+        ? reward
+        : progressToReward(b.points, b.rewardThreshold) - progressToReward(a.points, a.rewardThreshold);
+    })[0];
+  });
   protected readonly position = signal<Position | null>(null);
   protected readonly locating = signal(false);
   protected readonly locateError = signal('');
@@ -99,6 +126,14 @@ export class Home {
     } finally {
       this.locating.set(false);
     }
+  }
+
+  protected loyaltyProgress(card: LoyaltyCard): number {
+    return progressToReward(card.points, card.rewardThreshold);
+  }
+
+  protected loyaltyRemaining(card: LoyaltyCard): number {
+    return card.rewardThreshold - (card.points % card.rewardThreshold);
   }
 
   protected toggle(slug: string): void {

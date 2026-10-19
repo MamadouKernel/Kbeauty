@@ -65,6 +65,37 @@
   </div>
 </section>
 
+@if (loyaltyTeaser(); as card) {
+  <section class="section loyalty-teaser-section" aria-labelledby="loyalty-teaser-title">
+    <div class="container">
+      <a class="loyalty-teaser" [routerLink]="['/etablissements', card.establishmentSlug, 'reserver']">
+        <span class="loyalty-teaser__icon"><svg lucideSparkles aria-hidden="true"></svg></span>
+        <div class="loyalty-teaser__body">
+          <p class="eyebrow">Votre fidélité</p>
+          <h2 id="loyalty-teaser-title">
+            @if (card.rewardsAvailable > 0) {
+              Récompense débloquée chez <em>{{ card.establishmentName }}</em> !
+            } @else {
+              Plus que {{ loyaltyRemaining(card) }} point(s) chez <em>{{ card.establishmentName }}</em>
+            }
+          </h2>
+          <p class="loyalty-teaser__reward">{{ card.rewardDescription }}</p>
+          <div
+            class="loyalty-teaser__bar"
+            role="progressbar"
+            [attr.aria-valuenow]="loyaltyProgress(card)"
+            aria-valuemin="0"
+            aria-valuemax="100"
+          >
+            <span [style.width.%]="card.rewardsAvailable > 0 ? 100 : loyaltyProgress(card)"></span>
+          </div>
+        </div>
+        <span class="loyalty-teaser__cta">Réserver →</span>
+      </a>
+    </div>
+  </section>
+}
+
 <section id="categories" class="section" aria-labelledby="categories-title">
   <div class="container">
     <header class="section__head">
