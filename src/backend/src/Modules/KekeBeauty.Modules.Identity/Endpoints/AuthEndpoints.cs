@@ -56,6 +56,10 @@ public static class AuthEndpoints
         group.MapPost("/2fa/trusted", async (ChallengeRequest request, HttpContext http, AuthService auth, CancellationToken ct) =>
             RespondWithSession(http, await auth.CompleteTrustedDeviceAsync(request.ChallengeToken, http.Request.Cookies[AuthOptions.TrustedDeviceCookieName], ContextOf(http), ct)));
 
+        // A plain client (no second factor required) finishes signing in here, with no code.
+        group.MapPost("/complete-login", async (ChallengeRequest request, HttpContext http, AuthService auth, CancellationToken ct) =>
+            RespondWithSession(http, await auth.CompletePasswordLoginAsync(request.ChallengeToken, ContextOf(http), ct)));
+
         group.MapPost("/refresh", async (HttpContext http, AuthService auth, CancellationToken ct) =>
         {
             var result = await auth.RefreshAsync(http.Request.Cookies[AuthOptions.RefreshCookieName], ContextOf(http), ct);

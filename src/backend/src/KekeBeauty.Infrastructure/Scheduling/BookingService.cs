@@ -299,6 +299,89 @@ public sealed class BookingService(
         return await TransitionAsync(appointment, AppointmentStatus.CancelledByClient, clientId, "Reprogrammation refusée", ct);
     }
 
+    public async Task<Result<string>> CalendarIcsAsync(Guid clientId, Guid id, CancellationToken ct)
+    {
+        var appointment = await db.Appointments.AsNoTracking().FirstOrDefaultAsync(a => a.Id == id && a.ClientUserId == clientId, ct);
+        if (appointment is null)
+        {
+            return Result.Failure<string>(SchedulingErrors.AppointmentNotFound);
+        }
+
+        var establishment = await db.Establishments.AsNoTracking()
+            .Where(e => e.Id == appointment.EstablishmentId)
+            .Select(e => new { e.Name, Address = e.AddressLine, Phone = e.CustomerServicePhone })
+            .FirstOrDefaultAsync(ct);
+        if (establishment is null)
+        {
+            return Result.Failure<string>(SchedulingErrors.AppointmentNotFound);
+        }
+
+        var lines = await db.AppointmentLines.AsNoTracking()
+            .Where(l => l.AppointmentId == appointment.Id)
+            .Select(l => l.NameSnapshot)
+            .ToListAsync(ct);
+        var resourceName = await db.Resources.AsNoTracking()
+            .Where(r => r.Id == appointment.ResourceId)
+            .Select(r => r.Name)
+            .FirstOrDefaultAsync(ct);
+
+        static string EscapeIcs(string? value) =>
+            string.IsNullOrWhiteSpace(value)
+                ? string.Empty
+                : value.Replace("\\", "\\\\", StringComparison.Ordinal)
+                    .Replace(";", "\\;", StringComparison.Ordinal)
+                    .Replace(",", "\\,", StringComparison.Ordinal)
+                    .Replace("\r\n", "\\n", StringComparison.Ordinal)
+                    .Replace("\n", "\\n", StringComparison.Ordinal);
+
+        var locationParts = new[] { establishment.Name, establishment.Address }
+            .Where(s => !string.IsNullOrWhiteSpace(s));
+        var descriptionParts = new List<string>
+        {
+            $"Prestations : {string.Join(", ", lines)}",
+            $"Total : {appointment.TotalPrice:0} {appointment.CurrencyCode}",
+        };
+        if (!string.IsNullOrWhiteSpace(resourceName))
+        {
+            descriptionParts.Add($"Intervenant(e) : {resourceName}");
+        }
+
+        if (!string.IsNullOrWhiteSpace(establishment.Phone))
+        {
+            descriptionParts.Add($"Téléphone : {establishment.Phone}");
+        }
+
+        var nowUtc = time.GetUtcNow().UtcDateTime.ToString("yyyyMMdd'T'HHmmss'Z'", System.Globalization.CultureInfo.InvariantCulture);
+        var startUtc = appointment.StartsAt.UtcDateTime.ToString("yyyyMMdd'T'HHmmss'Z'", System.Globalization.CultureInfo.InvariantCulture);
+        var endUtc = appointment.EndsAt.UtcDateTime.ToString("yyyyMMdd'T'HHmmss'Z'", System.Globalization.CultureInfo.InvariantCulture);
+
+        var ics = string.Join("\r\n", [
+            "BEGIN:VCALENDAR",
+            "VERSION:2.0",
+            "PRODID:-//Keke Beauty//RDV//FR",
+            "CALSCALE:GREGORIAN",
+            "METHOD:PUBLISH",
+            "BEGIN:VEVENT",
+            $"UID:rdv-{appointment.Id}@kekebeauty.ci",
+            $"DTSTAMP:{nowUtc}",
+            $"DTSTART:{startUtc}",
+            $"DTEND:{endUtc}",
+            $"SUMMARY:{EscapeIcs($"RDV Keke Beauty — {establishment.Name}")}",
+            $"LOCATION:{EscapeIcs(string.Join(" — ", locationParts))}",
+            $"DESCRIPTION:{EscapeIcs(string.Join("\n", descriptionParts))}",
+            "BEGIN:VALARM",
+            "TRIGGER:-PT2H",
+            "ACTION:DISPLAY",
+            $"DESCRIPTION:{EscapeIcs($"Rappel RDV chez {establishment.Name}")}",
+            "END:VALARM",
+            "END:VEVENT",
+            "END:VCALENDAR",
+            string.Empty,
+        ]);
+
+        return Result.Success(ics);
+    }
+
     private async Task<Result<AppointmentDto>> TransitionAsync(Appointment appointment, AppointmentStatus to, Guid clientId, string? comment, CancellationToken ct)
     {
         var from = appointment.Status;

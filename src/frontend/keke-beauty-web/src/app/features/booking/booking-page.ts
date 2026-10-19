@@ -321,6 +321,9 @@ function gridStart(month: Date): Date {
             </p>
             <div class="actions">
               <a class="btn btn-primary" routerLink="/compte/rendez-vous">Voir mes rendez-vous</a>
+              <button class="btn btn-light" type="button" (click)="downloadIcs(done)">
+                Ajouter à mon calendrier (.ics)
+              </button>
               <a class="btn btn-ghost" [routerLink]="['/etablissements', slug()]"
                 >Retour à la fiche</a
               >
@@ -561,6 +564,10 @@ export class BookingPage {
   readonly slug = input.required<string>();
   /** A service chosen on the fiche (`?prestation=<id>`): it is already ticked when the page opens. */
   readonly prestation = input<string>();
+  /** Services from a previous appointment (`?reprendre=<nom1>|<nom2>`). */
+  readonly reprendre = input<string>();
+  /** Collaborator from a previous appointment (`?intervenant=<nom>`). */
+  readonly intervenant = input<string>();
 
   private readonly booking = inject(BookingService);
   private readonly realtime = inject(RealtimeService);
@@ -677,22 +684,51 @@ export class BookingPage {
   constructor() {
     effect(() => {
       const wanted = this.prestation();
-      const services = this.info.hasValue() ? this.info.value().services : [];
+      const rebookNames = this.reprendre();
+      const wantedResource = this.intervenant();
+      const info = this.info.hasValue() ? this.info.value() : null;
+      const services = info?.services ?? [];
       untracked(() => {
-        if (
-          wanted &&
-          this.selectedServiceIds().length === 0 &&
-          services.some((s) => s.id === wanted)
-        ) {
-          this.selectedServiceIds.set([wanted]);
+        if (this.selectedServiceIds().length === 0 && services.length > 0) {
+          if (wanted && services.some((s) => s.id === wanted)) {
+            this.selectedServiceIds.set([wanted]);
+          } else if (rebookNames) {
+            const names = new Set(
+              rebookNames
+                .split('|')
+                .map((n) => n.trim().toLowerCase())
+                .filter(Boolean),
+            );
+            const matched = services
+              .filter((s) => names.has(s.name.trim().toLowerCase()))
+              .map((s) => s.id);
+            if (matched.length > 0) {
+              this.selectedServiceIds.set(matched);
+            }
+          }
+        }
+        if (wantedResource && !this.resourceId() && info) {
+          const found = this.candidates().find(
+            (r) => r.name.trim().toLowerCase() === wantedResource.trim().toLowerCase(),
+          );
+          if (found) {
+            this.resourceId.set(found.id);
+          }
         }
       });
     });
 
-    // A slot that someone else just took must not stay selected.
+    // A slot that someone else just took must not stay selected; on express rebook, pre-select the first available day.
     effect(() => {
       const days = this.calendarDays();
+      const isRebook = Boolean(this.reprendre());
       untracked(() => {
+        if (isRebook && !this.selectedDay() && days.length > 0) {
+          const firstOpen = days.find((d) => d.slots.some((s) => s.available));
+          if (firstOpen) {
+            this.selectedDay.set(firstOpen.date);
+          }
+        }
         const start = this.selectedStart();
         if (
           start &&
@@ -713,6 +749,10 @@ export class BookingPage {
     });
 
     inject(DestroyRef).onDestroy(() => void this.connection?.stop());
+  }
+
+  protected downloadIcs(a: Appointment): void {
+    this.booking.downloadIcs(a);
   }
 
   protected toggleService(id: string): void {

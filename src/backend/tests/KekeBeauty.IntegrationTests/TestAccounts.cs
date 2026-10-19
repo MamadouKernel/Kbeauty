@@ -76,13 +76,24 @@ internal static partial class TestAccounts
         login.EnsureSuccessStatusCode();
         var challenge = (await login.Content.ReadFromJsonAsync<ChallengeResponse>())!;
 
-        var setup = await client.PostAsJsonAsync("/api/v1/auth/2fa/setup", new ChallengeRequest(challenge.ChallengeToken));
-        setup.EnsureSuccessStatusCode();
-        var secret = (await setup.Content.ReadFromJsonAsync<TwoFactorSetupResponse>())!.Secret;
-        var code = new Totp(Base32Encoding.ToBytes(secret)).ComputeTotp(api.Clock.GetUtcNow().UtcDateTime);
-        var enable = await client.PostAsJsonAsync("/api/v1/auth/2fa/enable", new ChallengeCodeRequest(challenge.ChallengeToken, code));
-        enable.EnsureSuccessStatusCode();
-        var auth = (await enable.Content.ReadFromJsonAsync<AuthResponse>())!;
+        AuthResponse auth;
+        if (challenge.Status == ChallengeStatus.PasswordOnly)
+        {
+            // A plain client needs no second factor.
+            var complete = await client.PostAsJsonAsync("/api/v1/auth/complete-login", new ChallengeRequest(challenge.ChallengeToken));
+            complete.EnsureSuccessStatusCode();
+            auth = (await complete.Content.ReadFromJsonAsync<AuthResponse>())!;
+        }
+        else
+        {
+            var setup = await client.PostAsJsonAsync("/api/v1/auth/2fa/setup", new ChallengeRequest(challenge.ChallengeToken));
+            setup.EnsureSuccessStatusCode();
+            var secret = (await setup.Content.ReadFromJsonAsync<TwoFactorSetupResponse>())!.Secret;
+            var code = new Totp(Base32Encoding.ToBytes(secret)).ComputeTotp(api.Clock.GetUtcNow().UtcDateTime);
+            var enable = await client.PostAsJsonAsync("/api/v1/auth/2fa/enable", new ChallengeCodeRequest(challenge.ChallengeToken, code));
+            enable.EnsureSuccessStatusCode();
+            auth = (await enable.Content.ReadFromJsonAsync<AuthResponse>())!;
+        }
 
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", auth.AccessToken);
         return new UserSession(client, auth.User.Id, email);

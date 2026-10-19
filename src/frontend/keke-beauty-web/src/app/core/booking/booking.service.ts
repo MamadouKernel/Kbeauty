@@ -118,6 +118,69 @@ export class BookingService {
       this.http.post<Appointment>(`/api/v1/appointments/${id}/reschedule/decline`, {}),
     );
   }
+
+  /** Downloads the appointment as an iCalendar (.ics) file for Apple/Google/Outlook calendars. */
+  downloadIcs(a: Appointment): void {
+    const pad = (n: number) => `${n}`.padStart(2, '0');
+    const toIcsUtc = (iso: string) => {
+      const d = new Date(iso);
+      return `${d.getUTCFullYear()}${pad(d.getUTCMonth() + 1)}${pad(d.getUTCDate())}T${pad(d.getUTCHours())}${pad(d.getUTCMinutes())}${pad(d.getUTCSeconds())}Z`;
+    };
+    const esc = (v: string) =>
+      v.replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\r?\n/g, '\\n');
+    const services = a.lines.map((l) => l.name).join(', ');
+    const desc = [
+      `Prestations : ${services}`,
+      `Total : ${a.totalPrice} ${a.currencyCode}`,
+      ...(a.resourceName ? [`Intervenant(e) : ${a.resourceName}`] : []),
+    ].join('\n');
+    const ics = [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//Keke Beauty//RDV//FR',
+      'CALSCALE:GREGORIAN',
+      'METHOD:PUBLISH',
+      'BEGIN:VEVENT',
+      `UID:rdv-${a.id}@kekebeauty.ci`,
+      `DTSTAMP:${toIcsUtc(new Date().toISOString())}`,
+      `DTSTART:${toIcsUtc(a.startsAt)}`,
+      `DTEND:${toIcsUtc(a.endsAt)}`,
+      `SUMMARY:${esc(`RDV Keke Beauty — ${a.establishmentName}`)}`,
+      `LOCATION:${esc(a.establishmentName)}`,
+      `DESCRIPTION:${esc(desc)}`,
+      'BEGIN:VALARM',
+      'TRIGGER:-PT2H',
+      'ACTION:DISPLAY',
+      `DESCRIPTION:${esc(`Rappel RDV chez ${a.establishmentName}`)}`,
+      'END:VALARM',
+      'END:VEVENT',
+      'END:VCALENDAR',
+      '',
+    ].join('\r\n');
+
+    const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `keke-beauty-${a.establishmentSlug}.ics`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  }
+}
+
+/** Query parameters to pre-fill the booking page from a previous appointment ("Réserver à nouveau"). */
+export function rebookQueryParams(a: Appointment): Record<string, string> {
+  const params: Record<string, string> = {};
+  const names = a.lines.map((l) => l.name).filter(Boolean);
+  if (names.length > 0) {
+    params['reprendre'] = names.join('|');
+  }
+  if (a.resourceName) {
+    params['intervenant'] = a.resourceName;
+  }
+  return params;
 }
 
 /** `2026-10-12` for a local calendar date (never through UTC: it would shift the day near midnight). */

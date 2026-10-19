@@ -4,14 +4,23 @@ import { freshCode } from './totp';
 
 /** Signs in through the real forms: e-mail and password, then the Google Authenticator code. */
 export async function signIn(page: Page, account: Account): Promise<void> {
+  const signedIn = (url: URL) => !/\/(verification|connexion)/.test(url.pathname);
   await page.goto('/connexion');
   await page.getByLabel('Adresse e-mail').fill(account.email);
   await page.getByLabel('Mot de passe').fill(account.password);
   await page.getByRole('button', { name: 'Se connecter' }).click();
-  await page.waitForURL(/\/verification/);
-  await page.locator('#twofa-code').fill(await freshCode(account.secret));
-  await page.getByRole('button', { name: 'Valider' }).click();
-  await page.waitForURL((url) => !/\/(verification|connexion)/.test(url.pathname));
+
+  // A plain client is signed in straight away; a partner/admin (or a client who turned 2FA on) must enter a code.
+  const codeField = page.locator('#twofa-code');
+  await Promise.race([
+    codeField.waitFor({ state: 'visible' }).catch(() => {}),
+    page.waitForURL(signedIn).catch(() => {}),
+  ]);
+  if (await codeField.isVisible().catch(() => false)) {
+    await codeField.fill(await freshCode(account.secret));
+    await page.getByRole('button', { name: 'Valider' }).click();
+  }
+  await page.waitForURL(signedIn);
 }
 
 /** The n-th available day (default the first) and its first free slot in the booking calendar, selected. */

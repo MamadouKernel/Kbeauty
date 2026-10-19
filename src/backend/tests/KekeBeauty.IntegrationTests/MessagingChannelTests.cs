@@ -329,8 +329,17 @@ public sealed class MessagingChannelTests(ApiFixture api)
     {
         await using var enabled = api.WithWebHostBuilder(builder => builder.UseSetting("Auth:WhatsApp:Enabled", "true"));
         var whatsApp = enabled.Services.GetRequiredService<CapturingWhatsAppSender>();
-        // Tokens are issued with the main host's (fake) clock: the second host must read the same time.
-        enabled.Services.GetRequiredService<Microsoft.Extensions.Time.Testing.FakeTimeProvider>().SetUtcNow(api.Clock.GetUtcNow());
+        // Tokens are issued with the main host's (fake) clock: the second host should read the same time. When the main
+        // clock has not been advanced yet it may sit a few milliseconds behind this freshly created host; that tiny gap is
+        // well within the 30 s token clock-skew, so a backwards SetUtcNow is simply skipped.
+        try
+        {
+            enabled.Services.GetRequiredService<Microsoft.Extensions.Time.Testing.FakeTimeProvider>().SetUtcNow(api.Clock.GetUtcNow());
+        }
+        catch (ArgumentOutOfRangeException)
+        {
+            // The main clock is behind this host by less than the clock skew: leave the host's clock as it is.
+        }
         using var user = await TestAccounts.ClientAsync(api);
         using var other = await TestAccounts.ClientAsync(api);
         var number = $"+22507{Random.Shared.Next(10_000_000, 99_999_999)}";
@@ -373,7 +382,7 @@ public sealed class MessagingChannelTests(ApiFixture api)
         var verified = await anonymous.PostAsJsonAsync("/api/v1/auth/whatsapp/verify", new WhatsAppVerifyRequest(number, loginCode));
         verified.StatusCode.Should().Be(HttpStatusCode.OK);
         var challenge = (await verified.Content.ReadFromJsonAsync<ChallengeResponse>())!;
-        challenge.Status.Should().Be(ChallengeStatus.TwoFactorRequired, "WhatsApp replaces the password, not the authenticator code");
+        challenge.Status.Should().Be(ChallengeStatus.PasswordOnly, "WhatsApp replaces the password; a plain client needs no authenticator code");
         (await anonymous.PostAsJsonAsync("/api/v1/auth/whatsapp/verify", new WhatsAppVerifyRequest(number, loginCode))).StatusCode.Should().Be(HttpStatusCode.BadRequest, "a code works once");
 
         // Codes per number are capped, whatever the number of requests.

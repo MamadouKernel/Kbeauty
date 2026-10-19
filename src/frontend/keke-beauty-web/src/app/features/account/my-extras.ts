@@ -69,6 +69,30 @@ import {
       height: 100%;
       background: var(--kb-plum-gradient);
     }
+    .stamps {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      margin-block: 0.15rem;
+    }
+    .stamp {
+      display: inline-grid;
+      place-items: center;
+      width: 1.5rem;
+      height: 1.5rem;
+      border-radius: 50%;
+      border: 1.5px dashed var(--kb-primary-300);
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--kb-primary-400);
+      background: var(--kb-primary-50);
+    }
+    .stamp[data-filled='true'] {
+      border-style: solid;
+      border-color: var(--kb-primary-600);
+      background: linear-gradient(135deg, var(--kb-primary-500), var(--kb-primary-700));
+      color: #fff;
+    }
     .gift {
       background: linear-gradient(135deg, var(--kb-gold-soft), var(--kb-card));
     }
@@ -157,6 +181,15 @@ import {
                   >
                     <span [style.width.%]="progress(card.points, card.rewardThreshold)"></span>
                   </div>
+                  @if (stamps(card.points, card.rewardThreshold); as dots) {
+                    <div class="stamps" aria-hidden="true">
+                      @for (filled of dots; track $index) {
+                        <span class="stamp" [attr.data-filled]="filled">{{
+                          filled ? '✓' : $index + 1
+                        }}</span>
+                      }
+                    </div>
+                  }
                   @if (card.rewardsAvailable > 0) {
                     <p>
                       <span class="badge" data-tone="ok"
@@ -174,6 +207,14 @@ import {
                       : {{ card.rewardDescription }}
                     </p>
                   }
+                  <div>
+                    <a
+                      class="btn btn-light btn-sm"
+                      [routerLink]="['/etablissements', card.establishmentSlug, 'reserver']"
+                    >
+                      Réserver dans ce salon
+                    </a>
+                  </div>
                 } @else {
                   <p class="meta">Le programme de fidélité de cet établissement est en pause.</p>
                 }
@@ -230,6 +271,16 @@ import {
                 </p>
                 @if (card.message) {
                   <p>« {{ card.message }} »</p>
+                }
+                @if (card.status === 'Active' && card.balance > 0) {
+                  <div>
+                    <a
+                      class="btn btn-light btn-sm"
+                      [routerLink]="['/etablissements', card.establishmentSlug, 'reserver']"
+                    >
+                      Utiliser pour réserver
+                    </a>
+                  </div>
                 }
               </article>
             } @empty {
@@ -374,6 +425,14 @@ export class MyExtras {
 
   protected progress(points: number, threshold: number): number {
     return progressToReward(points, threshold);
+  }
+
+  protected stamps(points: number, threshold: number): boolean[] | null {
+    if (threshold <= 0 || threshold > 12) {
+      return null;
+    }
+    const filled = points >= threshold ? threshold : points % threshold;
+    return Array.from({ length: threshold }, (_, idx) => idx < filled);
   }
 
   protected giftStatus(status: string): string {

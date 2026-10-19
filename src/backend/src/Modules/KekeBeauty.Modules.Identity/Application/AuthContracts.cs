@@ -35,6 +35,9 @@ public static class ChallengeStatus
     public const string TwoFactorRequired = "TwoFactorRequired";
     public const string TwoFactorSetupRequired = "TwoFactorSetupRequired";
     public const string TrustedDevice = "TrustedDevice";
+
+    /// <summary>No second factor needed (a plain client): the browser exchanges the challenge for a session right away.</summary>
+    public const string PasswordOnly = "PasswordOnly";
 }
 
 public sealed record ChallengeResponse(string Status, string ChallengeToken);

@@ -144,6 +144,16 @@ export class AuthService {
     this.accept(response);
   }
 
+  /** A plain client (no second factor required) finishes signing in with no code. */
+  async completePasswordLogin(): Promise<void> {
+    const response = await firstValueFrom(
+      this.http.post<AuthResponse>('/api/v1/auth/complete-login', {
+        challengeToken: this.requireChallenge().token,
+      }),
+    );
+    this.accept(response);
+  }
+
   async logout(): Promise<void> {
     try {
       await firstValueFrom(this.http.post<void>('/api/v1/auth/logout', {}));

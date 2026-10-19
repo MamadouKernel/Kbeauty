@@ -86,6 +86,16 @@ public static class AppointmentEndpoints
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status404NotFound);
 
+        appointments.MapGet("/{id:guid}/calendar.ics", async (Guid id, ClaimsPrincipal user, BookingService service, CancellationToken ct) =>
+            {
+                var result = await service.CalendarIcsAsync(user.UserId(), id, ct);
+                return result.IsSuccess
+                    ? Results.File(System.Text.Encoding.UTF8.GetBytes(result.Value), "text/calendar; charset=utf-8", $"keke-beauty-rdv-{id:N}.ics")
+                    : ProblemResults.From(result.Error);
+            })
+            .Produces(StatusCodes.Status200OK, contentType: "text/calendar")
+            .ProducesProblem(StatusCodes.Status404NotFound);
+
         appointments.MapPost("/{id:guid}/tip", async (Guid id, TipInput input, ClaimsPrincipal user, KekeBeauty.Infrastructure.Billing.TipPaymentService service, CancellationToken ct) =>
             {
                 var result = await service.TipAsync(user.UserId(), id, input.Amount, ct);

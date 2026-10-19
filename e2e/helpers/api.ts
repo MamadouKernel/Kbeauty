@@ -58,17 +58,29 @@ export async function createAccount(
     sql(`UPDATE identity.users SET roles = ARRAY['${promoteTo}'] WHERE email = '${email}'`);
   }
 
-  const challenge = await json<{ challengeToken: string }>(
+  const challenge = await json<{ challengeToken: string; status: string }>(
     await request.post('/api/v1/auth/login', { data: { email, password: PASSWORD } }),
   );
-  const { secret } = await json<{ secret: string }>(
-    await request.post('/api/v1/auth/2fa/setup', { data: { challengeToken: challenge.challengeToken } }),
-  );
-  const session = await json<{ accessToken: string; user: { id: string } }>(
-    await request.post('/api/v1/auth/2fa/enable', {
-      data: { challengeToken: challenge.challengeToken, code: await freshCode(secret) },
-    }),
-  );
+
+  // A plain client needs no second factor; partners and admins must enrol one.
+  let secret = '';
+  let session: { accessToken: string; user: { id: string } };
+  if (challenge.status === 'PasswordOnly') {
+    session = await json(
+      await request.post('/api/v1/auth/complete-login', { data: { challengeToken: challenge.challengeToken } }),
+    );
+  } else {
+    secret = (
+      await json<{ secret: string }>(
+        await request.post('/api/v1/auth/2fa/setup', { data: { challengeToken: challenge.challengeToken } }),
+      )
+    ).secret;
+    session = await json(
+      await request.post('/api/v1/auth/2fa/enable', {
+        data: { challengeToken: challenge.challengeToken, code: await freshCode(secret) },
+      }),
+    );
+  }
   return {
     email,
     password: PASSWORD,

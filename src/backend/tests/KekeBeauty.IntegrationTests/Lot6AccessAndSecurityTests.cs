@@ -86,7 +86,8 @@ public sealed class Lot6AccessAndSecurityTests(ApiFixture api)
     [Fact]
     public async Task Repeated_exhausted_two_factor_challenges_lock_the_account()
     {
-        using var victim = await TestAccounts.ClientAsync(api);
+        // A partner always has a second factor; a plain client has none, so 2FA cannot be brute-forced on one.
+        using var victim = await TestAccounts.PartnerAsync(api);
         using var anon = api.CreateClient();
 
         for (var round = 0; round < 5; round++)

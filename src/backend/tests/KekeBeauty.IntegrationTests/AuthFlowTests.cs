@@ -120,9 +120,38 @@ public sealed partial class AuthFlowTests(ApiFixture api)
 
         var login = await client.PostAsJsonAsync("/api/v1/auth/login", new LoginRequest(email, Password));
 
+        // A client needs no second factor, but the password alone still never yields a session: login returns a
+        // short-lived challenge (no access token, no cookie); the session is opened by a separate /complete-login call.
         var body = await login.Content.ReadAsStringAsync();
-        body.Should().Contain("TwoFactorSetupRequired").And.NotContain("accessToken");
+        body.Should().Contain("PasswordOnly").And.NotContain("accessToken");
         login.Headers.Contains("Set-Cookie").Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task A_client_signs_in_without_a_second_factor_but_a_partner_must_enrol_one()
+    {
+        using var client = api.CreateClient();
+        var clientEmail = NewEmail();
+        await RegisterAndConfirmAsync(client, clientEmail);
+
+        var challenge = await LoginAsync(client, clientEmail);
+        challenge.Status.Should().Be(ChallengeStatus.PasswordOnly);
+
+        var complete = await client.PostAsJsonAsync("/api/v1/auth/complete-login", new ChallengeRequest(challenge.ChallengeToken));
+        complete.StatusCode.Should().Be(HttpStatusCode.OK);
+        var session = await Json<AuthResponse>(complete);
+        session.User.TwoFactorEnabled.Should().BeFalse();
+        complete.Headers.Contains("Set-Cookie").Should().BeTrue();
+
+        // A partner cannot skip the second factor, and the password-only shortcut is refused for its challenge.
+        using var partnerClient = api.CreateClient();
+        var partnerEmail = NewEmail();
+        await RegisterAndConfirmAsync(partnerClient, partnerEmail, "PartnerOwner");
+        var partnerChallenge = await LoginAsync(partnerClient, partnerEmail);
+        partnerChallenge.Status.Should().Be(ChallengeStatus.TwoFactorSetupRequired);
+
+        var sneaky = await partnerClient.PostAsJsonAsync("/api/v1/auth/complete-login", new ChallengeRequest(partnerChallenge.ChallengeToken));
+        sneaky.StatusCode.Should().NotBe(HttpStatusCode.OK);
     }
 
     [Fact]
@@ -174,7 +203,7 @@ public sealed partial class AuthFlowTests(ApiFixture api)
     {
         using var client = api.CreateClient();
         var email = NewEmail();
-        await RegisterAndConfirmAsync(client, email);
+        await RegisterAndConfirmAsync(client, email, "PartnerOwner");
         var (_, enrolled) = await EnrollAsync(client, await LoginAsync(client, email));
         var recovery = enrolled.RecoveryCodes![0];
 
@@ -213,7 +242,7 @@ public sealed partial class AuthFlowTests(ApiFixture api)
     {
         using var client = api.CreateClient();
         var email = NewEmail();
-        await RegisterAndConfirmAsync(client, email);
+        await RegisterAndConfirmAsync(client, email, "PartnerOwner");
         var (secret, _) = await EnrollAsync(client, await LoginAsync(client, email));
 
         api.Clock.Advance(TimeSpan.FromSeconds(30));
@@ -232,7 +261,7 @@ public sealed partial class AuthFlowTests(ApiFixture api)
     {
         using var client = api.CreateClient();
         var email = NewEmail();
-        await RegisterAndConfirmAsync(client, email);
+        await RegisterAndConfirmAsync(client, email, "PartnerOwner");
         await EnrollAsync(client, await LoginAsync(client, email));
 
         (await client.PostAsJsonAsync("/api/v1/auth/forgot-password", new ForgotPasswordRequest(email))).StatusCode.Should().Be(HttpStatusCode.Accepted);
@@ -253,7 +282,7 @@ public sealed partial class AuthFlowTests(ApiFixture api)
     {
         using var client = api.CreateClient(new WebApplicationFactoryClientOptions { HandleCookies = false });
         var email = NewEmail();
-        await RegisterAndConfirmAsync(client, email);
+        await RegisterAndConfirmAsync(client, email, "PartnerOwner");
 
         var challenge = await LoginAsync(client, email);
         var setup = await client.PostAsJsonAsync("/api/v1/auth/2fa/setup", new ChallengeRequest(challenge.ChallengeToken));
@@ -281,7 +310,7 @@ public sealed partial class AuthFlowTests(ApiFixture api)
     {
         using var client = api.CreateClient();
         var email = NewEmail();
-        await RegisterAndConfirmAsync(client, email);
+        await RegisterAndConfirmAsync(client, email, "PartnerOwner");
         var (_, enrolled) = await EnrollAsync(client, await LoginAsync(client, email));
 
         using var authorized = Authorized(api.CreateClient(), enrolled.AccessToken);
@@ -315,7 +344,7 @@ public sealed partial class AuthFlowTests(ApiFixture api)
     }
 
     [Fact]
-    public async Task Google_sign_in_creates_a_confirmed_account_that_still_needs_2fa()
+    public async Task Google_sign_in_creates_a_confirmed_client_account_without_a_second_factor()
     {
         using var client = api.CreateClient();
         var email = NewEmail();
@@ -324,11 +353,15 @@ public sealed partial class AuthFlowTests(ApiFixture api)
 
         login.StatusCode.Should().Be(HttpStatusCode.OK);
         var challenge = await Json<ChallengeResponse>(login);
-        challenge.Status.Should().Be(ChallengeStatus.TwoFactorSetupRequired);
+        // A Google account is a plain client: no second factor, the session opens with the follow-up call.
+        challenge.Status.Should().Be(ChallengeStatus.PasswordOnly);
 
-        var (_, session) = await EnrollAsync(client, challenge);
+        var complete = await client.PostAsJsonAsync("/api/v1/auth/complete-login", new ChallengeRequest(challenge.ChallengeToken));
+        complete.StatusCode.Should().Be(HttpStatusCode.OK);
+        var session = await Json<AuthResponse>(complete);
         session.User.Email.Should().Be(email);
         session.User.Roles.Should().Equal("Client");
+        session.User.TwoFactorEnabled.Should().BeFalse();
     }
 
     [Fact]

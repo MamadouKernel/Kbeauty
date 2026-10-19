@@ -77,6 +77,12 @@ public enum ChallengePurpose
     TwoFactor,
     TwoFactorSetup,
     TrustedDevice,
+
+    /// <summary>
+    /// First factor succeeded for an account that does not need a second factor (a plain client who has not turned 2FA on).
+    /// Exchanged directly for a session, without a code.
+    /// </summary>
+    PasswordOnly,
 }
 
 /// <summary>Short-lived proof that the first factor (password / Google) succeeded; exchanged for a session after 2FA.</summary>

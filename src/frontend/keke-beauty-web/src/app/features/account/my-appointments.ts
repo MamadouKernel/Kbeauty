@@ -15,6 +15,7 @@ import {
   Appointment,
   BookingService,
   formatInZone,
+  rebookQueryParams,
 } from '../../core/booking/booking.service';
 import { formatMoney } from '../../core/format/format';
 import { MOBILE_MONEY_LABELS } from '../../core/format/payment-methods';
@@ -47,6 +48,30 @@ const ACTIVE = new Set(['Pending', 'Confirmed', 'RescheduleProposed']);
       gap: 1.5rem;
       max-width: 52rem;
       padding-block: clamp(1.5rem, 4vw, 3rem);
+    }
+    .rebook-banner {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 1.1rem 1.35rem;
+      border: 1px solid var(--kb-primary-200);
+      border-radius: var(--radius-lg);
+      background: linear-gradient(135deg, var(--kb-primary-50), var(--kb-card));
+      box-shadow: var(--shadow-soft);
+    }
+    .rebook-banner__info {
+      display: grid;
+      gap: 0.2rem;
+    }
+    .rebook-banner__eyebrow {
+      margin: 0;
+      font-size: var(--fs-xs);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--kb-primary-700);
     }
     .list {
       display: grid;
@@ -132,6 +157,23 @@ const ACTIVE = new Set(['Pending', 'Confirmed', 'RescheduleProposed']);
       }
 
       @if (appointments.hasValue()) {
+        @if (lastRebookable(); as fav) {
+          <aside class="rebook-banner" aria-label="Réserver à nouveau en 1 clic">
+            <div class="rebook-banner__info">
+              <p class="rebook-banner__eyebrow">Réservation express en 1 clic</p>
+              <strong>Reprendre chez {{ fav.establishmentName }}</strong>
+              <span class="meta">{{ summary(fav) }}</span>
+            </div>
+            <a
+              class="btn btn-primary btn-sm"
+              [routerLink]="['/etablissements', fav.establishmentSlug, 'reserver']"
+              [queryParams]="rebookParams(fav)"
+            >
+              Réserver à nouveau
+            </a>
+          </aside>
+        }
+
         <section aria-labelledby="upcoming-title" class="list">
           <h2 id="upcoming-title">À venir</h2>
           @for (a of upcoming(); track a.id) {
@@ -146,8 +188,8 @@ const ACTIVE = new Set(['Pending', 'Confirmed', 'RescheduleProposed']);
               </div>
               <p class="when">{{ when(a.startsAt) }}</p>
               <p class="meta">{{ summary(a) }}</p>
-              @if (a.status === 'Confirmed') {
-                <div class="actions">
+              <div class="actions">
+                @if (a.status === 'Confirmed') {
                   <button
                     class="btn btn-light btn-sm"
                     type="button"
@@ -156,10 +198,17 @@ const ACTIVE = new Set(['Pending', 'Confirmed', 'RescheduleProposed']);
                   >
                     {{ openPass() === a.id ? 'Masquer mon pass' : 'Mon pass QR' }}
                   </button>
-                </div>
-                @if (openPass() === a.id) {
-                  <app-pass-qr [appointmentId]="a.id" />
                 }
+                <button
+                  class="btn btn-ghost btn-sm"
+                  type="button"
+                  (click)="downloadIcs(a)"
+                >
+                  Ajouter au calendrier (.ics)
+                </button>
+              </div>
+              @if (a.status === 'Confirmed' && openPass() === a.id) {
+                <app-pass-qr [appointmentId]="a.id" />
               }
               @if (a.servicePayment; as sp) {
                 <p class="meta">
@@ -318,6 +367,15 @@ const ACTIVE = new Set(['Pending', 'Confirmed', 'RescheduleProposed']);
                     </button>
                   </div>
                 }
+                <div class="actions">
+                  <a
+                    class="btn btn-ghost btn-sm"
+                    [routerLink]="['/etablissements', a.establishmentSlug, 'reserver']"
+                    [queryParams]="rebookParams(a)"
+                  >
+                    Réserver à nouveau
+                  </a>
+                </div>
               </article>
             }
           </section>
@@ -361,6 +419,17 @@ export class MyAppointments {
       .sort((a, b) => a.startsAt.localeCompare(b.startsAt)),
   );
   protected readonly past = computed(() => this.list().filter((a) => !ACTIVE.has(a.status)));
+  protected readonly lastRebookable = computed(
+    () => this.past().find((a) => a.status === 'Completed') ?? this.past()[0] ?? null,
+  );
+
+  protected rebookParams(a: Appointment): Record<string, string> {
+    return rebookQueryParams(a);
+  }
+
+  protected downloadIcs(a: Appointment): void {
+    this.booking.downloadIcs(a);
+  }
 
   constructor() {
     // A notification means something changed on one of my appointments: refresh the list.

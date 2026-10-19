@@ -114,9 +114,15 @@ describe('Header menus', () => {
 
     expect(root.querySelector('.menu__head')?.textContent).toContain('awa@example.com');
     const labels = items().map((i) => i.textContent?.trim());
-    expect(labels).toEqual(['Mon compte', 'Mon espace pro', 'Se déconnecter']);
+    expect(labels).toEqual([
+      'Mon compte',
+      'Mes rendez-vous',
+      'Fidélité et cartes cadeaux',
+      'Mon espace pro',
+      'Se déconnecter',
+    ]);
 
-    items()[2].click();
+    items()[items().length - 1].click();
     await vi.waitFor(() => expect(logout).toHaveBeenCalled());
   });
 

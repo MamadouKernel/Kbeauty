@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, resource } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, resource, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { LucidePlus } from '@lucide/angular';
 import { AuthService } from '../../core/auth/auth.service';
@@ -233,8 +233,62 @@ import { PartnerService, STATUS_LABELS } from '../../core/partner/partner.servic
                       <a class="btn btn-ghost btn-sm" [routerLink]="['/etablissements', e.slug]"
                         >Voir la fiche publique</a
                       >
+                      <button
+                        type="button"
+                        class="btn btn-light btn-sm"
+                        [attr.aria-expanded]="openQrSlug() === e.slug"
+                        (click)="toggleQr(e.slug, e.name)"
+                      >
+                        {{ openQrSlug() === e.slug ? 'Masquer le kit partage' : 'QR Code & WhatsApp' }}
+                      </button>
                     }
                   </div>
+                  @if (e.status === 'Active' && openQrSlug() === e.slug) {
+                    <aside
+                      style="margin-top: 0.75rem; padding: 1rem; border: 1px dashed var(--kb-primary-300); border-radius: var(--radius-md); background: var(--kb-primary-50); display: grid; gap: 0.75rem;"
+                      aria-label="Kit de partage et QR code comptoir"
+                    >
+                      <strong>Partagez votre lien de réservation ({{ e.name }})</strong>
+                      <p style="margin: 0; font-size: var(--fs-sm); color: var(--kb-ink-muted);">
+                        Affichez ce QR Code au comptoir de votre salon ou publiez le lien dans votre statut WhatsApp et votre bio Instagram.
+                      </p>
+                      @if (qrDataUrl(); as qrUrl) {
+                        <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 1rem;">
+                          <img
+                            [src]="qrUrl"
+                            width="160"
+                            height="160"
+                            alt="QR code de réservation pour {{ e.name }}"
+                            style="border-radius: var(--radius-sm); background: #fff; padding: 0.35rem;"
+                          />
+                          <div class="actions">
+                            <a
+                              class="btn btn-primary btn-sm"
+                              [href]="qrUrl"
+                              [attr.download]="'qr-keke-beauty-' + e.slug + '.png'"
+                            >
+                              Télécharger le QR Code (PNG)
+                            </a>
+                            <a
+                              class="btn btn-light btn-sm"
+                              [href]="whatsAppShareUrl(e.slug, e.name)"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              Partager sur WhatsApp
+                            </a>
+                            <button
+                              type="button"
+                              class="btn btn-ghost btn-sm"
+                              (click)="copyBookingLink(e.slug)"
+                            >
+                              {{ copiedSlug() === e.slug ? 'Lien copié ✓' : 'Copier le lien' }}
+                            </button>
+                          </div>
+                        </div>
+                      }
+                    </aside>
+                  }
                 </div>
               </li>
             }
@@ -252,8 +306,51 @@ export class ProHome {
   private readonly partner = inject(PartnerService);
   protected readonly user = inject(AuthService).user;
   protected readonly establishments = resource({ loader: () => this.partner.list() });
+  protected readonly openQrSlug = signal<string | null>(null);
+  protected readonly qrDataUrl = signal<string | null>(null);
+  protected readonly copiedSlug = signal<string | null>(null);
 
   protected label(status: string): string {
     return STATUS_LABELS[status] ?? status;
+  }
+
+  protected bookingUrl(slug: string): string {
+    const origin = typeof window !== 'undefined' ? window.location.origin : '';
+    return `${origin}/etablissements/${encodeURIComponent(slug)}/reserver`;
+  }
+
+  protected whatsAppShareUrl(slug: string, name: string): string {
+    const text = `Réservez votre prochain rendez-vous chez ${name} en quelques clics sur Keke Beauty : ${this.bookingUrl(slug)}`;
+    return `https://wa.me/?text=${encodeURIComponent(text)}`;
+  }
+
+  protected async toggleQr(slug: string, _name: string): Promise<void> {
+    if (this.openQrSlug() === slug) {
+      this.openQrSlug.set(null);
+      return;
+    }
+    this.openQrSlug.set(slug);
+    this.qrDataUrl.set(null);
+    const { default: QRCode } = await import('qrcode');
+    const url = await QRCode.toDataURL(this.bookingUrl(slug), {
+      margin: 2,
+      width: 320,
+      color: { dark: '#36174f', light: '#ffffff' },
+    });
+    if (this.openQrSlug() === slug) {
+      this.qrDataUrl.set(url);
+    }
+  }
+
+  protected async copyBookingLink(slug: string): Promise<void> {
+    if (typeof navigator !== 'undefined' && navigator.clipboard) {
+      await navigator.clipboard.writeText(this.bookingUrl(slug));
+      this.copiedSlug.set(slug);
+      setTimeout(() => {
+        if (this.copiedSlug() === slug) {
+          this.copiedSlug.set(null);
+        }
+      }, 2500);
+    }
   }
 }

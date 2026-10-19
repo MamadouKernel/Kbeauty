@@ -1,3 +1,4 @@
+using System.Collections.Frozen;
 using KekeBeauty.Modules.Identity.Domain;
 using KekeBeauty.SharedKernel;
 using Microsoft.AspNetCore.Identity;
@@ -494,11 +495,50 @@ public sealed partial class AuthService(
             }
         }
 
-        var purpose = user.TotpEnabled ? ChallengePurpose.TwoFactor : ChallengePurpose.TwoFactorSetup;
+        // Risk-based second factor: mandatory for partners, staff and admins (they handle money and sensitive data);
+        // optional for a plain client. A client who has not turned 2FA on gets a session straight after the password,
+        // so booking a salon never needs an authenticator app.
+        var (purpose, status) = user.TotpEnabled
+            ? (ChallengePurpose.TwoFactor, ChallengeStatus.TwoFactorRequired)
+            : MustUseTwoFactor(user)
+                ? (ChallengePurpose.TwoFactorSetup, ChallengeStatus.TwoFactorSetupRequired)
+                : (ChallengePurpose.PasswordOnly, ChallengeStatus.PasswordOnly);
         var raw = TokenService.NewOpaqueToken();
         db.LoginChallenges.Add(LoginChallenge.Create(user.Id, purpose, TokenService.Hash(raw), now.AddMinutes(Options.ChallengeMinutes)));
         await db.SaveChangesAsync(ct);
-        return new ChallengeResponse(user.TotpEnabled ? ChallengeStatus.TwoFactorRequired : ChallengeStatus.TwoFactorSetupRequired, raw);
+        return new ChallengeResponse(status, raw);
+    }
+
+    /// <summary>Roles that always require a second factor; a plain client (none of these) does not.</summary>
+    private static readonly FrozenSet<string> RolesRequiringTwoFactor =
+        new[] { AppRoles.PartnerOwner, AppRoles.PartnerStaff }.Concat(AppRoles.AllAdminRoles).ToFrozenSet();
+
+    private static bool MustUseTwoFactor(User user) => user.Roles.Any(RolesRequiringTwoFactor.Contains);
+
+    /// <summary>
+    /// A plain client whose password was accepted (<see cref="ChallengeStatus.PasswordOnly"/>) exchanges the challenge for a
+    /// session, with no code. Re-checks, at this exact moment, that the account still does not need a second factor.
+    /// </summary>
+    public async Task<Result<IssuedSession>> CompletePasswordLoginAsync(string? challengeToken, ClientContext context, CancellationToken ct)
+    {
+        var loaded = await LoadChallengeAsync(challengeToken, ChallengePurpose.PasswordOnly, ct);
+        if (loaded is null)
+        {
+            return Result.Failure<IssuedSession>(AuthErrors.ChallengeExpired);
+        }
+
+        var (challenge, user) = loaded.Value;
+
+        // Defence in depth: the role may have been raised, or 2FA switched on, between the password step and here.
+        // Refuse the shortcut and make the person sign in again (which then routes to the 2FA path).
+        if (user.TotpEnabled || MustUseTwoFactor(user))
+        {
+            return Result.Failure<IssuedSession>(AuthErrors.ChallengeExpired);
+        }
+
+        challenge.Consume(time.GetUtcNow());
+        // No "remember this device": trusted devices only make sense as a 2FA shortcut.
+        return Result.Success(await IssueSessionAsync(user, context, null, rememberDevice: false, ct));
     }
 
     private async Task<(LoginChallenge Challenge, User User)?> LoadChallengeAsync(string? rawToken, ChallengePurpose purpose, CancellationToken ct)

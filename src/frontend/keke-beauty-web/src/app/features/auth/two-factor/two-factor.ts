@@ -236,7 +236,9 @@ export class TwoFactor {
       return;
     }
 
-    if (challenge.status === 'TrustedDevice') {
+    if (challenge.status === 'PasswordOnly') {
+      void this.completePasswordOnly();
+    } else if (challenge.status === 'TrustedDevice') {
       void this.completeTrusted();
     } else if (challenge.status === 'TwoFactorSetupRequired') {
       void this.startSetup();
@@ -297,6 +299,18 @@ export class TwoFactor {
     } catch (error) {
       this.error.set(problemMessage(error, 'Appareil non reconnu. Saisissez votre code 2FA.'));
       this.phase.set('verify');
+    }
+  }
+
+  /** A plain client: no second factor, the session opens immediately. */
+  private async completePasswordOnly(): Promise<void> {
+    try {
+      await this.auth.completePasswordLogin();
+      await this.finish();
+    } catch (error) {
+      // The account now needs a second factor (role raised, or 2FA turned on): send the person back to sign in.
+      this.error.set(problemMessage(error, 'Reconnectez-vous pour continuer.'));
+      this.phase.set('expired');
     }
   }
 

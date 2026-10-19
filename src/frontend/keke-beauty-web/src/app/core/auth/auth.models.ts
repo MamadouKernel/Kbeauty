@@ -19,7 +19,11 @@ export interface AuthResponse {
   readonly idleMinutes?: number;
 }
 
-export type ChallengeStatus = 'TwoFactorRequired' | 'TwoFactorSetupRequired' | 'TrustedDevice';
+export type ChallengeStatus =
+  | 'TwoFactorRequired'
+  | 'TwoFactorSetupRequired'
+  | 'TrustedDevice'
+  | 'PasswordOnly';
 
 export interface ChallengeResponse {
   readonly status: ChallengeStatus;

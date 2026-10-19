@@ -72,6 +72,14 @@
                   ></span>
                   Mon compte
                 </a>
+                <a class="menu__item" role="menuitem" routerLink="/compte/rendez-vous">
+                  <span class="menu__icon"><svg lucideCalendarDays aria-hidden="true"></svg></span>
+                  Mes rendez-vous
+                </a>
+                <a class="menu__item" role="menuitem" routerLink="/compte/fidelite">
+                  <span class="menu__icon"><svg lucideSparkles aria-hidden="true"></svg></span>
+                  Fidélité et cartes cadeaux
+                </a>
                 @if (isStaff()) {
                   <a class="menu__item" role="menuitem" routerLink="/equipe">
                     <span class="menu__icon"
