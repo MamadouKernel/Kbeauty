@@ -93,6 +93,17 @@ export class AuthService {
     return this.keepChallenge(response);
   }
 
+  async requestWhatsAppOtp(phone: string): Promise<void> {
+    await firstValueFrom(this.http.post<void>('/api/v1/auth/whatsapp/request', { phone }));
+  }
+
+  async verifyWhatsAppOtp(phone: string, code: string): Promise<ChallengeStatus> {
+    const response = await firstValueFrom(
+      this.http.post<ChallengeResponse>('/api/v1/auth/whatsapp/verify', { phone, code }),
+    );
+    return this.keepChallenge(response);
+  }
+
   beginTwoFactorSetup(): Promise<TwoFactorSetup> {
     return firstValueFrom(
       this.http.post<TwoFactorSetup>('/api/v1/auth/2fa/setup', {
@@ -101,22 +112,33 @@ export class AuthService {
     );
   }
 
-  async enableTwoFactor(code: string): Promise<void> {
+  async enableTwoFactor(code: string, rememberDevice = false): Promise<void> {
+    const challengeToken = this.requireChallenge().token;
+    const body = rememberDevice
+      ? { challengeToken, code, rememberDevice: true }
+      : { challengeToken, code };
     const response = await firstValueFrom(
-      this.http.post<AuthResponse>('/api/v1/auth/2fa/enable', {
-        challengeToken: this.requireChallenge().token,
-        code,
-      }),
+      this.http.post<AuthResponse>('/api/v1/auth/2fa/enable', body),
     );
     this.accept(response);
     this.recoveryCodes.set(response.recoveryCodes);
   }
 
-  async verifyTwoFactor(code: string): Promise<void> {
+  async verifyTwoFactor(code: string, rememberDevice = false): Promise<void> {
+    const challengeToken = this.requireChallenge().token;
+    const body = rememberDevice
+      ? { challengeToken, code, rememberDevice: true }
+      : { challengeToken, code };
     const response = await firstValueFrom(
-      this.http.post<AuthResponse>('/api/v1/auth/2fa/verify', {
+      this.http.post<AuthResponse>('/api/v1/auth/2fa/verify', body),
+    );
+    this.accept(response);
+  }
+
+  async completeTrustedDevice(): Promise<void> {
+    const response = await firstValueFrom(
+      this.http.post<AuthResponse>('/api/v1/auth/2fa/trusted', {
         challengeToken: this.requireChallenge().token,
-        code,
       }),
     );
     this.accept(response);

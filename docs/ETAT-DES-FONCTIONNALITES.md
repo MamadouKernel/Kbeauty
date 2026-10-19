@@ -1,9 +1,9 @@
 # État des fonctionnalités
 
-Situation au 13 octobre 2026, par exigence du cahier des charges (`PRD_Keke_Beauty.md`).
+Situation au 18 octobre 2026, par exigence du cahier des charges (`PRD_Keke_Beauty.md`).
 Légende : ✅ implémenté et testé · 🟡 implémenté, avec une réserve (ce qui n'a pas pu être vérifié est dit) · ⏸ implémenté mais **désactivé** volontairement · ❌ non implémenté.
 
-Tests : 219 unitaires + 191 d'intégration (PostgreSQL et Redis réels via Testcontainers) + 180 Vitest + **113 tests de bout en bout** dans un vrai navigateur (ordinateur et téléphone), dont 30 attaques rejouées (`docs/PENTEST.md`).
+Tests : 223 unitaires + 197 d'intégration (PostgreSQL et Redis réels via Testcontainers) + 192 Vitest + **115 tests de bout en bout** dans un vrai navigateur (ordinateur et téléphone), dont 30 attaques rejouées (`docs/PENTEST.md`).
 
 ## Écarts assumés par rapport au cahier des charges
 
@@ -17,10 +17,10 @@ Tests : 219 unitaires + 191 d'intégration (PostgreSQL et Redis réels via Testc
 
 | Exigence | État | Remarque |
 |---|---|---|
-| AUTH-01 Inscription / connexion | ✅ | E-mail + mot de passe + TOTP, parcours complet rejoué dans le navigateur (courrier capté par Mailpit) |
-| AUTH-01 bis Connexion / liaison WhatsApp | ⏸ | Code envoyé par WhatsApp puis TOTP ; **aucun fournisseur WhatsApp Business n'est branché** (la documentation LeTexto fournie n'en décrit pas) : les messages vont au journal |
-| AUTH-02 Comptes admin | ✅ | SuperAdmin créé au démarrage, administrateurs nommés par un SuperAdmin |
-| AUTH-03 Sessions | ✅ | Liste, révocation, suspension ; **déconnexion après inactivité réglable** (60 min par défaut), côté serveur et dans l'application |
+| AUTH-01 Inscription / connexion | ✅ | E-mail + mot de passe + TOTP (et connexion Google quand activée), avec option **« Se souvenir de cet appareil pendant 30 jours »** (cookie `kb_td` HttpOnly) permettant d'éviter la saisie du code 2FA sur un appareil de confiance, et liste/révocation des appareils de confiance depuis « Mon compte » |
+| AUTH-01 bis Connexion / liaison WhatsApp | ⏸ | Connexion par code OTP WhatsApp sur `/connexion` (quand `Auth:WhatsApp:Enabled=true`) et liaison du numéro depuis « Mon compte » ; **aucun fournisseur WhatsApp Business n'est branché** en production : les messages vont au journal |
+| AUTH-02 Comptes admin et rôles fins | ✅ | SuperAdmin créé au démarrage ; attribution, modification et révocation des rôles administrateurs fins (`Admin`, `AdminKyc`, `AdminSupport`, `AdminAccountant`) par un SuperAdmin dans `/admin/administrateurs`, avec filtrage des écrans et politiques d'autorisation par périmètre |
+| AUTH-03 Sessions et inactivité | ✅ | Liste, révocation, suspension ; **déconnexion après inactivité réglable** (60 min par défaut), côté serveur et dans l'application, avec **bannière d'avertissement 60 secondes avant expiration** et bouton « Rester connecté(e) » |
 | Droits RGPD / loi 2013-450 | ✅ | Consentement daté, export JSON, suppression de compte ; **durée de conservation des pièces d'identité réglable** par l'admin, effacement automatique |
 
 ## Annuaire public
@@ -35,7 +35,6 @@ Tests : 219 unitaires + 191 d'intégration (PostgreSQL et Redis réels via Testc
 | Comptoir (cliente sans compte) | ✅ | Le partenaire enregistre une cliente présente (`/pro/etablissements/{id}/comptoir`) : prestations, nom, téléphone facultatif, paiement reçu ; rendez-vous **confirmé aussitôt** sur la première personne libre, sans règle de délai ; pas de notification (la cliente n'a pas de compte) ni de rappel ; une cliente de comptoir ne peut pas laisser d'avis |
 | Pass QR et scanner | ✅ | La cliente affiche un **QR code** depuis « Mes rendez-vous » (jeton signé, limité dans le temps, valable jusqu'à 6 h après la fin du rendez-vous) ; le partenaire le lit avec la caméra (navigateurs qui savent le faire) ou le colle (`/pro/etablissements/{id}/scanner`) ; un pass d'un autre établissement est refusé |
 | Équipe et portail collaboratrice | ✅ | Le propriétaire lie une ressource au compte d'une collaboratrice (par e-mail) et fixe sa commission (`/pro/etablissements/{id}/equipe`) ; la collaboratrice (rôle `PartnerStaff`) voit **uniquement ses rendez-vous du jour** (`/equipe`), démarre et termine chaque soin avec un chrono, ouvre la **fiche technique** de la cliente (allergies en alerte, notes de soin) et suit ses gains (commission = part du prix du soin terminé, plus pourboires) ; le propriétaire voit le même récapitulatif par ressource, sans versement automatique |
-| Pourboire | 🟡 | Après un soin terminé servi par une collaboratrice identifiée, la cliente laisse un pourboire (100 à 100 000 F, une seule fois) depuis « Mes rendez-vous » ; il est enregistré et ajouté aux gains de la collaboratrice, mais **pas encore encaissé en ligne** |
 | Pourboire en ligne | ✅ | La cliente paie son pourboire (100 à 100 000 F, une fois par rendez-vous) sur la page de paiement ; il est ajouté au rendez-vous une fois le paiement reçu et reste sur la plateforme jusqu'au versement à la collaboratrice ; sans paiement en ligne sur la plateforme, il est seulement enregistré |
 | Versement aux collaboratrices | ✅ | La collaboratrice renseigne son compte de paiement mobile (`/equipe`) ; le propriétaire la paie (`/pro/etablissements/{id}/equipe`) : commissions des soins terminés (montant **figé** à la fin du soin) et pourboires payés en ligne. Les commissions sont **avancées sur le solde** de l'établissement et déduites de son prochain reversement ; un transfert refusé rend tout disponible ; suivi des transferts en attente par la tâche de règlement ; liste côté admin |
 | Frais d'annulation tardive | ✅ | L'établissement fixe un pourcentage (0 à 100 %) retenu quand une cliente ayant payé en ligne annule après le délai (avant le début du rendez-vous) ; la cliente voit le montant et doit l'accepter ; le reste lui est remboursé (remboursement partiel), la part retenue est reversée à l'établissement ; à 0 %, l'annulation tardive reste refusée |
@@ -63,13 +62,15 @@ Tests : 219 unitaires + 191 d'intégration (PostgreSQL et Redis réels via Testc
 | Exigence | État | Remarque |
 |---|---|---|
 | ONB-01 à 04, SVC-01 à 03, AGD-01 à 08 | ✅ | Galerie photos **et vidéos** |
+| Formules, avantages et promotions d'un salon | ✅ | Chaque prestation ou forfait d'un salon peut définir une **promotion en pourcentage** (1 à 90 %, date de fin facultative) et une liste d'**éléments inclus / avantages de la formule** (affichés sur la fiche publique et au moment de la réservation, avec application automatique du tarif remisé au rendez-vous) |
 | Moyens de paiement de l'établissement | ✅ | Espèces et jusqu'à 4 comptes Mobile Money (opérateur, numéro, titulaire), page « Moyens de paiement » |
+| Finances détaillées, reçus PDF et export comptable CSV | ✅ | Page `/pro/etablissements/{id}/finances` : indicateurs sur la période (CA brut, encaissements en ligne nets, espèces et Mobile Money sur place, pourboires, commissions équipe, reversements), répartition par prestation et par moyen de règlement, **export comptable CSV** (`finances.csv`, protégé contre l'injection de formules), **reçu PDF de prestation** (`appointments/{id}/receipt.pdf`) et **bordereau PDF de reversement** (`payouts/{id}/receipt.pdf`) |
 
 ## Abonnements et paiement
 
 | Exigence | État | Remarque |
 |---|---|---|
-| BIL-01 Formules paramétrables | ✅ | **L'admin crée, duplique et modifie autant de formules qu'il veut** : nom, étiquette, description, prix mensuel/annuel (0 = rythme non proposé), engagement (1 à 36 mois), limites (photos, vidéos, employés/ressources, rendez-vous par mois, vide = illimité) et options (réservation, statistiques, mise en avant). Les pages Tarifs et Abonnement se construisent à partir de ces réglages. Limites appliquées à l'import de photos et vidéos, à l'ajout de ressources et à la réservation. **Période d'essai** par formule (0 à 90 jours, une seule fois par établissement et par formule) : fonctionnalités immédiates sans paiement, souscription anticipée possible sans perdre de jours, retour à la formule Gratuite si rien n'est payé à l'échéance. **Changement de formule en cours d'engagement** : montée en gamme immédiate avec crédit au prorata de la période déjà payée (devis affiché avant confirmation, montant arrondi aux règles de la passerelle) ; descente en gamme programmée à la fin de l'engagement, annulable jusque-là. **Promotions en pourcentage** : remise directe sur une formule (1 à 90 %, date de fin, nombre de factures remisées) et **codes promo** créés par l'admin (validité, utilisations maximales, formules concernées, désactivation) ; le meilleur des deux s'applique, jamais les deux ; prix barré sur Tarifs et Abonnement. Une montée en gamme n'est pas remisée et le crédit se calcule sur la somme réellement payée. Pas de formule privée par boutique ; un seul abonnement actif à la fois |
+| BIL-01 Formules paramétrables | ✅ | **L'admin crée, duplique, modifie et supprime (si inutilisée) autant de formules qu'il veut** : nom, étiquette, description, prix mensuel/annuel (0 = rythme non proposé), engagement (1 à 36 mois), limites (photos, vidéos, employés/ressources, rendez-vous par mois, **prestations max au catalogue**, vide = illimité), **avantages personnalisés** et options (réservation, statistiques, mise en avant). Les pages Tarifs et Abonnement se construisent à partir de ces réglages. Limites appliquées à l'import de photos et vidéos, à l'ajout de ressources, à l'ajout de prestations et à la réservation. **Période d'essai** par formule (0 à 90 jours, une seule fois par établissement et par formule) : fonctionnalités immédiates sans paiement, souscription anticipée possible sans perdre de jours, retour à la formule Gratuite si rien n'est payé à l'échéance. **Changement de formule en cours d'engagement** : montée en gamme immédiate avec crédit au prorata de la période déjà payée (devis affiché avant confirmation, montant arrondi aux règles de la passerelle) ; descente en gamme programmée à la fin de l'engagement, annulable jusque-là. **Promotions en pourcentage** : remise directe sur une formule (1 à 90 %, date de fin, nombre de factures remisées) et **codes promo** créés par l'admin (validité, utilisations maximales, formules concernées, désactivation) ; le meilleur des deux s'applique, jamais les deux ; prix barré sur Tarifs et Abonnement. Une montée en gamme n'est pas remisée et le crédit se calcule sur la somme réellement payée. Pas de formule privée par boutique ; un seul abonnement actif à la fois |
 | BIL-03, 05, 06, 07 | ✅ | Prix et durée d'engagement figés à la souscription |
 | BIL-02, 08 Souscription et moyens de paiement | 🟡 | **WiniPayer ne sert qu'aux abonnements des boutiques.** Passerelle de développement testée ; **WiniPayer et CinetPay jamais exécutées contre leurs serveurs** |
 | BIL-04 Relances | 🟡 | Notifications ✅ ; e-mails si SMTP/LeTexto configuré |
@@ -87,10 +88,22 @@ Tests : 219 unitaires + 191 d'intégration (PostgreSQL et Redis réels via Testc
 
 | Exigence | État | Remarque |
 |---|---|---|
-| ADM-01 à 04, 06, 07 | ✅ | |
-| ADM-05 Paramétrage | ✅ | Plans, catégories, zones, messages, **textes légaux (éditeur + historique des versions)**, délai de grâce, inactivité, conservation des pièces, rappels, canaux |
+| ADM-01 à 04, 06, 07 | ✅ | Tableau de bord analytique global (`/admin`, `GET /api/v1/admin/dashboard`) : salons par statut et file KYC, rendez-vous par statut et volume d'affaires honoré, MRR et abonnements par formule, litiges ouverts, communauté et note moyenne des avis |
+| ADM-05 Paramétrage | ✅ | Plans (avec plafond de prestations, avantages personnalisés et suppression des formules sans abonné), catégories, zones, messages, **textes légaux (éditeur + historique des versions)**, délai de grâce, inactivité, conservation des pièces, rappels, canaux |
 | Canaux (SMS, WhatsApp, push, e-mail) | ✅ | État de chaque canal, solde LeTexto, SMS de test, demande d'expéditeur |
 | **Sauvegarde de la base** (SuperAdmin) | ✅ | `pg_dump` réel depuis l'application : créer, télécharger (archive vérifiée dans le navigateur), supprimer, planification et rétention ; **la restauration reste en ligne de commande** (`docs/DEPLOYMENT.md` §10) |
+
+## Au-delà de la V1 (lot 7)
+
+| Fonction | État | Remarque |
+|---|---|---|
+| Liste d'attente automatique | ✅ | Une journée complète reste sélectionnable à la réservation (« Me prévenir si un créneau se libère ») ; dès qu'un rendez-vous de ce jour est annulé, refusé ou expire, toutes les personnes inscrites (50 au plus) sont prévenues, une seule fois ; le premier qui réserve obtient le créneau. 10 journées en attente au plus par cliente. Vue partenaire dans « Groupes et liste d'attente » |
+| Carte de fidélité à points | ✅ | Réglée par l'établissement (points par tranche de 1 000 F, seuil, récompense) ; points gagnés une seule fois par visite terminée, à partir de l'activation de la carte (les clientes de comptoir n'en gagnent pas) ; récompense accordée par l'établissement, sans découvert possible (verrou par cliente) ; carte affichée sur la fiche publique |
+| Cartes cadeaux | ✅ | Créées par l'établissement, **qui encaisse lui-même** (la plateforme n'encaisse rien) : code `KB-XXXX-XXXX` non devinable, 1 000 à 1 000 000 F, validité 1 à 24 mois ; débit en une ou plusieurs fois, jamais au-delà du solde même avec plusieurs comptoirs à la fois ; annulation ; la cliente rattache la carte à son compte et suit le solde. Saisie de codes limitée en débit |
+| Réservation de groupe | ✅ | Demande (événement, date, 2 à 50 personnes, prestations, téléphone) ; l'établissement accepte avec un devis ou décline, la cliente est prévenue (et par SMS si activé) ; annulation par la cliente ; 5 demandes en attente au plus |
+| Recommandations « près de chez vous » | ✅ | Section de l'accueil : distance (rayon 15 km), note et catégories déjà fréquentées, avec la raison affichée ; lieux déjà visités écartés ; sans position, les mieux notés |
+| Ré-engagement J+30 | ✅ | Message « Envie de revenir ? » une fois par visite, seulement pour la dernière et si aucun nouveau rendez-vous n'est pris ; délai réglable par l'admin (0 = désactivé) ; modèle éditable ; respecte la préférence « rappels » |
+| Mode sombre et taille du texte | 🟡 | Dans « Mon compte » (clair, sombre ou comme l'appareil ; taille normale, grande, très grande), mémorisés sur l'appareil ; jetons de couleur appliqués à toute l'interface et à PrimeNG. **Contraste du mode sombre non mesuré avec Lighthouse ni axe-core** |
 
 ## Exigences non fonctionnelles
 
@@ -118,4 +131,4 @@ Tests : 219 unitaires + 191 d'intégration (PostgreSQL et Redis réels via Testc
 
 ## Hors périmètre V1 (cahier des charges)
 
-Applications natives (Capacitor), avis et notes, favoris, messagerie client ↔ établissement.
+Applications natives (Capacitor) et messagerie client ↔ établissement. (Les avis et les favoris, hors périmètre du cahier des charges, ont tout de même été réalisés : voir « Annuaire public ».)

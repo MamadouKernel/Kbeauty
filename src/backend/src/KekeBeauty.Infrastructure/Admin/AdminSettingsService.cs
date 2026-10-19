@@ -34,7 +34,8 @@ public sealed record AppSettingsDto(
     bool WhatsAppEnabled = false,
     bool PushEnabled = false,
     bool AppointmentPaymentsEnabled = false,
-    int PlatformFeePercent = 0);
+    int PlatformFeePercent = 0,
+    int ReengagementDays = AppSettingsService.DefaultReengagementDays);
 
 /// <summary>Global parameters that can be changed without a deployment (PRD ADM-05).</summary>
 public sealed class AppSettingsService(KekeBeautyDbContext db, IOptions<BillingOptions> billing, TimeProvider time)
@@ -49,6 +50,7 @@ public sealed class AppSettingsService(KekeBeautyDbContext db, IOptions<BillingO
     public const string PushEnabledKey = "channel.push_enabled";
     public const string AppointmentPaymentsKey = "payments.appointments_enabled";
     public const string PlatformFeeKey = "payments.platform_fee_percent";
+    public const string ReengagementDaysKey = "reengagement.days";
 
     public const int MaxGraceDays = 30;
     public const int DefaultSessionIdleMinutes = 60;
@@ -61,11 +63,13 @@ public sealed class AppSettingsService(KekeBeautyDbContext db, IOptions<BillingO
     public const int DefaultReminderSecondHours = 2;
     public const int MaxReminderHours = 168;
     public const int MaxPlatformFeePercent = 30;
+    public const int DefaultReengagementDays = 30;
+    public const int MaxReengagementDays = 365;
 
     private static readonly string[] AllKeys =
     [
         GraceDaysKey, SessionIdleKey, KycRetentionKey, ReminderFirstKey, ReminderSecondKey,
-        SmsEnabledKey, WhatsAppEnabledKey, PushEnabledKey, AppointmentPaymentsKey, PlatformFeeKey,
+        SmsEnabledKey, WhatsAppEnabledKey, PushEnabledKey, AppointmentPaymentsKey, PlatformFeeKey, ReengagementDaysKey,
     ];
 
     public async Task<int> GraceDaysAsync(CancellationToken ct) => (await LoadAsync(ct)).GraceDays;
@@ -90,7 +94,8 @@ public sealed class AppSettingsService(KekeBeautyDbContext db, IOptions<BillingO
             ?? Check(input.KycRetentionDays, MinKycRetentionDays, MaxKycRetentionDays, $"La conservation des pièces d'identité doit être comprise entre {MinKycRetentionDays} et {MaxKycRetentionDays} jours.")
             ?? Check(input.ReminderFirstHours, 0, MaxReminderHours, $"Le premier rappel doit être compris entre 0 (désactivé) et {MaxReminderHours} heures avant le rendez-vous.")
             ?? Check(input.ReminderSecondHours, 0, MaxReminderHours, $"Le second rappel doit être compris entre 0 (désactivé) et {MaxReminderHours} heures avant le rendez-vous.")
-            ?? Check(input.PlatformFeePercent, 0, MaxPlatformFeePercent, $"La commission de la plateforme doit être comprise entre 0 et {MaxPlatformFeePercent} %.");
+            ?? Check(input.PlatformFeePercent, 0, MaxPlatformFeePercent, $"La commission de la plateforme doit être comprise entre 0 et {MaxPlatformFeePercent} %.")
+            ?? Check(input.ReengagementDays, 0, MaxReengagementDays, $"Le message « revenez nous voir » part entre 0 (désactivé) et {MaxReengagementDays} jours après la dernière visite.");
         if (problem is not null)
         {
             return Result.Failure<AppSettingsDto>(problem);
@@ -108,6 +113,7 @@ public sealed class AppSettingsService(KekeBeautyDbContext db, IOptions<BillingO
             [PushEnabledKey] = input.PushEnabled.ToString(),
             [AppointmentPaymentsKey] = input.AppointmentPaymentsEnabled.ToString(),
             [PlatformFeeKey] = Text(input.PlatformFeePercent),
+            [ReengagementDaysKey] = Text(input.ReengagementDays),
         };
 
         var rows = await db.AppSettings.Where(s => AllKeys.Contains(s.Key)).ToDictionaryAsync(s => s.Key, ct);
@@ -144,7 +150,8 @@ public sealed class AppSettingsService(KekeBeautyDbContext db, IOptions<BillingO
             Flag(rows, WhatsAppEnabledKey),
             Flag(rows, PushEnabledKey),
             Flag(rows, AppointmentPaymentsKey),
-            Number(rows, PlatformFeeKey, 0, 0, MaxPlatformFeePercent));
+            Number(rows, PlatformFeeKey, 0, 0, MaxPlatformFeePercent),
+            Number(rows, ReengagementDaysKey, DefaultReengagementDays, 0, MaxReengagementDays));
     }
 
     private static int Number(Dictionary<string, string> rows, string key, int fallback, int min, int max) =>

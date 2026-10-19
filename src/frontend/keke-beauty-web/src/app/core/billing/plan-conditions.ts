@@ -31,12 +31,16 @@ export function planConditions(plan: Plan): PlanCondition[] {
           },
         ]
       : []),
+    ...(f.maxServices != null
+      ? [{ label: `Jusqu'à ${f.maxServices} prestations au catalogue`, on: true }]
+      : []),
     { label: `Jusqu'à ${f.maxMedia} photos`, on: true },
     f.videos && f.maxVideos > 0
       ? { label: `Jusqu'à ${f.maxVideos} vidéo(s)`, on: true }
       : { label: 'Vidéos', on: false },
     { label: 'Statistiques de la fiche', on: f.stats },
     { label: 'Mise en avant dans l’annuaire', on: f.featured },
+    ...(f.perks ?? []).map((p) => ({ label: p, on: true })),
   ];
 }
 

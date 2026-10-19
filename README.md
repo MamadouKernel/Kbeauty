@@ -85,6 +85,16 @@ prête mais **désactivée** (WhatsApp : désactivé, non implémenté).
 - **PWA :** manifeste, icônes et service worker (fichiers statiques seulement).
 - **E-mails :** renseignez `Email__Smtp__Host` (et le reste de la section) ; sans cela ils ne sont que journalisés.
 
+## Au-delà de la V1 (parité, lot 7)
+
+- **Liste d'attente :** une journée complète reste sélectionnable dans le calendrier de réservation (« Me prévenir si un créneau se libère ») ; dès qu'un rendez-vous de ce jour est annulé, refusé ou expire, toutes les personnes inscrites sont prévenues et le premier qui réserve obtient le créneau. Suivi client dans `/compte/fidelite`, vue partenaire dans `/pro/etablissements/{id}/demandes`.
+- **Fidélité :** chaque établissement règle sa carte (`/pro/etablissements/{id}/fidelite`) : points par tranche de 1 000 F, seuil et récompense. Les visites terminées rapportent les points (une seule fois, à partir de l'activation de la carte) ; l'établissement accorde la récompense au comptoir.
+- **Cartes cadeaux :** l'établissement encaisse lui-même la carte puis la crée (code `KB-XXXX-XXXX`, 1 000 à 1 000 000 F, validité 1 à 24 mois) et la débite en une ou plusieurs fois ; la cliente l'ajoute à son compte pour suivre le solde. Saisie de codes limitée (`RateLimits:GiftCardCodesPerMinute`, 10 par défaut).
+- **Réservation de groupe :** `/etablissements/{slug}/groupe` (mariage, anniversaire… de 2 à 50 personnes) ; l'établissement répond par un devis ou décline.
+- **Recommandations :** « Salons près de chez vous » sur l'accueil (`GET /api/v1/recommendations`), selon la distance, la note et les catégories déjà fréquentées ; les lieux déjà visités sont écartés.
+- **Ré-engagement :** message « Envie de revenir ? » envoyé une fois, 30 jours après la dernière visite (réglable dans Paramètres, 0 = désactivé), sauf si la cliente a déjà repris rendez-vous (`ReengagementMaintenance`, `Reengagement:MaintenanceEnabled`).
+- **Affichage :** mode sombre (ou réglage de l'appareil) et taille du texte dans « Mon compte », mémorisés sur l'appareil.
+
 ## Mesures, sauvegardes et audits
 
 - **Performance :** `KEKE_PERF=1 dotnet test src/backend/tests/KekeBeauty.IntegrationTests --filter PerformanceTests` charge 50 000 fiches dans une base jetable et mesure recherche et disponibilités (budgets du cahier des charges).

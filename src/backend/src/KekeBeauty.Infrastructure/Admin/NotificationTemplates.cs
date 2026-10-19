@@ -20,7 +20,7 @@ public static class NotificationTemplateCatalog
 
     public static readonly IReadOnlyList<TemplateDefinition> All =
     [
-        new("appointment.requested", "Demande de rendez-vous envoyée (client)", Appointment, "Demande envoyée", "Votre demande chez {etablissement} le {date} à {heure} a bien été envoyée. Vous serez prévenu dès sa validation."),
+        new("appointment.requested", "Demande de rendez-vous envoyée (client)", Appointment, "Demande envoyée", "Votre demande chez {etablissement} le {date} à {heure} a bien été envoyée. Vous serez prévenu(e) dès sa validation."),
         new("appointment.requested.partner", "Nouvelle demande de rendez-vous (partenaire)", Appointment, "Nouvelle demande de rendez-vous", "{client} souhaite réserver le {date} à {heure}. Répondez depuis votre agenda."),
         new("appointment.confirmed", "Rendez-vous confirmé (client)", Appointment, "Rendez-vous confirmé", "Votre rendez-vous chez {etablissement} le {date} à {heure} est confirmé."),
         new("appointment.confirmed.partner", "Nouveau rendez-vous confirmé (partenaire)", Appointment, "Nouveau rendez-vous", "{client} a réservé le {date} à {heure} (confirmation automatique)."),
@@ -33,6 +33,8 @@ public static class NotificationTemplateCatalog
         new("appointment.reschedule_accepted", "Reprogrammation acceptée (client)", Appointment, "Rendez-vous reprogrammé", "Votre rendez-vous chez {etablissement} est confirmé le {date} à {heure}."),
         new("appointment.reschedule_accepted.partner", "Reprogrammation acceptée (partenaire)", Appointment, "Reprogrammation acceptée", "{client} a accepté le nouveau créneau : le {date} à {heure}."),
         new("appointment.reminder", "Rappel avant le rendez-vous (client)", Appointment, "Rappel de rendez-vous", "Rappel : votre rendez-vous chez {etablissement} a lieu le {date} à {heure}."),
+        new("waitlist.slot_freed", "Créneau libéré, liste d'attente (client)", Appointment, "Un créneau s'est libéré", "Un créneau vient de se libérer chez {etablissement} le {date} à {heure}. Réservez vite : le premier qui réserve l'obtient."),
+        new("client.reengagement", "Invitation à revenir après une visite (client)", Appointment, "Envie de revenir chez {etablissement} ?", "Votre dernière visite chez {etablissement} remonte à quelques semaines. Réservez votre prochain rendez-vous en quelques secondes."),
         new("appointment.payment_received", "Paiement du rendez-vous reçu (client)", AppointmentPayment, "Paiement reçu", "Votre paiement de {montant} pour le rendez-vous chez {etablissement} le {date} à {heure} a bien été reçu."),
         new("appointment.payment_failed", "Paiement du rendez-vous non abouti (client)", AppointmentPayment, "Paiement non abouti", "Le paiement de votre rendez-vous chez {etablissement} n'a pas abouti. Réessayez depuis Mes rendez-vous avant la fin du délai de réservation."),
         new("appointment.refunded", "Remboursement effectué (client)", AppointmentPayment, "Remboursement effectué", "Votre paiement de {montant} pour le rendez-vous chez {etablissement} vous a été remboursé."),

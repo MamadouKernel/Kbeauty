@@ -147,6 +147,21 @@ import { problemMessage } from '../../../core/auth/auth.models';
               0 désactive le rappel. Le rappel part sur les canaux choisis par le client
               (notification, e-mail, SMS, WhatsApp si activés ci-dessous).
             </p>
+            <label class="field">
+              Message « revenez nous voir » (jours après la dernière visite)
+              <input
+                class="admin-input"
+                type="number"
+                name="reengagement"
+                min="0"
+                max="365"
+                [(ngModel)]="form.reengagementDays"
+              />
+            </label>
+            <p class="hint">
+              Envoyé une fois, seulement si la cliente n'a pas déjà repris rendez-vous dans cet
+              établissement. 0 le désactive.
+            </p>
           </fieldset>
 
           <fieldset>
@@ -199,6 +214,7 @@ export class GeneralTab {
     pushEnabled: false,
     appointmentPaymentsEnabled: false,
     platformFeePercent: 0,
+    reengagementDays: 30,
   };
   protected readonly busy = signal(false);
   protected readonly error = signal<string | null>(null);
@@ -228,6 +244,7 @@ export class GeneralTab {
         reminderFirstHours: Number(f.reminderFirstHours),
         reminderSecondHours: Number(f.reminderSecondHours),
         platformFeePercent: Number(f.platformFeePercent),
+        reengagementDays: Number(f.reengagementDays),
       });
       this.message.set('Paramètres enregistrés.');
     } catch (e) {

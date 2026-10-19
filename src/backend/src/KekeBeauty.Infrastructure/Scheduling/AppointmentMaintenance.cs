@@ -71,6 +71,9 @@ public sealed class AppointmentMaintenance(
             db, workflow, ct,
             db.Appointments.Where(a => a.Status == AppointmentStatus.Confirmed && a.EndsAt <= now),
             AppointmentStatus.Completed, null);
+
+        // Finished visits earn their loyalty points right away (reading a card would record them too).
+        await scope.ServiceProvider.GetRequiredService<KekeBeauty.Infrastructure.Growth.LoyaltyService>().SyncAsync(null, null, ct);
         return changed;
     }
 

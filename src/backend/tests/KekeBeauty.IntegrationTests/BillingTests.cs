@@ -41,7 +41,9 @@ public sealed class BillingTests(ApiFixture api)
         using var anonymous = api.CreateClient();
         var plans = (await anonymous.GetFromJsonAsync<List<PlanDto>>("/api/v1/plans"))!;
         plans.Select(p => p.Code).Should().Equal("free", "premium");
-        plans.Single(p => p.Code == "premium").Features.Should().Be(new PlanFeaturesDto(true, true, 30, true, true));
+        var premium = plans.Single(p => p.Code == "premium").Features;
+        premium.Should().BeEquivalentTo(new PlanFeaturesDto(true, true, 30, true, true), options => options.Excluding(f => f.Perks));
+        premium.Perks.Should().BeNullOrEmpty();
 
         var salon = await FreeSalonAsync();
         try

@@ -17,6 +17,7 @@ import { providePrimeNG } from 'primeng/config';
 import { routes } from './app.routes';
 import { authInterceptor } from './core/auth/auth.interceptor';
 import { AuthService } from './core/auth/auth.service';
+import { DisplayPreferences } from './core/display/display-preferences';
 import { RuntimeConfig } from './core/config/runtime-config';
 import { AppUpdates } from './core/updates/app-updates';
 import { MAP_CONFIG } from './core/config/map-config';
@@ -46,11 +47,12 @@ export function createAppConfig(runtime: RuntimeConfig): ApplicationConfig {
       providePrimeNG({
         theme: {
           preset: KekeBeautyPreset,
-          // Light only in V1 (PRD §6.2: dark mode is optional).
-          options: { darkModeSelector: 'none' },
+          // Dark mode follows the data-theme attribute set by DisplayPreferences (lot 7).
+          options: { darkModeSelector: '[data-theme="dark"]' },
         },
       }),
       // Restore a previous session (httpOnly refresh cookie) before the first navigation so guards see it.
+      provideAppInitializer(() => inject(DisplayPreferences).init()),
       provideAppInitializer(() => inject(AuthService).restore()),
     ],
   };

@@ -92,7 +92,7 @@ const STEPS = [
       padding: clamp(1.25rem, 3vw, 2rem);
       border: 1px solid var(--kb-border);
       border-radius: var(--radius-lg);
-      background: #fff;
+      background: var(--kb-card);
       box-shadow: var(--shadow-soft);
     }
     .panel > form {
@@ -153,7 +153,7 @@ const STEPS = [
       padding: 0.5rem 1rem;
       border: 1.5px solid var(--kb-border);
       border-radius: var(--radius-pill);
-      background: #fff;
+      background: var(--kb-card);
       font: inherit;
       font-weight: 600;
       cursor: pointer;
@@ -222,7 +222,7 @@ const STEPS = [
             <p class="banner" role="status">
               Statut : <strong>{{ statusLabel() }}</strong>
               @if (d.status === 'PendingReview') {
-                — votre dossier est en cours de validation, vous serez prévenu par e-mail.
+                — votre dossier est en cours de validation, vous serez prévenu(e) par e-mail.
               }
               @if (d.status === 'Rejected') {
                 — {{ d.latestReview?.comment }}
@@ -543,8 +543,8 @@ const STEPS = [
 
                 @if (submitted()) {
                   <p class="form-success" role="status">
-                    Dossier envoyé ! L'équipe Keke Beauty l'examine ; vous serez prévenu par e-mail
-                    de la décision.
+                    Dossier envoyé ! L'équipe Keke Beauty l'examine ; vous serez prévenu(e) par
+                    e-mail de la décision.
                   </p>
                 }
                 @if (error()) {

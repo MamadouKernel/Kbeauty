@@ -29,7 +29,7 @@ import { StarRating } from '../star-rating/star-rating';
       overflow: hidden;
       border: 1px solid var(--kb-border);
       border-radius: var(--radius-lg);
-      background: #fff;
+      background: var(--kb-card);
       box-shadow: var(--shadow-soft);
       color: inherit;
       text-decoration: none;
@@ -68,7 +68,7 @@ import { StarRating } from '../star-rating/star-rating';
       gap: 0.25rem;
       padding: 0.25rem 0.625rem;
       border-radius: var(--radius-pill);
-      background: rgb(255 255 255 / 92%);
+      background: rgb(var(--kb-paper-rgb) / 92%);
       color: var(--kb-primary-800);
       font-size: var(--fs-2xs);
       font-weight: 700;
@@ -124,7 +124,7 @@ import { StarRating } from '../star-rating/star-rating';
         color 200ms ease;
     }
     a:hover .cta {
-      background: var(--kb-primary-700);
+      background: var(--kb-plum-700);
       color: #fff;
     }
   `,

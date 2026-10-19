@@ -90,4 +90,55 @@ public sealed class BillingTests
         var xref = int.Parse(text[(text.LastIndexOf("startxref", StringComparison.Ordinal) + 10)..].Split('\n')[0]);
         text[xref..].Should().StartWith("xref");
     }
+
+    [Fact]
+    public void Appointment_and_payout_receipt_pdfs_are_well_formed_documents()
+    {
+        var apptPdf = InvoicePdf.BuildAppointmentReceipt(
+            "RC-APPT-001", "Salon Éclat", "Awa Koné", "Fatou",
+            Start, [("Tresses royales", 12000m), ("Soin kératine", 5000m)],
+            17000m, 1000m, "XOF", "Espèces sur place", "REF-123");
+        var apptText = System.Text.Encoding.Latin1.GetString(apptPdf);
+        apptText.Should().StartWith("%PDF-1.4").And.EndWith("%%EOF\n");
+        apptText.Should().Contain("RC-APPT-001").And.Contain("Tresses royales").And.Contain("18 000 XOF");
+
+        var payoutDto = new PayoutDto(
+            Guid.NewGuid(), Guid.NewGuid(), "Salon Éclat", 45000m, "XOF",
+            "wave-cote-divoire", "+22507****89", "Succeeded", null, Start, Start.AddHours(1));
+        var payoutPdf = InvoicePdf.BuildPayoutReceipt(payoutDto, "Salon Éclat");
+        var payoutText = System.Text.Encoding.Latin1.GetString(payoutPdf);
+        payoutText.Should().StartWith("%PDF-1.4").And.EndWith("%%EOF\n");
+        payoutText.Should().Contain("KB-PAY-").And.Contain("45 000 XOF").And.Contain("wave-cote-divoire");
+    }
+
+    [Fact]
+    public void Service_promotion_and_perks_compute_effective_price_and_list()
+    {
+        var svc = new KekeBeauty.Modules.Catalog.Domain.Service
+        {
+            EstablishmentId = Guid.NewGuid(),
+            CategoryId = Guid.NewGuid(),
+            Name = "Forfait Mariée",
+            Price = 25000m,
+            DurationMinutes = 120,
+            PromoPercent = 20,
+            PromoEndsAt = Start.AddDays(5),
+            Perks = "Coiffure complète\nMaquillage\nManucure",
+        };
+
+        svc.HasActivePromo(Start).Should().BeTrue();
+        svc.EffectivePrice(Start).Should().Be(20000m);
+        svc.HasActivePromo(Start.AddDays(6)).Should().BeFalse();
+        svc.EffectivePrice(Start.AddDays(6)).Should().Be(25000m);
+        svc.PerksList().Should().Equal("Coiffure complète", "Maquillage", "Manucure");
+
+        var features = new PlanFeatures
+        {
+            MaxServices = 15,
+            Perks = "Support VIP\nBadge vérifié",
+        };
+        var copy = features.Copy();
+        copy.MaxServices.Should().Be(15);
+        copy.PerksList().Should().Equal("Support VIP", "Badge vérifié");
+    }
 }

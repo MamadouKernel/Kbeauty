@@ -1,3 +1,4 @@
+import { AuthLayout } from '../../../shared/auth-layout/auth-layout';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -8,55 +9,50 @@ import { AuthService } from '../../../core/auth/auth.service';
 @Component({
   selector: 'app-reset-password',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule, RouterLink, Password],
+  imports: [AuthLayout, ReactiveFormsModule, RouterLink, Password],
   template: `
-    <section class="auth-page" aria-labelledby="reset-title">
-      <div class="auth-card">
-        <p class="eyebrow">Nouveau mot de passe</p>
-        <h1 id="reset-title">Choisir un mot de passe</h1>
+    <app-auth-layout labelledBy="reset-title">
+      <p class="eyebrow">Nouveau mot de passe</p>
+      <h1 id="reset-title">Choisir un mot de passe</h1>
 
-        @if (done()) {
-          <p class="form-success" role="status">
-            Mot de passe modifié. Toutes vos sessions ont été fermées par sécurité :
-            reconnectez-vous.
-          </p>
-          <a class="btn btn-primary" routerLink="/connexion">Se connecter</a>
-        } @else if (!token) {
-          <p class="form-error" role="alert">Ce lien de réinitialisation est incomplet.</p>
-          <a class="btn btn-ghost" routerLink="/mot-de-passe-oublie">Demander un nouveau lien</a>
-        } @else {
-          <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
-            <div class="field">
-              <label for="reset-password">Nouveau mot de passe</label>
-              <p-password
-                inputId="reset-password"
-                formControlName="password"
-                autocomplete="new-password"
-                [feedback]="false"
-                [toggleMask]="true"
-                [fluid]="true"
-              />
-              <p class="auth-lead">
-                10 caractères minimum, avec au moins une lettre et un chiffre.
+      @if (done()) {
+        <p class="form-success" role="status">
+          Mot de passe modifié. Toutes vos sessions ont été fermées par sécurité : reconnectez-vous.
+        </p>
+        <a class="btn btn-primary" routerLink="/connexion">Se connecter</a>
+      } @else if (!token) {
+        <p class="form-error" role="alert">Ce lien de réinitialisation est incomplet.</p>
+        <a class="btn btn-ghost" routerLink="/mot-de-passe-oublie">Demander un nouveau lien</a>
+      } @else {
+        <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+          <div class="field">
+            <label for="reset-password">Nouveau mot de passe</label>
+            <p-password
+              inputId="reset-password"
+              formControlName="password"
+              autocomplete="new-password"
+              [feedback]="false"
+              [toggleMask]="true"
+              [fluid]="true"
+            />
+            <p class="auth-lead">10 caractères minimum, avec au moins une lettre et un chiffre.</p>
+            @if (form.controls.password.invalid && form.controls.password.touched) {
+              <p class="field-error" role="alert">
+                Le mot de passe doit contenir au moins 10 caractères.
               </p>
-              @if (form.controls.password.invalid && form.controls.password.touched) {
-                <p class="field-error" role="alert">
-                  Le mot de passe doit contenir au moins 10 caractères.
-                </p>
-              }
-            </div>
-
-            @if (error()) {
-              <p class="form-error" role="alert">{{ error() }}</p>
             }
+          </div>
 
-            <button class="btn btn-primary" type="submit" [disabled]="busy()">
-              {{ busy() ? 'Enregistrement…' : 'Enregistrer' }}
-            </button>
-          </form>
-        }
-      </div>
-    </section>
+          @if (error()) {
+            <p class="form-error" role="alert">{{ error() }}</p>
+          }
+
+          <button class="btn btn-primary" type="submit" [disabled]="busy()">
+            {{ busy() ? 'Enregistrement…' : 'Enregistrer' }}
+          </button>
+        </form>
+      }
+    </app-auth-layout>
   `,
 })
 export class ResetPassword {

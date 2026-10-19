@@ -158,7 +158,7 @@ public sealed partial class PromoService(KekeBeautyDbContext db, TimeProvider ti
 
         if (input.ValidFrom is { } from && input.ValidUntil is { } until && until <= from)
         {
-            return BillingErrors.Invalid("La fin de validité doit suivre le début.");
+            return BillingErrors.Invalid("La fin de validité doit être postérieure au début.");
         }
 
         var planCodes = input.PlanCodes ?? [];

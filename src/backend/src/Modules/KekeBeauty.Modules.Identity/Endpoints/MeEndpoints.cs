@@ -29,6 +29,12 @@ public static class MeEndpoints
         group.MapDelete("/sessions/{sessionId:guid}", async (Guid sessionId, ClaimsPrincipal principal, AccountService accounts, CancellationToken ct) =>
             await accounts.RevokeSessionAsync(UserId(principal), sessionId, ct) ? Results.NoContent() : Results.NotFound());
 
+        group.MapGet("/trusted-devices", async (ClaimsPrincipal principal, HttpContext http, AccountService accounts, CancellationToken ct) =>
+            Results.Ok(await accounts.ListTrustedDevicesAsync(UserId(principal), http.Request.Cookies[AuthOptions.TrustedDeviceCookieName], ct)));
+
+        group.MapDelete("/trusted-devices/{deviceId:guid}", async (Guid deviceId, ClaimsPrincipal principal, AccountService accounts, CancellationToken ct) =>
+            await accounts.RevokeTrustedDeviceAsync(UserId(principal), deviceId, ct) ? Results.NoContent() : Results.NotFound());
+
         group.MapGet("/whatsapp", async (ClaimsPrincipal principal, AuthService auth, CancellationToken ct) =>
             Results.Ok(await auth.WhatsAppStatusAsync(UserId(principal), ct)));
 

@@ -393,6 +393,132 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/reviews/{id}/photos': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          'multipart/form-data': {
+            file: components['schemas']['IFormFile'];
+          } & {
+            kind?: string;
+          };
+        };
+      };
+      responses: {
+        /** @description Created */
+        201: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['ReviewPhotoDto'];
+          };
+        };
+        /** @description Bad Request */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/problem+json': components['schemas']['ProblemDetails'];
+          };
+        };
+        /** @description Not Found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/problem+json': components['schemas']['ProblemDetails'];
+          };
+        };
+        /** @description Conflict */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/problem+json': components['schemas']['ProblemDetails'];
+          };
+        };
+        /** @description Payload Too Large */
+        413: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/problem+json': components['schemas']['ProblemDetails'];
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/reviews/{id}/photos/{photoId}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    delete: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+          photoId: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description No Content */
+        204: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Not Found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/problem+json': components['schemas']['ProblemDetails'];
+          };
+        };
+      };
+    };
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/me/reviews': {
     parameters: {
       query?: never;
@@ -2382,7 +2508,11 @@ export interface paths {
         };
         cookie?: never;
       };
-      requestBody?: never;
+      requestBody?: {
+        content: {
+          'application/json': null | components['schemas']['CancelByClientInput'];
+        };
+      };
       responses: {
         /** @description OK */
         200: {
@@ -2642,6 +2772,83 @@ export interface paths {
     };
     put?: never;
     post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/appointments/{id}/tip': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          'application/json': components['schemas']['TipInput'];
+        };
+      };
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['TipResultDto'];
+          };
+        };
+        /** @description Bad Request */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/problem+json': components['schemas']['ProblemDetails'];
+          };
+        };
+        /** @description Not Found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/problem+json': components['schemas']['ProblemDetails'];
+          };
+        };
+        /** @description Conflict */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/problem+json': components['schemas']['ProblemDetails'];
+          };
+        };
+        /** @description Bad Gateway */
+        502: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/problem+json': components['schemas']['ProblemDetails'];
+          };
+        };
+      };
+    };
     delete?: never;
     options?: never;
     head?: never;
@@ -3809,6 +4016,2195 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/pro/establishments/{id}/team-payouts': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['CollaboratorPayoutsView'];
+          };
+        };
+        /** @description Not Found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/problem+json': components['schemas']['ProblemDetails'];
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/pro/establishments/{id}/team-payouts/{userId}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+          userId: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['CollaboratorPayoutDto'];
+          };
+        };
+        /** @description Bad Request */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/problem+json': components['schemas']['ProblemDetails'];
+          };
+        };
+        /** @description Not Found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/problem+json': components['schemas']['ProblemDetails'];
+          };
+        };
+        /** @description Conflict */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/problem+json': components['schemas']['ProblemDetails'];
+          };
+        };
+        /** @description Bad Gateway */
+        502: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/problem+json': components['schemas']['ProblemDetails'];
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/pro/establishments/{id}/team': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['TeamMemberDto'][];
+          };
+        };
+        /** @description Not Found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/problem+json': components['schemas']['ProblemDetails'];
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/pro/establishments/{id}/team/{resourceId}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+          resourceId: string;
+        };
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          'application/json': components['schemas']['TeamAssignmentInput'];
+        };
+      };
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['TeamMemberDto'];
+          };
+        };
+        /** @description Bad Request */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/problem+json': components['schemas']['ProblemDetails'];
+          };
+        };
+        /** @description Not Found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/problem+json': components['schemas']['ProblemDetails'];
+          };
+        };
+      };
+    };
+    post?: never;
+    delete: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+          resourceId: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description No Content */
+        204: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Not Found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/problem+json': components['schemas']['ProblemDetails'];
+          };
+        };
+      };
+    };
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/pro/establishments/{id}/commissions': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: {
+      parameters: {
+        query?: {
+          from?: string;
+          to?: string;
+        };
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['CommissionSummaryDto'][];
+          };
+        };
+        /** @description Bad Request */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/problem+json': components['schemas']['ProblemDetails'];
+          };
+        };
+        /** @description Not Found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/problem+json': components['schemas']['ProblemDetails'];
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/team/me': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['TeamMembershipDto'][];
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/team/planning': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: {
+      parameters: {
+        query?: {
+          date?: string;
+        };
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['TeamPlanningDto'];
+          };
+        };
+        /** @description Not Found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/problem+json': components['schemas']['ProblemDetails'];
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/team/appointments/{id}/start': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['TeamAppointmentDto'];
+          };
+        };
+        /** @description Not Found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/problem+json': components['schemas']['ProblemDetails'];
+          };
+        };
+        /** @description Conflict */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/problem+json': components['schemas']['ProblemDetails'];
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/team/appointments/{id}/finish': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['TeamAppointmentDto'];
+          };
+        };
+        /** @description Not Found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/problem+json': components['schemas']['ProblemDetails'];
+          };
+        };
+        /** @description Conflict */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/problem+json': components['schemas']['ProblemDetails'];
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/team/establishments/{establishmentId}/clients/{clientId}/note': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          establishmentId: string;
+          clientId: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['TechnicalNoteDto'];
+          };
+        };
+        /** @description Not Found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/problem+json': components['schemas']['ProblemDetails'];
+          };
+        };
+      };
+    };
+    put: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          establishmentId: string;
+          clientId: string;
+        };
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          'application/json': components['schemas']['TechnicalNoteInput'];
+        };
+      };
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['TechnicalNoteDto'];
+          };
+        };
+        /** @description Bad Request */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/problem+json': components['schemas']['ProblemDetails'];
+          };
+        };
+        /** @description Not Found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/problem+json': components['schemas']['ProblemDetails'];
+          };
+        };
+      };
+    };
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/team/commissions': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: {
+      parameters: {
+        query?: {
+          from?: string;
+          to?: string;
+        };
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['CommissionSummaryDto'][];
+          };
+        };
+        /** @description Bad Request */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/problem+json': components['schemas']['ProblemDetails'];
+          };
+        };
+        /** @description Not Found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/problem+json': components['schemas']['ProblemDetails'];
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/team/payout-account': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['CollaboratorAccountView'];
+          };
+        };
+      };
+    };
+    put: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          'application/json': components['schemas']['CollaboratorAccountInput'];
+        };
+      };
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['CollaboratorAccountView'];
+          };
+        };
+        /** @description Bad Request */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/problem+json': components['schemas']['ProblemDetails'];
+          };
+        };
+      };
+    };
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/team/payouts': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['MyPayoutsView'];
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/disputes': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          'application/json': components['schemas']['OpenDisputeInput'];
+        };
+      };
+      responses: {
+        /** @description Created */
+        201: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['DisputeDto'];
+          };
+        };
+        /** @description Bad Request */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/problem+json': components['schemas']['ProblemDetails'];
+          };
+        };
+        /** @description Not Found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/problem+json': components['schemas']['ProblemDetails'];
+          };
+        };
+        /** @description Conflict */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/problem+json': components['schemas']['ProblemDetails'];
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/me/disputes': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['DisputeDto'][];
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/pro/establishments/{id}/disputes': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['DisputeDto'][];
+          };
+        };
+        /** @description Not Found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/problem+json': components['schemas']['ProblemDetails'];
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/pro/disputes/{id}/respond': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          'application/json': components['schemas']['DisputeResponseInput'];
+        };
+      };
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['DisputeDto'];
+          };
+        };
+        /** @description Bad Request */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/problem+json': components['schemas']['ProblemDetails'];
+          };
+        };
+        /** @description Not Found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/problem+json': components['schemas']['ProblemDetails'];
+          };
+        };
+        /** @description Conflict */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/problem+json': components['schemas']['ProblemDetails'];
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/admin/disputes': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: {
+      parameters: {
+        query?: {
+          status?: string;
+        };
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['DisputeDto'][];
+          };
+        };
+        /** @description Bad Request */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/problem+json': components['schemas']['ProblemDetails'];
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/admin/disputes/{id}/resolve': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          'application/json': components['schemas']['DisputeResolveInput'];
+        };
+      };
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['DisputeDto'];
+          };
+        };
+        /** @description Bad Request */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/problem+json': components['schemas']['ProblemDetails'];
+          };
+        };
+        /** @description Not Found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/problem+json': components['schemas']['ProblemDetails'];
+          };
+        };
+        /** @description Conflict */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/problem+json': components['schemas']['ProblemDetails'];
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/recommendations': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: {
+      parameters: {
+        query?: {
+          lat?: number;
+          lng?: number;
+          count?: number;
+        };
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['RecommendationDto'][];
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/establishments/{slug}/loyalty': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          slug: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['PublicLoyaltyDto'];
+          };
+        };
+        /** @description Not Found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/waitlist': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          'application/json': components['schemas']['JoinWaitlistInput'];
+        };
+      };
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['WaitlistEntryDto'];
+          };
+        };
+        /** @description Bad Request */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/problem+json': components['schemas']['ProblemDetails'];
+          };
+        };
+        /** @description Not Found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/problem+json': components['schemas']['ProblemDetails'];
+          };
+        };
+        /** @description Conflict */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/problem+json': components['schemas']['ProblemDetails'];
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/me/waitlist': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['WaitlistEntryDto'][];
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/me/waitlist/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    delete: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description No Content */
+        204: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Not Found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/problem+json': components['schemas']['ProblemDetails'];
+          };
+        };
+      };
+    };
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/me/loyalty': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['LoyaltyCardDto'][];
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/me/gift-cards': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['GiftCardDto'][];
+          };
+        };
+      };
+    };
+    put?: never;
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          'application/json': components['schemas']['ClaimGiftCardInput'];
+        };
+      };
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['GiftCardDto'];
+          };
+        };
+        /** @description Not Found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/problem+json': components['schemas']['ProblemDetails'];
+          };
+        };
+        /** @description Conflict */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/problem+json': components['schemas']['ProblemDetails'];
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/group-bookings': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          'application/json': components['schemas']['GroupBookingInput'];
+        };
+      };
+      responses: {
+        /** @description Created */
+        201: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['GroupBookingDto'];
+          };
+        };
+        /** @description Bad Request */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/problem+json': components['schemas']['ProblemDetails'];
+          };
+        };
+        /** @description Not Found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/problem+json': components['schemas']['ProblemDetails'];
+          };
+        };
+        /** @description Conflict */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/problem+json': components['schemas']['ProblemDetails'];
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/me/group-bookings': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['GroupBookingDto'][];
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/me/group-bookings/{id}/cancel': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['GroupBookingDto'];
+          };
+        };
+        /** @description Not Found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/problem+json': components['schemas']['ProblemDetails'];
+          };
+        };
+        /** @description Conflict */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/problem+json': components['schemas']['ProblemDetails'];
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/pro/establishments/{id}/waitlist': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['WaitlistEntryDto'][];
+          };
+        };
+        /** @description Not Found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/problem+json': components['schemas']['ProblemDetails'];
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/pro/establishments/{id}/loyalty': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['LoyaltyProgramDto'];
+          };
+        };
+        /** @description No Content */
+        204: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Not Found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/problem+json': components['schemas']['ProblemDetails'];
+          };
+        };
+      };
+    };
+    put: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          'application/json': components['schemas']['LoyaltyProgramInput'];
+        };
+      };
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['LoyaltyProgramDto'];
+          };
+        };
+        /** @description Bad Request */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/problem+json': components['schemas']['ProblemDetails'];
+          };
+        };
+        /** @description Not Found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/problem+json': components['schemas']['ProblemDetails'];
+          };
+        };
+      };
+    };
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/pro/establishments/{id}/loyalty/members': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['LoyaltyMemberDto'][];
+          };
+        };
+        /** @description Not Found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/problem+json': components['schemas']['ProblemDetails'];
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/pro/establishments/{id}/loyalty/redeem': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          'application/json': components['schemas']['LoyaltyRedeemInput'];
+        };
+      };
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['LoyaltyMemberDto'];
+          };
+        };
+        /** @description Not Found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/problem+json': components['schemas']['ProblemDetails'];
+          };
+        };
+        /** @description Conflict */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/problem+json': components['schemas']['ProblemDetails'];
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/pro/establishments/{id}/gift-cards': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['GiftCardDto'][];
+          };
+        };
+        /** @description Not Found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/problem+json': components['schemas']['ProblemDetails'];
+          };
+        };
+      };
+    };
+    put?: never;
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          'application/json': components['schemas']['CreateGiftCardInput'];
+        };
+      };
+      responses: {
+        /** @description Created */
+        201: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['GiftCardDto'];
+          };
+        };
+        /** @description Bad Request */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/problem+json': components['schemas']['ProblemDetails'];
+          };
+        };
+        /** @description Not Found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/problem+json': components['schemas']['ProblemDetails'];
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/pro/establishments/{id}/gift-cards/lookup': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: {
+      parameters: {
+        query?: {
+          code?: string;
+        };
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['GiftCardDto'];
+          };
+        };
+        /** @description Not Found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/problem+json': components['schemas']['ProblemDetails'];
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/pro/gift-cards/{id}/redeem': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          'application/json': components['schemas']['RedeemGiftCardInput'];
+        };
+      };
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['GiftCardDto'];
+          };
+        };
+        /** @description Bad Request */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/problem+json': components['schemas']['ProblemDetails'];
+          };
+        };
+        /** @description Not Found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/problem+json': components['schemas']['ProblemDetails'];
+          };
+        };
+        /** @description Conflict */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/problem+json': components['schemas']['ProblemDetails'];
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/pro/gift-cards/{id}/cancel': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['GiftCardDto'];
+          };
+        };
+        /** @description Not Found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/problem+json': components['schemas']['ProblemDetails'];
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/pro/establishments/{id}/group-bookings': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['GroupBookingDto'][];
+          };
+        };
+        /** @description Not Found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/problem+json': components['schemas']['ProblemDetails'];
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/pro/group-bookings/{id}/answer': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          'application/json': components['schemas']['GroupBookingAnswerInput'];
+        };
+      };
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['GroupBookingDto'];
+          };
+        };
+        /** @description Bad Request */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/problem+json': components['schemas']['ProblemDetails'];
+          };
+        };
+        /** @description Not Found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/problem+json': components['schemas']['ProblemDetails'];
+          };
+        };
+        /** @description Conflict */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/problem+json': components['schemas']['ProblemDetails'];
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/me/notifications': {
     parameters: {
       query?: never;
@@ -4668,6 +7064,208 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/pro/establishments/{id}/finances': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: {
+      parameters: {
+        query?: {
+          from?: string;
+          to?: string;
+        };
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['PartnerFinanceSummary'];
+          };
+        };
+        /** @description Bad Request */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/problem+json': components['schemas']['ProblemDetails'];
+          };
+        };
+        /** @description Not Found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/problem+json': components['schemas']['ProblemDetails'];
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/pro/establishments/{id}/finances.csv': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: {
+      parameters: {
+        query?: {
+          from?: string;
+          to?: string;
+        };
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Bad Request */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/problem+json': components['schemas']['ProblemDetails'];
+          };
+        };
+        /** @description Not Found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/problem+json': components['schemas']['ProblemDetails'];
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/pro/appointments/{id}/receipt.pdf': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Not Found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/problem+json': components['schemas']['ProblemDetails'];
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/pro/payouts/{id}/receipt.pdf': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Not Found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/problem+json': components['schemas']['ProblemDetails'];
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/admin/plans': {
     parameters: {
       query?: never;
@@ -4788,7 +7386,53 @@ export interface paths {
       };
     };
     post?: never;
-    delete?: never;
+    delete: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description No Content */
+        204: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Bad Request */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/problem+json': components['schemas']['ProblemDetails'];
+          };
+        };
+        /** @description Not Found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/problem+json': components['schemas']['ProblemDetails'];
+          };
+        };
+        /** @description Conflict */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/problem+json': components['schemas']['ProblemDetails'];
+          };
+        };
+      };
+    };
     options?: never;
     head?: never;
     patch?: never;
@@ -5274,6 +7918,85 @@ export interface paths {
         };
       };
     };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/admin/dashboard': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['AdminDashboardDto'];
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/admin/audit': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: {
+      parameters: {
+        query?: {
+          action?: string;
+          entityType?: string;
+          entityId?: string;
+          actorId?: string;
+          from?: string;
+          to?: string;
+          page?: number;
+          pageSize?: number;
+        };
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['PageOfOfAuditEntryDto'];
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
     delete?: never;
     options?: never;
     head?: never;
@@ -6804,6 +9527,41 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/admin/collaborator-payouts': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['CollaboratorPayoutDto'][];
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/admin/refunds': {
     parameters: {
       query?: never;
@@ -6931,50 +9689,6 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
-  '/api/v1/admin/audit': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get: {
-      parameters: {
-        query?: {
-          action?: string;
-          entityType?: string;
-          entityId?: string;
-          actorId?: string;
-          from?: string;
-          to?: string;
-          page?: number;
-          pageSize?: number;
-        };
-        header?: never;
-        path?: never;
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description OK */
-        200: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            'application/json': components['schemas']['PageOfOfAuditEntryDto'];
-          };
-        };
-      };
-    };
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
   '/api/v1/admin/admins': {
     parameters: {
       query?: never;
@@ -7068,7 +9782,68 @@ export interface paths {
       cookie?: never;
     };
     get?: never;
-    put?: never;
+    put: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          'application/json': components['schemas']['UpdateAdminRoleInput'];
+        };
+      };
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['AdminUserDto'];
+          };
+        };
+        /** @description Bad Request */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/problem+json': components['schemas']['ProblemDetails'];
+          };
+        };
+        /** @description Forbidden */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/problem+json': components['schemas']['ProblemDetails'];
+          };
+        };
+        /** @description Not Found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/problem+json': components['schemas']['ProblemDetails'];
+          };
+        };
+        /** @description Conflict */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/problem+json': components['schemas']['ProblemDetails'];
+          };
+        };
+      };
+    };
     post?: never;
     delete: {
       parameters: {
@@ -7832,6 +10607,43 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/auth/2fa/trusted': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          'application/json': components['schemas']['ChallengeRequest'];
+        };
+      };
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/auth/refresh': {
     parameters: {
       query?: never;
@@ -8020,6 +10832,74 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/me/trusted-devices': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/me/trusted-devices/{deviceId}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    delete: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          deviceId: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+      };
+    };
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/me/whatsapp': {
     parameters: {
       query?: never;
@@ -8160,6 +11040,52 @@ export interface components {
       cash: boolean;
       mobileMoney: null | components['schemas']['MobileMoneyInput'][];
     };
+    AdminDashboardDto: {
+      /** Format: int32 */
+      activeEstablishments: number;
+      /** Format: int32 */
+      pendingReviewEstablishments: number;
+      /** Format: int32 */
+      draftEstablishments: number;
+      /** Format: int32 */
+      rejectedEstablishments: number;
+      /** Format: int32 */
+      suspendedEstablishments: number;
+      /** Format: int32 */
+      pendingAppointments: number;
+      /** Format: int32 */
+      confirmedAppointments: number;
+      /** Format: int32 */
+      completedAppointments: number;
+      /** Format: int32 */
+      noShowAppointments: number;
+      /** Format: int32 */
+      cancelledOrRejectedAppointments: number;
+      /** Format: double */
+      completedVolume: number;
+      /** Format: double */
+      monthlyRecurringRevenue: number;
+      /** Format: int32 */
+      activeSubscriptions: number;
+      /** Format: int32 */
+      trialingSubscriptions: number;
+      /** Format: int32 */
+      pastDueSubscriptions: number;
+      /** Format: int32 */
+      openDisputes: number;
+      /** Format: int32 */
+      totalUsers: number;
+      /** Format: int32 */
+      totalPartners: number;
+      /** Format: int32 */
+      totalStaff: number;
+      /** Format: int32 */
+      publishedReviews: number;
+      /** Format: double */
+      averageRating: number;
+      currencyCode: string;
+      plans: components['schemas']['PlanCountDto'][];
+    };
     AdminEstablishmentDetail: {
       establishment: components['schemas']['AdminEstablishmentDto'];
       media: components['schemas']['AdminMediaDto'][];
@@ -8241,6 +11167,11 @@ export interface components {
        * @default 0
        */
       platformFeePercent: number;
+      /**
+       * Format: int32
+       * @default 30
+       */
+      reengagementDays: number;
     };
     AppointmentDto: {
       /** Format: uuid */
@@ -8272,11 +11203,18 @@ export interface components {
       createdAt: string;
       payment?: null | components['schemas']['AppointmentPaymentDto'];
       servicePayment?: null | components['schemas']['ServicePaymentInfo'];
-      /** Format: double */
-      tipAmount?: number;
-      canTip?: boolean;
-      /** Format: double */
-      lateCancelFee?: number;
+      /**
+       * Format: double
+       * @default 0
+       */
+      tipAmount: number;
+      /** @default false */
+      canTip: boolean;
+      /**
+       * Format: double
+       * @default 0
+       */
+      lateCancelFee: number;
     };
     AppointmentLineDto: {
       name: string;
@@ -8374,6 +11312,19 @@ export interface components {
       currencyCode: string;
       /** Format: int32 */
       durationMinutes: number;
+      /**
+       * Format: int32
+       * @default 0
+       */
+      promoPercent: number;
+      /** Format: date-time */
+      promoEndsAt?: null | string;
+      /**
+       * Format: double
+       * @default 0
+       */
+      originalPrice: number;
+      perks?: null | string[];
     };
     BookingInfo: {
       /** Format: uuid */
@@ -8410,8 +11361,14 @@ export interface components {
       cancelLimitMinutes: number;
       /** Format: int32 */
       slotStepMinutes: number;
-      /** Format: int32 */
-      lateCancelFeePercent?: number;
+      /**
+       * Format: int32
+       * @default 0
+       */
+      lateCancelFeePercent: number;
+    };
+    CancelByClientInput: {
+      acceptLateFee: boolean;
     };
     CancelInput: {
       reason: null | string;
@@ -8449,6 +11406,8 @@ export interface components {
     ChallengeCodeRequest: {
       challengeToken: string;
       code: string;
+      /** @default false */
+      rememberDevice: boolean;
     };
     ChallengeRequest: {
       challengeToken: string;
@@ -8497,6 +11456,98 @@ export interface components {
       transactionId: string;
       paymentUrl: string;
     };
+    ClaimGiftCardInput: {
+      code: null | string;
+    };
+    CollaboratorAccountInput: {
+      operator: null | string;
+      account: null | string;
+      accountName: null | string;
+    };
+    CollaboratorAccountView: {
+      configured: boolean;
+      operator: null | string;
+      accountMasked: null | string;
+      accountName: null | string;
+    };
+    CollaboratorOwedDto: {
+      /** Format: uuid */
+      userId: string;
+      collaboratorName: string;
+      /** Format: double */
+      commission: number;
+      /** Format: double */
+      payableCommission: number;
+      /** Format: double */
+      tips: number;
+      /** Format: double */
+      payable: number;
+      hasAccount: boolean;
+      currencyCode: string;
+    };
+    CollaboratorPayoutDto: {
+      /** Format: uuid */
+      id: string;
+      /** Format: uuid */
+      establishmentId: string;
+      establishmentName: string;
+      /** Format: uuid */
+      userId: string;
+      collaboratorName: string;
+      /** Format: double */
+      commissionAmount: number;
+      /** Format: double */
+      tipAmount: number;
+      /** Format: double */
+      amount: number;
+      currencyCode: string;
+      operator: string;
+      accountMasked: string;
+      status: string;
+      error: null | string;
+      /** Format: date-time */
+      createdAt: string;
+      /** Format: date-time */
+      completedAt: null | string;
+    };
+    CollaboratorPayoutsView: {
+      owed: components['schemas']['CollaboratorOwedDto'][];
+      history: components['schemas']['CollaboratorPayoutDto'][];
+      /** Format: double */
+      availableBalance: number;
+    };
+    CommissionLineDto: {
+      /** Format: uuid */
+      appointmentId: string;
+      /** Format: date-time */
+      finishedAt: string;
+      clientName: string;
+      /** Format: double */
+      servicePrice: number;
+      /** Format: double */
+      commission: number;
+      /** Format: double */
+      tip: number;
+    };
+    CommissionSummaryDto: {
+      /** Format: uuid */
+      resourceId: string;
+      resourceName: string;
+      /** Format: double */
+      commissionPercent: number;
+      /** Format: int32 */
+      services: number;
+      /** Format: double */
+      revenue: number;
+      /** Format: double */
+      commission: number;
+      /** Format: double */
+      tips: number;
+      /** Format: double */
+      total: number;
+      currencyCode: string;
+      lines: components['schemas']['CommissionLineDto'][];
+    };
     ConfirmEmailRequest: {
       token: string;
     };
@@ -8519,6 +11570,18 @@ export interface components {
       phonePrefix: string;
       currencyCode: string;
     };
+    CreateGiftCardInput: {
+      /** Format: double */
+      amount: number;
+      recipientName: null | string;
+      buyerName: null | string;
+      message: null | string;
+      /**
+       * Format: int32
+       * @default 12
+       */
+      validityMonths: number;
+    };
     CreatedId: {
       /** Format: uuid */
       id: string;
@@ -8529,6 +11592,36 @@ export interface components {
     };
     DeleteAccountInput: {
       password: null | string;
+    };
+    DisputeDto: {
+      /** Format: uuid */
+      id: string;
+      /** Format: uuid */
+      appointmentId: string;
+      /** Format: uuid */
+      establishmentId: string;
+      establishmentName: string;
+      clientName: string;
+      /** Format: date-time */
+      appointmentStartsAt: string;
+      reason: string;
+      description: string;
+      status: string;
+      resolution: null | string;
+      partnerResponse: null | string;
+      adminNote: null | string;
+      refundStatus: null | string;
+      /** Format: date-time */
+      createdAt: string;
+      /** Format: date-time */
+      resolvedAt: null | string;
+    };
+    DisputeResolveInput: {
+      resolution: null | string;
+      note: null | string;
+    };
+    DisputeResponseInput: {
+      message: null | string;
     };
     EstablishmentDetails: {
       /** Format: uuid */
@@ -8691,11 +11784,85 @@ export interface components {
       name: null | string;
       isActive: boolean;
     };
+    GiftCardDto: {
+      /** Format: uuid */
+      id: string;
+      /** Format: uuid */
+      establishmentId: string;
+      establishmentName: string;
+      establishmentSlug: string;
+      code: string;
+      /** Format: double */
+      initialAmount: number;
+      /** Format: double */
+      balance: number;
+      currencyCode: string;
+      recipientName: string;
+      buyerName: null | string;
+      message: null | string;
+      status: string;
+      /** Format: date-time */
+      expiresAt: string;
+      /** Format: date-time */
+      createdAt: string;
+      hasHolder: boolean;
+      redemptions: components['schemas']['GiftCardRedemptionDto'][];
+    };
+    GiftCardRedemptionDto: {
+      /** Format: double */
+      amount: number;
+      /** Format: date-time */
+      at: string;
+    };
     GoogleLoginRequest: {
       idToken: string;
     };
     GrantAdminInput: {
       email: null | string;
+      role?: null | string;
+    };
+    GroupBookingAnswerInput: {
+      accept: boolean;
+      /** Format: double */
+      quotedPrice: null | number;
+      message: null | string;
+    };
+    GroupBookingDto: {
+      /** Format: uuid */
+      id: string;
+      /** Format: uuid */
+      establishmentId: string;
+      establishmentName: string;
+      establishmentSlug: string;
+      clientName: string;
+      clientPhone: null | string;
+      eventType: string;
+      /** Format: date-time */
+      desiredStartsAt: string;
+      /** Format: int32 */
+      groupSize: number;
+      services: string;
+      message: null | string;
+      status: string;
+      /** Format: double */
+      quotedPrice: null | number;
+      partnerMessage: null | string;
+      /** Format: date-time */
+      createdAt: string;
+      /** Format: date-time */
+      respondedAt: null | string;
+    };
+    GroupBookingInput: {
+      /** Format: uuid */
+      establishmentId: string;
+      eventType: null | string;
+      /** Format: date-time */
+      desiredStartsAt: string;
+      /** Format: int32 */
+      groupSize: number;
+      services: null | string;
+      message: null | string;
+      phone: null | string;
     };
     GroupInput: {
       name: string;
@@ -8736,6 +11903,14 @@ export interface components {
       status: string;
       /** Format: date-time */
       paidAt: null | string;
+    };
+    JoinWaitlistInput: {
+      /** Format: uuid */
+      establishmentId: string;
+      /** Format: date */
+      date: string;
+      /** Format: uuid */
+      serviceId: null | string;
     };
     KycCheck: {
       code: string;
@@ -8809,6 +11984,62 @@ export interface components {
       email: string;
       password: string;
     };
+    LoyaltyCardDto: {
+      /** Format: uuid */
+      establishmentId: string;
+      establishmentName: string;
+      establishmentSlug: string;
+      /** Format: int32 */
+      points: number;
+      /** Format: int32 */
+      rewardThreshold: number;
+      rewardDescription: string;
+      /** Format: int32 */
+      rewardsAvailable: number;
+      programActive: boolean;
+      history: components['schemas']['LoyaltyLineDto'][];
+    };
+    LoyaltyLineDto: {
+      kind: string;
+      /** Format: int32 */
+      points: number;
+      note: null | string;
+      /** Format: date-time */
+      at: string;
+    };
+    LoyaltyMemberDto: {
+      /** Format: uuid */
+      clientUserId: string;
+      clientName: string;
+      /** Format: int32 */
+      points: number;
+      /** Format: int32 */
+      rewardsAvailable: number;
+      /** Format: date-time */
+      lastActivityAt: string;
+    };
+    LoyaltyProgramDto: {
+      isActive: boolean;
+      /** Format: int32 */
+      pointsPer1000: number;
+      /** Format: int32 */
+      rewardThreshold: number;
+      rewardDescription: string;
+      /** Format: date-time */
+      activeSince: null | string;
+    };
+    LoyaltyProgramInput: {
+      isActive: boolean;
+      /** Format: int32 */
+      pointsPer1000: number;
+      /** Format: int32 */
+      rewardThreshold: number;
+      rewardDescription: null | string;
+    };
+    LoyaltyRedeemInput: {
+      /** Format: uuid */
+      clientUserId: string;
+    };
     MarkPaidInput: {
       method: null | string;
       reference: null | string;
@@ -8847,6 +12078,20 @@ export interface components {
       account: null | string;
       holderName: null | string;
     };
+    MyOwedDto: {
+      /** Format: uuid */
+      establishmentId: string;
+      establishmentName: string;
+      /** Format: double */
+      commission: number;
+      /** Format: double */
+      tips: number;
+    };
+    MyPayoutsView: {
+      account: components['schemas']['CollaboratorAccountView'];
+      owed: components['schemas']['MyOwedDto'][];
+      history: components['schemas']['CollaboratorPayoutDto'][];
+    };
     MyReviewDto: {
       /** Format: uuid */
       reviewId: string;
@@ -8877,6 +12122,12 @@ export interface components {
       sms: boolean;
       whatsApp: boolean;
       reminders: boolean;
+    };
+    OpenDisputeInput: {
+      /** Format: uuid */
+      appointmentId: string;
+      reason: null | string;
+      description: null | string;
     };
     OpeningHourInput: {
       /** Format: int32 */
@@ -8987,6 +12238,8 @@ export interface components {
        * @default 3
        */
       maxVideos: number;
+      /** Format: int32 */
+      maxServices?: null | number;
     };
     PartnerEstablishmentSummary: {
       /** Format: uuid */
@@ -8997,6 +12250,67 @@ export interface components {
       reviewComment: null | string;
       coverUrl: null | string;
       missing: components['schemas']['MissingItem'][];
+    };
+    PartnerFinanceSummary: {
+      /** Format: uuid */
+      establishmentId: string;
+      establishmentName: string;
+      /** Format: date-time */
+      from: string;
+      /** Format: date-time */
+      to: string;
+      currencyCode: string;
+      /** Format: int32 */
+      completedCount: number;
+      /** Format: int32 */
+      noShowCount: number;
+      /** Format: double */
+      grossRevenue: number;
+      /** Format: double */
+      onlineGross: number;
+      /** Format: double */
+      platformFees: number;
+      /** Format: double */
+      onlineNet: number;
+      /** Format: double */
+      onSiteCash: number;
+      /** Format: double */
+      onSiteMobileMoney: number;
+      /** Format: double */
+      totalTips: number;
+      /** Format: double */
+      totalCommissions: number;
+      /** Format: double */
+      totalPaidOut: number;
+      byService: components['schemas']['PartnerServiceRevenueRow'][];
+      byMethod: components['schemas']['PartnerMethodBreakdown'][];
+      transactions: components['schemas']['PartnerFinanceTransactionRow'][];
+      payouts: components['schemas']['PayoutDto'][];
+    };
+    PartnerFinanceTransactionRow: {
+      /** Format: uuid */
+      appointmentId: string;
+      /** Format: date-time */
+      startsAt: string;
+      clientName: string;
+      resourceName: null | string;
+      servicesSummary: string;
+      status: string;
+      /** Format: double */
+      totalPrice: number;
+      /** Format: double */
+      onlinePaidAmount: number;
+      /** Format: double */
+      platformFee: number;
+      /** Format: double */
+      netOnlineAmount: number;
+      onSitePaidMethod: null | string;
+      onSitePaidReference: null | string;
+      /** Format: double */
+      tipAmount: number;
+      /** Format: double */
+      commissionAmount: number;
+      currencyCode: string;
     };
     PartnerGroupItem: {
       /** Format: uuid */
@@ -9016,6 +12330,13 @@ export interface components {
       posterUrl?: null | string;
       /** Format: int32 */
       durationSeconds?: null | number;
+    };
+    PartnerMethodBreakdown: {
+      method: string;
+      /** Format: int32 */
+      count: number;
+      /** Format: double */
+      totalAmount: number;
     };
     PartnerPaymentDto: {
       /** Format: uuid */
@@ -9059,6 +12380,26 @@ export interface components {
       durationMinutes: number;
       isBookable: boolean;
       isVisible: boolean;
+      /**
+       * Format: int32
+       * @default 0
+       */
+      promoPercent: number;
+      /** Format: date-time */
+      promoEndsAt?: null | string;
+      /**
+       * Format: double
+       * @default 0
+       */
+      effectivePrice: number;
+      perks?: null | string[];
+    };
+    PartnerServiceRevenueRow: {
+      serviceName: string;
+      /** Format: int32 */
+      count: number;
+      /** Format: double */
+      totalAmount: number;
     };
     PassCheckDto: {
       /** Format: uuid */
@@ -9237,6 +12578,9 @@ export interface components {
       maxResources?: null | number;
       /** Format: int32 */
       maxAppointmentsPerMonth?: null | number;
+      /** Format: int32 */
+      maxServices?: null | number;
+      perks?: null | string[];
     };
     PlanUpdate: {
       name: string;
@@ -9341,6 +12685,13 @@ export interface components {
       google: components['schemas']['ProviderStatus'];
       whatsApp: components['schemas']['ProviderStatus'];
     };
+    PublicLoyaltyDto: {
+      /** Format: int32 */
+      pointsPer1000: number;
+      /** Format: int32 */
+      rewardThreshold: number;
+      rewardDescription: string;
+    };
     PushConfigDto: {
       enabled: boolean;
       publicKey: null | string;
@@ -9385,6 +12736,16 @@ export interface components {
     };
     ReasonInput: {
       reason: null | string;
+    };
+    RecommendationDto: {
+      establishment: components['schemas']['EstablishmentSummary'];
+      reason: string;
+    };
+    RedeemGiftCardInput: {
+      /** Format: double */
+      amount: number;
+      /** Format: uuid */
+      appointmentId: null | string;
     };
     RefundDto: {
       /** Format: uuid */
@@ -9468,13 +12829,6 @@ export interface components {
       identity: null | components['schemas']['ReviewIdentity'];
       checks: components['schemas']['KycCheck'][];
     };
-    ReviewPhotoDto: {
-      /** Format: uuid */
-      id: string;
-      kind: string;
-      url: string;
-      thumbUrl: null | string;
-    };
     ReviewDto: {
       /** Format: uuid */
       id: string;
@@ -9515,6 +12869,13 @@ export interface components {
       rating: number;
       comment: null | string;
     };
+    ReviewPhotoDto: {
+      /** Format: uuid */
+      id: string;
+      kind: string;
+      url: string;
+      thumbUrl: null | string;
+    };
     ReviewsPage: {
       summary: components['schemas']['RatingSummary'];
       items: components['schemas']['ReviewDto'][];
@@ -9546,6 +12907,14 @@ export interface components {
       groupId: null | string;
       isBookable: boolean;
       isVisible: boolean;
+      /**
+       * Format: int32
+       * @default 0
+       */
+      promoPercent: number;
+      /** Format: date-time */
+      promoEndsAt?: null | string;
+      perks?: null | string[];
     };
     ServiceItem: {
       /** Format: uuid */
@@ -9558,6 +12927,19 @@ export interface components {
       currencyCode: string;
       /** Format: int32 */
       durationMinutes: number;
+      /**
+       * Format: int32
+       * @default 0
+       */
+      promoPercent: number;
+      /** Format: date-time */
+      promoEndsAt?: null | string;
+      /**
+       * Format: double
+       * @default 0
+       */
+      effectivePrice: number;
+      perks?: null | string[];
     };
     ServicePaymentInfo: {
       /** Format: date-time */
@@ -9630,6 +13012,74 @@ export interface components {
       features: components['schemas']['PlanFeaturesDto'];
       trialEligiblePlanCodes?: null | string[];
     };
+    TeamAppointmentDto: {
+      /** Format: uuid */
+      id: string;
+      /** Format: uuid */
+      establishmentId: string;
+      establishmentName: string;
+      resourceName: string;
+      clientName: string;
+      /** Format: uuid */
+      clientUserId: null | string;
+      /** Format: date-time */
+      startsAt: string;
+      /** Format: date-time */
+      endsAt: string;
+      status: string;
+      lines: components['schemas']['AppointmentLineDto'][];
+      /** Format: date-time */
+      startedAt: null | string;
+      /** Format: date-time */
+      finishedAt: null | string;
+      /** Format: double */
+      tipAmount: number;
+      allergies: null | string;
+      canStart: boolean;
+      canFinish: boolean;
+    };
+    TeamAssignmentInput: {
+      email: null | string;
+      /** Format: double */
+      commissionPercent: number;
+    };
+    TeamMemberDto: {
+      /** Format: uuid */
+      resourceId: string;
+      name: string;
+      isActive: boolean;
+      /** Format: uuid */
+      userId: null | string;
+      email: null | string;
+      collaboratorName: null | string;
+      /** Format: double */
+      commissionPercent: number;
+    };
+    TeamMembershipDto: {
+      /** Format: uuid */
+      resourceId: string;
+      resourceName: string;
+      /** Format: uuid */
+      establishmentId: string;
+      establishmentName: string;
+      /** Format: double */
+      commissionPercent: number;
+    };
+    TeamPlanningDto: {
+      date: string;
+      timezone: string;
+      appointments: components['schemas']['TeamAppointmentDto'][];
+    };
+    TechnicalNoteDto: {
+      allergies: null | string;
+      notes: null | string;
+      /** Format: date-time */
+      updatedAt: null | string;
+    };
+    TechnicalNoteInput: {
+      allergies: null | string;
+      notes: null | string;
+    };
     TemplateDto: {
       code: string;
       label: string;
@@ -9664,6 +13114,19 @@ export interface components {
       endsAt: string;
       reason: null | string;
     };
+    TipInput: {
+      /** Format: double */
+      amount: number;
+    };
+    TipResultDto: {
+      /** Format: double */
+      amount: number;
+      status: string;
+      paymentUrl: null | string;
+    };
+    UpdateAdminRoleInput: {
+      role: null | string;
+    };
     UpdateProfileRequest: {
       firstName: string;
       lastName: string;
@@ -9673,6 +13136,23 @@ export interface components {
       id: string;
       name: string;
       status: string;
+    };
+    WaitlistEntryDto: {
+      /** Format: uuid */
+      id: string;
+      /** Format: uuid */
+      establishmentId: string;
+      establishmentName: string;
+      establishmentSlug: string;
+      /** Format: date */
+      date: string;
+      serviceName: null | string;
+      status: string;
+      clientName: null | string;
+      /** Format: date-time */
+      createdAt: string;
+      /** Format: date-time */
+      notifiedAt: null | string;
     };
     WhatsAppRequest: {
       phone: string;

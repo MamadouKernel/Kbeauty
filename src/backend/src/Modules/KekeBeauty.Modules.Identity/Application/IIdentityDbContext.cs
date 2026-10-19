@@ -15,6 +15,7 @@ public interface IIdentityDbContext
     DbSet<LoginChallenge> LoginChallenges { get; }
     DbSet<RecoveryCode> RecoveryCodes { get; }
     DbSet<PhoneCode> PhoneCodes { get; }
+    DbSet<TrustedDevice> TrustedDevices { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

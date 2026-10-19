@@ -30,7 +30,7 @@ const MAX_TEXT = 1000;
       border-radius: 0.75rem;
       font: inherit;
       font-weight: 400;
-      background: #fff;
+      background: var(--kb-card);
     }
     textarea {
       min-height: 6rem;

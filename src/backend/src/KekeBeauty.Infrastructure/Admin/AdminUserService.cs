@@ -24,12 +24,15 @@ public sealed record AdminUserFilter(string? Query, string? Role, string? Status
 
 public sealed record ReasonInput(string? Reason);
 
-public sealed record GrantAdminInput(string? Email);
+public sealed record GrantAdminInput(string? Email, string? Role = null);
+
+public sealed record UpdateAdminRoleInput(string? Role);
 
 /// <summary>Accounts: search, suspension with reason (PRD ADM-01) and administrator management (ADM-07).</summary>
 public sealed class AdminUserService(KekeBeautyDbContext db, AuditQueryService audit, TimeProvider time)
 {
-    private static readonly string[] AdminRoles = [AppRoles.Admin, AppRoles.SuperAdmin];
+    private static readonly string[] AdminRoles = [.. AppRoles.AllAdminRoles];
+    private static readonly string[] DelegatedRoles = [.. AppRoles.DelegatedAdminRoles];
 
     public async Task<PageOf<AdminUserDto>> ListAsync(AdminUserFilter filter, int? page, int? pageSize, CancellationToken ct)
     {
@@ -97,7 +100,7 @@ public sealed class AdminUserService(KekeBeautyDbContext db, AuditQueryService a
         }
 
         // Admins are managed by a SuperAdmin; a SuperAdmin account can never be suspended from here.
-        if (user.Roles.Contains(AppRoles.SuperAdmin) || (user.Roles.Contains(AppRoles.Admin) && !admin.IsSuperAdmin))
+        if (user.Roles.Contains(AppRoles.SuperAdmin) || (user.Roles.Any(r => DelegatedRoles.Contains(r)) && !admin.IsSuperAdmin))
         {
             return Result.Failure(AdminErrors.Forbidden);
         }
@@ -114,6 +117,8 @@ public sealed class AdminUserService(KekeBeautyDbContext db, AuditQueryService a
             // Sessions end now; the short-lived access token expires on its own.
             await db.RefreshTokens.Where(t => t.UserId == userId && t.RevokedAt == null)
                 .ExecuteUpdateAsync(set => set.SetProperty(t => t.RevokedAt, now), ct);
+            await db.TrustedDevices.Where(d => d.UserId == userId && d.RevokedAt == null)
+                .ExecuteUpdateAsync(set => set.SetProperty(d => d.RevokedAt, now), ct);
         }
         else
         {
@@ -130,17 +135,31 @@ public sealed class AdminUserService(KekeBeautyDbContext db, AuditQueryService a
     public async Task<IReadOnlyList<AdminUserDto>> ListAdminsAsync(CancellationToken ct)
     {
         var users = await db.Users.AsNoTracking()
-            .Where(u => u.Roles.Contains(AppRoles.Admin) || u.Roles.Contains(AppRoles.SuperAdmin))
+            .Where(u =>
+                u.Roles.Contains(AppRoles.SuperAdmin) ||
+                u.Roles.Contains(AppRoles.Admin) ||
+                u.Roles.Contains(AppRoles.AdminKyc) ||
+                u.Roles.Contains(AppRoles.AdminSupport) ||
+                u.Roles.Contains(AppRoles.AdminAccountant))
             .OrderBy(u => u.Email).ToListAsync(ct);
         return users.Select(ToDto).ToList();
     }
 
-    public async Task<Result<AdminUserDto>> GrantAdminAsync(AdminContext admin, string? email, CancellationToken ct)
+    public Task<Result<AdminUserDto>> GrantAdminAsync(AdminContext admin, string? email, CancellationToken ct) =>
+        GrantAdminAsync(admin, email, null, ct);
+
+    public async Task<Result<AdminUserDto>> GrantAdminAsync(AdminContext admin, string? email, string? role, CancellationToken ct)
     {
         var normalized = email?.Trim().ToLowerInvariant();
         if (string.IsNullOrEmpty(normalized))
         {
             return Result.Failure<AdminUserDto>(AdminErrors.Invalid("Indiquez l'adresse e-mail du compte à promouvoir."));
+        }
+
+        var targetRole = string.IsNullOrWhiteSpace(role) ? AppRoles.Admin : role.Trim();
+        if (!DelegatedRoles.Contains(targetRole))
+        {
+            return Result.Failure<AdminUserDto>(AdminErrors.Invalid("Rôle administrateur invalide."));
         }
 
         var user = await db.Users.FirstOrDefaultAsync(u => u.Email == normalized, ct);
@@ -159,9 +178,45 @@ public sealed class AdminUserService(KekeBeautyDbContext db, AuditQueryService a
             return Result.Failure<AdminUserDto>(AdminErrors.Invalid("Le compte doit être actif et son adresse e-mail confirmée."));
         }
 
-        user.SetRoles([.. user.Roles, AppRoles.Admin]);
+        user.SetRoles([.. user.Roles, targetRole]);
         await RevokeSessionsAsync(user.Id, ct);
-        Audit.Add(db, admin, time, "admin.grant", "User", user.Id, new { email = user.Email });
+        Audit.Add(db, admin, time, "admin.grant", "User", user.Id, new { email = user.Email, role = targetRole });
+        await db.SaveChangesAsync(ct);
+        return Result.Success(ToDto(user));
+    }
+
+    public async Task<Result<AdminUserDto>> UpdateAdminRoleAsync(AdminContext admin, Guid userId, string? role, CancellationToken ct)
+    {
+        if (userId == admin.ActorId)
+        {
+            return Result.Failure<AdminUserDto>(AdminErrors.SelfAction);
+        }
+
+        var targetRole = role?.Trim() ?? string.Empty;
+        if (!DelegatedRoles.Contains(targetRole))
+        {
+            return Result.Failure<AdminUserDto>(AdminErrors.Invalid("Rôle administrateur invalide."));
+        }
+
+        var user = await db.Users.FirstOrDefaultAsync(u => u.Id == userId, ct);
+        if (user is null)
+        {
+            return Result.Failure<AdminUserDto>(AdminErrors.UserNotFound);
+        }
+
+        if (user.Roles.Contains(AppRoles.SuperAdmin))
+        {
+            return Result.Failure<AdminUserDto>(AdminErrors.Forbidden);
+        }
+
+        if (!user.Roles.Any(r => DelegatedRoles.Contains(r)))
+        {
+            return Result.Failure<AdminUserDto>(AdminErrors.NotAdmin);
+        }
+
+        user.SetRoles([.. user.Roles.Where(r => !DelegatedRoles.Contains(r)), targetRole]);
+        await RevokeSessionsAsync(user.Id, ct);
+        Audit.Add(db, admin, time, "admin.role_change", "User", user.Id, new { email = user.Email, role = targetRole });
         await db.SaveChangesAsync(ct);
         return Result.Success(ToDto(user));
     }
@@ -184,12 +239,12 @@ public sealed class AdminUserService(KekeBeautyDbContext db, AuditQueryService a
             return Result.Failure(AdminErrors.Forbidden);
         }
 
-        if (!user.Roles.Contains(AppRoles.Admin))
+        if (!user.Roles.Any(r => DelegatedRoles.Contains(r)))
         {
             return Result.Failure(AdminErrors.NotAdmin);
         }
 
-        user.SetRoles(user.Roles.Where(r => r != AppRoles.Admin));
+        user.SetRoles(user.Roles.Where(r => !DelegatedRoles.Contains(r)));
         await RevokeSessionsAsync(user.Id, ct);
         Audit.Add(db, admin, time, "admin.revoke", "User", user.Id, new { email = user.Email });
         await db.SaveChangesAsync(ct);

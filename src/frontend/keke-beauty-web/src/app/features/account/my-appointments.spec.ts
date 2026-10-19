@@ -27,6 +27,9 @@ const base: Appointment = {
   canCancel: true,
   lines: [{ name: 'Coupe longue', price: 10000, durationMinutes: 60 }],
   createdAt: '2026-10-11T10:00:00Z',
+  tipAmount: 0,
+  canTip: false,
+  lateCancelFee: 0,
 };
 
 describe('MyAppointments', () => {

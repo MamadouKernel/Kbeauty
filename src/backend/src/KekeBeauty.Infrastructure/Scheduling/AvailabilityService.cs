@@ -35,11 +35,16 @@ public sealed class AvailabilityService(KekeBeautyDbContext db, TimeProvider tim
             return null;
         }
 
-        var services = await db.Services.AsNoTracking()
+        var now = time.GetUtcNow();
+        var serviceRows = await db.Services.AsNoTracking()
             .Where(s => s.EstablishmentId == e.Id && s.IsBookable && s.IsVisible && s.DeletedAt == null)
             .OrderBy(s => s.SortOrder)
-            .Select(s => new BookableService(s.Id, s.Name, s.Description, s.Price, s.PriceType.ToString(), s.CurrencyCode, s.DurationMinutes))
             .ToListAsync(ct);
+        var services = serviceRows
+            .Select(s => new BookableService(
+                s.Id, s.Name, s.Description, s.EffectivePrice(now), s.PriceType.ToString(), s.CurrencyCode, s.DurationMinutes,
+                s.HasActivePromo(now) ? s.PromoPercent : 0, s.HasActivePromo(now) ? s.PromoEndsAt : null, s.Price, s.PerksList()))
+            .ToList();
         var resources = await db.Resources.AsNoTracking()
             .Where(r => r.EstablishmentId == e.Id && r.IsActive)
             .OrderBy(r => r.CreatedAt).ThenBy(r => r.Id)
@@ -152,8 +157,9 @@ public sealed class AvailabilityService(KekeBeautyDbContext db, TimeProvider tim
             .GroupBy(h => h.DayOfWeek)
             .ToDictionary(g => g.Key, g => (IReadOnlyList<OpenRange>)g.Select(h => new OpenRange(h.OpensAt, h.ClosesAt)).ToList());
 
+        var now = time.GetUtcNow();
         return Result.Success(new BookingContext(
-            e, services, services.Sum(s => s.DurationMinutes), services.Sum(s => s.Price), candidates,
+            e, services, services.Sum(s => s.DurationMinutes), services.Sum(s => s.EffectivePrice(now)), candidates,
             AppointmentWorkflow.ZoneOf(e.Timezone), hours));
     }
 

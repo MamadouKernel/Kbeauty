@@ -229,7 +229,7 @@ public sealed class BillingMaintenance(
             await db.SaveChangesAsync(ct);
             await entitlements.SyncAsync(subscription.EstablishmentId, ct);
             await NotifyOwnerAsync(db, notifications, null, subscription.EstablishmentId, "billing.ended",
-                "Abonnement terminé", "Votre abonnement est arrivé au terme de son engagement et ne sera pas renouvelé. Votre fiche reste visible avec le plan Gratuit.", null, 0, ct);
+                "Abonnement terminé", "Votre abonnement est arrivé au terme de son engagement et ne sera pas renouvelé. Votre fiche reste visible avec la formule Gratuite.", null, 0, ct);
         }
 
         return ending.Count;

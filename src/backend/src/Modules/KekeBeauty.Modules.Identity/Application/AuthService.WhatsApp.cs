@@ -38,7 +38,7 @@ public sealed partial class AuthService
     }
 
     /// <summary>Checks the sign-in code and, when right, starts the usual second factor.</summary>
-    public async Task<Result<ChallengeResponse>> VerifyWhatsAppLoginAsync(WhatsAppVerifyRequest request, CancellationToken ct)
+    public async Task<Result<ChallengeResponse>> VerifyWhatsAppLoginAsync(WhatsAppVerifyRequest request, CancellationToken ct, string? trustedDeviceToken = null)
     {
         if (!Options.WhatsApp.Enabled)
         {
@@ -69,7 +69,7 @@ public sealed partial class AuthService
         }
 
         code.Consume(time.GetUtcNow());
-        return Result.Success(await StartSecondFactorAsync(user, ct));
+        return Result.Success(await StartSecondFactorAsync(user, ct, trustedDeviceToken));
     }
 
     // ───────── Linking a number to the signed-in account ─────────

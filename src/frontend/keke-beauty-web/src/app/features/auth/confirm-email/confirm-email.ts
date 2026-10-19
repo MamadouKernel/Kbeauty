@@ -1,3 +1,4 @@
+import { AuthLayout } from '../../../shared/auth-layout/auth-layout';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { LucideCircleAlert, LucideCircleCheck, LucideLoaderCircle } from '@lucide/angular';
@@ -9,8 +10,12 @@ type ConfirmState = 'working' | 'confirmed' | 'failed';
 @Component({
   selector: 'app-confirm-email',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, LucideCircleAlert, LucideCircleCheck, LucideLoaderCircle],
+  imports: [AuthLayout, RouterLink, LucideCircleAlert, LucideCircleCheck, LucideLoaderCircle],
   styles: `
+    .confirm-state {
+      display: grid;
+      gap: 1rem;
+    }
     .state-icon {
       width: 3rem;
       height: 3rem;
@@ -32,8 +37,8 @@ type ConfirmState = 'working' | 'confirmed' | 'failed';
     }
   `,
   template: `
-    <section class="auth-page" aria-labelledby="confirm-title">
-      <div class="auth-card" role="status" aria-live="polite">
+    <app-auth-layout labelledBy="confirm-title">
+      <div class="confirm-state" role="status" aria-live="polite">
         @switch (state()) {
           @case ('working') {
             <svg lucideLoaderCircle class="state-icon spin" aria-hidden="true"></svg>
@@ -53,7 +58,7 @@ type ConfirmState = 'working' | 'confirmed' | 'failed';
           }
         }
       </div>
-    </section>
+    </app-auth-layout>
   `,
 })
 export class ConfirmEmail {

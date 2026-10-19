@@ -64,7 +64,7 @@ import { ChannelService, NotificationPreferences } from '../../core/notification
   template: `
     @if (preferences.hasValue()) {
       <fieldset class="block">
-        <legend><strong>Je veux être prévenu par</strong></legend>
+        <legend><strong>Je veux être prévenu(e) par</strong></legend>
         <label class="check">
           <input
             type="checkbox"

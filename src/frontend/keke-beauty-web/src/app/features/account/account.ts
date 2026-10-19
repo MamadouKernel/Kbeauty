@@ -1,3 +1,4 @@
+import { DisplaySettings } from '../../shared/display-settings/display-settings';
 import { DatePipe } from '@angular/common';
 import { HttpClient, httpResource } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
@@ -11,7 +12,12 @@ import { RouterLink } from '@angular/router';
 import { LucideLogOut, LucideShieldCheck } from '@lucide/angular';
 import { InputText } from 'primeng/inputtext';
 import { firstValueFrom } from 'rxjs';
-import { SessionInfo, UserProfile, problemMessage } from '../../core/auth/auth.models';
+import {
+  SessionInfo,
+  TrustedDeviceInfo,
+  UserProfile,
+  problemMessage,
+} from '../../core/auth/auth.models';
 import { AuthService } from '../../core/auth/auth.service';
 import { NotificationSettings } from './notification-settings';
 
@@ -20,6 +26,9 @@ const ROLE_LABELS: Record<string, string> = {
   PartnerOwner: "Propriétaire d'établissement",
   PartnerStaff: 'Équipe établissement',
   Admin: 'Administrateur',
+  AdminKyc: 'Administrateur KYC',
+  AdminSupport: 'Administrateur support',
+  AdminAccountant: 'Administrateur comptabilité',
   SuperAdmin: 'Super administrateur',
 };
 
@@ -33,6 +42,7 @@ const ROLE_LABELS: Record<string, string> = {
     LucideLogOut,
     LucideShieldCheck,
     NotificationSettings,
+    DisplaySettings,
     RouterLink,
   ],
   styles: `
@@ -47,7 +57,7 @@ const ROLE_LABELS: Record<string, string> = {
       padding: clamp(1.25rem, 3vw, 2rem);
       border: 1px solid var(--kb-border);
       border-radius: var(--radius-lg);
-      background: #fff;
+      background: var(--kb-card);
       box-shadow: var(--shadow-soft);
     }
     .quick {
@@ -136,6 +146,7 @@ const ROLE_LABELS: Record<string, string> = {
           <p class="quick">
             <a class="btn btn-ghost btn-sm" routerLink="/compte/rendez-vous">Mes rendez-vous</a>
             <a class="btn btn-ghost btn-sm" routerLink="/compte/favoris">Mes favoris</a>
+            <a class="btn btn-ghost btn-sm" routerLink="/compte/fidelite">Fidélité et demandes</a>
           </p>
           <div class="meta">
             @for (role of me.roles; track role) {
@@ -187,6 +198,11 @@ const ROLE_LABELS: Record<string, string> = {
             </form>
           </section>
 
+          <section class="card" aria-labelledby="display-title">
+            <h2 id="display-title">Affichage</h2>
+            <app-display-settings />
+          </section>
+
           <section class="card" aria-labelledby="notifications-title">
             <h2 id="notifications-title">Mes notifications</h2>
             <app-notification-settings />
@@ -214,6 +230,27 @@ const ROLE_LABELS: Record<string, string> = {
             } @else if (sessions.error()) {
               <p class="form-error" role="alert">Impossible de charger vos sessions.</p>
             }
+
+            @if (trustedDevices.hasValue() && trustedDevices.value().length > 0) {
+              <h3>Appareils de confiance (2FA — 30 jours)</h3>
+              @for (device of trustedDevices.value(); track device.id) {
+                <div class="session">
+                  <div>
+                    <strong>{{
+                      device.isCurrent ? 'Cet appareil de confiance' : 'Appareil de confiance'
+                    }}</strong>
+                    <small>
+                      Expire le {{ device.expiresAt | date: 'dd/MM/yyyy' }} ·
+                      {{ device.ipAddress ?? 'IP inconnue' }}
+                    </small>
+                  </div>
+                  <button type="button" class="btn btn-ghost" (click)="revokeTrustedDevice(device)">
+                    Oublier
+                  </button>
+                </div>
+              }
+            }
+
             <button type="button" class="btn btn-light" (click)="logout()">
               <svg lucideLogOut aria-hidden="true"></svg>
               Se déconnecter
@@ -283,6 +320,9 @@ export class Account {
 
   protected readonly user = this.auth.user;
   protected readonly sessions = httpResource<SessionInfo[]>(() => '/api/v1/me/sessions');
+  protected readonly trustedDevices = httpResource<TrustedDeviceInfo[]>(
+    () => '/api/v1/me/trusted-devices',
+  );
   protected readonly busy = signal(false);
   protected readonly confirmingDelete = signal(false);
   protected readonly deletePassword = new FormControl('', { nonNullable: true });
@@ -326,6 +366,15 @@ export class Account {
     try {
       await firstValueFrom(this.http.delete<void>(`/api/v1/me/sessions/${session.id}`));
       this.sessions.reload();
+    } catch (error) {
+      this.error.set(problemMessage(error));
+    }
+  }
+
+  protected async revokeTrustedDevice(device: TrustedDeviceInfo): Promise<void> {
+    try {
+      await firstValueFrom(this.http.delete<void>(`/api/v1/me/trusted-devices/${device.id}`));
+      this.trustedDevices.reload();
     } catch (error) {
       this.error.set(problemMessage(error));
     }

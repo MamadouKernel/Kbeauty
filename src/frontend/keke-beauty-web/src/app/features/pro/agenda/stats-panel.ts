@@ -35,7 +35,7 @@ const PERIODS = [7, 30, 90];
       padding: 1rem 1.25rem;
       border: 1px solid var(--kb-border);
       border-radius: var(--radius-lg);
-      background: #fff;
+      background: var(--kb-card);
       box-shadow: var(--shadow-soft);
     }
     .card strong {
@@ -57,6 +57,12 @@ const PERIODS = [7, 30, 90];
           {{ p }} jours
         </button>
       }
+      <a
+        class="btn btn-ghost btn-sm"
+        [routerLink]="['/pro/etablissements', establishmentId(), 'finances']"
+      >
+        Finances détaillées et export CSV
+      </a>
     </div>
     @if (stats.hasValue()) {
       <div class="cards">
@@ -82,7 +88,7 @@ const PERIODS = [7, 30, 90];
       </div>
     } @else if (stats.error()) {
       <p class="form-error" role="alert">
-        Les statistiques font partie du plan Premium (ou votre abonnement est suspendu).
+        Les statistiques font partie de la formule Premium (ou votre abonnement est suspendu).
         <a [routerLink]="['/pro/etablissements', establishmentId(), 'abonnement']"
           >Voir mon abonnement</a
         >

@@ -11,10 +11,8 @@ public static class InvoicePdf
 {
     private static readonly Encoding Latin1 = Encoding.Latin1;
 
-    public static byte[] Build(InvoiceDto invoice, string customerName)
-    {
-        var lines = new List<(int Size, int Y, string Text)>
-        {
+    public static byte[] Build(InvoiceDto invoice, string customerName) =>
+        Render([
             (24, 790, "Keke Beauty"),
             (10, 772, "Annuaire des salons, spas et ongleries - Abidjan, Côte d'Ivoire"),
             (18, 725, $"Facture {invoice.Number}"),
@@ -26,8 +24,73 @@ public static class InvoicePdf
             (11, 598, $"Échéance : {invoice.DueDate:dd/MM/yyyy}"),
             (16, 555, $"Montant à payer : {FormatAmount(invoice.Amount)} {invoice.CurrencyCode}"),
             (9, 90, "Document généré automatiquement par Keke Beauty. Paiement par Mobile Money ou carte bancaire."),
+        ]);
+
+    public static byte[] BuildAppointmentReceipt(
+        string reference,
+        string establishmentName,
+        string clientName,
+        string resourceName,
+        DateTimeOffset startsAt,
+        IReadOnlyList<(string Name, decimal Price)> services,
+        decimal totalPrice,
+        decimal tipAmount,
+        string currencyCode,
+        string paymentLabel,
+        string? paymentReference)
+    {
+        var lines = new List<(int Size, int Y, string Text)>
+        {
+            (24, 790, "Keke Beauty"),
+            (10, 772, "Justificatif de prestation et d'encaissement"),
+            (18, 725, $"Reçu {reference}"),
+            (11, 696, $"Établissement : {establishmentName}"),
+            (11, 680, $"Cliente : {clientName}"),
+            (11, 664, $"Collaboratrice / Poste : {resourceName}"),
+            (11, 648, $"Date du rendez-vous : {startsAt:dd/MM/yyyy à HH:mm} UTC"),
+            (12, 618, "Prestations réalisées :"),
         };
 
+        var y = 598;
+        foreach (var (name, price) in services.Take(8))
+        {
+            lines.Add((11, y, $"- {name} : {FormatAmount(price)} {currencyCode}"));
+            y -= 16;
+        }
+
+        if (tipAmount > 0)
+        {
+            lines.Add((11, y, $"- Pourboire collaboratrice : {FormatAmount(tipAmount)} {currencyCode}"));
+            y -= 16;
+        }
+
+        lines.Add((15, y - 14, $"Total encaissé : {FormatAmount(totalPrice + tipAmount)} {currencyCode}"));
+        lines.Add((11, y - 38, $"Mode de règlement : {paymentLabel}"));
+        if (!string.IsNullOrWhiteSpace(paymentReference))
+        {
+            lines.Add((11, y - 54, $"Référence de transaction : {paymentReference}"));
+        }
+
+        lines.Add((9, 90, "Justificatif comptable émis via Keke Beauty pour le suivi de trésorerie de l'établissement."));
+        return Render(lines);
+    }
+
+    public static byte[] BuildPayoutReceipt(PayoutDto payout, string establishmentName) =>
+        Render([
+            (24, 790, "Keke Beauty"),
+            (10, 772, "Bordereau de reversement Mobile Money"),
+            (18, 725, $"Reversement KB-PAY-{payout.Id.ToString("N")[..8].ToUpperInvariant()}"),
+            (11, 696, $"Établissement : {establishmentName}"),
+            (11, 680, $"Statut : {(payout.Status == "Succeeded" ? "Effectué" : payout.Status == "Pending" ? "En cours" : "Échoué")}"),
+            (11, 664, $"Opérateur Mobile Money : {payout.Operator}"),
+            (11, 648, $"Compte crédité : {payout.AccountMasked}"),
+            (11, 632, $"Date d'émission : {payout.CreatedAt:dd/MM/yyyy à HH:mm} UTC"),
+            (16, 572, $"Montant net reversé : {FormatAmount(payout.Amount)} {payout.CurrencyCode}"),
+            (9, 90, "Bordereau généré automatiquement par Keke Beauty."),
+        ]);
+
+    private static byte[] Render(IReadOnlyList<(int Size, int Y, string Text)> lines)
+    {
         var content = new StringBuilder("BT\n");
         foreach (var (size, y, text) in lines)
         {

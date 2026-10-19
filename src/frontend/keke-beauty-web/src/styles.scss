@@ -21,6 +21,17 @@
   /* Warm ivory paper instead of cold lavender, with a gold accent for small touches. */
   --kb-bg: #fffcf8;
   --kb-surface: #fffdfa;
+  /* Cards, inputs and floating panels; translucent panels use the same paper as an RGB triplet. */
+  --kb-card: #fff;
+  --kb-paper-rgb: 255 255 255;
+  --kb-glass-rgb: 246 240 251;
+  --kb-blush: #f3d9f1;
+  /* Solid plum under white text (selected tabs, pills): never inverted by the dark theme. */
+  --kb-plum-400: #a56bbf;
+  --kb-plum-500: #8a43a5;
+  --kb-plum-600: #6a2a85;
+  --kb-plum-700: #511368;
+  --kb-plum-800: #3f0f52;
   --kb-ink: #27102f;
   --kb-ink-muted: #6b5c70;
   --kb-border: #eadfee;
@@ -66,6 +77,54 @@
   --lh-tight: 1.15;
   --lh-snug: 1.35;
   --lh-body: 1.6;
+}
+
+/*
+ * Dark mode (lot 7): chosen in "Mon compte", or the system setting by default (DisplayPreferences sets data-theme).
+ * The plum scale is inverted so that "dark text on light tint" pairs keep their contrast; the plum gradient of the
+ * primary buttons keeps white text.
+ */
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  --kb-primary-50: #2a1433;
+  --kb-primary-100: #371a43;
+  --kb-primary-200: #4d2a5c;
+  --kb-primary-300: #6b3d7f;
+  --kb-primary-400: #8f5aa6;
+  --kb-primary-500: #c08ad6;
+  --kb-primary-600: #d3a9e4;
+  --kb-primary-700: #e0c2ec;
+  --kb-primary-800: #ecd9f3;
+  --kb-primary-900: #f7eefa;
+
+  --kb-bg: #140b18;
+  --kb-surface: #1a1020;
+  --kb-card: #221628;
+  --kb-paper-rgb: 34 22 40;
+  --kb-glass-rgb: 44 28 52;
+  --kb-blush: #3b1f42;
+  --kb-ink: #f4eaf7;
+  --kb-ink-muted: #c3b2ca;
+  --kb-border: #3e2c47;
+  --kb-gold: #dcbb85;
+  --kb-gold-soft: #3a2d1b;
+  --kb-danger: #ff8a80;
+  --kb-success: #74d99f;
+  --kb-warning: #f2bf63;
+
+  --shadow-soft: 0 1px 2px rgb(0 0 0 / 30%), 0 14px 38px -26px rgb(0 0 0 / 60%);
+  --shadow-lift: 0 2px 4px rgb(0 0 0 / 30%), 0 26px 64px -30px rgb(0 0 0 / 70%);
+  --shadow-luxe: 0 24px 70px -34px rgb(0 0 0 / 70%), 0 8px 24px -18px rgb(0 0 0 / 50%);
+}
+
+/* Text size chosen in "Mon compte": every size is in rem, so scaling the root scales the whole interface. */
+:root[data-text-size='large'] {
+  font-size: 112.5%;
+}
+
+:root[data-text-size='xlarge'] {
+  font-size: 125%;
 }
 
 *,
@@ -213,7 +272,7 @@ body {
   z-index: 100;
   padding: 0.75rem 1.25rem;
   border-radius: var(--radius-sm);
-  background: var(--kb-primary-800);
+  background: var(--kb-plum-800);
   color: #fff;
   font-weight: 600;
   transition: top 160ms ease;
@@ -295,7 +354,7 @@ body {
 
 .btn-light {
   color: var(--kb-primary-800);
-  background: #fff;
+  background: var(--kb-card);
   box-shadow: var(--shadow-soft);
 
   &:hover {
@@ -362,7 +421,7 @@ body {
   padding: 0.5rem 0.875rem;
   border: 0;
   border-radius: var(--radius-pill);
-  background: var(--kb-primary-600);
+  background: var(--kb-plum-600);
   color: #fff;
   font: inherit;
   font-size: var(--fs-sm);
@@ -370,39 +429,44 @@ body {
   cursor: pointer;
 }
 
-/* ───────── Authentication pages ───────── */
+/* ───────── Authentication pages (frame: shared/auth-layout) ───────── */
 .auth-page {
-  display: grid;
-  place-items: start center;
   min-height: 70vh;
-  padding-block: clamp(2rem, 6vw, 4.5rem);
+  padding-block: clamp(1.25rem, 4vw, 3.5rem);
   background:
     radial-gradient(60% 50% at 15% 0%, var(--kb-primary-100), transparent 70%),
-    radial-gradient(45% 45% at 95% 20%, #f3d9f1, transparent 70%);
+    radial-gradient(45% 45% at 95% 20%, var(--kb-blush), transparent 70%);
 }
 
 .auth-card {
   display: grid;
-  gap: 1rem;
-  width: min(100% - 2rem, 30rem);
-  padding: clamp(1.5rem, 4vw, 2.5rem);
-  border: 1px solid var(--kb-border);
-  border-radius: var(--radius-lg);
-  background: #fff;
-  box-shadow: var(--shadow-lift);
+  gap: 1.1rem;
+  align-content: center;
+  padding: clamp(1.5rem, 4vw, 3rem);
 
   h1 {
-    font-size: clamp(1.75rem, 1.4rem + 1.4vw, 2.25rem);
+    font-size: clamp(1.75rem, 1.4rem + 1.4vw, 2.4rem);
+  }
+
+  /* The short blue rule under the title of the inspiration, in plum. */
+  h1::after {
+    content: '';
+    display: block;
+    width: 2.5rem;
+    height: 0.25rem;
+    margin-top: 0.6rem;
+    border-radius: var(--radius-pill);
+    background: var(--kb-plum-gradient);
   }
 
   form {
     display: grid;
-    gap: 1rem;
+    gap: 1.1rem;
   }
 
   .field {
     display: grid;
-    gap: 0.375rem;
+    gap: 0.4rem;
 
     label {
       font-size: var(--fs-sm);
@@ -413,6 +477,10 @@ body {
       width: 100%;
       min-height: 3rem;
     }
+  }
+
+  .btn-primary[type='submit'] {
+    min-height: 3.25rem;
   }
 }
 
@@ -464,14 +532,14 @@ body {
 
 .form-error {
   color: var(--kb-danger);
-  border-color: color-mix(in srgb, var(--kb-danger) 30%, white);
-  background: color-mix(in srgb, var(--kb-danger) 7%, white);
+  border-color: color-mix(in srgb, var(--kb-danger) 30%, var(--kb-card));
+  background: color-mix(in srgb, var(--kb-danger) 7%, var(--kb-card));
 }
 
 .form-success {
   color: var(--kb-success);
-  border-color: color-mix(in srgb, var(--kb-success) 30%, white);
-  background: color-mix(in srgb, var(--kb-success) 8%, white);
+  border-color: color-mix(in srgb, var(--kb-success) 30%, var(--kb-card));
+  background: color-mix(in srgb, var(--kb-success) 8%, var(--kb-card));
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -511,7 +579,7 @@ body {
   padding: 0.5rem 0.75rem;
   border: 1.5px solid var(--kb-border);
   border-radius: var(--radius-md);
-  background: #fff;
+  background: var(--kb-card);
   font: inherit;
 }
 
@@ -524,7 +592,7 @@ body {
   width: 100%;
   border-collapse: collapse;
   overflow: hidden;
-  background: #fff;
+  background: var(--kb-card);
   border: 1px solid var(--kb-border);
   border-radius: var(--radius-md);
 
@@ -550,7 +618,7 @@ body {
   padding: 1.25rem;
   border: 1px solid var(--kb-border);
   border-radius: var(--radius-lg);
-  background: #fff;
+  background: var(--kb-card);
   box-shadow: var(--shadow-lift);
 }
 
@@ -571,12 +639,12 @@ body {
   color: var(--kb-primary-700);
 
   &[data-tone='ok'] {
-    background: color-mix(in srgb, var(--kb-success) 12%, white);
+    background: color-mix(in srgb, var(--kb-success) 12%, var(--kb-card));
     color: var(--kb-success);
   }
 
   &[data-tone='bad'] {
-    background: color-mix(in srgb, var(--kb-danger) 10%, white);
+    background: color-mix(in srgb, var(--kb-danger) 10%, var(--kb-card));
     color: var(--kb-danger);
   }
 }

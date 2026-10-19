@@ -48,12 +48,12 @@ type Step = 'todo' | 'running' | 'done' | 'absent';
       padding: 1.1rem 1.25rem;
       border: 1px solid var(--kb-border);
       border-radius: var(--radius-lg);
-      background: #fff;
+      background: var(--kb-card);
       box-shadow: var(--shadow-soft);
     }
     .card[data-step='running'] {
-      border-color: color-mix(in srgb, var(--kb-success) 40%, white);
-      background: color-mix(in srgb, var(--kb-success) 6%, white);
+      border-color: color-mix(in srgb, var(--kb-success) 40%, var(--kb-card));
+      background: color-mix(in srgb, var(--kb-success) 6%, var(--kb-card));
     }
     .card[data-step='done'],
     .card[data-step='absent'] {
@@ -79,7 +79,7 @@ type Step = 'todo' | 'running' | 'done' | 'absent';
     .alert {
       padding: 0.5rem 0.75rem;
       border-radius: var(--radius-md);
-      background: color-mix(in srgb, var(--kb-danger, #b3261e) 10%, white);
+      background: color-mix(in srgb, var(--kb-danger, #b3261e) 10%, var(--kb-card));
       font-weight: 600;
     }
     .timer {
@@ -262,7 +262,7 @@ type Step = 'todo' | 'running' | 'done' | 'absent';
               <dd>{{ t.services }}</dd>
             </div>
             <div>
-              <dt>Chiffre réalisé</dt>
+              <dt>Chiffre d’affaires réalisé</dt>
               <dd>{{ money(t.revenue) }}</dd>
             </div>
             <div>
@@ -447,7 +447,7 @@ export class TeamPortal {
   protected placesLabel(): string {
     const places = this.memberships.value() ?? [];
     return places.length === 0
-      ? 'Aucun établissement ne vous a encore ajoutée à son équipe.'
+      ? 'Aucun établissement ne vous a encore ajouté(e) à son équipe.'
       : places
           .map((m) => `${m.establishmentName} (${m.commissionPercent} % de commission)`)
           .join(' · ');

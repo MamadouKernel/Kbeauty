@@ -1,3 +1,4 @@
+import type { PublicLoyalty } from '../../../core/growth/growth.service';
 import { HttpErrorResponse, httpResource } from '@angular/common/http';
 import {
   ChangeDetectionStrategy,
@@ -178,7 +179,7 @@ function minutes(time: string): number {
       font-weight: 700;
     }
     .open[data-open='true'] {
-      background: color-mix(in srgb, var(--kb-success) 12%, white);
+      background: color-mix(in srgb, var(--kb-success) 12%, var(--kb-card));
       color: var(--kb-success);
     }
     .open[data-open='false'] {
@@ -220,6 +221,13 @@ function minutes(time: string): number {
       height: 1.125rem;
       flex: none;
     }
+    .loyalty {
+      margin-top: 0.75rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: var(--radius-md);
+      background: var(--kb-gold-soft);
+      font-size: var(--fs-sm);
+    }
     .actions {
       display: flex;
       flex-wrap: wrap;
@@ -249,7 +257,7 @@ function minutes(time: string): number {
       scrollbar-width: none;
       border: 1px solid var(--kb-border);
       border-radius: var(--radius-pill);
-      background: #fff;
+      background: var(--kb-card);
     }
     .tabs button {
       flex: none;
@@ -264,7 +272,7 @@ function minutes(time: string): number {
       cursor: pointer;
     }
     .tabs button[aria-selected='true'] {
-      background: var(--kb-primary-600);
+      background: var(--kb-plum-600);
       color: #fff;
     }
     .panel {
@@ -290,7 +298,7 @@ function minutes(time: string): number {
       padding: clamp(1.25rem, 3vw, 1.75rem);
       border: 1px solid var(--kb-border);
       border-radius: var(--radius-lg);
-      background: #fff;
+      background: var(--kb-card);
       box-shadow: var(--shadow-soft);
     }
     h2 {
@@ -381,7 +389,7 @@ function minutes(time: string): number {
       padding: 2rem;
       border: 1px dashed var(--kb-primary-300);
       border-radius: var(--radius-lg);
-      background: #fff;
+      background: var(--kb-card);
     }
   `,
   template: `
@@ -481,6 +489,9 @@ function minutes(time: string): number {
               <svg lucideShare2 aria-hidden="true"></svg>
               {{ shared() ? 'Lien copié' : 'Partager' }}
             </button>
+            <a class="btn btn-ghost" [routerLink]="['/etablissements', d.slug, 'groupe']">
+              Groupe ou événement
+            </a>
             @if (d.bookingAvailable) {
               <a
                 class="btn btn-primary btn-book"
@@ -491,6 +502,12 @@ function minutes(time: string): number {
               </a>
             }
           </div>
+          @if (loyalty.hasValue() && loyalty.value(); as card) {
+            <p class="loyalty">
+              <strong>Carte de fidélité :</strong> {{ card.pointsPer1000 }} points par tranche de 1
+              000 F dépensés ; à {{ card.rewardThreshold }} points, {{ card.rewardDescription }}.
+            </p>
+          }
         </header>
 
         <div class="tabs" role="tablist" aria-label="Informations sur l'établissement">
@@ -531,11 +548,21 @@ function minutes(time: string): number {
                     <div class="service">
                       <div>
                         <strong>{{ service.name }}</strong>
+                        @if (service.promoPercent && service.promoPercent > 0) {
+                          <span class="chip">Promo −{{ service.promoPercent }} %</span>
+                        }
                         <small>{{ duration(service.durationMinutes) }}</small>
+                        @if (service.perks && service.perks.length > 0) {
+                          <small>Inclus : {{ service.perks.join(' · ') }}</small>
+                        }
                       </div>
                       <div class="end">
                         <span class="price">{{
-                          price(service.price, service.priceType, service.currencyCode)
+                          price(
+                            service.effectivePrice ?? service.price,
+                            service.priceType,
+                            service.currencyCode
+                          )
                         }}</span>
                         @if (d.bookingAvailable) {
                           <a
@@ -674,6 +701,13 @@ export class Establishment {
 
   protected readonly details = httpResource<EstablishmentDetails>(() =>
     this.slug() ? `/api/v1/establishments/${encodeURIComponent(this.slug())}` : undefined,
+  );
+
+  /** The loyalty card of the place, once its page is known to exist; none (404) simply hides the line. */
+  protected readonly loyalty = httpResource<PublicLoyalty>(() =>
+    this.details.hasValue()
+      ? `/api/v1/establishments/${encodeURIComponent(this.slug())}/loyalty`
+      : undefined,
   );
 
   protected readonly notFound = computed(() => {

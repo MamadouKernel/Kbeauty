@@ -95,3 +95,19 @@ public sealed class PhoneCodeConfiguration : IEntityTypeConfiguration<PhoneCode>
         builder.HasIndex(x => new { x.Phone, x.Purpose, x.CreatedAt });
     }
 }
+
+public sealed class TrustedDeviceConfiguration : IEntityTypeConfiguration<TrustedDevice>
+{
+    public void Configure(EntityTypeBuilder<TrustedDevice> builder)
+    {
+        builder.ToTable("trusted_devices", "identity");
+        builder.HasKey(x => x.Id);
+        builder.Property(x => x.Id).ValueGeneratedNever();
+        builder.Property(x => x.TokenHash).HasMaxLength(64).IsRequired();
+        builder.Property(x => x.DeviceInfo).HasMaxLength(256);
+        builder.Property(x => x.IpAddress).HasMaxLength(64);
+        builder.HasIndex(x => x.TokenHash).IsUnique();
+        builder.HasIndex(x => x.UserId);
+        builder.HasOne<User>().WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
+    }
+}

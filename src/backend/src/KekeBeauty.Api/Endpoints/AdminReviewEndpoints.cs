@@ -9,10 +9,15 @@ namespace KekeBeauty.Api.Endpoints;
 public static class AdminReviewEndpoints
 {
     public const string AdminPolicy = "Admin";
+    public const string AdminKycPolicy = "AdminKyc";
+    public const string AdminSupportPolicy = "AdminSupport";
+    public const string AdminModerationPolicy = "AdminModeration";
+    public const string AdminFinancePolicy = "AdminFinance";
+    public const string AdminConfigPolicy = "AdminConfig";
 
     public static IEndpointRouteBuilder MapAdminReviewEndpoints(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/api/v1/admin/kyc").WithTags("Admin").RequireAuthorization(AdminPolicy);
+        var group = app.MapGroup("/api/v1/admin/kyc").WithTags("Admin").RequireAuthorization(AdminKycPolicy);
 
         group.MapGet("/queue", async (string? status, int? page, int? pageSize, ReviewService service, CancellationToken ct) =>
             {

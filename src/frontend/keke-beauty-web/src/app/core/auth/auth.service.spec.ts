@@ -167,6 +167,49 @@ describe('AuthService', () => {
 
     expect(status).toBe(200);
   });
+
+  it('sends rememberDevice when requested during two-factor verification', async () => {
+    auth.challenge.set({ status: 'TwoFactorRequired', token: 'challenge-td' });
+
+    const pending = auth.verifyTwoFactor('654321', true);
+    const request = http.expectOne('/api/v1/auth/2fa/verify');
+    expect(request.request.body).toEqual({
+      challengeToken: 'challenge-td',
+      code: '654321',
+      rememberDevice: true,
+    });
+    request.flush(SESSION);
+    await pending;
+
+    expect(auth.isAuthenticated()).toBe(true);
+  });
+
+  it('completes a trusted device challenge without asking for a TOTP code', async () => {
+    auth.challenge.set({ status: 'TrustedDevice', token: 'challenge-trusted' });
+
+    const pending = auth.completeTrustedDevice();
+    const request = http.expectOne('/api/v1/auth/2fa/trusted');
+    expect(request.request.body).toEqual({ challengeToken: 'challenge-trusted' });
+    request.flush(SESSION);
+    await pending;
+
+    expect(auth.isAuthenticated()).toBe(true);
+    expect(auth.challenge()).toBeNull();
+  });
+
+  it('requests and verifies a WhatsApp OTP sign-in code', async () => {
+    const reqOtp = auth.requestWhatsAppOtp('+2250700000000');
+    const r1 = http.expectOne('/api/v1/auth/whatsapp/request');
+    expect(r1.request.body).toEqual({ phone: '+2250700000000' });
+    r1.flush(null, { status: 202, statusText: 'Accepted' });
+    await reqOtp;
+
+    const verifyOtp = auth.verifyWhatsAppOtp('+2250700000000', '112233');
+    const r2 = http.expectOne('/api/v1/auth/whatsapp/verify');
+    expect(r2.request.body).toEqual({ phone: '+2250700000000', code: '112233' });
+    r2.flush({ status: 'TwoFactorRequired', challengeToken: 'wa-c1' });
+    expect(await verifyOtp).toBe('TwoFactorRequired');
+  });
 });
 
 describe('route guards', () => {

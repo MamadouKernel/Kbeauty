@@ -3,7 +3,10 @@ using System.Text;
 using KekeBeauty.Infrastructure.Persistence;
 using KekeBeauty.Infrastructure.Scheduling;
 using KekeBeauty.Modules.Billing.Domain;
+using KekeBeauty.Modules.Catalog.Domain;
 using KekeBeauty.Modules.Identity.Application;
+using KekeBeauty.Modules.Identity.Domain;
+using KekeBeauty.Modules.Scheduling.Domain;
 using KekeBeauty.SharedKernel;
 using Microsoft.EntityFrameworkCore;
 
@@ -36,6 +39,31 @@ public sealed record FinanceSummary(
     DateTimeOffset From,
     DateTimeOffset To);
 
+public sealed record AdminDashboardDto(
+    int ActiveEstablishments,
+    int PendingReviewEstablishments,
+    int DraftEstablishments,
+    int RejectedEstablishments,
+    int SuspendedEstablishments,
+    int PendingAppointments,
+    int ConfirmedAppointments,
+    int CompletedAppointments,
+    int NoShowAppointments,
+    int CancelledOrRejectedAppointments,
+    decimal CompletedVolume,
+    decimal MonthlyRecurringRevenue,
+    int ActiveSubscriptions,
+    int TrialingSubscriptions,
+    int PastDueSubscriptions,
+    int OpenDisputes,
+    int TotalUsers,
+    int TotalPartners,
+    int TotalStaff,
+    int PublishedReviews,
+    double AverageRating,
+    string CurrencyCode,
+    IReadOnlyList<PlanCountDto> Plans);
+
 public sealed class AdminFinanceService(
     KekeBeautyDbContext db,
     NotificationService notifications,
@@ -48,6 +76,80 @@ public sealed class AdminFinanceService(
 
     private static readonly TimeSpan ReminderCooldown = TimeSpan.FromHours(1);
     private const int MaxRangeDays = 366;
+
+    public async Task<AdminDashboardDto> DashboardAsync(CancellationToken ct)
+    {
+        var estCounts = await db.Establishments.AsNoTracking()
+            .GroupBy(e => e.Status)
+            .Select(g => new { Status = g.Key, Count = g.Count() })
+            .ToDictionaryAsync(x => x.Status, x => x.Count, ct);
+
+        var apptRows = await db.Appointments.AsNoTracking()
+            .Where(a => !a.AwaitingPayment)
+            .GroupBy(a => a.Status)
+            .Select(g => new { Status = g.Key, Count = g.Count(), Volume = g.Sum(x => x.TotalPrice) })
+            .ToListAsync(ct);
+        var apptCounts = apptRows.ToDictionary(x => x.Status, x => x.Count);
+        var completedVolume = apptRows.Where(x => x.Status == AppointmentStatus.Completed).Sum(x => x.Volume);
+        var cancelledOrRejected = apptRows
+            .Where(x => x.Status is AppointmentStatus.CancelledByClient or AppointmentStatus.CancelledByEstablishment or AppointmentStatus.Rejected or AppointmentStatus.Expired)
+            .Sum(x => x.Count);
+
+        var subs = await (
+            from s in db.Subscriptions.AsNoTracking()
+            where s.Status == SubscriptionStatus.Active || s.Status == SubscriptionStatus.Trialing || s.Status == SubscriptionStatus.PastDue
+            join p in db.Plans.AsNoTracking() on s.PlanId equals p.Id
+            select new { p.Code, p.Name, s.Status, s.Cycle, s.UnitPriceSnapshot })
+            .ToListAsync(ct);
+
+        var plans = subs.GroupBy(x => (x.Code, x.Name))
+            .Select(g => new PlanCountDto(
+                g.Key.Code,
+                g.Key.Name,
+                g.Count(x => x.Status is SubscriptionStatus.Active or SubscriptionStatus.Trialing),
+                g.Count(x => x.Status == SubscriptionStatus.PastDue)))
+            .OrderBy(x => x.PlanCode)
+            .ToList();
+
+        var mrr = subs.Where(x => x.Status == SubscriptionStatus.Active)
+            .Sum(x => x.Cycle == BillingCycle.Annual ? x.UnitPriceSnapshot / 12m : x.UnitPriceSnapshot);
+
+        var openDisputes = await db.Disputes.AsNoTracking().CountAsync(d => d.Status == DisputeStatus.Open, ct);
+        var totalUsers = await db.Users.AsNoTracking().CountAsync(u => u.DeletedAt == null, ct);
+        var totalPartners = await db.Users.AsNoTracking().CountAsync(u => u.DeletedAt == null && u.Roles.Contains(AppRoles.PartnerOwner), ct);
+        var totalStaff = await db.Resources.AsNoTracking().CountAsync(r => r.IsActive, ct);
+
+        var reviewStats = await db.Reviews.AsNoTracking()
+            .Where(r => r.Status == ReviewStatus.Published)
+            .GroupBy(_ => 1)
+            .Select(g => new { Count = g.Count(), Avg = g.Average(r => (double)r.Rating) })
+            .FirstOrDefaultAsync(ct);
+
+        return new AdminDashboardDto(
+            estCounts.GetValueOrDefault(EstablishmentStatus.Active),
+            estCounts.GetValueOrDefault(EstablishmentStatus.PendingReview),
+            estCounts.GetValueOrDefault(EstablishmentStatus.Draft),
+            estCounts.GetValueOrDefault(EstablishmentStatus.Rejected),
+            estCounts.GetValueOrDefault(EstablishmentStatus.Suspended),
+            apptCounts.GetValueOrDefault(AppointmentStatus.Pending) + apptCounts.GetValueOrDefault(AppointmentStatus.RescheduleProposed),
+            apptCounts.GetValueOrDefault(AppointmentStatus.Confirmed),
+            apptCounts.GetValueOrDefault(AppointmentStatus.Completed),
+            apptCounts.GetValueOrDefault(AppointmentStatus.NoShow),
+            cancelledOrRejected,
+            completedVolume,
+            Math.Round(mrr, 0),
+            subs.Count(x => x.Status == SubscriptionStatus.Active),
+            subs.Count(x => x.Status == SubscriptionStatus.Trialing),
+            subs.Count(x => x.Status == SubscriptionStatus.PastDue),
+            openDisputes,
+            totalUsers,
+            totalPartners,
+            totalStaff,
+            reviewStats?.Count ?? 0,
+            Math.Round(reviewStats?.Avg ?? 0d, 1),
+            "XOF",
+            plans);
+    }
 
     public async Task<Result<FinanceSummary>> SummaryAsync(DateTimeOffset? from, DateTimeOffset? to, CancellationToken ct)
     {

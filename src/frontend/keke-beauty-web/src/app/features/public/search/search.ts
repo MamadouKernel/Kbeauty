@@ -69,7 +69,7 @@ const SORT_TO_API: Record<string, string> = {
       padding: clamp(1rem, 2.5vw, 1.5rem);
       border: 1px solid var(--kb-border);
       border-radius: var(--radius-lg);
-      background: linear-gradient(160deg, #fff, var(--kb-primary-50));
+      background: linear-gradient(160deg, var(--kb-card), var(--kb-primary-50));
       box-shadow: var(--shadow-luxe);
     }
     .filters[hidden] {
@@ -143,7 +143,7 @@ const SORT_TO_API: Record<string, string> = {
       padding: 0.25rem;
       border: 1px solid var(--kb-border);
       border-radius: var(--radius-pill);
-      background: #fff;
+      background: var(--kb-card);
     }
     .views button {
       display: inline-flex;
@@ -160,7 +160,7 @@ const SORT_TO_API: Record<string, string> = {
       cursor: pointer;
     }
     .views button[aria-pressed='true'] {
-      background: var(--kb-primary-600);
+      background: var(--kb-plum-600);
       color: #fff;
     }
     .views svg {
@@ -175,8 +175,8 @@ const SORT_TO_API: Record<string, string> = {
     .skeleton {
       aspect-ratio: 4 / 5;
       border-radius: var(--radius-lg);
-      background: linear-gradient(90deg, var(--kb-primary-50), #fff, var(--kb-primary-50)) 0 0 /
-        200% 100%;
+      background: linear-gradient(90deg, var(--kb-primary-50), var(--kb-card), var(--kb-primary-50))
+        0 0 / 200% 100%;
       animation: shimmer 1.4s linear infinite;
     }
     @keyframes shimmer {
@@ -191,7 +191,7 @@ const SORT_TO_API: Record<string, string> = {
       padding: 1.5rem;
       border: 1px dashed var(--kb-primary-300);
       border-radius: var(--radius-lg);
-      background: #fff;
+      background: var(--kb-card);
     }
     .more {
       justify-self: center;

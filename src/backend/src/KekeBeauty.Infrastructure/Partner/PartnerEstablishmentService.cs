@@ -115,6 +115,8 @@ public sealed class PartnerEstablishmentService(KekeBeautyDbContext db, IConfigu
         var review = await db.EstablishmentReviews.AsNoTracking().Where(r => r.EstablishmentId == id)
             .OrderByDescending(r => r.SubmittedAt).FirstOrDefaultAsync(ct);
 
+        var now = time.GetUtcNow();
+        var (_, features) = await entitlements.EffectiveAsync(id, ct);
         return new PartnerEstablishmentDetail(
             e.Id, e.Slug, e.Name, e.Status.ToString(), PartnerSupport.IsEditable(e.Status),
             e.Description, e.CustomerServicePhone, e.Email,
@@ -123,14 +125,15 @@ public sealed class PartnerEstablishmentService(KekeBeautyDbContext db, IConfigu
             hours,
             groups,
             services.Select(s => new PartnerServiceItem(s.Id, s.GroupId, s.CategoryId, s.Name, s.Description, s.Price, s.PriceType.ToString(),
-                s.CurrencyCode, s.DurationMinutes, s.IsBookable, s.IsVisible)).ToList(),
+                s.CurrencyCode, s.DurationMinutes, s.IsBookable, s.IsVisible, s.PromoPercent, s.PromoEndsAt, s.EffectivePrice(now), s.PerksList())).ToList(),
             media,
-            (await entitlements.EffectiveAsync(id, ct)).Features.MaxMedia,
+            features.MaxMedia,
             review is null ? null : new ReviewInfo(review.Status.ToString(), review.Comment, review.SubmittedAt, review.ReviewedAt),
             PartnerSupport.ComputeMissing(e.Categories.Count, hours.Count, media.Count, identity),
             videos,
-            (await entitlements.EffectiveAsync(id, ct)).Features.Videos,
-            (await entitlements.EffectiveAsync(id, ct)).Features.MaxVideos);
+            features.Videos,
+            features.MaxVideos,
+            features.MaxServices);
     }
 
     public async Task<Result<Guid>> CreateAsync(Guid userId, EstablishmentInput input, CancellationToken ct)

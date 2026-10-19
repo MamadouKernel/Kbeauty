@@ -37,7 +37,7 @@ import { PartnerService } from '../../../core/partner/partner.service';
       padding: 1.25rem;
       border: 1px solid var(--kb-border);
       border-radius: var(--radius-lg);
-      background: #fff;
+      background: var(--kb-card);
       box-shadow: var(--shadow-soft);
     }
     fieldset {
@@ -85,8 +85,8 @@ import { PartnerService } from '../../../core/partner/partner.service';
       font-weight: 700;
     }
     .done {
-      border-color: color-mix(in srgb, var(--kb-success) 35%, white);
-      background: color-mix(in srgb, var(--kb-success) 6%, white);
+      border-color: color-mix(in srgb, var(--kb-success) 35%, var(--kb-card));
+      background: color-mix(in srgb, var(--kb-success) 6%, var(--kb-card));
     }
   `,
   template: `

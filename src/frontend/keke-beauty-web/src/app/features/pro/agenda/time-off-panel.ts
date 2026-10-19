@@ -22,7 +22,7 @@ import { toInstant } from './agenda-page';
       padding: 1rem 1.25rem;
       border: 1px solid var(--kb-border);
       border-radius: var(--radius-lg);
-      background: #fff;
+      background: var(--kb-card);
       box-shadow: var(--shadow-soft);
     }
     .row {
@@ -169,7 +169,7 @@ export class TimeOffPanel {
     this.formError.set('');
     const value = this.form.getRawValue();
     if (!value.startsAt || !value.endsAt || value.endsAt <= value.startsAt) {
-      this.formError.set('Indiquez un début et une fin, la fin devant suivre le début.');
+      this.formError.set('Indiquez un début et une fin, la fin étant postérieure au début.');
       return;
     }
 

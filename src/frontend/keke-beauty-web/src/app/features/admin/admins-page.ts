@@ -1,10 +1,17 @@
 import { ChangeDetectionStrategy, Component, inject, resource, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { AdminApiService } from '../../core/admin/admin-api.service';
+import { AdminApiService, AdminUser } from '../../core/admin/admin-api.service';
 import { AuthService } from '../../core/auth/auth.service';
 import { problemMessage } from '../../core/auth/auth.models';
 
-/** `/admin/administrateurs` — grant or withdraw the Admin role; SuperAdmin only (PRD ADM-07). */
+export const ADMIN_ROLE_OPTIONS = [
+  { value: 'Admin', label: 'Administrateur complet' },
+  { value: 'AdminKyc', label: 'Administrateur KYC' },
+  { value: 'AdminSupport', label: 'Administrateur support' },
+  { value: 'AdminAccountant', label: 'Administrateur comptabilité' },
+] as const;
+
+/** `/admin/administrateurs` — grant, change or withdraw delegated admin roles; SuperAdmin only (PRD ADM-07). */
 @Component({
   selector: 'app-admins-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -24,6 +31,14 @@ import { problemMessage } from '../../core/auth/auth.models';
         <label>
           Adresse e-mail du compte
           <input class="admin-input" type="email" name="email" [(ngModel)]="email" required />
+        </label>
+        <label>
+          Rôle attribué
+          <select class="admin-input" name="role" [(ngModel)]="role">
+            @for (opt of roleOptions; track opt.value) {
+              <option [value]="opt.value">{{ opt.label }}</option>
+            }
+          </select>
         </label>
         <button type="submit" class="btn btn-primary" [disabled]="busy()">
           Nommer administrateur
@@ -57,7 +72,23 @@ import { problemMessage } from '../../core/auth/auth.models';
                   <td>{{ a.firstName }} {{ a.lastName }}</td>
                   <td>{{ a.email }}</td>
                   <td>
-                    {{ a.roles.includes('SuperAdmin') ? 'Super-administrateur' : 'Administrateur' }}
+                    @if (a.roles.includes('SuperAdmin')) {
+                      Super-administrateur
+                    } @else if (a.id !== me()?.id) {
+                      <select
+                        class="admin-input"
+                        [attr.aria-label]="'Rôle de ' + a.email"
+                        [ngModel]="primaryAdminRole(a)"
+                        (ngModelChange)="changeRole(a.id, $event)"
+                        [disabled]="busy()"
+                      >
+                        @for (opt of roleOptions; track opt.value) {
+                          <option [value]="opt.value">{{ opt.label }}</option>
+                        }
+                      </select>
+                    } @else {
+                      {{ roleLabel(primaryAdminRole(a)) }}
+                    }
                   </td>
                   <td>
                     @if (!a.roles.includes('SuperAdmin') && a.id !== me()?.id) {
@@ -88,17 +119,36 @@ export class AdminsPage {
   private readonly api = inject(AdminApiService);
 
   protected readonly me = inject(AuthService).user;
+  protected readonly roleOptions = ADMIN_ROLE_OPTIONS;
   protected email = '';
+  protected role = 'Admin';
   protected readonly busy = signal(false);
   protected readonly error = signal<string | null>(null);
   protected readonly message = signal<string | null>(null);
   protected readonly admins = resource({ loader: () => this.api.admins() });
 
+  protected primaryAdminRole(user: AdminUser): string {
+    for (const opt of ADMIN_ROLE_OPTIONS) {
+      if (user.roles.includes(opt.value)) {
+        return opt.value;
+      }
+    }
+    return 'Admin';
+  }
+
+  protected roleLabel(role: string): string {
+    return ADMIN_ROLE_OPTIONS.find((o) => o.value === role)?.label ?? 'Administrateur';
+  }
+
   protected async grant(): Promise<void> {
     await this.run('Rôle administrateur accordé.', async () => {
-      await this.api.grantAdmin(this.email.trim());
+      await this.api.grantAdmin(this.email.trim(), this.role);
       this.email = '';
     });
+  }
+
+  protected async changeRole(id: string, newRole: string): Promise<void> {
+    await this.run('Rôle administrateur mis à jour.', () => this.api.updateAdminRole(id, newRole));
   }
 
   protected async revoke(id: string): Promise<void> {

@@ -43,7 +43,7 @@ public sealed class AgendaService(
             || input.LateCancelFeePercent is < 0 or > 100)
         {
             return Result.Failure<BookingSettingsDto>(SchedulingErrors.Invalid(
-                "Paramètres invalides : pas de 5, 10, 15, 20, 30 ou 60 minutes ; horizon de 1 à 365 jours ; délais de 0 à 7 jours ; frais d'annulation tardive de 0 à 100 %."));
+                "Paramètres invalides : intervalle entre créneaux de 5, 10, 15, 20, 30 ou 60 minutes ; horizon de 1 à 365 jours ; délais de 0 à 7 jours ; frais d'annulation tardive de 0 à 100 %."));
         }
 
         if (input.BookingEnabled)

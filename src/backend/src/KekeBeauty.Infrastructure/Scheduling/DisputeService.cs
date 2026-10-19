@@ -231,7 +231,7 @@ public sealed class DisputeService(
         }
 
         var outcome = resolution == DisputeResolution.RefundedClient
-            ? (paid is null ? "Elle sera remboursée directement par l'établissement, aucun paiement en ligne n'ayant été fait." : "Votre paiement en ligne vous est remboursé.")
+            ? (paid is null ? "Vous serez remboursé(e) directement par l'établissement, aucun paiement en ligne n'ayant été fait." : "Votre paiement en ligne vous est remboursé.")
             : "Le litige est rejeté.";
         await notifications.NotifyAsync(dispute.ClientUserId, "dispute.resolved", "Votre litige a été examiné", $"Décision : {outcome} Message de l'équipe : {note}", null, ct);
         var owner = await db.Establishments.AsNoTracking().Where(e => e.Id == dispute.EstablishmentId).Select(e => e.OwnerUserId).FirstAsync(ct);

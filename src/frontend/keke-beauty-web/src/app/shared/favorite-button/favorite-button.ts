@@ -15,7 +15,7 @@ import { FavoritesService } from '../../core/favorites/favorites.service';
       height: 2.75rem;
       border: 1px solid var(--kb-border);
       border-radius: 50%;
-      background: rgb(255 255 255 / 94%);
+      background: rgb(var(--kb-paper-rgb) / 94%);
       color: var(--kb-primary-700);
       cursor: pointer;
       transition:
@@ -23,7 +23,7 @@ import { FavoritesService } from '../../core/favorites/favorites.service';
         background 150ms ease;
     }
     button:hover {
-      background: #fff;
+      background: var(--kb-card);
     }
     button:active {
       transform: scale(0.92);

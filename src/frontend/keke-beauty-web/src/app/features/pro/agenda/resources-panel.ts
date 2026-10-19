@@ -21,7 +21,7 @@ import type { PartnerServiceItem } from '../../../core/partner/partner.service';
       padding: 1rem 1.25rem;
       border: 1px solid var(--kb-border);
       border-radius: var(--radius-lg);
-      background: #fff;
+      background: var(--kb-card);
       box-shadow: var(--shadow-soft);
     }
     .row {
@@ -40,7 +40,7 @@ import type { PartnerServiceItem } from '../../../core/partner/partner.service';
       color: var(--kb-primary-700);
     }
     .tag.off {
-      background: color-mix(in srgb, var(--kb-danger) 10%, white);
+      background: color-mix(in srgb, var(--kb-danger) 10%, var(--kb-card));
       color: var(--kb-danger);
     }
     .tags {
@@ -237,7 +237,7 @@ export class ResourcesPanel {
 
   protected remove(r: AgendaResource): Promise<void> {
     return confirm(
-      `Supprimer « ${r.name} » ? S'il a déjà des rendez-vous, il sera seulement désactivé.`,
+      `Supprimer la ressource « ${r.name} » ? Si elle a déjà des rendez-vous, elle sera seulement désactivée.`,
     )
       ? this.run(() => this.agenda.deleteResource(this.establishmentId(), r.id))
       : Promise.resolve();

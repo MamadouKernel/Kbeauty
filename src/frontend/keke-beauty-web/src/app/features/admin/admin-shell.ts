@@ -5,18 +5,32 @@ import { AuthService } from '../../core/auth/auth.service';
 interface Section {
   readonly path: string;
   readonly label: string;
-  readonly superOnly?: boolean;
+  readonly roles: readonly string[];
 }
 
+const ALL_ADMIN = ['SuperAdmin', 'Admin', 'AdminKyc', 'AdminSupport', 'AdminAccountant'] as const;
+
 const SECTIONS: readonly Section[] = [
-  { path: '/admin/kyc', label: 'Dossiers KYC' },
-  { path: '/admin/utilisateurs', label: 'Utilisateurs' },
-  { path: '/admin/etablissements', label: 'Établissements' },
-  { path: '/admin/finances', label: 'Finances' },
-  { path: '/admin/litiges', label: 'Litiges' },
-  { path: '/admin/parametres', label: 'Paramètres' },
-  { path: '/admin/journal', label: 'Journal d’audit' },
-  { path: '/admin/administrateurs', label: 'Administrateurs', superOnly: true },
+  { path: '/admin/kyc', label: 'Dossiers KYC', roles: ['SuperAdmin', 'Admin', 'AdminKyc'] },
+  {
+    path: '/admin/utilisateurs',
+    label: 'Utilisateurs',
+    roles: ['SuperAdmin', 'Admin', 'AdminSupport'],
+  },
+  {
+    path: '/admin/etablissements',
+    label: 'Établissements',
+    roles: ['SuperAdmin', 'Admin', 'AdminKyc', 'AdminSupport'],
+  },
+  {
+    path: '/admin/finances',
+    label: 'Finances',
+    roles: ['SuperAdmin', 'Admin', 'AdminAccountant'],
+  },
+  { path: '/admin/litiges', label: 'Litiges', roles: ['SuperAdmin', 'Admin', 'AdminSupport'] },
+  { path: '/admin/parametres', label: 'Paramètres', roles: ['SuperAdmin', 'Admin'] },
+  { path: '/admin/journal', label: 'Journal d’audit', roles: ALL_ADMIN },
+  { path: '/admin/administrateurs', label: 'Administrateurs', roles: ['SuperAdmin'] },
 ];
 
 /** Frame of the back-office: section navigation above the routed page. */
@@ -27,7 +41,7 @@ const SECTIONS: readonly Section[] = [
   styles: `
     nav {
       border-bottom: 1px solid var(--kb-border);
-      background: #fff;
+      background: var(--kb-card);
     }
     ul {
       display: flex;
@@ -89,7 +103,7 @@ export class AdminShell {
   private readonly auth = inject(AuthService);
 
   protected readonly sections = computed(() => {
-    const isSuper = this.auth.user()?.roles.includes('SuperAdmin') ?? false;
-    return SECTIONS.filter((s) => !s.superOnly || isSuper);
+    const userRoles = this.auth.user()?.roles ?? [];
+    return SECTIONS.filter((s) => s.roles.some((r) => userRoles.includes(r)));
   });
 }

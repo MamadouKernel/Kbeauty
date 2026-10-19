@@ -23,7 +23,7 @@ import { StarRating } from '../../../shared/star-rating/star-rating';
       padding: 1rem 1.25rem;
       border: 1px solid var(--kb-border);
       border-radius: var(--radius-lg);
-      background: #fff;
+      background: var(--kb-card);
       box-shadow: var(--shadow-soft);
     }
     .head {
@@ -63,7 +63,7 @@ import { StarRating } from '../../../shared/star-rating/star-rating';
     .hidden {
       padding: 0.125rem 0.75rem;
       border-radius: var(--radius-pill);
-      background: color-mix(in srgb, var(--kb-danger) 10%, white);
+      background: color-mix(in srgb, var(--kb-danger) 10%, var(--kb-card));
       color: var(--kb-danger);
       font-size: var(--fs-xs);
       font-weight: 700;
@@ -72,7 +72,7 @@ import { StarRating } from '../../../shared/star-rating/star-rating';
       padding: 1.5rem;
       border: 1px dashed var(--kb-primary-300);
       border-radius: var(--radius-lg);
-      background: #fff;
+      background: var(--kb-card);
     }
   `,
   template: `

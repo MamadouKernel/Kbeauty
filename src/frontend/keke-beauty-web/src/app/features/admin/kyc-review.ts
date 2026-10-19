@@ -67,7 +67,7 @@ const CHECK_ICONS: Readonly<Record<string, string>> = { ok: '✓', warning: '!',
       padding: clamp(1rem, 3vw, 1.5rem);
       border: 1px solid var(--kb-border);
       border-radius: var(--radius-lg);
-      background: #fff;
+      background: var(--kb-card);
       box-shadow: var(--shadow-soft);
     }
     dl {

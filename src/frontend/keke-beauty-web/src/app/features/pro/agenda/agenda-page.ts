@@ -105,7 +105,7 @@ function startOfDay(date: Date): Date {
       padding: 0.5rem 1.125rem;
       border: 1.5px solid var(--kb-border);
       border-radius: var(--radius-pill);
-      background: #fff;
+      background: var(--kb-card);
       font: inherit;
       font-weight: 600;
       cursor: pointer;
@@ -183,7 +183,7 @@ function startOfDay(date: Date): Date {
       padding: 1rem 1.25rem;
       border: 1px solid var(--kb-border);
       border-radius: var(--radius-lg);
-      background: #fff;
+      background: var(--kb-card);
       box-shadow: var(--shadow-soft);
     }
     .card[data-status='Pending'] {
@@ -205,15 +205,15 @@ function startOfDay(date: Date): Date {
       color: var(--kb-primary-700);
     }
     .status[data-tone='ok'] {
-      background: color-mix(in srgb, var(--kb-success) 12%, white);
+      background: color-mix(in srgb, var(--kb-success) 12%, var(--kb-card));
       color: var(--kb-success);
     }
     .status[data-tone='bad'] {
-      background: color-mix(in srgb, var(--kb-danger) 10%, white);
+      background: color-mix(in srgb, var(--kb-danger) 10%, var(--kb-card));
       color: var(--kb-danger);
     }
     .status[data-tone='wait'] {
-      background: color-mix(in srgb, var(--kb-warning) 14%, white);
+      background: color-mix(in srgb, var(--kb-warning) 14%, var(--kb-card));
       color: var(--kb-warning);
     }
     .meta {

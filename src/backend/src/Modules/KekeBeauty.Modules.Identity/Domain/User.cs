@@ -9,9 +9,18 @@ public static class AppRoles
     public const string PartnerStaff = "PartnerStaff";
     public const string Admin = "Admin";
     public const string SuperAdmin = "SuperAdmin";
+    public const string AdminKyc = "AdminKyc";
+    public const string AdminSupport = "AdminSupport";
+    public const string AdminAccountant = "AdminAccountant";
 
     /// <summary>Roles a visitor may pick when creating an account (admins are created by a SuperAdmin).</summary>
     public static readonly IReadOnlyList<string> SelfServiceRoles = [Client, PartnerOwner];
+
+    /// <summary>All back-office roles (SuperAdmin, generalist Admin, and specialized roles).</summary>
+    public static readonly IReadOnlyList<string> AllAdminRoles = [SuperAdmin, Admin, AdminKyc, AdminSupport, AdminAccountant];
+
+    /// <summary>Admin roles that a SuperAdmin can grant or revoke.</summary>
+    public static readonly IReadOnlyList<string> DelegatedAdminRoles = [Admin, AdminKyc, AdminSupport, AdminAccountant];
 }
 
 public enum UserStatus

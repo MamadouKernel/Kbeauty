@@ -24,7 +24,11 @@
   padding: 0.375rem 0.5rem 0.375rem 0.875rem;
   border: 1px solid rgb(139 69 194 / 16%);
   border-radius: var(--radius-pill);
-  background: linear-gradient(135deg, rgb(255 255 255 / 80%), rgb(246 240 251 / 66%));
+  background: linear-gradient(
+    135deg,
+    rgb(var(--kb-paper-rgb) / 80%),
+    rgb(var(--kb-glass-rgb) / 66%)
+  );
   backdrop-filter: blur(18px) saturate(1.6);
   box-shadow:
     inset 0 1px 0 rgb(255 255 255 / 85%),
@@ -66,7 +70,7 @@
   height: 2.5rem;
   border-radius: 0.875rem;
   color: #fff;
-  background: linear-gradient(135deg, var(--kb-primary-400), var(--kb-primary-700));
+  background: linear-gradient(135deg, var(--kb-plum-400), var(--kb-plum-700));
   box-shadow:
     0 6px 16px -4px rgb(116 51 168 / 55%),
     inset 0 1px 0 rgb(255 255 255 / 35%);
@@ -142,7 +146,7 @@
         width: 1.25rem;
         height: 0.1875rem;
         border-radius: var(--radius-pill);
-        background: var(--kb-primary-500);
+        background: var(--kb-plum-500);
         box-shadow: 0 0 10px var(--kb-primary-400);
         transform: translateX(-50%);
       }
@@ -185,7 +189,7 @@
 .menu__trigger--guest {
   padding: 0.5rem 0.875rem 0.5rem 1rem;
   color: #fff;
-  background: linear-gradient(135deg, var(--kb-primary-500), var(--kb-primary-700));
+  background: linear-gradient(135deg, var(--kb-plum-500), var(--kb-plum-700));
   box-shadow:
     0 8px 20px -6px rgb(116 51 168 / 60%),
     inset 0 1px 0 rgb(255 255 255 / 30%);
@@ -201,7 +205,7 @@
   padding: 0.25rem 0.625rem 0.25rem 0.25rem;
   color: var(--kb-primary-800);
   border-color: var(--kb-primary-200);
-  background: rgb(255 255 255 / 70%);
+  background: rgb(var(--kb-paper-rgb) / 70%);
 
   &:hover {
     background: var(--kb-primary-50);
@@ -232,7 +236,7 @@
   padding: 0.5rem;
   border: 1px solid rgb(139 69 194 / 18%);
   border-radius: 1.375rem;
-  background: rgb(255 255 255 / 94%);
+  background: rgb(var(--kb-paper-rgb) / 94%);
   backdrop-filter: blur(22px) saturate(1.5);
   box-shadow:
     inset 0 1px 0 #fff,
@@ -323,7 +327,7 @@
 .menu__item:hover .menu__icon,
 .menu__item:focus-visible .menu__icon {
   color: #fff;
-  background: linear-gradient(135deg, var(--kb-primary-500), var(--kb-primary-700));
+  background: linear-gradient(135deg, var(--kb-plum-500), var(--kb-plum-700));
 }
 
 .menu__item--accent {
@@ -336,12 +340,12 @@
 
   .menu__icon {
     color: var(--kb-danger);
-    background: color-mix(in srgb, var(--kb-danger) 9%, white);
+    background: color-mix(in srgb, var(--kb-danger) 9%, var(--kb-card));
   }
 
   &:hover,
   &:focus-visible {
-    background: color-mix(in srgb, var(--kb-danger) 8%, white);
+    background: color-mix(in srgb, var(--kb-danger) 8%, var(--kb-card));
   }
 
   &:hover .menu__icon,
@@ -365,7 +369,7 @@
   height: 2.25rem;
   border-radius: 50%;
   color: #fff;
-  background: linear-gradient(135deg, var(--kb-primary-400), var(--kb-primary-700));
+  background: linear-gradient(135deg, var(--kb-plum-400), var(--kb-plum-700));
   box-shadow: 0 4px 10px -2px rgb(116 51 168 / 50%);
   font-weight: 700;
 }
@@ -384,7 +388,7 @@
   height: 2.75rem;
   border: 1px solid var(--kb-primary-200);
   border-radius: 50%;
-  background: rgb(255 255 255 / 70%);
+  background: rgb(var(--kb-paper-rgb) / 70%);
   color: var(--kb-primary-700);
   cursor: pointer;
   transition: background-color 200ms ease;
@@ -410,7 +414,7 @@
   padding: 0.5rem;
   border: 1px solid rgb(139 69 194 / 18%);
   border-radius: 1.5rem;
-  background: rgb(255 255 255 / 94%);
+  background: rgb(var(--kb-paper-rgb) / 94%);
   backdrop-filter: blur(22px) saturate(1.5);
   box-shadow: 0 24px 60px -18px rgb(54 23 79 / 45%);
   pointer-events: auto;
@@ -445,12 +449,21 @@
   }
 }
 
+.sheet__theme {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.25rem 0.375rem 0.25rem 0.875rem;
+  font-weight: 600;
+}
+
 @media (max-width: 639px) {
   .hide-sm {
     display: none;
   }
 
   .site-header__bar {
+    gap: 0.5rem;
     padding-left: 0.625rem;
   }
 
@@ -462,7 +475,7 @@
 .site-footer {
   margin-top: 2rem;
   padding-block: 3rem 2rem;
-  color: var(--kb-primary-100);
+  color: #efe3f4; /* always on the plum gradient: fixed light tints, in both themes */
   border-top: 3px solid var(--kb-gold);
   background: var(--kb-plum-gradient);
 
@@ -471,7 +484,7 @@
   }
 
   .brand__name span {
-    color: var(--kb-primary-300);
+    color: #c39ad5;
   }
 
   p {
@@ -486,7 +499,7 @@
     font-weight: 600;
     letter-spacing: 0.14em;
     text-transform: uppercase;
-    color: var(--kb-primary-300);
+    color: #c39ad5;
   }
 
   li {
@@ -520,7 +533,7 @@
   padding-top: 1.25rem;
   border-top: 1px solid rgb(255 255 255 / 14%);
   font-size: var(--fs-sm);
-  color: var(--kb-primary-200);
+  color: #dcc3e7;
 
   p {
     margin: 0;
@@ -558,7 +571,7 @@
     grid-template-columns: repeat(4, 1fr);
     padding: 0.375rem 0.5rem calc(0.375rem + env(safe-area-inset-bottom));
     border-top: 1px solid var(--kb-border);
-    background: rgb(255 253 250 / 96%);
+    background: rgb(var(--kb-paper-rgb) / 96%);
     backdrop-filter: blur(12px);
 
     a {
@@ -610,5 +623,57 @@
 @media (max-width: 379px) {
   .site-header .brand__name {
     display: none;
+  }
+}
+
+.idle-banner {
+  background: var(--kb-primary-50);
+  border-bottom: 1px solid var(--kb-primary-200);
+  color: var(--kb-primary-900, var(--kb-ink));
+  padding-block: 0.625rem;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+
+  .container {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+  }
+}
+
+/* Larger text (Mon compte → Affichage): the full navigation needs more width, so the compact menu is kept up to 1440px
+   with the large size and on every screen with the very large one. */
+@mixin compact-header {
+  .site-nav {
+    display: none;
+  }
+  .burger {
+    display: inline-grid;
+  }
+  .sheet {
+    display: grid;
+  }
+}
+
+@media (min-width: 1100px) and (max-width: 1439px) {
+  :host-context([data-text-size='large']) {
+    @include compact-header;
+  }
+}
+
+:host-context([data-text-size='xlarge']) {
+  @include compact-header;
+}
+
+/* Larger text on a phone: the wordmark and the menu labels give way to their icons (the buttons keep their names). */
+@media (max-width: 639px) {
+  :host-context([data-text-size='large']),
+  :host-context([data-text-size='xlarge']) {
+    .site-header .brand__name,
+    .menu__label {
+      display: none;
+    }
   }
 }

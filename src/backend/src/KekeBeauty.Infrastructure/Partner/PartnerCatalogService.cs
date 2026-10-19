@@ -6,7 +6,10 @@ using Microsoft.EntityFrameworkCore;
 namespace KekeBeauty.Infrastructure.Partner;
 
 /// <summary>Services and service groups of an establishment (PRD SVC-01/02). Deletion of a service is logical.</summary>
-public sealed class PartnerCatalogService(KekeBeautyDbContext db, TimeProvider time)
+public sealed class PartnerCatalogService(
+    KekeBeautyDbContext db,
+    TimeProvider time,
+    KekeBeauty.Infrastructure.Billing.EntitlementService? entitlements = null)
 {
     public const int MaxServices = 100;
     public const int MaxGroups = 30;
@@ -112,6 +115,12 @@ public sealed class PartnerCatalogService(KekeBeautyDbContext db, TimeProvider t
         }
 
         var count = await db.Services.CountAsync(s => s.EstablishmentId == establishmentId && s.DeletedAt == null, ct);
+        if (entitlements is not null && (await entitlements.EffectiveAsync(establishmentId, ct)).Features.MaxServices is { } planLimit && count >= planLimit)
+        {
+            return Result.Failure<Guid>(new Error("service.limit_reached",
+                $"Votre formule actuelle limite le catalogue à {planLimit} prestation(s). Passez à une formule supérieure pour en ajouter davantage."));
+        }
+
         if (count >= MaxServices)
         {
             return Result.Failure<Guid>(PartnerErrors.Invalid($"Au plus {MaxServices} prestations."));
@@ -129,6 +138,9 @@ public sealed class PartnerCatalogService(KekeBeautyDbContext db, TimeProvider t
             DurationMinutes = input.DurationMinutes,
             IsBookable = input.IsBookable,
             IsVisible = input.IsVisible,
+            PromoPercent = input.PromoPercent,
+            PromoEndsAt = input.PromoPercent > 0 ? input.PromoEndsAt : null,
+            Perks = NormalizePerks(input.Perks),
             SortOrder = count,
         };
         db.Services.Add(service);
@@ -165,6 +177,9 @@ public sealed class PartnerCatalogService(KekeBeautyDbContext db, TimeProvider t
         service.DurationMinutes = input.DurationMinutes;
         service.IsBookable = input.IsBookable;
         service.IsVisible = input.IsVisible;
+        service.PromoPercent = input.PromoPercent;
+        service.PromoEndsAt = input.PromoPercent > 0 ? input.PromoEndsAt : null;
+        service.Perks = NormalizePerks(input.Perks);
         await db.SaveChangesAsync(ct);
         return Result.Success();
     }
@@ -242,6 +257,17 @@ public sealed class PartnerCatalogService(KekeBeautyDbContext db, TimeProvider t
             return PartnerErrors.Invalid("La durée doit être comprise entre 5 et 720 minutes.");
         }
 
+        if (input.PromoPercent is < 0 or > 90)
+        {
+            return PartnerErrors.Invalid("La remise promotionnelle doit être comprise entre 0 et 90 %.");
+        }
+
+        var perks = input.Perks?.Select(p => p?.Trim()).Where(p => !string.IsNullOrEmpty(p)).ToList() ?? [];
+        if (perks.Count > 10 || perks.Any(p => p!.Length > 100))
+        {
+            return PartnerErrors.Invalid("Une formule peut inclure au plus 10 avantages de 100 caractères maximum chacun.");
+        }
+
         if (!await db.EstablishmentCategories.AnyAsync(c => c.EstablishmentId == establishmentId && c.CategoryId == input.CategoryId, ct))
         {
             return PartnerErrors.Invalid("La catégorie doit être l'une de celles de l'établissement.");
@@ -253,6 +279,17 @@ public sealed class PartnerCatalogService(KekeBeautyDbContext db, TimeProvider t
         }
 
         return null;
+    }
+
+    private static string? NormalizePerks(IReadOnlyList<string>? perks)
+    {
+        if (perks is null || perks.Count == 0)
+        {
+            return null;
+        }
+
+        var joined = string.Join('\n', perks.Select(p => p?.Trim()).Where(p => !string.IsNullOrEmpty(p)));
+        return string.IsNullOrEmpty(joined) ? null : joined[..Math.Min(joined.Length, 600)];
     }
 
     private async Task<Result> ApplyOrderAsync<T>(List<T> items, IReadOnlyList<Guid> ids, Action<T, int> setOrder, CancellationToken ct)

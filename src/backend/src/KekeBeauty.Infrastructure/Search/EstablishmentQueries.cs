@@ -182,8 +182,13 @@ public sealed class EstablishmentQueries(KekeBeautyDbContext db, IConfiguration 
             .OrderBy(s => s.SortOrder)
             .ToListAsync(ct);
 
+        var now = time.GetUtcNow();
         ServiceItem ToItem(Service s) =>
-            new(s.Id, s.Name, s.Description, s.Price, s.PriceType.ToString(), s.CurrencyCode, s.DurationMinutes);
+            new(s.Id, s.Name, s.Description, s.Price, s.PriceType.ToString(), s.CurrencyCode, s.DurationMinutes,
+                s.HasActivePromo(now) ? s.PromoPercent : 0,
+                s.HasActivePromo(now) ? s.PromoEndsAt : null,
+                s.EffectivePrice(now),
+                s.PerksList());
 
         var serviceGroups = new List<ServiceGroupItem>();
         var ungrouped = services.Where(s => s.GroupId is null).Select(ToItem).ToList();

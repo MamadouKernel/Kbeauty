@@ -115,6 +115,9 @@ public sealed class Appointment : Entity
 
     public DateTimeOffset? SecondReminderSentAt { get; set; }
 
+    /// <summary>When the client was invited to come back some weeks after this visit (sent at most once).</summary>
+    public DateTimeOffset? ReengagementSentAt { get; set; }
+
     public DateTimeOffset CreatedAt { get; init; } = DateTimeOffset.UtcNow;
 }
 

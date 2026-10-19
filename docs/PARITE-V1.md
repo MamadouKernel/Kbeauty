@@ -11,23 +11,23 @@ Légende : ✅ présent · 🟡 partiel · ⬜ à faire · ➕ n'existe pas en V
 |---|-------------|--------|-----|
 | 1 | Annuaire, recherche, filtres, carte | ✅ (+ carte plein écran, tri « mieux notés ») | — |
 | 2 | Fiche établissement, prestations, horaires, galerie | ✅ (onglets, avis, vidéos) | — |
-| 3 | Prise de RDV client + acompte en ligne | ✅ | — |
+| 3 | Prise de RDV client + acompte en ligne | ✅ (développé ; paiement en ligne du rendez-vous mis hors service par décision, voir `ETAT-DES-FONCTIONNALITES.md`) | — |
 | 4 | Mes RDV, détail RDV, annulation/report | ✅ | — |
 | 5 | Favoris | ✅ | — |
 | 6 | Avis clients, réponse du partenaire | ✅ | — |
 | 7 | Compte client (profil, notifications) | ✅ | — |
 | 8 | Inscription / connexion e-mail + mot de passe, mot de passe oublié | ✅ | — |
-| 9 | Double authentification, appareils de confiance | 🟡 (2FA oui, appareil de confiance non) | 6 |
-| 10 | Connexion Google | ⬜ | 6 |
-| 11 | Connexion par OTP téléphone / WhatsApp | ⬜ | 6 |
+| 9 | Double authentification, appareils de confiance | ✅ (TOTP Google Authenticator + codes de secours + appareil de confiance 30 jours révocable depuis « Mon compte ») | 6 |
+| 10 | Connexion Google | ✅ (vérification du jeton Google Identity Services + liaison au compte + 2FA / appareil de confiance) | 6 |
+| 11 | Connexion par OTP téléphone / WhatsApp | ✅ (demande et vérification de code OTP WhatsApp sur la page de connexion quand le fournisseur est activé + liaison depuis « Mon compte ») | 6 |
 | 12 | Onboarding partenaire + KYC | ✅ | — |
 | 13 | Abonnements partenaire (+ essai, changement de formule, promos) | ✅ ➕ | — |
 | 14 | Agenda partenaire, confirmation/refus/report, no-show | ✅ | — |
 | 15 | Prestations, catégories, horaires, équipe (ressources) | ✅ | — |
 | 16 | Statistiques partenaire | ✅ | — |
 | 17 | Admin : KYC, utilisateurs, établissements, abonnements, audit, paiements | ✅ | — |
-| 18 | Admin : rôles fins (SUPER_ADMIN, KYC, SUPPORT, COMPTABLE) | 🟡 | 6 |
-| 19 | PWA, notifications push | 🟡 (PWA oui, push web non) | 6 |
+| 18 | Admin : rôles fins (SUPER_ADMIN, KYC, SUPPORT, COMPTABLE) | ✅ (`SuperAdmin`, `Admin`, `AdminKyc`, `AdminSupport`, `AdminAccountant` avec politiques d'autorisation par périmètre et attribution/modification dans `/admin/administrateurs`) | 6 |
+| 19 | PWA, notifications push | ✅ (manifeste PWA + service worker + notifications Web Push VAPID RFC 8291/8188 + gestion par appareil dans « Mon compte ») | 6 |
 | 20 | **Comptoir** : RDV d'un client sans compte (walk-in) | ✅ | 2 |
 | 21 | **Pass QR client** + **scanner QR partenaire** | ✅ | 2 |
 | 22 | **Portail collaboratrice** : planning du jour | ✅ | 3 |
@@ -39,10 +39,10 @@ Légende : ✅ présent · 🟡 partiel · ⬜ à faire · ➕ n'existe pas en V
 | 28 | **Keke Protect** (retard / annulation tardive, politique) | ✅ (délai de grâce avant « absente », versement suspendu pendant un litige, frais d'annulation tardive paramétrables) | 4 |
 | 29 | Litiges (ouverture client, traitement admin) | ✅ (+ réponse de l'établissement) | 4 |
 | 30 | Remboursements (demande, validation admin) | ✅ (la demande passe par le litige ; l'admin valide, le remboursement part au moyen de paiement) | 4 |
-| 31 | Reçus / justificatifs partenaire, finances détaillées | 🟡 | 5 |
-| 32 | Tableau de bord admin analytique | 🟡 | 5 |
-| 33 | Formules multiples, avantages, promotions d'un salon | ⬜ | 5 |
-| 34 | Gestionnaire d'inactivité (déconnexion auto) | ⬜ | 6 |
+| 31 | Reçus / justificatifs partenaire, finances détaillées | ✅ (synthèse financière par prestation et mode de paiement, reçu PDF de prestation et bordereau PDF de reversement) | 5 |
+| 32 | Tableau de bord admin analytique | ✅ (KPI salons par statut, RDV par statut et volume honoré, MRR et abonnements, litiges, communauté et avis) | 5 |
+| 33 | Formules multiples, avantages, promotions d'un salon | ✅ (plafond de prestations et avantages personnalisés par plan + promotions et éléments inclus par prestation/formule d'un salon) | 5 |
+| 34 | Gestionnaire d'inactivité (déconnexion auto) | ✅ (bannière d'avertissement 60 s avant expiration avec bouton « Rester connecté(e) » + déconnexion automatique côté client et serveur) | 6 |
 | 35 | Paiement des collaboratrices (Wave) | ✅ (Wave, Orange, MTN, Moov ; passerelle fictive en test, WiniPayer en production) | 3 |
 
 ## 2. Apports V1.0.1 que la V1 n'a pas (à conserver et étendre)
@@ -52,30 +52,30 @@ Légende : ✅ présent · 🟡 partiel · ⬜ à faire · ➕ n'existe pas en V
 | Essai gratuit, changement de formule au prorata, codes promo, remise directe | ✅ |
 | Carte plein écran avec pins informatifs, tuiles OSM mises en cache | ✅ |
 | Vidéos de réalisations, mises à jour automatiques de l'appli | ✅ |
-| Architecture modulaire testée (219 unitaires, 191 intégration, 180 front, 113 E2E) | ✅ |
+| Architecture modulaire testée (223 unitaires, 197 intégration, 192 front, 115 E2E) | ✅ |
 | Lighthouse mobile 100 / 100 / 100 / 100 | ✅ |
 
 ## 3. Idées au-delà de la V1 (après la parité)
 
 | Idée | Valeur | Lot |
 |------|--------|-----|
-| Liste d'attente automatique quand un créneau se libère | Remplit l'agenda | 7 |
-| Forfaits / cartes de fidélité à points (au-delà du QR) | Rétention | 7 |
-| Rappels RDV J-1 / H-2 et ré-engagement automatique à J+30 | Moins de no-show | 7 |
-| Cartes cadeaux | Revenu additionnel | 7 |
-| Réservation en groupe (mariage, anniversaire) | Panier moyen | 7 |
-| Recommandations « salons proches de vous » | Découverte | 7 |
-| Mode sombre et taille de texte réglable | Confort / accessibilité | 1 |
-| Export comptable (CSV) pour le partenaire | Gain de temps | 5 |
+| Liste d'attente automatique quand un créneau se libère ✅ | Remplit l'agenda | 7 |
+| Forfaits / cartes de fidélité à points (au-delà du QR) ✅ | Rétention | 7 |
+| Rappels RDV J-1 / H-2 et ré-engagement automatique à J+30 ✅ | Moins de no-show | 7 |
+| Cartes cadeaux ✅ | Revenu additionnel | 7 |
+| Réservation en groupe (mariage, anniversaire) ✅ | Panier moyen | 7 |
+| Recommandations « salons proches de vous » ✅ | Découverte | 7 |
+| Mode sombre et taille de texte réglable ✅ | Confort / accessibilité | 7 |
+| Export comptable (CSV) pour le partenaire ✅ | Gain de temps | 5 |
 
 ## 4. Lots et ordre
 
-1. **Design** : échelle typographique fluide et sobre, jetons d'espacement, tailles par écran.
-2. **Comptoir + Pass QR + scanner** (partenaire).
+1. **Design** : échelle typographique fluide et sobre, jetons d'espacement, tailles par écran ✅.
+2. **Comptoir + Pass QR + scanner** (partenaire) ✅.
 3. **Équipe** : portail collaboratrice, chrono, fiche technique, commissions, pourboires, avis avec photos, paiement des collaboratrices ✅.
 4. **Confiance** : Keke Protect, litiges, remboursements, frais d'annulation tardive ✅.
-5. **Finances & pilotage** : reçus, finances détaillées, tableau de bord admin, formules/avantages.
-6. **Accès & sécurité** : Google, OTP WhatsApp, appareil de confiance, rôles admin fins, push web, inactivité.
-7. **Au-delà de la V1** : liste d'attente, fidélité, cartes cadeaux, groupes, recommandations.
+5. **Finances & pilotage** : reçus, finances détaillées, export comptable CSV, tableau de bord admin, formules/avantages et promotions salon ✅.
+6. **Accès & sécurité** : Google, OTP WhatsApp, appareil de confiance, rôles admin fins, push web, inactivité ✅.
+7. **Au-delà de la V1** : liste d'attente, fidélité, cartes cadeaux, groupes, recommandations, ré-engagement J+30, mode sombre et taille de texte ✅.
 
 Chaque lot : backend + front + tests (unitaires, intégration, E2E) + mise à jour de `ETAT-DES-FONCTIONNALITES.md` + commit.

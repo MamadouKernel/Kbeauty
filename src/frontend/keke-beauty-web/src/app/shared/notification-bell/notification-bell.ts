@@ -36,7 +36,7 @@ const TOAST_MS = 6000;
       height: 2.75rem;
       border: 1px solid var(--kb-primary-200);
       border-radius: 50%;
-      background: rgb(255 255 255 / 70%);
+      background: rgb(var(--kb-paper-rgb) / 70%);
       color: var(--kb-primary-700);
       cursor: pointer;
       transition:
@@ -80,7 +80,7 @@ const TOAST_MS = 6000;
       padding: 0.5rem;
       border: 1px solid rgb(139 69 194 / 18%);
       border-radius: 1.375rem;
-      background: rgb(255 255 255 / 96%);
+      background: rgb(var(--kb-paper-rgb) / 96%);
       backdrop-filter: blur(22px);
       box-shadow: 0 24px 60px -18px rgb(54 23 79 / 45%);
       animation: panel-in 200ms var(--ease-out);
@@ -135,7 +135,7 @@ const TOAST_MS = 6000;
         background: var(--kb-primary-50);
       }
       &[data-unread='true'] {
-        background: color-mix(in srgb, var(--kb-primary-100) 55%, white);
+        background: color-mix(in srgb, var(--kb-primary-100) 55%, var(--kb-card));
       }
       strong {
         display: flex;
@@ -147,7 +147,7 @@ const TOAST_MS = 6000;
         width: 0.5rem;
         height: 0.5rem;
         border-radius: 50%;
-        background: var(--kb-primary-600);
+        background: var(--kb-plum-600);
       }
       span {
         font-size: var(--fs-sm);
@@ -178,7 +178,7 @@ const TOAST_MS = 6000;
       padding: 0.875rem 1.125rem;
       border: 1px solid var(--kb-primary-200);
       border-radius: var(--radius-md);
-      background: #fff;
+      background: var(--kb-card);
       box-shadow: var(--shadow-lift);
       animation: panel-in 240ms var(--ease-out);
 

@@ -25,7 +25,7 @@ public sealed record WhatsAppLinkStatus(bool Available, bool Linked, string? Pho
 
 public sealed record ChallengeRequest(string ChallengeToken);
 
-public sealed record ChallengeCodeRequest(string ChallengeToken, string Code);
+public sealed record ChallengeCodeRequest(string ChallengeToken, string Code, bool RememberDevice = false);
 
 public sealed record UpdateProfileRequest(string FirstName, string LastName);
 
@@ -34,6 +34,7 @@ public static class ChallengeStatus
 {
     public const string TwoFactorRequired = "TwoFactorRequired";
     public const string TwoFactorSetupRequired = "TwoFactorSetupRequired";
+    public const string TrustedDevice = "TrustedDevice";
 }
 
 public sealed record ChallengeResponse(string Status, string ChallengeToken);
@@ -46,13 +47,27 @@ public sealed record UserDto(Guid Id, string Email, string FirstName, string Las
 /// <summary><paramref name="IdleMinutes"/> is the inactivity after which the session ends (admin setting); the web app also signs out on its own.</summary>
 public sealed record AuthResponse(string AccessToken, DateTimeOffset ExpiresAt, UserDto User, IReadOnlyList<string>? RecoveryCodes, int IdleMinutes = 60);
 
-public sealed record IssuedSession(AuthResponse Response, string RefreshToken, DateTimeOffset RefreshExpiresAt);
+public sealed record IssuedSession(
+    AuthResponse Response,
+    string RefreshToken,
+    DateTimeOffset RefreshExpiresAt,
+    string? TrustedDeviceToken = null,
+    DateTimeOffset? TrustedDeviceExpiresAt = null);
 
 public sealed record ProviderStatus(bool Enabled, string? ClientId);
 
 public sealed record ProvidersResponse(bool Password, ProviderStatus Google, ProviderStatus WhatsApp);
 
 public sealed record SessionDto(Guid Id, DateTimeOffset StartedAt, string? DeviceInfo, string? IpAddress, bool IsCurrent);
+
+public sealed record TrustedDeviceDto(
+    Guid Id,
+    DateTimeOffset CreatedAt,
+    DateTimeOffset LastUsedAt,
+    DateTimeOffset ExpiresAt,
+    string? DeviceInfo,
+    string? IpAddress,
+    bool IsCurrent);
 
 public sealed record ClientContext(string? IpAddress, string? UserAgent);
 

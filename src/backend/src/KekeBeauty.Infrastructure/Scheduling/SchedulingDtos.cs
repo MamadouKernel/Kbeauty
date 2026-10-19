@@ -2,7 +2,18 @@ namespace KekeBeauty.Infrastructure.Scheduling;
 
 // ───────── Public booking information and availability ─────────
 
-public sealed record BookableService(Guid Id, string Name, string? Description, decimal Price, string PriceType, string CurrencyCode, int DurationMinutes);
+public sealed record BookableService(
+    Guid Id,
+    string Name,
+    string? Description,
+    decimal Price,
+    string PriceType,
+    string CurrencyCode,
+    int DurationMinutes,
+    int PromoPercent = 0,
+    DateTimeOffset? PromoEndsAt = null,
+    decimal OriginalPrice = 0,
+    IReadOnlyList<string>? Perks = null);
 
 public sealed record ResourceDto(Guid Id, string Name, bool IsActive, IReadOnlyList<Guid> ServiceIds);
 

@@ -130,6 +130,48 @@
   </div>
 </section>
 
+<section class="section" aria-labelledby="nearby-title">
+  <div class="container">
+    <header class="section__head section__head--row">
+      <div>
+        <p class="eyebrow">Recommandé pour vous</p>
+        <h2 id="nearby-title">Salons <em>près de chez vous</em></h2>
+      </div>
+      @if (!position()) {
+        <button
+          type="button"
+          class="btn btn-ghost btn-sm"
+          [disabled]="locating()"
+          (click)="locate()"
+        >
+          <svg lucideMapPin aria-hidden="true"></svg>
+          {{ locating() ? 'Localisation…' : 'Utiliser ma position' }}
+        </button>
+      }
+    </header>
+    @if (locateError()) {
+      <p class="hint" role="status">{{ locateError() }}</p>
+    }
+
+    @if (nearby.hasValue() && nearby.value().length > 0) {
+      <ul class="featured-grid">
+        @for (item of nearby.value(); track item.establishment.id) {
+          <li class="recommended">
+            <span class="reason">{{ item.reason }}</span>
+            <app-establishment-card [establishment]="item.establishment" />
+          </li>
+        }
+      </ul>
+    } @else if (nearby.isLoading()) {
+      <ul class="featured-grid" aria-busy="true" aria-label="Chargement des recommandations">
+        @for (item of skeletons.slice(0, 4); track item) {
+          <li class="featured-skeleton"></li>
+        }
+      </ul>
+    }
+  </div>
+</section>
+
 <section id="comment-ca-marche" class="section section--tint" aria-labelledby="steps-title">
   <div class="container">
     <header class="section__head">

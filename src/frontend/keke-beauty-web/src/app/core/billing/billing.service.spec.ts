@@ -3,6 +3,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { TestBed } from '@angular/core/testing';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { BillingService } from './billing.service';
+import { planConditions } from './plan-conditions';
 
 describe('BillingService', () => {
   let service: BillingService;
@@ -58,5 +59,39 @@ describe('BillingService', () => {
     expect(request.request.body).toEqual({ status: 'refused' });
     request.flush(null, { status: 204, statusText: 'No Content' });
     await promise;
+  });
+
+  it('includes maxServices and custom perks in planConditions', () => {
+    const conditions = planConditions({
+      id: 'p1',
+      code: 'gold',
+      name: 'Or',
+      monthlyPrice: 10000,
+      annualPrice: 100000,
+      currencyCode: 'XOF',
+      isActive: true,
+      sortOrder: 1,
+      description: 'Formule Or',
+      commitmentMonths: 12,
+      trialDays: 14,
+      promoPercent: 0,
+      promoPeriods: 1,
+      promoActive: false,
+      features: {
+        booking: true,
+        videos: true,
+        maxMedia: 30,
+        featured: true,
+        stats: true,
+        maxVideos: 3,
+        maxResources: 5,
+        maxAppointmentsPerMonth: 200,
+        maxServices: 25,
+        perks: ['Support VIP WhatsApp', 'Formation équipe'],
+      },
+    });
+    expect(conditions.map((c) => c.label)).toContain("Jusqu'à 25 prestations au catalogue");
+    expect(conditions.map((c) => c.label)).toContain('Support VIP WhatsApp');
+    expect(conditions.map((c) => c.label)).toContain('Formation équipe');
   });
 });

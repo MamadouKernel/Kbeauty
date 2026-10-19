@@ -88,6 +88,7 @@ public sealed class ServiceConfiguration : IEntityTypeConfiguration<Service>
         builder.Property(x => x.Price).HasPrecision(12, 2);
         builder.Property(x => x.PriceType).HasConversion<string>().HasMaxLength(10);
         builder.Property(x => x.CurrencyCode).HasMaxLength(3).IsRequired();
+        builder.Property(x => x.Perks).HasMaxLength(600);
         builder.HasIndex(x => new { x.EstablishmentId, x.SortOrder });
         builder.HasOne<Establishment>().WithMany().HasForeignKey(x => x.EstablishmentId).OnDelete(DeleteBehavior.Cascade);
         builder.HasOne<ServiceGroup>().WithMany().HasForeignKey(x => x.GroupId).OnDelete(DeleteBehavior.SetNull);

@@ -38,7 +38,11 @@ public sealed record PartnerServiceItem(
     string CurrencyCode,
     int DurationMinutes,
     bool IsBookable,
-    bool IsVisible);
+    bool IsVisible,
+    int PromoPercent = 0,
+    DateTimeOffset? PromoEndsAt = null,
+    decimal EffectivePrice = 0,
+    IReadOnlyList<string>? Perks = null);
 
 public sealed record PartnerGroupItem(Guid Id, string Name);
 
@@ -71,7 +75,8 @@ public sealed record PartnerEstablishmentDetail(
     IReadOnlyList<MissingItem> Missing,
     IReadOnlyList<PartnerMediaItem>? Videos = null,
     bool VideosAllowed = false,
-    int MaxVideos = 3);
+    int MaxVideos = 3,
+    int? MaxServices = null);
 
 public sealed record ServiceInput(
     string Name,
@@ -82,7 +87,10 @@ public sealed record ServiceInput(
     Guid CategoryId,
     Guid? GroupId,
     bool IsBookable,
-    bool IsVisible);
+    bool IsVisible,
+    int PromoPercent = 0,
+    DateTimeOffset? PromoEndsAt = null,
+    IReadOnlyList<string>? Perks = null);
 
 public sealed record GroupInput(string Name);
 

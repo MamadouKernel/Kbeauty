@@ -96,7 +96,7 @@ public sealed class BookingService(
                     AppointmentId = appointment.Id,
                     ServiceId = service.Id,
                     NameSnapshot = service.Name,
-                    PriceSnapshot = service.Price,
+                    PriceSnapshot = service.EffectivePrice(now),
                     DurationSnapshot = service.DurationMinutes,
                 });
             }

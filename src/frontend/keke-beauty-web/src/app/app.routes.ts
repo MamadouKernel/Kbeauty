@@ -4,7 +4,7 @@ import { authGuard, guestGuard, roleGuard } from './core/auth/auth.guards';
 export const routes: Routes = [
   {
     path: '',
-    title: 'Keke Beauty — Salons, spa et onglerie près de chez vous',
+    title: 'Keke Beauty — Salons, spas et ongleries près de chez vous',
     loadComponent: () => import('./features/public/home/home').then((m) => m.Home),
   },
   {
@@ -64,6 +64,19 @@ export const routes: Routes = [
     title: 'Mes rendez-vous — Keke Beauty',
     canActivate: [authGuard],
     loadComponent: () => import('./features/account/my-appointments').then((m) => m.MyAppointments),
+  },
+  {
+    path: 'compte/fidelite',
+    title: 'Fidélité et demandes — Keke Beauty',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/account/my-extras').then((m) => m.MyExtras),
+  },
+  {
+    path: 'etablissements/:slug/groupe',
+    title: 'Réservation de groupe — Keke Beauty',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./features/booking/group-booking-page').then((m) => m.GroupBookingPage),
   },
   {
     path: 'compte/favoris',
@@ -151,6 +164,12 @@ export const routes: Routes = [
           import('./features/pro/payments/payments-page').then((m) => m.ProPayments),
       },
       {
+        path: 'etablissements/:id/finances',
+        title: 'Finances et reçus — Keke Beauty',
+        loadComponent: () =>
+          import('./features/pro/finances/finances-page').then((m) => m.ProFinances),
+      },
+      {
         path: 'etablissements/:id/avis',
         title: 'Avis clients — Keke Beauty',
         loadComponent: () => import('./features/pro/reviews/pro-reviews').then((m) => m.ProReviews),
@@ -173,6 +192,17 @@ export const routes: Routes = [
           import('./features/pro/disputes/pro-disputes').then((m) => m.ProDisputes),
       },
       {
+        path: 'etablissements/:id/fidelite',
+        title: 'Fidélité et cartes cadeaux — Keke Beauty',
+        loadComponent: () => import('./features/pro/growth/pro-loyalty').then((m) => m.ProLoyalty),
+      },
+      {
+        path: 'etablissements/:id/demandes',
+        title: 'Groupes et liste d’attente — Keke Beauty',
+        loadComponent: () =>
+          import('./features/pro/growth/pro-requests').then((m) => m.ProRequests),
+      },
+      {
         path: 'etablissements/:id/scanner',
         title: 'Scanner un pass — Keke Beauty',
         loadComponent: () =>
@@ -187,7 +217,10 @@ export const routes: Routes = [
   },
   {
     path: 'admin',
-    canActivate: [authGuard, roleGuard('Admin', 'SuperAdmin')],
+    canActivate: [
+      authGuard,
+      roleGuard('Admin', 'SuperAdmin', 'AdminKyc', 'AdminSupport', 'AdminAccountant'),
+    ],
     loadComponent: () => import('./features/admin/admin-shell').then((m) => m.AdminShell),
     children: [
       {
@@ -198,42 +231,50 @@ export const routes: Routes = [
       {
         path: 'kyc',
         title: 'Dossiers KYC — Keke Beauty',
+        canActivate: [roleGuard('Admin', 'SuperAdmin', 'AdminKyc')],
         loadComponent: () => import('./features/admin/kyc-queue').then((m) => m.KycQueue),
       },
       {
         path: 'kyc/:id',
         title: 'Examen d’un dossier — Keke Beauty',
+        canActivate: [roleGuard('Admin', 'SuperAdmin', 'AdminKyc')],
         loadComponent: () => import('./features/admin/kyc-review').then((m) => m.KycReview),
       },
       {
         path: 'utilisateurs',
         title: 'Utilisateurs — Keke Beauty',
+        canActivate: [roleGuard('Admin', 'SuperAdmin', 'AdminSupport')],
         loadComponent: () => import('./features/admin/users-page').then((m) => m.UsersPage),
       },
       {
         path: 'etablissements',
         title: 'Établissements — Keke Beauty',
+        canActivate: [roleGuard('Admin', 'SuperAdmin', 'AdminKyc', 'AdminSupport')],
         loadComponent: () =>
           import('./features/admin/establishments-page').then((m) => m.EstablishmentsPage),
       },
       {
         path: 'finances',
         title: 'Finances — Keke Beauty',
+        canActivate: [roleGuard('Admin', 'SuperAdmin', 'AdminAccountant')],
         loadComponent: () => import('./features/admin/finance-page').then((m) => m.FinancePage),
       },
       {
         path: 'litiges',
         title: 'Litiges — Keke Beauty',
+        canActivate: [roleGuard('Admin', 'SuperAdmin', 'AdminSupport')],
         loadComponent: () => import('./features/admin/admin-disputes').then((m) => m.AdminDisputes),
       },
       {
         path: 'reversements',
         title: 'Reversements — Keke Beauty',
+        canActivate: [roleGuard('Admin', 'SuperAdmin', 'AdminAccountant')],
         loadComponent: () => import('./features/admin/payouts-page').then((m) => m.PayoutsPage),
       },
       {
         path: 'parametres',
         title: 'Paramètres — Keke Beauty',
+        canActivate: [roleGuard('Admin', 'SuperAdmin')],
         loadComponent: () =>
           import('./features/admin/settings/settings-page').then((m) => m.SettingsPage),
       },

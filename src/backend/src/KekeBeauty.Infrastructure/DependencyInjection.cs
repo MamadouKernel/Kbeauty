@@ -114,6 +114,13 @@ public static class DependencyInjection
         services.AddScoped<ResourceService>();
         services.AddSingleton<AppointmentMaintenance>();
         services.AddHostedService(provider => provider.GetRequiredService<AppointmentMaintenance>());
+        services.AddScoped<KekeBeauty.Infrastructure.Growth.WaitlistService>();
+        services.AddScoped<KekeBeauty.Infrastructure.Growth.LoyaltyService>();
+        services.AddScoped<KekeBeauty.Infrastructure.Growth.GiftCardService>();
+        services.AddScoped<KekeBeauty.Infrastructure.Growth.GroupBookingService>();
+        services.AddScoped<KekeBeauty.Infrastructure.Growth.RecommendationService>();
+        services.AddSingleton<KekeBeauty.Infrastructure.Growth.ReengagementMaintenance>();
+        services.AddHostedService(provider => provider.GetRequiredService<KekeBeauty.Infrastructure.Growth.ReengagementMaintenance>());
 
         services.Configure<PaymentsOptions>(configuration.GetSection(PaymentsOptions.SectionName));
         services.Configure<BillingOptions>(configuration.GetSection(BillingOptions.SectionName));
@@ -163,6 +170,7 @@ public static class DependencyInjection
 
         services.AddScoped<AppointmentPaymentService>();
         services.AddScoped<PayoutService>();
+        services.AddScoped<PartnerFinanceService>();
         services.AddSingleton<PaymentSettlementMaintenance>();
         services.AddHostedService(provider => provider.GetRequiredService<PaymentSettlementMaintenance>());
         services.AddScoped<PromoService>();

@@ -28,6 +28,7 @@
       </nav>
 
       <div class="site-header__actions">
+        <app-theme-toggle class="hide-sm" />
         @if (auth.user()) {
           <app-notification-bell />
         }
@@ -109,6 +110,7 @@
             <button
               type="button"
               class="menu__trigger menu__trigger--guest"
+              aria-label="Rejoindre"
               data-menu-trigger="account"
               aria-haspopup="menu"
               [attr.aria-expanded]="openMenu() === 'account'"
@@ -218,10 +220,25 @@
             Administration
           </a>
         }
+        <div class="sheet__theme">
+          <span>Thème clair / sombre</span>
+          <app-theme-toggle />
+        </div>
       </nav>
     }
   </div>
 </header>
+
+@if (idle.warningSecondsLeft(); as seconds) {
+  <div class="idle-banner" role="alert" aria-live="assertive">
+    <div class="container">
+      <span>Votre session va expirer pour inactivité dans {{ seconds }} s.</span>
+      <button type="button" class="btn btn-primary btn-sm" (click)="idle.staySignedIn()">
+        Rester connecté(e)
+      </button>
+    </div>
+  </div>
+}
 
 <main id="contenu">
   <router-outlet />

@@ -56,7 +56,7 @@ import type { MediaItem } from '../../core/establishments/establishment.service'
       height: 2.75rem;
       border: 0;
       border-radius: 50%;
-      background: rgb(255 255 255 / 92%);
+      background: rgb(var(--kb-paper-rgb) / 92%);
       box-shadow: var(--shadow-soft);
       color: var(--kb-primary-800);
       cursor: pointer;
@@ -64,7 +64,7 @@ import type { MediaItem } from '../../core/establishments/establishment.service'
       transition: background-color 200ms ease;
     }
     .nav:hover {
-      background: #fff;
+      background: var(--kb-card);
     }
     .nav svg {
       width: 1.5rem;

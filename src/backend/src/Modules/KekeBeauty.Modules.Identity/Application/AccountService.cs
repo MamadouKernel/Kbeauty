@@ -63,4 +63,31 @@ public sealed class AccountService(IIdentityDbContext db, TimeProvider time)
         await db.SaveChangesAsync(ct);
         return true;
     }
+
+    public async Task<IReadOnlyList<TrustedDeviceDto>> ListTrustedDevicesAsync(Guid userId, string? currentTrustedDeviceToken, CancellationToken ct)
+    {
+        var now = time.GetUtcNow();
+        var currentHash = string.IsNullOrWhiteSpace(currentTrustedDeviceToken) ? null : TokenService.Hash(currentTrustedDeviceToken);
+        var active = await db.TrustedDevices.AsNoTracking()
+            .Where(d => d.UserId == userId && d.RevokedAt == null && d.ExpiresAt > now)
+            .OrderByDescending(d => d.LastUsedAt)
+            .ToListAsync(ct);
+
+        return active
+            .Select(d => new TrustedDeviceDto(d.Id, d.CreatedAt, d.LastUsedAt, d.ExpiresAt, d.DeviceInfo, d.IpAddress, currentHash is not null && d.TokenHash == currentHash))
+            .ToList();
+    }
+
+    public async Task<bool> RevokeTrustedDeviceAsync(Guid userId, Guid deviceId, CancellationToken ct)
+    {
+        var device = await db.TrustedDevices.FirstOrDefaultAsync(d => d.UserId == userId && d.Id == deviceId && d.RevokedAt == null, ct);
+        if (device is null)
+        {
+            return false;
+        }
+
+        device.Revoke(time.GetUtcNow());
+        await db.SaveChangesAsync(ct);
+        return true;
+    }
 }

@@ -98,7 +98,7 @@ const STATUS_MESSAGES: Readonly<Record<string, string>> = {
       padding: 0.75rem 1rem;
       border: 1px solid var(--kb-border);
       border-radius: var(--radius-md);
-      background: #fff;
+      background: var(--kb-card);
     }
     .doc__state {
       font-size: var(--fs-sm);

@@ -31,7 +31,7 @@ const TABS = [
       padding: 0.5rem 1.125rem;
       border: 1.5px solid var(--kb-border);
       border-radius: var(--radius-pill);
-      background: #fff;
+      background: var(--kb-card);
       font: inherit;
       font-weight: 600;
       cursor: pointer;
@@ -45,7 +45,7 @@ const TABS = [
     table {
       width: 100%;
       border-collapse: collapse;
-      background: #fff;
+      background: var(--kb-card);
       border: 1px solid var(--kb-border);
       border-radius: var(--radius-md);
       overflow: hidden;

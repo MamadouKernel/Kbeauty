@@ -46,13 +46,13 @@ import { HealthService } from '../../core/health/health.service';
     }
     [data-status='online'] {
       color: var(--kb-success);
-      border-color: color-mix(in srgb, var(--kb-success) 30%, white);
-      background: color-mix(in srgb, var(--kb-success) 8%, white);
+      border-color: color-mix(in srgb, var(--kb-success) 30%, var(--kb-card));
+      background: color-mix(in srgb, var(--kb-success) 8%, var(--kb-card));
     }
     [data-status='offline'] {
       color: var(--kb-warning);
-      border-color: color-mix(in srgb, var(--kb-warning) 35%, white);
-      background: color-mix(in srgb, var(--kb-warning) 8%, white);
+      border-color: color-mix(in srgb, var(--kb-warning) 35%, var(--kb-card));
+      background: color-mix(in srgb, var(--kb-warning) 8%, var(--kb-card));
     }
     .spin {
       animation: spin 1s linear infinite;

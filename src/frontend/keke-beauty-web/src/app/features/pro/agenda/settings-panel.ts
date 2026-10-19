@@ -26,7 +26,7 @@ const STEPS = [5, 10, 15, 20, 30, 60];
       padding: 1.25rem;
       border: 1px solid var(--kb-border);
       border-radius: var(--radius-lg);
-      background: #fff;
+      background: var(--kb-card);
     }
     label {
       display: grid;
@@ -69,7 +69,7 @@ const STEPS = [5, 10, 15, 20, 30, 60];
           Confirmer automatiquement les demandes</label
         >
         <label
-          >Pas des créneaux
+          >Intervalle entre deux créneaux
           <select
             name="step"
             [ngModel]="s.slotStepMinutes"

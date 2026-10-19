@@ -1761,6 +1761,11 @@ namespace KekeBeauty.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(150)")
                         .HasColumnName("name");
 
+                    b.Property<string>("Perks")
+                        .HasMaxLength(600)
+                        .HasColumnType("character varying(600)")
+                        .HasColumnName("perks");
+
                     b.Property<decimal>("Price")
                         .HasPrecision(12, 2)
                         .HasColumnType("numeric(12,2)")
@@ -1771,6 +1776,14 @@ namespace KekeBeauty.Infrastructure.Persistence.Migrations
                         .HasMaxLength(10)
                         .HasColumnType("character varying(10)")
                         .HasColumnName("price_type");
+
+                    b.Property<DateTimeOffset?>("PromoEndsAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("promo_ends_at");
+
+                    b.Property<int>("PromoPercent")
+                        .HasColumnType("integer")
+                        .HasColumnName("promo_percent");
 
                     b.Property<int>("SortOrder")
                         .HasColumnType("integer")
@@ -2188,6 +2201,61 @@ namespace KekeBeauty.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("ix_refresh_tokens_user_id_session_id");
 
                     b.ToTable("refresh_tokens", "identity");
+                });
+
+            modelBuilder.Entity("KekeBeauty.Modules.Identity.Domain.TrustedDevice", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("DeviceInfo")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("device_info");
+
+                    b.Property<DateTimeOffset>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("expires_at");
+
+                    b.Property<string>("IpAddress")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("ip_address");
+
+                    b.Property<DateTimeOffset>("LastUsedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_used_at");
+
+                    b.Property<DateTimeOffset?>("RevokedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("revoked_at");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("token_hash");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_trusted_devices");
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique()
+                        .HasDatabaseName("ix_trusted_devices_token_hash");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("ix_trusted_devices_user_id");
+
+                    b.ToTable("trusted_devices", "identity");
                 });
 
             modelBuilder.Entity("KekeBeauty.Modules.Identity.Domain.User", b =>
@@ -2673,6 +2741,10 @@ namespace KekeBeauty.Infrastructure.Persistence.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("proposed_starts_at");
 
+                    b.Property<DateTimeOffset?>("ReengagementSentAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("reengagement_sent_at");
+
                     b.Property<string>("RejectionReason")
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)")
@@ -2962,6 +3034,316 @@ namespace KekeBeauty.Infrastructure.Persistence.Migrations
                     b.ToTable("disputes", "scheduling");
                 });
 
+            modelBuilder.Entity("KekeBeauty.Modules.Scheduling.Domain.GiftCard", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<decimal>("Balance")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)")
+                        .HasColumnName("balance");
+
+                    b.Property<string>("BuyerName")
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)")
+                        .HasColumnName("buyer_name");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("code");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("CreatedByUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by_user_id");
+
+                    b.Property<string>("CurrencyCode")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("character varying(3)")
+                        .HasColumnName("currency_code");
+
+                    b.Property<Guid>("EstablishmentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("establishment_id");
+
+                    b.Property<DateTimeOffset>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("expires_at");
+
+                    b.Property<Guid?>("HolderUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("holder_user_id");
+
+                    b.Property<decimal>("InitialAmount")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)")
+                        .HasColumnName("initial_amount");
+
+                    b.Property<string>("Message")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("message");
+
+                    b.Property<string>("RecipientName")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)")
+                        .HasColumnName("recipient_name");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("status");
+
+                    b.HasKey("Id")
+                        .HasName("pk_gift_cards");
+
+                    b.HasIndex("Code")
+                        .IsUnique()
+                        .HasDatabaseName("ix_gift_cards_code");
+
+                    b.HasIndex("HolderUserId")
+                        .HasDatabaseName("ix_gift_cards_holder_user_id");
+
+                    b.HasIndex("EstablishmentId", "CreatedAt")
+                        .HasDatabaseName("ix_gift_cards_establishment_id_created_at");
+
+                    b.ToTable("gift_cards", "scheduling", t =>
+                        {
+                            t.HasCheckConstraint("ck_gift_cards_balance", "balance >= 0 AND balance <= initial_amount");
+                        });
+                });
+
+            modelBuilder.Entity("KekeBeauty.Modules.Scheduling.Domain.GiftCardRedemption", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)")
+                        .HasColumnName("amount");
+
+                    b.Property<Guid?>("AppointmentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("appointment_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("CreatedByUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by_user_id");
+
+                    b.Property<Guid>("GiftCardId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("gift_card_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_gift_card_redemptions");
+
+                    b.HasIndex("GiftCardId")
+                        .HasDatabaseName("ix_gift_card_redemptions_gift_card_id");
+
+                    b.ToTable("gift_card_redemptions", "scheduling");
+                });
+
+            modelBuilder.Entity("KekeBeauty.Modules.Scheduling.Domain.GroupBookingRequest", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("ClientUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("client_user_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<DateTimeOffset>("DesiredStartsAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("desired_starts_at");
+
+                    b.Property<Guid>("EstablishmentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("establishment_id");
+
+                    b.Property<string>("EventType")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("event_type");
+
+                    b.Property<int>("GroupSize")
+                        .HasColumnType("integer")
+                        .HasColumnName("group_size");
+
+                    b.Property<string>("Message")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("message");
+
+                    b.Property<string>("PartnerMessage")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("partner_message");
+
+                    b.Property<string>("Phone")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("phone");
+
+                    b.Property<decimal?>("QuotedPrice")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)")
+                        .HasColumnName("quoted_price");
+
+                    b.Property<DateTimeOffset?>("RespondedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("responded_at");
+
+                    b.Property<string>("Services")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("services");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("status");
+
+                    b.HasKey("Id")
+                        .HasName("pk_group_booking_requests");
+
+                    b.HasIndex("ClientUserId")
+                        .HasDatabaseName("ix_group_booking_requests_client_user_id");
+
+                    b.HasIndex("EstablishmentId", "Status", "CreatedAt")
+                        .HasDatabaseName("ix_group_booking_requests_establishment_id_status_created_at");
+
+                    b.ToTable("group_booking_requests", "scheduling");
+                });
+
+            modelBuilder.Entity("KekeBeauty.Modules.Scheduling.Domain.LoyaltyProgram", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset?>("ActiveSince")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("active_since");
+
+                    b.Property<Guid>("EstablishmentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("establishment_id");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_active");
+
+                    b.Property<int>("PointsPer1000")
+                        .HasColumnType("integer")
+                        .HasColumnName("points_per1000");
+
+                    b.Property<string>("RewardDescription")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("reward_description");
+
+                    b.Property<int>("RewardThreshold")
+                        .HasColumnType("integer")
+                        .HasColumnName("reward_threshold");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_loyalty_programs");
+
+                    b.HasIndex("EstablishmentId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_loyalty_programs_establishment_id");
+
+                    b.ToTable("loyalty_programs", "scheduling");
+                });
+
+            modelBuilder.Entity("KekeBeauty.Modules.Scheduling.Domain.LoyaltyTransaction", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid?>("AppointmentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("appointment_id");
+
+                    b.Property<Guid>("ClientUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("client_user_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("CreatedByUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by_user_id");
+
+                    b.Property<Guid>("EstablishmentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("establishment_id");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("kind");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("note");
+
+                    b.Property<int>("Points")
+                        .HasColumnType("integer")
+                        .HasColumnName("points");
+
+                    b.HasKey("Id")
+                        .HasName("pk_loyalty_transactions");
+
+                    b.HasIndex("AppointmentId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_loyalty_transactions_appointment_id")
+                        .HasFilter("kind = 'Earn' AND appointment_id IS NOT NULL");
+
+                    b.HasIndex("ClientUserId")
+                        .HasDatabaseName("ix_loyalty_transactions_client_user_id");
+
+                    b.HasIndex("EstablishmentId", "ClientUserId")
+                        .HasDatabaseName("ix_loyalty_transactions_establishment_id_client_user_id");
+
+                    b.ToTable("loyalty_transactions", "scheduling");
+                });
+
             modelBuilder.Entity("KekeBeauty.Modules.Scheduling.Domain.OpeningHour", b =>
                 {
                     b.Property<Guid>("Id")
@@ -3099,6 +3481,59 @@ namespace KekeBeauty.Infrastructure.Persistence.Migrations
                         });
                 });
 
+            modelBuilder.Entity("KekeBeauty.Modules.Scheduling.Domain.WaitlistEntry", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("ClientUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("client_user_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date")
+                        .HasColumnName("date");
+
+                    b.Property<Guid>("EstablishmentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("establishment_id");
+
+                    b.Property<DateTimeOffset?>("NotifiedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("notified_at");
+
+                    b.Property<Guid?>("ServiceId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("service_id");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("status");
+
+                    b.HasKey("Id")
+                        .HasName("pk_waitlist_entries");
+
+                    b.HasIndex("ClientUserId")
+                        .HasDatabaseName("ix_waitlist_entries_client_user_id");
+
+                    b.HasIndex("EstablishmentId", "ClientUserId", "Date")
+                        .IsUnique()
+                        .HasDatabaseName("ix_waitlist_entries_establishment_id_client_user_id_date")
+                        .HasFilter("status = 'Waiting'");
+
+                    b.HasIndex("EstablishmentId", "Date", "Status")
+                        .HasDatabaseName("ix_waitlist_entries_establishment_id_date_status");
+
+                    b.ToTable("waitlist_entries", "scheduling");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.DataProtection.EntityFrameworkCore.DataProtectionKey", b =>
                 {
                     b.Property<int>("Id")
@@ -3157,7 +3592,11 @@ namespace KekeBeauty.Infrastructure.Persistence.Migrations
 
                             b1.Property<int?>("MaxResources");
 
+                            b1.Property<int?>("MaxServices");
+
                             b1.Property<int>("MaxVideos");
+
+                            b1.Property<string>("Perks");
 
                             b1.Property<bool>("Stats");
 
@@ -3405,6 +3844,16 @@ namespace KekeBeauty.Infrastructure.Persistence.Migrations
                         .HasConstraintName("fk_refresh_tokens_users_user_id");
                 });
 
+            modelBuilder.Entity("KekeBeauty.Modules.Identity.Domain.TrustedDevice", b =>
+                {
+                    b.HasOne("KekeBeauty.Modules.Identity.Domain.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_trusted_devices_users_user_id");
+                });
+
             modelBuilder.Entity("KekeBeauty.Modules.Scheduling.Domain.Appointment", b =>
                 {
                     b.HasOne("KekeBeauty.Modules.Scheduling.Domain.Resource", null)
@@ -3433,6 +3882,16 @@ namespace KekeBeauty.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_appointment_status_history_appointments_appointment_id");
+                });
+
+            modelBuilder.Entity("KekeBeauty.Modules.Scheduling.Domain.GiftCardRedemption", b =>
+                {
+                    b.HasOne("KekeBeauty.Modules.Scheduling.Domain.GiftCard", null)
+                        .WithMany()
+                        .HasForeignKey("GiftCardId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_gift_card_redemptions_gift_cards_gift_card_id");
                 });
 
             modelBuilder.Entity("KekeBeauty.Modules.Scheduling.Domain.ResourceServiceLink", b =>

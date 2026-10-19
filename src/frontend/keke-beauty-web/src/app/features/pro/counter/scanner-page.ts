@@ -39,7 +39,7 @@ interface Detector {
       padding: 1.25rem;
       border: 1px solid var(--kb-border);
       border-radius: var(--radius-lg);
-      background: #fff;
+      background: var(--kb-card);
       box-shadow: var(--shadow-soft);
     }
     video {
@@ -58,8 +58,8 @@ interface Detector {
       flex: 1 1 14rem;
     }
     .ok {
-      border-color: color-mix(in srgb, var(--kb-success) 35%, white);
-      background: color-mix(in srgb, var(--kb-success) 6%, white);
+      border-color: color-mix(in srgb, var(--kb-success) 35%, var(--kb-card));
+      background: color-mix(in srgb, var(--kb-success) 6%, var(--kb-card));
     }
     dl {
       display: grid;

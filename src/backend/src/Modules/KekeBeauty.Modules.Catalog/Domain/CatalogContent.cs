@@ -52,7 +52,23 @@ public sealed class Service : Entity
     public bool IsBookable { get; set; } = true;
     public bool IsVisible { get; set; } = true;
     public int SortOrder { get; set; }
+    public int PromoPercent { get; set; }
+    public DateTimeOffset? PromoEndsAt { get; set; }
+    public string? Perks { get; set; }
     public DateTimeOffset? DeletedAt { get; set; }
+
+    public bool HasActivePromo(DateTimeOffset now) =>
+        PromoPercent is > 0 and <= 90 && (PromoEndsAt is null || PromoEndsAt > now);
+
+    public decimal EffectivePrice(DateTimeOffset now) =>
+        HasActivePromo(now)
+            ? decimal.Round(Price * (100 - PromoPercent) / 100m, 0, MidpointRounding.AwayFromZero)
+            : Price;
+
+    public IReadOnlyList<string> PerksList() =>
+        string.IsNullOrWhiteSpace(Perks)
+            ? []
+            : Perks.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 }
 
 /// <summary>Daily counters feeding the partner statistics (PRD AGD-08).</summary>

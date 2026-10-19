@@ -64,12 +64,24 @@ public sealed class PlanFeatures
     /// <summary>Appointments accepted per calendar month; null = unlimited.</summary>
     public int? MaxAppointmentsPerMonth { get; set; }
 
+    /// <summary>Services in the establishment's catalog; null = unlimited.</summary>
+    public int? MaxServices { get; set; }
+
+    /// <summary>Additional commercial perks displayed on the pricing card, separated by newlines.</summary>
+    public string? Perks { get; set; }
+
+    public IReadOnlyList<string> PerksList() =>
+        string.IsNullOrWhiteSpace(Perks)
+            ? []
+            : Perks.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
     public static PlanFeatures FreeDefaults() => new() { Booking = false, Videos = false, MaxMedia = 5, MaxVideos = 0, Featured = false, Stats = false };
 
     public PlanFeatures Copy() => new()
     {
         Booking = Booking, Videos = Videos, MaxMedia = MaxMedia, Featured = Featured, Stats = Stats,
         MaxVideos = MaxVideos, MaxResources = MaxResources, MaxAppointmentsPerMonth = MaxAppointmentsPerMonth,
+        MaxServices = MaxServices, Perks = Perks,
     };
 }
 

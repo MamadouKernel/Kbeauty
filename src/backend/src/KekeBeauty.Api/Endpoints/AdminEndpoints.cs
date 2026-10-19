@@ -16,13 +16,14 @@ public static class AdminEndpoints
     {
         var group = app.MapGroup("/api/v1/admin").WithTags("Admin").RequireAuthorization(AdminReviewEndpoints.AdminPolicy);
 
-        MapUsers(group);
-        MapEstablishments(group);
-        MapFinance(group);
-        MapSettings(group);
-        MapLegal(group);
-        MapChannels(group);
-        MapPayouts(group);
+        MapDashboard(group);
+        MapUsers(app.MapGroup("/api/v1/admin").WithTags("Admin").RequireAuthorization(AdminReviewEndpoints.AdminSupportPolicy));
+        MapEstablishments(app.MapGroup("/api/v1/admin").WithTags("Admin").RequireAuthorization(AdminReviewEndpoints.AdminModerationPolicy));
+        MapFinance(app.MapGroup("/api/v1/admin").WithTags("Admin").RequireAuthorization(AdminReviewEndpoints.AdminFinancePolicy));
+        MapSettings(app.MapGroup("/api/v1/admin").WithTags("Admin").RequireAuthorization(AdminReviewEndpoints.AdminConfigPolicy));
+        MapLegal(app.MapGroup("/api/v1/admin").WithTags("Admin").RequireAuthorization(AdminReviewEndpoints.AdminConfigPolicy));
+        MapChannels(app.MapGroup("/api/v1/admin").WithTags("Admin").RequireAuthorization(AdminReviewEndpoints.AdminConfigPolicy));
+        MapPayouts(app.MapGroup("/api/v1/admin").WithTags("Admin").RequireAuthorization(AdminReviewEndpoints.AdminFinancePolicy));
         MapAudit(group);
         MapAdmins(app.MapGroup("/api/v1/admin/admins").WithTags("Admin").RequireAuthorization("SuperAdmin"));
         MapBackups(app.MapGroup("/api/v1/admin/backups").WithTags("Admin").RequireAuthorization("SuperAdmin"));
@@ -38,6 +39,11 @@ public static class AdminEndpoints
 
     private static IResult Created(Result<Guid> result) =>
         result.IsSuccess ? Results.Created((string?)null, new CreatedId(result.Value)) : ProblemResults.From(result.Error);
+
+    private static void MapDashboard(RouteGroupBuilder group) =>
+        group.MapGet("/dashboard", async (AdminFinanceService service, CancellationToken ct) =>
+                Results.Ok(await service.DashboardAsync(ct)))
+            .Produces<AdminDashboardDto>();
 
     private static void MapUsers(RouteGroupBuilder group)
     {
@@ -256,8 +262,12 @@ public static class AdminEndpoints
             .Produces<IReadOnlyList<AdminUserDto>>();
 
         group.MapPost("/", async (GrantAdminInput input, ClaimsPrincipal user, HttpContext http, AdminUserService service, CancellationToken ct) =>
-                Respond(await service.GrantAdminAsync(Context(user, http), input.Email, ct)))
+                Respond(await service.GrantAdminAsync(Context(user, http), input.Email, input.Role, ct)))
             .Produces<AdminUserDto>().ProducesProblem(StatusCodes.Status400BadRequest).ProducesProblem(StatusCodes.Status404NotFound).ProducesProblem(StatusCodes.Status409Conflict);
+
+        group.MapPut("/{id:guid}", async (Guid id, UpdateAdminRoleInput input, ClaimsPrincipal user, HttpContext http, AdminUserService service, CancellationToken ct) =>
+                Respond(await service.UpdateAdminRoleAsync(Context(user, http), id, input.Role, ct)))
+            .Produces<AdminUserDto>().ProducesProblem(StatusCodes.Status400BadRequest).ProducesProblem(StatusCodes.Status403Forbidden).ProducesProblem(StatusCodes.Status404NotFound).ProducesProblem(StatusCodes.Status409Conflict);
 
         group.MapDelete("/{id:guid}", async (Guid id, ClaimsPrincipal user, HttpContext http, AdminUserService service, CancellationToken ct) =>
                 NoContent(await service.RevokeAdminAsync(Context(user, http), id, ct)))

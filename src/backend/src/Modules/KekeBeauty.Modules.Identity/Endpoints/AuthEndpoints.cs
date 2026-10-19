@@ -23,8 +23,8 @@ public static class AuthEndpoints
         group.MapPost("/whatsapp/request", async (WhatsAppRequest request, AuthService auth, CancellationToken ct) =>
             Respond(await auth.RequestWhatsAppLoginAsync(request.Phone, ct), () => Results.Accepted()));
 
-        group.MapPost("/whatsapp/verify", async (WhatsAppVerifyRequest request, AuthService auth, CancellationToken ct) =>
-            Respond(await auth.VerifyWhatsAppLoginAsync(request, ct)));
+        group.MapPost("/whatsapp/verify", async (WhatsAppVerifyRequest request, HttpContext http, AuthService auth, CancellationToken ct) =>
+            Respond(await auth.VerifyWhatsAppLoginAsync(request, ct, http.Request.Cookies[AuthOptions.TrustedDeviceCookieName])));
 
         group.MapPost("/register", async (RegisterRequest request, AuthService auth, CancellationToken ct) =>
             Respond(await auth.RegisterAsync(request, ct), () => Results.Accepted()));
@@ -38,11 +38,11 @@ public static class AuthEndpoints
         group.MapPost("/reset-password", async (ResetPasswordRequest request, AuthService auth, CancellationToken ct) =>
             Respond(await auth.ResetPasswordAsync(request, ct), Results.NoContent));
 
-        group.MapPost("/login", async (LoginRequest request, AuthService auth, CancellationToken ct) =>
-            Respond(await auth.LoginAsync(request, ct)));
+        group.MapPost("/login", async (LoginRequest request, HttpContext http, AuthService auth, CancellationToken ct) =>
+            Respond(await auth.LoginAsync(request, ct, http.Request.Cookies[AuthOptions.TrustedDeviceCookieName])));
 
-        group.MapPost("/google", async (GoogleLoginRequest request, AuthService auth, CancellationToken ct) =>
-            Respond(await auth.LoginWithGoogleAsync(request.IdToken, ct)));
+        group.MapPost("/google", async (GoogleLoginRequest request, HttpContext http, AuthService auth, CancellationToken ct) =>
+            Respond(await auth.LoginWithGoogleAsync(request.IdToken, ct, http.Request.Cookies[AuthOptions.TrustedDeviceCookieName])));
 
         group.MapPost("/2fa/setup", async (ChallengeRequest request, AuthService auth, CancellationToken ct) =>
             Respond(await auth.BeginTwoFactorSetupAsync(request.ChallengeToken, ct)));
@@ -52,6 +52,9 @@ public static class AuthEndpoints
 
         group.MapPost("/2fa/verify", async (ChallengeCodeRequest request, HttpContext http, AuthService auth, CancellationToken ct) =>
             RespondWithSession(http, await auth.VerifyTwoFactorAsync(request, ContextOf(http), ct)));
+
+        group.MapPost("/2fa/trusted", async (ChallengeRequest request, HttpContext http, AuthService auth, CancellationToken ct) =>
+            RespondWithSession(http, await auth.CompleteTrustedDeviceAsync(request.ChallengeToken, http.Request.Cookies[AuthOptions.TrustedDeviceCookieName], ContextOf(http), ct)));
 
         group.MapPost("/refresh", async (HttpContext http, AuthService auth, CancellationToken ct) =>
         {
@@ -100,6 +103,18 @@ public static class AuthEndpoints
             Path = CookiePath,
             Expires = session.RefreshExpiresAt,
         });
+        if (!string.IsNullOrEmpty(session.TrustedDeviceToken) && session.TrustedDeviceExpiresAt is { } tdExpires)
+        {
+            http.Response.Cookies.Append(AuthOptions.TrustedDeviceCookieName, session.TrustedDeviceToken, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = http.Request.IsHttps,
+                SameSite = SameSiteMode.Strict,
+                Path = "/api/v1",
+                Expires = tdExpires,
+            });
+        }
+
         return Results.Ok(session.Response);
     }
 

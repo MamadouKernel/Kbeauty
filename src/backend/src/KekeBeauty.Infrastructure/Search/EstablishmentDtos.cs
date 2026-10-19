@@ -28,7 +28,18 @@ public sealed record EstablishmentPage(IReadOnlyList<EstablishmentSummary> Items
 
 public sealed record MediaItem(string Kind, string Url, string? PosterUrl, string? Alt, int? DurationSeconds);
 
-public sealed record ServiceItem(Guid Id, string Name, string? Description, decimal Price, string PriceType, string CurrencyCode, int DurationMinutes);
+public sealed record ServiceItem(
+    Guid Id,
+    string Name,
+    string? Description,
+    decimal Price,
+    string PriceType,
+    string CurrencyCode,
+    int DurationMinutes,
+    int PromoPercent = 0,
+    DateTimeOffset? PromoEndsAt = null,
+    decimal EffectivePrice = 0,
+    IReadOnlyList<string>? Perks = null);
 
 /// <summary>Services under a heading; <see cref="Name"/> is null for services without a group.</summary>
 public sealed record ServiceGroupItem(string? Name, IReadOnlyList<ServiceItem> Services);

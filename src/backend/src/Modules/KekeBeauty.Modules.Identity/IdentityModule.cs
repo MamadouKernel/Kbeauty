@@ -82,7 +82,12 @@ public static class IdentityModule
         services.AddAuthorizationBuilder()
             .AddPolicy("Partner", policy => policy.RequireRole(AppRoles.PartnerOwner))
             .AddPolicy("Staff", policy => policy.RequireRole(AppRoles.PartnerStaff))
-            .AddPolicy("Admin", policy => policy.RequireRole(AppRoles.Admin, AppRoles.SuperAdmin))
+            .AddPolicy("Admin", policy => policy.RequireRole([.. AppRoles.AllAdminRoles]))
+            .AddPolicy("AdminKyc", policy => policy.RequireRole(AppRoles.SuperAdmin, AppRoles.Admin, AppRoles.AdminKyc))
+            .AddPolicy("AdminSupport", policy => policy.RequireRole(AppRoles.SuperAdmin, AppRoles.Admin, AppRoles.AdminSupport))
+            .AddPolicy("AdminModeration", policy => policy.RequireRole(AppRoles.SuperAdmin, AppRoles.Admin, AppRoles.AdminKyc, AppRoles.AdminSupport))
+            .AddPolicy("AdminFinance", policy => policy.RequireRole(AppRoles.SuperAdmin, AppRoles.Admin, AppRoles.AdminAccountant))
+            .AddPolicy("AdminConfig", policy => policy.RequireRole(AppRoles.SuperAdmin, AppRoles.Admin))
             .AddPolicy("SuperAdmin", policy => policy.RequireRole(AppRoles.SuperAdmin));
 
         services.AddRateLimiter(limiter =>

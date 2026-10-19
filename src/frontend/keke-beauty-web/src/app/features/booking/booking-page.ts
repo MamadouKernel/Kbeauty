@@ -23,6 +23,7 @@ import {
   isoDay,
 } from '../../core/booking/booking.service';
 import { formatDuration, formatMoney } from '../../core/format/format';
+import { GrowthService } from '../../core/growth/growth.service';
 import { RealtimeConnection, RealtimeService } from '../../core/realtime/realtime.service';
 import { AvailabilityCalendar } from './availability-calendar';
 
@@ -66,7 +67,7 @@ function gridStart(month: Date): Date {
       padding: clamp(1rem, 3vw, 1.75rem);
       border: 1px solid var(--kb-border);
       border-radius: var(--radius-lg);
-      background: #fff;
+      background: var(--kb-card);
       box-shadow: var(--shadow-soft);
     }
     .card h2 {
@@ -157,6 +158,15 @@ function gridStart(month: Date): Date {
         align-items: start;
       }
     }
+    .waitlist {
+      display: grid;
+      gap: 0.5rem;
+      margin-top: 0.75rem;
+      padding: 0.9rem 1rem;
+      border: 1px dashed var(--kb-primary-300);
+      border-radius: var(--radius-md);
+      background: var(--kb-primary-50);
+    }
     .slots {
       display: grid;
       gap: 0.5rem;
@@ -166,7 +176,7 @@ function gridStart(month: Date): Date {
       min-height: 2.75rem;
       border: 1.5px solid var(--kb-primary-200);
       border-radius: var(--radius-sm);
-      background: #fff;
+      background: var(--kb-card);
       font: inherit;
       font-weight: 700;
       color: var(--kb-primary-800);
@@ -185,14 +195,14 @@ function gridStart(month: Date): Date {
         background: linear-gradient(135deg, var(--kb-primary-500), var(--kb-primary-700));
       }
       &:disabled {
-        border-color: color-mix(in srgb, var(--kb-danger) 30%, white);
+        border-color: color-mix(in srgb, var(--kb-danger) 30%, var(--kb-card));
         color: var(--kb-danger);
         background: repeating-linear-gradient(
           135deg,
-          color-mix(in srgb, var(--kb-danger) 7%, white),
-          color-mix(in srgb, var(--kb-danger) 7%, white) 4px,
-          color-mix(in srgb, var(--kb-danger) 13%, white) 4px,
-          color-mix(in srgb, var(--kb-danger) 13%, white) 8px
+          color-mix(in srgb, var(--kb-danger) 7%, var(--kb-card)),
+          color-mix(in srgb, var(--kb-danger) 7%, var(--kb-card)) 4px,
+          color-mix(in srgb, var(--kb-danger) 13%, var(--kb-card)) 4px,
+          color-mix(in srgb, var(--kb-danger) 13%, var(--kb-card)) 8px
         );
         text-decoration: line-through;
         cursor: not-allowed;
@@ -305,8 +315,8 @@ function gridStart(month: Date): Date {
               } @else if (done.status === 'Confirmed') {
                 Votre rendez-vous est confirmé. Un SMS de confirmation vous est envoyé.
               } @else {
-                {{ i.name }} doit valider votre demande (réponse sous 24 h). Vous serez prévenu par
-                SMS et dans vos notifications.
+                {{ i.name }} doit valider votre demande (réponse sous 24 h). Vous serez prévenu(e)
+                par SMS et dans vos notifications.
               }
             </p>
             <div class="actions">
@@ -331,8 +341,16 @@ function gridStart(month: Date): Date {
                     (change)="toggleService(service.id)"
                   />
                   <span>
-                    <strong>{{ service.name }}</strong>
+                    <strong
+                      >{{ service.name }}
+                      @if (service.promoPercent && service.promoPercent > 0) {
+                        (−{{ service.promoPercent }} %)
+                      }
+                    </strong>
                     <small>{{ duration(service.durationMinutes) }}</small>
+                    @if (service.perks && service.perks.length > 0) {
+                      <small>Inclus : {{ service.perks.join(' · ') }}</small>
+                    }
                   </span>
                   <span class="price">{{
                     servicePrice(service.price, service.priceType, service.currencyCode)
@@ -407,6 +425,34 @@ function gridStart(month: Date): Date {
                     @if (daySlots().length === 0) {
                       <p class="hint">Aucun horaire ce jour-là.</p>
                     } @else {
+                      @if (dayFull()) {
+                        <div class="waitlist">
+                          <p><strong>Cette journée est complète.</strong></p>
+                          @if (waitlisted() === selectedDay()) {
+                            <p role="status">
+                              C’est noté : vous serez prévenu(e) dès qu’un créneau se libère ce
+                              jour-là. Retrouvez vos attentes dans
+                              <a class="link" routerLink="/compte/fidelite">Fidélité et demandes</a
+                              >.
+                            </p>
+                          } @else {
+                            <p class="hint">
+                              Si un rendez-vous de ce jour est annulé, nous vous prévenons tout de
+                              suite : le premier qui réserve obtient le créneau.
+                            </p>
+                            <div>
+                              <button
+                                type="button"
+                                class="btn btn-ghost btn-sm"
+                                [disabled]="busy()"
+                                (click)="joinWaitlist()"
+                              >
+                                Me prévenir si un créneau se libère
+                              </button>
+                            </div>
+                          }
+                        </div>
+                      }
                       <div class="slots" role="group" aria-label="Horaires du jour">
                         @for (slot of daySlots(); track slot.startsAt) {
                           <button
@@ -529,6 +575,9 @@ export class BookingPage {
   protected readonly monthStart = signal(startOfMonth(new Date()));
   protected readonly selectedDay = signal<string | null>(null);
   protected readonly selectedStart = signal<string | null>(null);
+  /** The day the client asked to be told about, to confirm it in place. */
+  protected readonly waitlisted = signal<string | null>(null);
+  private readonly growth = inject(GrowthService);
   protected readonly confirmation = signal<Appointment | null>(null);
   protected readonly busy = signal(false);
   protected readonly error = signal('');
@@ -604,6 +653,10 @@ export class BookingPage {
   );
   protected readonly daySlots = computed(
     () => this.calendarDays().find((d) => d.date === this.selectedDay())?.slots ?? [],
+  );
+  /** Open that day, but every slot is taken. */
+  protected readonly dayFull = computed(
+    () => this.daySlots().length > 0 && !this.daySlots().some((s) => s.available),
   );
   protected readonly dayTitle = computed(() => {
     const day = this.selectedDay();
@@ -682,6 +735,28 @@ export class BookingPage {
     this.selectedDay.set(iso);
     this.selectedStart.set(null);
     this.notice.set('');
+  }
+
+  protected async joinWaitlist(): Promise<void> {
+    const day = this.selectedDay();
+    if (!day || !this.info.hasValue()) {
+      return;
+    }
+
+    this.busy.set(true);
+    this.notice.set('');
+    try {
+      await this.growth.joinWaitlist(
+        this.info.value().establishmentId,
+        day,
+        this.selectedServiceIds()[0] ?? null,
+      );
+      this.waitlisted.set(day);
+    } catch (error) {
+      this.notice.set(problemMessage(error));
+    } finally {
+      this.busy.set(false);
+    }
   }
 
   protected changeMonth(delta: -1 | 1): void {

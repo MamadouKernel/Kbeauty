@@ -55,7 +55,7 @@ const PRICE_TYPES = [
       padding: clamp(1rem, 3vw, 1.75rem);
       border: 1px solid var(--kb-border);
       border-radius: var(--radius-lg);
-      background: #fff;
+      background: var(--kb-card);
       box-shadow: var(--shadow-soft);
     }
     .inline {
@@ -248,7 +248,10 @@ const PRICE_TYPES = [
         </section>
 
         <section aria-labelledby="services-title">
-          <h2 id="services-title">Prestations ({{ e.services.length }})</h2>
+          <h2 id="services-title">
+            Prestations ({{ e.services.length
+            }}{{ e.maxServices != null ? ' / ' + e.maxServices : '' }})
+          </h2>
           @if (e.services.length === 0) {
             <p class="hint">Aucune prestation. Ajoutez vos soins avec leur prix et leur durée.</p>
           } @else {
@@ -263,7 +266,13 @@ const PRICE_TYPES = [
                         · {{ group }}
                       }
                     </span>
+                    @if (service.perks && service.perks.length > 0) {
+                      <span class="row__meta">Inclus : {{ service.perks.join(' · ') }}</span>
+                    }
                   </span>
+                  @if (service.promoPercent && service.promoPercent > 0) {
+                    <span class="tag">Promo −{{ service.promoPercent }} %</span>
+                  }
                   @if (!service.isVisible) {
                     <span class="tag">Masquée</span>
                   }
@@ -398,6 +407,22 @@ const PRICE_TYPES = [
                     [fluid]="true"
                   />
                 </div>
+                <div class="field">
+                  <label for="svc-promo">Promotion (%)</label>
+                  <input
+                    pInputText
+                    id="svc-promo"
+                    type="number"
+                    min="0"
+                    max="90"
+                    formControlName="promoPercent"
+                    inputmode="numeric"
+                  />
+                </div>
+                <div class="field">
+                  <label for="svc-promo-end">Promotion jusqu'au (facultatif)</label>
+                  <input pInputText id="svc-promo-end" type="date" formControlName="promoEndsAt" />
+                </div>
               </div>
               <div class="field">
                 <label for="svc-description">Description (facultatif)</label>
@@ -405,6 +430,17 @@ const PRICE_TYPES = [
                   id="svc-description"
                   formControlName="description"
                   maxlength="1000"
+                ></textarea>
+              </div>
+              <div class="field">
+                <label for="svc-perks"
+                  >Éléments inclus / avantages de la formule (un par ligne, facultatif)</label
+                >
+                <textarea
+                  id="svc-perks"
+                  formControlName="perksText"
+                  placeholder="Ex. : Shampoing kératine&#10;Massage crânien 10 min&#10;Brushing"
+                  maxlength="600"
                 ></textarea>
               </div>
               <div class="checks">
@@ -469,6 +505,9 @@ export class CatalogPage {
     groupId: [null as string | null],
     isBookable: [true],
     isVisible: [true],
+    promoPercent: [0, [Validators.min(0), Validators.max(90)]],
+    promoEndsAt: [''],
+    perksText: [''],
   });
 
   private readonly categoryNames = computed(() =>
@@ -492,8 +531,12 @@ export class CatalogPage {
   }
 
   protected priceLabel(service: PartnerServiceItem): string {
-    const price = formatMoney(service.price, service.currencyCode);
-    return service.priceType === 'From' ? `À partir de ${price}` : price;
+    const base = formatMoney(service.price, service.currencyCode);
+    const effective =
+      service.effectivePrice != null && service.effectivePrice < service.price
+        ? `${formatMoney(service.effectivePrice, service.currencyCode)} (au lieu de ${base})`
+        : base;
+    return service.priceType === 'From' ? `À partir de ${effective}` : effective;
   }
 
   protected groupLabel(detail: PartnerEstablishmentDetail, groupId: string | null): string | null {
@@ -525,6 +568,9 @@ export class CatalogPage {
       groupId: service.groupId,
       isBookable: service.isBookable,
       isVisible: service.isVisible,
+      promoPercent: service.promoPercent ?? 0,
+      promoEndsAt: service.promoEndsAt ? service.promoEndsAt.slice(0, 10) : '',
+      perksText: (service.perks ?? []).join('\n'),
     });
   }
 
@@ -540,6 +586,10 @@ export class CatalogPage {
     }
 
     const value = this.form.getRawValue();
+    const perks = value.perksText
+      .split(/\r?\n/)
+      .map((s) => s.trim())
+      .filter((s) => s.length > 0);
     const input: ServiceInput = {
       name: value.name.trim(),
       description: value.description.trim() || null,
@@ -550,6 +600,9 @@ export class CatalogPage {
       groupId: value.groupId,
       isBookable: value.isBookable,
       isVisible: value.isVisible,
+      promoPercent: Number(value.promoPercent || 0),
+      promoEndsAt: value.promoEndsAt ? `${value.promoEndsAt}T23:59:59Z` : null,
+      perks,
     };
     const editing = this.editingId();
     await this.run(async () => {
@@ -629,6 +682,9 @@ export class CatalogPage {
       groupId: null,
       isBookable: true,
       isVisible: true,
+      promoPercent: 0,
+      promoEndsAt: '',
+      perksText: '',
     });
   }
 

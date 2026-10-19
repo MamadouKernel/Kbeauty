@@ -58,7 +58,7 @@ const ACTIVE = new Set(['Pending', 'Confirmed', 'RescheduleProposed']);
       padding: 1rem 1.25rem;
       border: 1px solid var(--kb-border);
       border-radius: var(--radius-lg);
-      background: #fff;
+      background: var(--kb-card);
       box-shadow: var(--shadow-soft);
     }
     .top {
@@ -81,15 +81,15 @@ const ACTIVE = new Set(['Pending', 'Confirmed', 'RescheduleProposed']);
       color: var(--kb-primary-700);
     }
     .status[data-tone='ok'] {
-      background: color-mix(in srgb, var(--kb-success) 12%, white);
+      background: color-mix(in srgb, var(--kb-success) 12%, var(--kb-card));
       color: var(--kb-success);
     }
     .status[data-tone='bad'] {
-      background: color-mix(in srgb, var(--kb-danger) 10%, white);
+      background: color-mix(in srgb, var(--kb-danger) 10%, var(--kb-card));
       color: var(--kb-danger);
     }
     .status[data-tone='wait'] {
-      background: color-mix(in srgb, var(--kb-warning) 14%, white);
+      background: color-mix(in srgb, var(--kb-warning) 14%, var(--kb-card));
       color: var(--kb-warning);
     }
     .meta {
@@ -117,8 +117,8 @@ const ACTIVE = new Set(['Pending', 'Confirmed', 'RescheduleProposed']);
 
       @if (returnedFromTip) {
         <p class="badge" data-tone="ok" role="status">
-          Merci pour votre pourboire ! Il est en cours de vérification et sera ajouté dès que le
-          paiement est reçu.
+          Merci pour votre pourboire ! Il est en cours de vérification et sera ajouté dès réception
+          du paiement.
         </p>
       }
       @if (returnedFromPayment) {
@@ -489,7 +489,7 @@ export class MyAppointments {
         window.location.assign(url);
         return;
       }
-      this.error.set('Le lien de paiement est indisponible, réessayez dans un instant.');
+      this.error.set('Le lien de paiement est indisponible : réessayez dans un instant.');
     } catch (error) {
       this.error.set(problemMessage(error));
     }

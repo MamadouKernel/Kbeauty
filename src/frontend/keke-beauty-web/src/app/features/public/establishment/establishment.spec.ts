@@ -55,6 +55,8 @@ const DETAILS: EstablishmentDetails = {
           priceType: 'From',
           currencyCode: 'XOF',
           durationMinutes: 240,
+          promoPercent: 0,
+          effectivePrice: 25000,
         },
         {
           id: 's2',
@@ -64,6 +66,8 @@ const DETAILS: EstablishmentDetails = {
           priceType: 'Fixed',
           currencyCode: 'XOF',
           durationMinutes: 90,
+          promoPercent: 0,
+          effectivePrice: 12000,
         },
       ],
     },

@@ -124,3 +124,57 @@ test.describe('Keke Protect (lot 4)', () => {
     await expect(visitor.getByText(/Litige : .*Litige rejeté/)).toBeVisible();
   });
 });
+
+test.describe('Finances & formulas (lot 5)', () => {
+  test('a salon publishes a promoted formula with perks, exports its accounting CSV and the admin views the analytical dashboard', async ({
+    page,
+    browser,
+    baseURL,
+  }) => {
+    test.setTimeout(180_000);
+
+    // 1. Partner adds a promoted formula with included perks.
+    await signIn(page, salon.owner);
+    await page.goto(`/pro/etablissements/${salon.id}/prestations`);
+    await page.getByLabel('Nom', { exact: true }).fill('Forfait Mariée Royale');
+    await page.getByLabel('Prix (FCFA)').fill('25000');
+    await page.getByLabel('Durée (minutes)').fill('90');
+    await page.getByLabel('Promotion (%)').fill('20');
+    await page
+      .getByLabel(/Éléments inclus \/ avantages de la formule/)
+      .fill('Coiffure complète\nMaquillage soirée');
+    await page.getByRole('button', { name: 'Ajouter la prestation' }).click();
+    await expect(page.getByText('Forfait Mariée Royale')).toBeVisible();
+    await expect(page.getByText('Promo −20 %')).toBeVisible();
+    await expect(page.getByText('Inclus : Coiffure complète · Maquillage soirée')).toBeVisible();
+
+    // 2. Public establishment page shows the promo and formula perks.
+    const pub = await (await browser.newContext({ baseURL })).newPage();
+    await pub.goto(`/etablissements/${salon.slug}`);
+    // The name shows on the line and again, for screen readers, in its "Réserver" button.
+    await expect(pub.getByText('Forfait Mariée Royale').first()).toBeVisible();
+    await expect(pub.getByText('Promo −20 %')).toBeVisible();
+    await expect(pub.getByText('Inclus : Coiffure complète · Maquillage soirée')).toBeVisible();
+    await pub.close();
+
+    // 3. Partner checks detailed finances and downloads the accounting CSV.
+    await page.goto(`/pro/etablissements/${salon.id}/finances`);
+    await expect(page.getByRole('heading', { name: /Finances et reçus/ })).toBeVisible();
+    await expect(page.getByText("Chiffre d'affaires brut")).toBeVisible();
+    const csvDownload = page.waitForEvent('download');
+    await page.getByRole('button', { name: 'Exporter en CSV' }).click();
+    const downloaded = await csvDownload;
+    expect(downloaded.suggestedFilename()).toMatch(/^comptabilite-.*\.csv$/);
+
+    // 4. Administrator views the analytical dashboard on /admin.
+    const adminPage = await (await browser.newContext({ baseURL })).newPage();
+    await signIn(adminPage, admin);
+    await adminPage.goto('/admin');
+    await expect(adminPage.getByRole('heading', { name: /Tableau de bord analytique/ })).toBeVisible();
+    await expect(adminPage.getByRole('heading', { name: 'Établissements & KYC' })).toBeVisible();
+    await expect(adminPage.getByRole('heading', { name: 'Rendez-vous et activité' })).toBeVisible();
+    await expect(adminPage.getByRole('heading', { name: 'Abonnements & Finances' })).toBeVisible();
+    await expect(adminPage.getByRole('heading', { name: 'Communauté et qualité' })).toBeVisible();
+    await adminPage.close();
+  });
+});

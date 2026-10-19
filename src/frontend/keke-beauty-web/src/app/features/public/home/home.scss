@@ -11,7 +11,7 @@
   padding-block: clamp(2rem, 6vw, 4.5rem) clamp(2.5rem, 6vw, 5rem);
   border: 1px solid var(--kb-border);
   border-radius: var(--radius-xl);
-  background: linear-gradient(160deg, #fff, var(--kb-primary-50));
+  background: linear-gradient(160deg, var(--kb-card), var(--kb-primary-50));
   box-shadow: var(--shadow-luxe);
 }
 
@@ -22,7 +22,7 @@
   height: 120%;
   background:
     radial-gradient(60% 50% at 12% 8%, var(--kb-primary-100), transparent 70%),
-    radial-gradient(45% 45% at 92% 28%, #f3d9f1, transparent 70%),
+    radial-gradient(45% 45% at 92% 28%, var(--kb-blush), transparent 70%),
     radial-gradient(40% 40% at 60% 100%, var(--kb-primary-50), transparent 70%);
 }
 
@@ -53,7 +53,7 @@ h1 {
   gap: 0.75rem;
   margin-top: 1.75rem;
   padding: 0.75rem;
-  background: #fff;
+  background: var(--kb-card);
   border: 1px solid var(--kb-border);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-luxe);
@@ -159,7 +159,7 @@ h1 {
   border: 1px solid rgb(255 255 255 / 35%);
   border-radius: 50%;
   background: rgb(255 255 255 / 14%);
-  color: var(--kb-gold-soft);
+  color: #f4ead9; /* on the plum arch in both themes */
 
   svg {
     width: 2.25rem;
@@ -178,7 +178,7 @@ h1 {
   font-size: var(--fs-sm);
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--kb-gold-soft);
+  color: #f4ead9; /* on the plum arch in both themes */
 }
 
 .float-chip {
@@ -187,9 +187,9 @@ h1 {
   align-items: center;
   gap: 0.5rem;
   padding: 0.6rem 1rem;
-  border: 1px solid #fff;
+  border: 1px solid var(--kb-card);
   border-radius: var(--radius-pill);
-  background: rgb(255 255 255 / 92%);
+  background: rgb(var(--kb-paper-rgb) / 92%);
   box-shadow: var(--shadow-lift);
   font-size: var(--fs-sm);
   font-weight: 600;
@@ -305,8 +305,8 @@ h1 {
 .featured-skeleton {
   aspect-ratio: 4 / 5;
   border-radius: var(--radius-lg);
-  background: linear-gradient(90deg, var(--kb-primary-50), #fff, var(--kb-primary-50)) 0 0 / 200%
-    100%;
+  background: linear-gradient(90deg, var(--kb-primary-50), var(--kb-card), var(--kb-primary-50)) 0
+    0 / 200% 100%;
   animation: shimmer 1.4s linear infinite;
 }
 
@@ -337,7 +337,7 @@ h1 {
   padding: 0.875rem 1rem;
   border: 1.5px solid var(--kb-border);
   border-radius: var(--radius-pill);
-  background: #fff;
+  background: var(--kb-card);
   box-shadow: var(--shadow-soft);
   font: inherit;
   font-weight: 600;
@@ -364,8 +364,8 @@ h1 {
 
   &--skeleton {
     cursor: default;
-    background: linear-gradient(90deg, var(--kb-primary-50), #fff, var(--kb-primary-50)) 0 0 / 200%
-      100%;
+    background: linear-gradient(90deg, var(--kb-primary-50), var(--kb-card), var(--kb-primary-50)) 0
+      0 / 200% 100%;
     animation: shimmer 1.4s linear infinite;
 
     &:hover {
@@ -406,7 +406,7 @@ h1 {
   padding: 1.25rem 1.5rem;
   border: 1px dashed var(--kb-primary-300);
   border-radius: var(--radius-md);
-  background: #fff;
+  background: var(--kb-card);
   color: var(--kb-ink-muted);
 }
 
@@ -427,7 +427,7 @@ h1 {
   padding: 1.75rem;
   border: 1px solid var(--kb-border);
   border-radius: var(--radius-lg);
-  background: #fff;
+  background: var(--kb-card);
   box-shadow: var(--shadow-soft);
 
   h3 {
@@ -481,8 +481,8 @@ h1 {
   border-radius: 2rem;
   color: #fff;
   background:
-    radial-gradient(60% 80% at 100% 0%, var(--kb-primary-400), transparent 60%),
-    linear-gradient(135deg, var(--kb-primary-800), var(--kb-primary-600));
+    radial-gradient(60% 80% at 100% 0%, var(--kb-plum-400), transparent 60%),
+    linear-gradient(135deg, var(--kb-plum-800), var(--kb-plum-600));
   box-shadow: var(--shadow-lift);
 
   &::after {
@@ -497,7 +497,7 @@ h1 {
   }
 
   .eyebrow {
-    color: var(--kb-primary-200);
+    color: #dcc3e7;
   }
 
   h2 {
@@ -515,7 +515,7 @@ h1 {
 
   > p:not(.eyebrow) {
     font-size: 1.0625rem;
-    color: var(--kb-primary-100);
+    color: #efe3f4;
   }
 }
 
@@ -535,7 +535,7 @@ h1 {
     width: 1.25rem;
     height: 1.25rem;
     margin-top: 0.2rem;
-    color: var(--kb-primary-200);
+    color: #dcc3e7;
   }
 }
 
@@ -549,5 +549,21 @@ h1 {
 
 .pro__note {
   font-weight: 500;
-  color: var(--kb-primary-100);
+  color: #efe3f4;
+}
+
+.recommended {
+  display: grid;
+  gap: 0.4rem;
+  align-content: start;
+}
+
+.reason {
+  justify-self: start;
+  padding: 0.2rem 0.65rem;
+  border-radius: var(--radius-pill);
+  background: #f4ead9;
+  color: var(--kb-ink);
+  font-size: var(--fs-xs);
+  font-weight: 600;
 }

@@ -28,6 +28,8 @@ const NEW_PLAN: Omit<Draft, 'id' | 'code'> = {
     maxVideos: 0,
     maxResources: null,
     maxAppointmentsPerMonth: null,
+    maxServices: null,
+    perks: [],
   },
   isActive: true,
   sortOrder: 0,
@@ -276,6 +278,18 @@ function limit(value: unknown): number | null {
                 [(ngModel)]="p.features.maxAppointmentsPerMonth"
               />
             </label>
+            <label>
+              Prestations max
+              <input
+                class="admin-input"
+                type="number"
+                min="1"
+                max="500"
+                placeholder="illimité"
+                [name]="'ms' + i"
+                [(ngModel)]="p.features.maxServices"
+              />
+            </label>
           </fieldset>
 
           <fieldset>
@@ -301,6 +315,17 @@ function limit(value: unknown): number | null {
               vente</label
             >
           </fieldset>
+          <label>
+            Avantages personnalisés (un par ligne)
+            <textarea
+              class="admin-input"
+              rows="2"
+              placeholder="Ex. Support prioritaire WhatsApp"
+              [name]="'perks' + i"
+              [ngModel]="perksText(p)"
+              (ngModelChange)="setPerksText(p, $event)"
+            ></textarea>
+          </label>
           <label>
             Ordre d'affichage
             <input
@@ -337,6 +362,16 @@ function limit(value: unknown): number | null {
             >
               Dupliquer
             </button>
+            @if (p.id && p.code !== 'free') {
+              <button
+                type="button"
+                class="btn btn-ghost btn-sm"
+                [disabled]="busy()"
+                (click)="remove(p)"
+              >
+                Supprimer
+              </button>
+            }
             @if (!p.id) {
               <button type="button" class="btn btn-ghost btn-sm" (click)="discard(i)">
                 Abandonner
@@ -372,6 +407,17 @@ export class PlansTab {
     return value ? `${value}T23:59:59Z` : null;
   }
 
+  protected perksText(plan: Draft): string {
+    return (plan.features.perks ?? []).join('\n');
+  }
+
+  protected setPerksText(plan: Draft, text: string): void {
+    plan.features.perks = text
+      .split(/\r?\n/)
+      .map((s) => s.trim())
+      .filter((s) => s.length > 0);
+  }
+
   protected addNew(): void {
     const next = Math.max(0, ...this.drafts().map((p) => p.sortOrder)) + 1;
     this.drafts.update((list) => [
@@ -397,6 +443,24 @@ export class PlansTab {
     this.drafts.update((list) => list.filter((_, i) => i !== index));
   }
 
+  protected async remove(plan: Draft): Promise<void> {
+    if (!plan.id) {
+      return;
+    }
+    this.busy.set(true);
+    this.error.set(null);
+    this.message.set(null);
+    try {
+      await this.api.deletePlan(plan.id);
+      this.message.set('Formule supprimée.');
+      this.plans.reload();
+    } catch (e) {
+      this.error.set(problemMessage(e));
+    } finally {
+      this.busy.set(false);
+    }
+  }
+
   protected async save(plan: Draft): Promise<void> {
     this.busy.set(true);
     this.error.set(null);
@@ -411,6 +475,8 @@ export class PlansTab {
         maxVideos: Number(plan.features.maxVideos),
         maxResources: limit(plan.features.maxResources),
         maxAppointmentsPerMonth: limit(plan.features.maxAppointmentsPerMonth),
+        maxServices: limit(plan.features.maxServices),
+        perks: plan.features.perks ?? [],
       },
       isActive: plan.isActive,
       description: plan.description,
@@ -440,5 +506,8 @@ export class PlansTab {
 }
 
 function copy(plan: Plan): Draft {
-  return { ...plan, features: { ...plan.features } };
+  return {
+    ...plan,
+    features: { ...plan.features, perks: [...(plan.features.perks ?? [])] },
+  };
 }

@@ -56,6 +56,32 @@ export type PlanUpdate = Schemas['PlanUpdate'];
 export type PromoCode = Schemas['PromoCodeDto'];
 export type PromoCodeInput = Schemas['PromoCodeInput'];
 
+export interface AdminDashboard {
+  readonly activeEstablishments: number;
+  readonly pendingReviewEstablishments: number;
+  readonly draftEstablishments: number;
+  readonly rejectedEstablishments: number;
+  readonly suspendedEstablishments: number;
+  readonly pendingAppointments: number;
+  readonly confirmedAppointments: number;
+  readonly completedAppointments: number;
+  readonly noShowAppointments: number;
+  readonly cancelledOrRejectedAppointments: number;
+  readonly completedVolume: number;
+  readonly monthlyRecurringRevenue: number;
+  readonly activeSubscriptions: number;
+  readonly trialingSubscriptions: number;
+  readonly pastDueSubscriptions: number;
+  readonly openDisputes: number;
+  readonly totalUsers: number;
+  readonly totalPartners: number;
+  readonly totalStaff: number;
+  readonly publishedReviews: number;
+  readonly averageRating: number;
+  readonly currencyCode: string;
+  readonly plans: Schemas['PlanCountDto'][];
+}
+
 export interface PageOf<T> {
   items: T[];
   total: number;
@@ -111,8 +137,13 @@ export class AdminApiService {
     return firstValueFrom(this.http.get<AdminUser[]>(`${this.base}/admins`));
   }
 
-  grantAdmin(email: string): Promise<AdminUser> {
-    return firstValueFrom(this.http.post<AdminUser>(`${this.base}/admins`, { email }));
+  grantAdmin(email: string, role?: string): Promise<AdminUser> {
+    const body = role ? { email, role } : { email };
+    return firstValueFrom(this.http.post<AdminUser>(`${this.base}/admins`, body));
+  }
+
+  updateAdminRole(id: string, role: string): Promise<AdminUser> {
+    return firstValueFrom(this.http.put<AdminUser>(`${this.base}/admins/${id}`, { role }));
   }
 
   revokeAdmin(id: string): Promise<void> {
@@ -153,7 +184,11 @@ export class AdminApiService {
     });
   }
 
-  // ───────── Finance ─────────
+  // ───────── Finance & Dashboard ─────────
+
+  dashboard(): Promise<AdminDashboard> {
+    return firstValueFrom(this.http.get<AdminDashboard>(`${this.base}/dashboard`));
+  }
 
   financeSummary(from?: string, to?: string): Promise<FinanceSummary> {
     return firstValueFrom(
@@ -247,6 +282,10 @@ export class AdminApiService {
 
   updatePlan(id: string, plan: PlanUpdate): Promise<Plan> {
     return firstValueFrom(this.http.put<Plan>(`${this.base}/plans/${id}`, plan));
+  }
+
+  deletePlan(id: string): Promise<void> {
+    return firstValueFrom(this.http.delete<void>(`${this.base}/plans/${id}`));
   }
 
   promoCodes(): Promise<PromoCode[]> {

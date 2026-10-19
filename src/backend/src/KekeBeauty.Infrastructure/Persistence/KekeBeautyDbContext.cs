@@ -48,6 +48,12 @@ public sealed class KekeBeautyDbContext(DbContextOptions<KekeBeautyDbContext> op
     public DbSet<TimeOff> TimeOffs => Set<TimeOff>();
     public DbSet<ClientTechnicalNote> ClientTechnicalNotes => Set<ClientTechnicalNote>();
     public DbSet<Dispute> Disputes => Set<Dispute>();
+    public DbSet<WaitlistEntry> WaitlistEntries => Set<WaitlistEntry>();
+    public DbSet<LoyaltyProgram> LoyaltyPrograms => Set<LoyaltyProgram>();
+    public DbSet<LoyaltyTransaction> LoyaltyTransactions => Set<LoyaltyTransaction>();
+    public DbSet<GiftCard> GiftCards => Set<GiftCard>();
+    public DbSet<GiftCardRedemption> GiftCardRedemptions => Set<GiftCardRedemption>();
+    public DbSet<GroupBookingRequest> GroupBookingRequests => Set<GroupBookingRequest>();
     public DbSet<TipPayment> TipPayments => Set<TipPayment>();
     public DbSet<CollaboratorPayout> CollaboratorPayouts => Set<CollaboratorPayout>();
     public DbSet<CollaboratorPayoutAccount> CollaboratorPayoutAccounts => Set<CollaboratorPayoutAccount>();
@@ -82,6 +88,7 @@ public sealed class KekeBeautyDbContext(DbContextOptions<KekeBeautyDbContext> op
     public DbSet<LoginChallenge> LoginChallenges => Set<LoginChallenge>();
     public DbSet<RecoveryCode> RecoveryCodes => Set<RecoveryCode>();
     public DbSet<PhoneCode> PhoneCodes => Set<PhoneCode>();
+    public DbSet<TrustedDevice> TrustedDevices => Set<TrustedDevice>();
     public DbSet<DataProtectionKey> DataProtectionKeys => Set<DataProtectionKey>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

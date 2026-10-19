@@ -33,7 +33,7 @@ const PAGE_SIZE = 10;
       padding: 1.25rem;
       border: 1px solid var(--kb-border);
       border-radius: var(--radius-lg);
-      background: #fff;
+      background: var(--kb-card);
 
       @media (min-width: 600px) {
         grid-template-columns: auto 1fr;
@@ -79,7 +79,7 @@ const PAGE_SIZE = 10;
       padding: 1rem 1.25rem;
       border: 1px solid var(--kb-border);
       border-radius: var(--radius-lg);
-      background: #fff;
+      background: var(--kb-card);
     }
     .head {
       display: flex;
@@ -116,7 +116,7 @@ const PAGE_SIZE = 10;
       padding: 1.5rem;
       border: 1px dashed var(--kb-primary-300);
       border-radius: var(--radius-lg);
-      background: #fff;
+      background: var(--kb-card);
     }
     .more {
       justify-self: center;

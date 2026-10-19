@@ -58,7 +58,7 @@ interface PendingChange {
       padding: 0.25rem;
       border: 1px solid var(--kb-border);
       border-radius: var(--radius-pill);
-      background: #fff;
+      background: var(--kb-card);
     }
     .promo {
       display: flex;
@@ -89,7 +89,7 @@ interface PendingChange {
       padding: 1.25rem;
       border: 1px solid var(--kb-border);
       border-radius: var(--radius-lg);
-      background: #fff;
+      background: var(--kb-card);
       box-shadow: var(--shadow-soft);
     }
     .plan[data-current='true'] {
@@ -134,11 +134,11 @@ interface PendingChange {
       color: var(--kb-primary-700);
     }
     .badge[data-tone='ok'] {
-      background: color-mix(in srgb, var(--kb-success) 12%, white);
+      background: color-mix(in srgb, var(--kb-success) 12%, var(--kb-card));
       color: var(--kb-success);
     }
     .badge[data-tone='bad'] {
-      background: color-mix(in srgb, var(--kb-danger) 10%, white);
+      background: color-mix(in srgb, var(--kb-danger) 10%, var(--kb-card));
       color: var(--kb-danger);
     }
     table {

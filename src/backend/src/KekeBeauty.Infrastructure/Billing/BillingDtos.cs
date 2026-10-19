@@ -10,17 +10,26 @@ public sealed record PlanFeaturesDto(
     bool Stats,
     int MaxVideos = 3,
     int? MaxResources = null,
-    int? MaxAppointmentsPerMonth = null)
+    int? MaxAppointmentsPerMonth = null,
+    int? MaxServices = null,
+    IReadOnlyList<string>? Perks = null)
 {
     public static PlanFeaturesDto From(PlanFeatures features) =>
         new(features.Booking, features.Videos, features.MaxMedia, features.Featured, features.Stats,
-            features.MaxVideos, features.MaxResources, features.MaxAppointmentsPerMonth);
+            features.MaxVideos, features.MaxResources, features.MaxAppointmentsPerMonth, features.MaxServices, features.PerksList());
 
-    public PlanFeatures ToFeatures() => new()
+    public PlanFeatures ToFeatures()
     {
-        Booking = Booking, Videos = Videos, MaxMedia = MaxMedia, Featured = Featured, Stats = Stats,
-        MaxVideos = MaxVideos, MaxResources = MaxResources, MaxAppointmentsPerMonth = MaxAppointmentsPerMonth,
-    };
+        var perks = Perks is null
+            ? null
+            : string.Join('\n', Perks.Select(p => p?.Trim()).Where(p => !string.IsNullOrEmpty(p)));
+        return new PlanFeatures
+        {
+            Booking = Booking, Videos = Videos, MaxMedia = MaxMedia, Featured = Featured, Stats = Stats,
+            MaxVideos = MaxVideos, MaxResources = MaxResources, MaxAppointmentsPerMonth = MaxAppointmentsPerMonth,
+            MaxServices = MaxServices, Perks = string.IsNullOrEmpty(perks) ? null : perks,
+        };
+    }
 }
 
 public sealed record PlanDto(

@@ -19,7 +19,7 @@ export interface AuthResponse {
   readonly idleMinutes?: number;
 }
 
-export type ChallengeStatus = 'TwoFactorRequired' | 'TwoFactorSetupRequired';
+export type ChallengeStatus = 'TwoFactorRequired' | 'TwoFactorSetupRequired' | 'TrustedDevice';
 
 export interface ChallengeResponse {
   readonly status: ChallengeStatus;
@@ -45,6 +45,16 @@ export interface ProvidersResponse {
 export interface SessionInfo {
   readonly id: string;
   readonly startedAt: string;
+  readonly deviceInfo: string | null;
+  readonly ipAddress: string | null;
+  readonly isCurrent: boolean;
+}
+
+export interface TrustedDeviceInfo {
+  readonly id: string;
+  readonly createdAt: string;
+  readonly lastUsedAt: string;
+  readonly expiresAt: string;
   readonly deviceInfo: string | null;
   readonly ipAddress: string | null;
   readonly isCurrent: boolean;

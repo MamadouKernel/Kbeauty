@@ -13,7 +13,7 @@ import { BookingService } from '../../core/booking/booking.service';
       padding: 1rem;
       border: 1px dashed var(--kb-primary-300);
       border-radius: var(--radius-md);
-      background: #fff;
+      background: var(--kb-card);
     }
     img {
       width: min(100%, 14rem);

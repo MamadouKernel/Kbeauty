@@ -22,6 +22,12 @@ import { InputText } from 'primeng/inputtext';
 import { Select } from 'primeng/select';
 import { CatalogService } from '../../../core/catalog/catalog.service';
 import { EstablishmentService } from '../../../core/establishments/establishment.service';
+import {
+  GeolocationFailure,
+  GeolocationService,
+  type Position,
+} from '../../../core/geo/geolocation.service';
+import { GrowthService } from '../../../core/growth/growth.service';
 import { CategoryIcon } from '../../../shared/category-icon/category-icon';
 import { EstablishmentCard } from '../../../shared/establishment-card/establishment-card';
 
@@ -60,12 +66,40 @@ export class Home {
     loader: () => this.establishments.search({ pageSize: 4 }).then((page) => page.items),
   });
 
+  private readonly growth = inject(GrowthService);
+  private readonly geolocation = inject(GeolocationService);
+  protected readonly position = signal<Position | null>(null);
+  protected readonly locating = signal(false);
+  protected readonly locateError = signal('');
+
+  /** "Salons près de chez vous": best rated places until the visitor shares her position; a failure hides the row. */
+  protected readonly nearby = resource({
+    params: () => ({ position: this.position() }),
+    loader: ({ params }) => this.growth.recommendations(params.position, 4),
+  });
+
   protected readonly selectedSlug = signal<string | null>(null);
   protected readonly text = signal('');
 
   protected readonly options = computed(() =>
     this.categories.hasValue() ? this.categories.value() : [],
   );
+
+  protected async locate(): Promise<void> {
+    this.locating.set(true);
+    this.locateError.set('');
+    try {
+      this.position.set(await this.geolocation.locate());
+    } catch (error) {
+      this.locateError.set(
+        error instanceof GeolocationFailure
+          ? error.userMessage
+          : 'Votre position n’est pas disponible pour le moment.',
+      );
+    } finally {
+      this.locating.set(false);
+    }
+  }
 
   protected toggle(slug: string): void {
     this.selectedSlug.update((current) => (current === slug ? null : slug));

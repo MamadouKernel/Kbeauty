@@ -40,8 +40,10 @@ public sealed class AuthOptions
 {
     public const string SectionName = "Auth";
     public const string RefreshCookieName = "kb_rt";
+    public const string TrustedDeviceCookieName = "kb_td";
 
     public int RefreshTokenDays { get; init; } = 30;
+    public int TrustedDeviceDays { get; init; } = 30;
     public int MaxFailedLogins { get; init; } = 5;
     public int LockoutMinutes { get; init; } = 15;
     public int ChallengeMinutes { get; init; } = 10;

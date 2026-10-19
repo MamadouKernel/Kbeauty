@@ -125,6 +125,25 @@ describe('authentication pages', () => {
       expect(root.querySelector<HTMLInputElement>('input[value="Client"]')!.checked).toBe(false);
     });
 
+    it('refuses two different passwords and sends nothing', async () => {
+      const fixture = TestBed.createComponent(Register);
+      fixture.detectChanges();
+      const el = fixture.nativeElement as HTMLElement;
+
+      type(el, '#reg-first', 'Awa');
+      type(el, '#reg-last', 'Koné');
+      type(el, '#reg-email', 'awa@example.com');
+      type(el, '#reg-password', 'Correct-Horse-42');
+      type(el, '#reg-confirm', 'Correct-Horse-43');
+      el.querySelector<HTMLInputElement>('input[type="checkbox"]')!.click();
+      el.querySelector<HTMLButtonElement>('button[type="submit"]')!.click();
+
+      await eventually(fixture, () =>
+        expect(el.textContent).toContain('Les deux mots de passe ne sont pas identiques.'),
+      );
+      http.expectNone('/api/v1/auth/register');
+    });
+
     it('sends the registration and then asks the user to check their mailbox', async () => {
       const fixture = TestBed.createComponent(Register);
       fixture.detectChanges();
@@ -133,7 +152,8 @@ describe('authentication pages', () => {
       type(el, '#reg-first', 'Awa');
       type(el, '#reg-last', 'Koné');
       type(el, '#reg-email', 'awa@example.com');
-      type(el, 'input[type="password"]', 'Correct-Horse-42');
+      type(el, '#reg-password', 'Correct-Horse-42');
+      type(el, '#reg-confirm', 'Correct-Horse-42');
       el.querySelector<HTMLInputElement>('input[type="checkbox"]')!.click();
       el.querySelector<HTMLButtonElement>('button[type="submit"]')!.click();
 
@@ -145,6 +165,7 @@ describe('authentication pages', () => {
         role: 'Client',
         acceptTerms: true,
       });
+      expect(request.request.body).not.toHaveProperty('confirmPassword');
       request.flush(null, { status: 202, statusText: 'Accepted' });
 
       await eventually(fixture, () =>
@@ -241,6 +262,65 @@ describe('authentication pages', () => {
       await eventually(fixture, () => expect(el.textContent).toContain('AAAAA-BBBBB'));
       const proceed = el.querySelector<HTMLButtonElement>('button.btn-primary')!;
       expect(proceed.disabled).toBe(true);
+    });
+
+    it('auto-completes when the challenge is TrustedDevice', async () => {
+      TestBed.inject(AuthService).challenge.set({ status: 'TrustedDevice', token: 'td-1' });
+      const navigate = vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
+      const fixture = TestBed.createComponent(TwoFactor);
+      fixture.detectChanges();
+
+      const request = await vi.waitFor(() => http.expectOne('/api/v1/auth/2fa/trusted'));
+      expect(request.request.body).toEqual({ challengeToken: 'td-1' });
+      request.flush({
+        accessToken: 'a',
+        expiresAt: '2026-10-11T12:15:00Z',
+        user: {
+          id: 'u',
+          email: 'awa@example.com',
+          firstName: 'Awa',
+          lastName: 'K',
+          roles: ['Client'],
+          twoFactorEnabled: true,
+        },
+        recoveryCodes: null,
+      });
+
+      await vi.waitFor(() => expect(navigate).toHaveBeenCalledWith('/compte'));
+    });
+
+    it('sends rememberDevice: true when the 30-day checkbox is ticked', async () => {
+      TestBed.inject(AuthService).challenge.set({ status: 'TwoFactorRequired', token: 'c1' });
+      const navigate = vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
+      const fixture = TestBed.createComponent(TwoFactor);
+      fixture.detectChanges();
+      const el = fixture.nativeElement as HTMLElement;
+
+      type(el, '#twofa-code', '123456');
+      el.querySelector<HTMLInputElement>('#twofa-remember')!.click();
+      el.querySelector<HTMLButtonElement>('button[type="submit"]')!.click();
+
+      const request = await vi.waitFor(() => http.expectOne('/api/v1/auth/2fa/verify'));
+      expect(request.request.body).toEqual({
+        challengeToken: 'c1',
+        code: '123456',
+        rememberDevice: true,
+      });
+      request.flush({
+        accessToken: 'a',
+        expiresAt: '2026-10-11T12:15:00Z',
+        user: {
+          id: 'u',
+          email: 'awa@example.com',
+          firstName: 'Awa',
+          lastName: 'K',
+          roles: ['Client'],
+          twoFactorEnabled: true,
+        },
+        recoveryCodes: null,
+      });
+
+      await vi.waitFor(() => expect(navigate).toHaveBeenCalledWith('/compte'));
     });
   });
 });

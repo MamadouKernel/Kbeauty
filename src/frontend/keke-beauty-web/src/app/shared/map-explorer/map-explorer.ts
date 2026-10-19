@@ -64,7 +64,7 @@ import { StarRating } from '../star-rating/star-rating';
       scroll-snap-align: center;
       border: 2px solid transparent;
       border-radius: var(--radius-lg);
-      background: rgb(255 255 255 / 97%);
+      background: rgb(var(--kb-paper-rgb) / 97%);
       box-shadow: var(--shadow-lift);
       cursor: pointer;
     }
@@ -123,7 +123,7 @@ import { StarRating } from '../star-rating/star-rating';
       margin: 0;
       padding: 0.25rem 0.75rem;
       border-radius: var(--radius-pill);
-      background: rgb(255 255 255 / 94%);
+      background: rgb(var(--kb-paper-rgb) / 94%);
       font-size: var(--fs-xs);
       font-weight: 700;
       box-shadow: var(--shadow-soft);

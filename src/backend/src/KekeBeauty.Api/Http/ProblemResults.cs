@@ -57,7 +57,16 @@ public static class ProblemResults
             || code.EndsWith(".no_change", StringComparison.Ordinal)
             || code.EndsWith(".not_changeable", StringComparison.Ordinal)
             || code.EndsWith(".no_scheduled_change", StringComparison.Ordinal)
-            || code.EndsWith(".not_published", StringComparison.Ordinal) => StatusCodes.Status409Conflict,
+            || code.EndsWith(".in_use", StringComparison.Ordinal)
+            || code.EndsWith(".not_published", StringComparison.Ordinal)
+            || code.EndsWith(".too_many", StringComparison.Ordinal)
+            || code.EndsWith(".no_program", StringComparison.Ordinal)
+            || code.EndsWith(".not_enough_points", StringComparison.Ordinal)
+            || code.EndsWith(".not_usable", StringComparison.Ordinal)
+            || code.EndsWith(".insufficient_balance", StringComparison.Ordinal)
+            || code.EndsWith(".already_claimed", StringComparison.Ordinal)
+            || code.EndsWith(".already_answered", StringComparison.Ordinal)
+            || code.EndsWith(".not_cancellable", StringComparison.Ordinal) => StatusCodes.Status409Conflict,
         _ => StatusCodes.Status400BadRequest,
     };
 }

@@ -45,7 +45,7 @@ interface AccountRow {
       padding: 1.25rem;
       border: 1px solid var(--kb-border);
       border-radius: var(--radius-lg);
-      background: #fff;
+      background: var(--kb-card);
       box-shadow: var(--shadow-soft);
     }
     form {
@@ -91,6 +91,12 @@ interface AccountRow {
       <div>
         <p class="eyebrow">Règlement des prestations</p>
         <h1>Moyens de <em>paiement</em></h1>
+        <p class="hint">
+          Consultez vos recettes, vos bordereaux PDF et votre export comptable CSV dans
+          <a class="link" [routerLink]="['/pro/etablissements', id(), 'finances']"
+            >Finances et reçus</a
+          >.
+        </p>
       </div>
 
       <section class="card" aria-labelledby="methods-title">

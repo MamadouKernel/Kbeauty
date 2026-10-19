@@ -7,6 +7,8 @@ export interface CalendarCell {
   readonly day: number;
   readonly inMonth: boolean;
   readonly available: boolean;
+  /** Open that day but every slot is taken: it can be selected to join the waiting list. */
+  readonly full: boolean;
   readonly selected: boolean;
 }
 
@@ -14,7 +16,8 @@ const WEEKDAYS = ['lun.', 'mar.', 'mer.', 'jeu.', 'ven.', 'sam.', 'dim.'];
 
 /**
  * Month calendar for picking a day (PRD RDV-02). A day without any bookable slot (closed, fully booked, in the past
- * or beyond the horizon) is shown in red and cannot be selected: state is conveyed by text and pattern as well as colour.
+ * or beyond the horizon) is shown in red: state is conveyed by text and pattern as well as colour. A fully booked day can
+ * still be selected, to join its waiting list; closed and past days cannot.
  */
 @Component({
   selector: 'app-availability-calendar',
@@ -43,7 +46,7 @@ const WEEKDAYS = ['lun.', 'mar.', 'mer.', 'jeu.', 'ven.', 'sam.', 'dim.'];
       height: 2.75rem;
       border: 1px solid var(--kb-border);
       border-radius: 50%;
-      background: #fff;
+      background: var(--kb-card);
       color: var(--kb-primary-700);
       cursor: pointer;
 
@@ -97,12 +100,15 @@ const WEEKDAYS = ['lun.', 'mar.', 'mer.', 'jeu.', 'ven.', 'sam.', 'dim.'];
       color: var(--kb-danger);
       background: repeating-linear-gradient(
         135deg,
-        color-mix(in srgb, var(--kb-danger) 7%, white),
-        color-mix(in srgb, var(--kb-danger) 7%, white) 4px,
-        color-mix(in srgb, var(--kb-danger) 13%, white) 4px,
-        color-mix(in srgb, var(--kb-danger) 13%, white) 8px
+        color-mix(in srgb, var(--kb-danger) 7%, var(--kb-card)),
+        color-mix(in srgb, var(--kb-danger) 7%, var(--kb-card)) 4px,
+        color-mix(in srgb, var(--kb-danger) 13%, var(--kb-card)) 4px,
+        color-mix(in srgb, var(--kb-danger) 13%, var(--kb-card)) 8px
       );
       cursor: not-allowed;
+    }
+    .cell.unavailable.full {
+      cursor: pointer;
     }
     .cell.outside {
       opacity: 0.35;
@@ -134,7 +140,7 @@ const WEEKDAYS = ['lun.', 'mar.', 'mer.', 'jeu.', 'ven.', 'sam.', 'dim.'];
       background: var(--kb-primary-200);
     }
     .legend .taken::before {
-      background: color-mix(in srgb, var(--kb-danger) 35%, white);
+      background: color-mix(in srgb, var(--kb-danger) 35%, var(--kb-card));
     }
   `,
   template: `
@@ -173,7 +179,8 @@ const WEEKDAYS = ['lun.', 'mar.', 'mer.', 'jeu.', 'ven.', 'sam.', 'dim.'];
           [class.unavailable]="!cell.available"
           [class.outside]="!cell.inMonth"
           [class.selected]="cell.selected"
-          [disabled]="!cell.available"
+          [class.full]="cell.full"
+          [disabled]="!cell.available && !cell.full"
           [attr.aria-selected]="cell.selected"
           [attr.aria-label]="label(cell)"
           (click)="daySelected.emit(cell.iso)"
@@ -222,12 +229,15 @@ export class AvailabilityCalendar {
       const date = new Date(start.getFullYear(), start.getMonth(), start.getDate() + i);
       const iso = isoDay(date);
       const inMonth = date.getMonth() === month.getMonth();
+      const known = byDate.get(iso);
+      const available = known?.hasAvailability ?? false;
 
       cells.push({
         iso,
         day: date.getDate(),
         inMonth,
-        available: byDate.get(iso)?.hasAvailability ?? false,
+        available,
+        full: !available && (known?.slots.length ?? 0) > 0,
         selected: iso === this.selected(),
       });
     }
@@ -242,7 +252,12 @@ export class AvailabilityCalendar {
       day: 'numeric',
       month: 'long',
     }).format(date);
-    return `${text} : ${cell.available ? 'créneaux disponibles' : 'indisponible'}`;
+    const state = cell.available
+      ? 'créneaux disponibles'
+      : cell.full
+        ? 'complet, liste d’attente possible'
+        : 'indisponible';
+    return `${text} : ${state}`;
   }
 
   private sameOrAfter(a: Date, b: Date): boolean {

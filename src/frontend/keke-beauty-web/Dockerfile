@@ -1,4 +1,6 @@
-FROM node:24-alpine AS build
+# Debian rather than Alpine for the build: musl's resolver gives up on some home/ISP DNS servers (empty AAAA answers),
+# which left `npm ci` waiting forever; glibc resolves them. The served image below stays on Alpine.
+FROM node:24-slim AS build
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci

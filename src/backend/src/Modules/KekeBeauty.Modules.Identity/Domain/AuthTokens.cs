@@ -76,6 +76,7 @@ public enum ChallengePurpose
 {
     TwoFactor,
     TwoFactorSetup,
+    TrustedDevice,
 }
 
 /// <summary>Short-lived proof that the first factor (password / Google) succeeded; exchanged for a session after 2FA.</summary>
@@ -167,4 +168,45 @@ public sealed class RecoveryCode : Entity
     public static RecoveryCode Create(Guid userId, string codeHash) => new() { UserId = userId, CodeHash = codeHash };
 
     public void MarkUsed(DateTimeOffset now) => UsedAt = now;
+}
+
+/// <summary>Browser remembered after 2FA so the user is not asked for an authenticator code on every sign-in for 30 days (Lot 6 #9).</summary>
+public sealed class TrustedDevice : Entity
+{
+    private TrustedDevice()
+    {
+    }
+
+    public Guid UserId { get; private set; }
+    public string TokenHash { get; private set; } = string.Empty;
+    public string? DeviceInfo { get; private set; }
+    public string? IpAddress { get; private set; }
+    public DateTimeOffset CreatedAt { get; private set; }
+    public DateTimeOffset LastUsedAt { get; private set; }
+    public DateTimeOffset ExpiresAt { get; private set; }
+    public DateTimeOffset? RevokedAt { get; private set; }
+
+    public static TrustedDevice Create(Guid userId, string tokenHash, DateTimeOffset now, DateTimeOffset expiresAt, string? deviceInfo, string? ipAddress) => new()
+    {
+        UserId = userId,
+        TokenHash = tokenHash,
+        CreatedAt = now,
+        LastUsedAt = now,
+        ExpiresAt = expiresAt,
+        DeviceInfo = deviceInfo,
+        IpAddress = ipAddress,
+    };
+
+    public bool IsActive(DateTimeOffset now) => RevokedAt is null && ExpiresAt > now;
+
+    public void Touch(DateTimeOffset now, string? ipAddress)
+    {
+        LastUsedAt = now;
+        if (!string.IsNullOrWhiteSpace(ipAddress))
+        {
+            IpAddress = ipAddress;
+        }
+    }
+
+    public void Revoke(DateTimeOffset now) => RevokedAt ??= now;
 }

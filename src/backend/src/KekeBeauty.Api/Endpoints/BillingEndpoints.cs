@@ -15,8 +15,8 @@ public static class BillingEndpoints
             .WithTags("Billing").Produces<IReadOnlyList<PlanDto>>();
 
         MapPartner(app.MapGroup("/api/v1/pro").WithTags("Billing").RequireAuthorization(PartnerEndpoints.PartnerPolicy));
-        MapAdmin(app.MapGroup("/api/v1/admin/plans").WithTags("Admin").RequireAuthorization(AdminReviewEndpoints.AdminPolicy));
-        MapPromoAdmin(app.MapGroup("/api/v1/admin/promo-codes").WithTags("Admin").RequireAuthorization(AdminReviewEndpoints.AdminPolicy));
+        MapAdmin(app.MapGroup("/api/v1/admin/plans").WithTags("Admin").RequireAuthorization(AdminReviewEndpoints.AdminFinancePolicy));
+        MapPromoAdmin(app.MapGroup("/api/v1/admin/promo-codes").WithTags("Admin").RequireAuthorization(AdminReviewEndpoints.AdminFinancePolicy));
         MapWebhooks(app);
         return app;
     }
@@ -81,6 +81,37 @@ public static class BillingEndpoints
                     : ProblemResults.From(result.Error);
             })
             .Produces(StatusCodes.Status200OK, contentType: "application/pdf").ProducesProblem(StatusCodes.Status404NotFound);
+
+        group.MapGet("/establishments/{id:guid}/finances", async (Guid id, DateTimeOffset? from, DateTimeOffset? to, ClaimsPrincipal user, PartnerFinanceService service, CancellationToken ct) =>
+                Respond(await service.SummaryAsync(user.UserId(), id, from, to, ct)))
+            .Produces<PartnerFinanceSummary>().ProducesProblem(StatusCodes.Status400BadRequest).ProducesProblem(StatusCodes.Status404NotFound);
+
+        group.MapGet("/establishments/{id:guid}/finances.csv", async (Guid id, DateTimeOffset? from, DateTimeOffset? to, ClaimsPrincipal user, PartnerFinanceService service, CancellationToken ct) =>
+            {
+                var result = await service.ExportCsvAsync(user.UserId(), id, from, to, ct);
+                return result.IsSuccess
+                    ? Results.File(result.Value.Content, "text/csv; charset=utf-8", result.Value.FileName)
+                    : ProblemResults.From(result.Error);
+            })
+            .Produces(StatusCodes.Status200OK, contentType: "text/csv").ProducesProblem(StatusCodes.Status400BadRequest).ProducesProblem(StatusCodes.Status404NotFound);
+
+        group.MapGet("/appointments/{id:guid}/receipt.pdf", async (Guid id, ClaimsPrincipal user, PartnerFinanceService service, CancellationToken ct) =>
+            {
+                var result = await service.AppointmentReceiptPdfAsync(user.UserId(), id, ct);
+                return result.IsSuccess
+                    ? Results.File(result.Value.Content, "application/pdf", result.Value.FileName)
+                    : ProblemResults.From(result.Error);
+            })
+            .Produces(StatusCodes.Status200OK, contentType: "application/pdf").ProducesProblem(StatusCodes.Status404NotFound);
+
+        group.MapGet("/payouts/{id:guid}/receipt.pdf", async (Guid id, ClaimsPrincipal user, PartnerFinanceService service, CancellationToken ct) =>
+            {
+                var result = await service.PayoutReceiptPdfAsync(user.UserId(), id, ct);
+                return result.IsSuccess
+                    ? Results.File(result.Value.Content, "application/pdf", result.Value.FileName)
+                    : ProblemResults.From(result.Error);
+            })
+            .Produces(StatusCodes.Status200OK, contentType: "application/pdf").ProducesProblem(StatusCodes.Status404NotFound);
     }
 
     private static void MapAdmin(RouteGroupBuilder group)
@@ -98,6 +129,13 @@ public static class BillingEndpoints
         group.MapPut("/{id:guid}", async (Guid id, PlanUpdate input, ClaimsPrincipal user, BillingService service, CancellationToken ct) =>
                 Respond(await service.UpdatePlanAsync(user.UserId(), id, input, ct)))
             .Produces<PlanDto>().ProducesProblem(StatusCodes.Status400BadRequest).ProducesProblem(StatusCodes.Status404NotFound);
+
+        group.MapDelete("/{id:guid}", async (Guid id, ClaimsPrincipal user, BillingService service, CancellationToken ct) =>
+            {
+                var result = await service.DeletePlanAsync(user.UserId(), id, ct);
+                return result.IsSuccess ? Results.NoContent() : ProblemResults.From(result.Error);
+            })
+            .Produces(StatusCodes.Status204NoContent).ProducesProblem(StatusCodes.Status400BadRequest).ProducesProblem(StatusCodes.Status404NotFound).ProducesProblem(StatusCodes.Status409Conflict);
     }
 
     private static void MapPromoAdmin(RouteGroupBuilder group)

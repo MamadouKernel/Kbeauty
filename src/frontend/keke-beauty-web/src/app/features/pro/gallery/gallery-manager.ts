@@ -89,7 +89,7 @@ function readVideoPreview(file: File): Promise<VideoPreview | null> {
       overflow: hidden;
       border: 1px solid var(--kb-border);
       border-radius: var(--radius-md);
-      background: #fff;
+      background: var(--kb-card);
       box-shadow: var(--shadow-soft);
     }
     figure.cover {
@@ -111,7 +111,7 @@ function readVideoPreview(file: File): Promise<VideoPreview | null> {
     .badge {
       padding: 0.125rem 0.625rem;
       border-radius: var(--radius-pill);
-      background: var(--kb-primary-600);
+      background: var(--kb-plum-600);
       color: #fff;
       font-size: var(--fs-2xs);
       font-weight: 600;

@@ -57,4 +57,93 @@ describe('AdminApiService', () => {
     request.flush([]);
     expect(await promise).toEqual([]);
   });
+
+  it('fetches the analytical dashboard', async () => {
+    const promise = service.dashboard();
+
+    const request = http.expectOne('/api/v1/admin/dashboard');
+    expect(request.request.method).toBe('GET');
+    request.flush({
+      activeEstablishments: 4,
+      pendingReviewEstablishments: 1,
+      draftEstablishments: 0,
+      rejectedEstablishments: 0,
+      suspendedEstablishments: 0,
+      pendingAppointments: 2,
+      confirmedAppointments: 3,
+      completedAppointments: 8,
+      noShowAppointments: 1,
+      cancelledOrRejectedAppointments: 1,
+      completedVolume: 50000,
+      monthlyRecurringRevenue: 15000,
+      activeSubscriptions: 3,
+      trialingSubscriptions: 1,
+      pastDueSubscriptions: 0,
+      openDisputes: 0,
+      totalUsers: 12,
+      totalPartners: 4,
+      totalStaff: 6,
+      publishedReviews: 10,
+      averageRating: 4.8,
+      currencyCode: 'XOF',
+      plans: [],
+    });
+
+    expect((await promise).completedVolume).toBe(50000);
+  });
+
+  it('creates and deletes a subscription plan with maxServices and perks', async () => {
+    const createPromise = service.createPlan({
+      name: 'Starter',
+      monthlyPrice: 5000,
+      annualPrice: 50000,
+      features: {
+        booking: true,
+        videos: false,
+        maxMedia: 5,
+        featured: false,
+        stats: true,
+        maxVideos: 0,
+        maxResources: 2,
+        maxAppointmentsPerMonth: 100,
+        maxServices: 8,
+        perks: ['Badge Starter', 'Support WhatsApp'],
+      },
+      isActive: true,
+      commitmentMonths: 6,
+      trialDays: 14,
+      promoPercent: 0,
+      promoPeriods: 0,
+      promoEndsAt: null,
+    });
+
+    const postReq = http.expectOne('/api/v1/admin/plans');
+    expect(postReq.request.method).toBe('POST');
+    expect(postReq.request.body.features.maxServices).toBe(8);
+    expect(postReq.request.body.features.perks).toEqual(['Badge Starter', 'Support WhatsApp']);
+    postReq.flush({ id: 'p-starter', code: 'starter', name: 'Starter' });
+    await createPromise;
+
+    const deletePromise = service.deletePlan('p-starter');
+    const delReq = http.expectOne('/api/v1/admin/plans/p-starter');
+    expect(delReq.request.method).toBe('DELETE');
+    delReq.flush(null, { status: 204, statusText: 'No Content' });
+    await deletePromise;
+  });
+
+  it('grants and updates fine-grained administrator roles', async () => {
+    const grantPromise = service.grantAdmin('kyc@keke.ci', 'AdminKyc');
+    const grantReq = http.expectOne('/api/v1/admin/admins');
+    expect(grantReq.request.method).toBe('POST');
+    expect(grantReq.request.body).toEqual({ email: 'kyc@keke.ci', role: 'AdminKyc' });
+    grantReq.flush({ id: 'u-kyc', email: 'kyc@keke.ci', roles: ['AdminKyc'] });
+    await grantPromise;
+
+    const updatePromise = service.updateAdminRole('u-kyc', 'AdminAccountant');
+    const updateReq = http.expectOne('/api/v1/admin/admins/u-kyc');
+    expect(updateReq.request.method).toBe('PUT');
+    expect(updateReq.request.body).toEqual({ role: 'AdminAccountant' });
+    updateReq.flush({ id: 'u-kyc', email: 'kyc@keke.ci', roles: ['AdminAccountant'] });
+    await updatePromise;
+  });
 });

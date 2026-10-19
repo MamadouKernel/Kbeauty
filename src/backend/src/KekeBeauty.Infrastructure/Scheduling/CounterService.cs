@@ -100,7 +100,7 @@ public sealed class CounterService(
                     AppointmentId = appointment.Id,
                     ServiceId = service.Id,
                     NameSnapshot = service.Name,
-                    PriceSnapshot = service.Price,
+                    PriceSnapshot = service.EffectivePrice(now),
                     DurationSnapshot = service.DurationMinutes,
                 });
             }

@@ -16,8 +16,9 @@ test.describe('Accounts', () => {
     await page.getByLabel('Prénom').fill('Awa');
     await page.getByLabel('Nom', { exact: true }).fill('Koné');
     await page.getByLabel('Adresse e-mail').fill(email);
-    await page.getByLabel('Mot de passe').fill(PASSWORD);
-    await page.getByLabel(/J'accepte les/).check();
+    await page.getByLabel('Mot de passe', { exact: true }).fill(PASSWORD);
+    await page.getByLabel('Confirmer le mot de passe').fill(PASSWORD);
+    await page.getByLabel(/J’accepte les/).check();
     await page.getByRole('button', { name: 'Créer mon compte' }).click();
     await expect(page.getByRole('heading', { name: 'Vérifiez votre boîte mail' })).toBeVisible();
 
@@ -28,10 +29,11 @@ test.describe('Accounts', () => {
     // First sign-in: the account must enrol two-factor authentication before it gets a session.
     await page.getByRole('link', { name: 'Se connecter' }).first().click();
     await page.getByLabel('Adresse e-mail').fill(email);
-    await page.getByLabel('Mot de passe').fill(PASSWORD);
+    await page.getByLabel('Mot de passe', { exact: true }).fill(PASSWORD);
     await page.getByRole('button', { name: 'Se connecter' }).click();
     await expect(page.getByRole('heading', { name: 'Activer Google Authenticator' })).toBeVisible();
-    const secret = (await page.locator('.secret code').innerText()).replace(/\s/g, '');
+    // textContent: the key is checked as written in the page, whatever font the browser can draw it with.
+    const secret = ((await page.locator('.secret code').textContent()) ?? '').replace(/\s/g, '');
     expect(secret).toMatch(/^[A-Z2-7]{16,}$/);
     await page.locator('#twofa-code').fill(await freshCode(secret));
     await page.getByRole('button', { name: 'Activer et me connecter' }).click();
@@ -55,7 +57,7 @@ test.describe('Accounts', () => {
     const account = await createAccount(request, 'Client');
     await page.goto('/connexion');
     await page.getByLabel('Adresse e-mail').fill(account.email);
-    await page.getByLabel('Mot de passe').fill('Mauvais-Mot-De-Passe-1');
+    await page.getByLabel('Mot de passe', { exact: true }).fill('Mauvais-Mot-De-Passe-1');
     await page.getByRole('button', { name: 'Se connecter' }).click();
     const known = await page.getByRole('alert').innerText();
 
@@ -81,7 +83,7 @@ test.describe('Accounts', () => {
     // 61 minutes without touching the page (the default limit is 60).
     await page.clock.fastForward('01:01:00');
     await expect(page).toHaveURL(/\/connexion\?inactif=1/);
-    await expect(page.getByText(/déconnecté après une période d'inactivité/)).toBeVisible();
+    await expect(page.getByText(/déconnecté\(e\) après une période d’inactivité/)).toBeVisible();
     await page.goto('/compte');
     await expect(page).toHaveURL(/\/connexion/);
   });

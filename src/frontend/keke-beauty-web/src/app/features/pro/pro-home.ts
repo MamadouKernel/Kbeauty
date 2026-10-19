@@ -32,7 +32,7 @@ import { PartnerService, STATUS_LABELS } from '../../core/partner/partner.servic
       padding: 1rem;
       border: 1px solid var(--kb-border);
       border-radius: var(--radius-lg);
-      background: #fff;
+      background: var(--kb-card);
       box-shadow: var(--shadow-soft);
       transition:
         transform 200ms var(--ease-out),
@@ -70,12 +70,12 @@ import { PartnerService, STATUS_LABELS } from '../../core/partner/partner.servic
       color: var(--kb-primary-700);
     }
     .status[data-status='Active'] {
-      background: color-mix(in srgb, var(--kb-success) 12%, white);
+      background: color-mix(in srgb, var(--kb-success) 12%, var(--kb-card));
       color: var(--kb-success);
     }
     .status[data-status='Rejected'],
     .status[data-status='Suspended'] {
-      background: color-mix(in srgb, var(--kb-danger) 10%, white);
+      background: color-mix(in srgb, var(--kb-danger) 10%, var(--kb-card));
       color: var(--kb-danger);
     }
     .actions {
@@ -97,7 +97,7 @@ import { PartnerService, STATUS_LABELS } from '../../core/partner/partner.servic
       padding: clamp(1.5rem, 4vw, 2.5rem);
       border: 1.5px dashed var(--kb-primary-200);
       border-radius: var(--radius-lg);
-      background: #fff;
+      background: var(--kb-card);
     }
   `,
   template: `
@@ -189,6 +189,11 @@ import { PartnerService, STATUS_LABELS } from '../../core/partner/partner.servic
                         >
                         <a
                           class="btn btn-ghost btn-sm"
+                          [routerLink]="['/pro/etablissements', e.id, 'finances']"
+                          >Finances et reçus</a
+                        >
+                        <a
+                          class="btn btn-ghost btn-sm"
                           [routerLink]="['/pro/etablissements', e.id, 'avis']"
                           >Avis clients</a
                         >
@@ -211,6 +216,16 @@ import { PartnerService, STATUS_LABELS } from '../../core/partner/partner.servic
                           class="btn btn-ghost btn-sm"
                           [routerLink]="['/pro/etablissements', e.id, 'litiges']"
                           >Litiges</a
+                        >
+                        <a
+                          class="btn btn-ghost btn-sm"
+                          [routerLink]="['/pro/etablissements', e.id, 'fidelite']"
+                          >Fidélité et cartes cadeaux</a
+                        >
+                        <a
+                          class="btn btn-ghost btn-sm"
+                          [routerLink]="['/pro/etablissements', e.id, 'demandes']"
+                          >Groupes et liste d’attente</a
                         >
                       }
                     }

@@ -20,7 +20,7 @@ appsettings.Local.json
 .vs/
 .idea/
 *.user
-backups/
+/backups/
 
 # End-to-end test output
 e2e/test-results/

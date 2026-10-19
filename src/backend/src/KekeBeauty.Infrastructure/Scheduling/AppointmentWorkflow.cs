@@ -2,6 +2,7 @@ using KekeBeauty.Infrastructure.Persistence;
 using KekeBeauty.Modules.Scheduling.Domain;
 using KekeBeauty.SharedKernel;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Npgsql;
 
 namespace KekeBeauty.Infrastructure.Scheduling;
@@ -32,7 +33,8 @@ public sealed class AppointmentWorkflow(
     NotificationService notifications,
     IRealtimeNotifier realtime,
     IServiceProvider services,
-    TimeProvider time)
+    TimeProvider time,
+    ILogger<AppointmentWorkflow> logger)
 {
     public const int RequestValidityHours = 24;
 
@@ -143,6 +145,19 @@ public sealed class AppointmentWorkflow(
         {
             await refunds.AfterTransitionAsync(appointment, ct);
         }
+
+        // A freed slot is offered to the clients waiting for that day; a failure here must never undo the change itself.
+        if (services.GetService(typeof(KekeBeauty.Infrastructure.Growth.WaitlistService)) is KekeBeauty.Infrastructure.Growth.WaitlistService waitlist)
+        {
+            try
+            {
+                await waitlist.AfterChangeAsync(appointment, from, ct);
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                logger.LogWarning(ex, "Waiting list notification failed for appointment {AppointmentId}", appointment.Id);
+            }
+        }
     }
 
     public static TimeZoneInfo ZoneOf(string timezoneId)
@@ -175,7 +190,7 @@ public sealed class AppointmentWorkflow(
                     new Text("Nouveau rendez-vous", $"{client} a réservé {when} (confirmation automatique)."))
                 : new Composed(
                     "appointment.requested",
-                    new Text("Demande envoyée", $"Votre demande chez {establishment} {when} a bien été envoyée. Vous serez prévenu dès sa validation."),
+                    new Text("Demande envoyée", $"Votre demande chez {establishment} {when} a bien été envoyée. Vous serez prévenu(e) dès sa validation."),
                     new Text("Nouvelle demande de rendez-vous", $"{client} souhaite réserver {when}. Répondez depuis votre agenda."));
         }
 

@@ -159,7 +159,7 @@ public sealed partial class AuthService(
 
     // ───────── First factors ─────────
 
-    public async Task<Result<ChallengeResponse>> LoginAsync(LoginRequest request, CancellationToken ct)
+    public async Task<Result<ChallengeResponse>> LoginAsync(LoginRequest request, CancellationToken ct, string? trustedDeviceToken = null)
     {
         var normalized = NormalizeEmail(request.Email);
         var user = await db.Users.FirstOrDefaultAsync(u => u.Email == normalized, ct);
@@ -200,10 +200,10 @@ public sealed partial class AuthService(
         }
 
         user.ResetFailedLogins();
-        return Result.Success(await StartSecondFactorAsync(user, ct));
+        return Result.Success(await StartSecondFactorAsync(user, ct, trustedDeviceToken));
     }
 
-    public async Task<Result<ChallengeResponse>> LoginWithGoogleAsync(string? idToken, CancellationToken ct)
+    public async Task<Result<ChallengeResponse>> LoginWithGoogleAsync(string? idToken, CancellationToken ct, string? trustedDeviceToken = null)
     {
         if (!Options.Google.Enabled)
         {
@@ -237,7 +237,7 @@ public sealed partial class AuthService(
         }
 
         user.ConfirmEmail(); // Google asserted the address is verified
-        return Result.Success(await StartSecondFactorAsync(user, ct));
+        return Result.Success(await StartSecondFactorAsync(user, ct, trustedDeviceToken));
     }
 
     // ───────── Second factor (Google Authenticator) ─────────
@@ -287,7 +287,7 @@ public sealed partial class AuthService(
         }
 
         challenge.Consume(time.GetUtcNow());
-        return Result.Success(await IssueSessionAsync(user, context, recoveryCodes, ct));
+        return Result.Success(await IssueSessionAsync(user, context, recoveryCodes, request.RememberDevice, ct));
     }
 
     public async Task<Result<IssuedSession>> VerifyTwoFactorAsync(ChallengeCodeRequest request, ClientContext context, CancellationToken ct)
@@ -331,7 +331,35 @@ public sealed partial class AuthService(
         }
 
         challenge.Consume(now);
-        return Result.Success(await IssueSessionAsync(user, context, null, ct));
+        return Result.Success(await IssueSessionAsync(user, context, null, request.RememberDevice, ct));
+    }
+
+    public async Task<Result<IssuedSession>> CompleteTrustedDeviceAsync(
+        string? challengeToken,
+        string? trustedDeviceToken,
+        ClientContext context,
+        CancellationToken ct)
+    {
+        var loaded = await LoadChallengeAsync(challengeToken, ChallengePurpose.TrustedDevice, ct);
+        if (loaded is null || string.IsNullOrWhiteSpace(trustedDeviceToken))
+        {
+            return Result.Failure<IssuedSession>(AuthErrors.ChallengeExpired);
+        }
+
+        var (challenge, user) = loaded.Value;
+        var now = time.GetUtcNow();
+        var tokenHash = TokenService.Hash(trustedDeviceToken);
+        var device = await db.TrustedDevices.FirstOrDefaultAsync(
+            d => d.UserId == user.Id && d.TokenHash == tokenHash && d.RevokedAt == null && d.ExpiresAt > now,
+            ct);
+        if (device is null)
+        {
+            return Result.Failure<IssuedSession>(AuthErrors.ChallengeExpired);
+        }
+
+        device.Touch(now, context.IpAddress);
+        challenge.Consume(now);
+        return Result.Success(await IssueSessionAsync(user, context, null, rememberDevice: false, ct));
     }
 
     // ───────── Sessions ─────────
@@ -372,7 +400,7 @@ public sealed partial class AuthService(
         db.RefreshTokens.Add(next);
         current.Revoke(now, next.Id);
         await db.SaveChangesAsync(ct);
-        return Result.Success(BuildIssued(user, current.SessionId, raw, expires, null, idle));
+        return Result.Success(BuildIssued(user, current.SessionId, raw, expires, null, idle, null, null));
     }
 
     public async Task LogoutAsync(string? refreshToken, CancellationToken ct)
@@ -424,11 +452,26 @@ public sealed partial class AuthService(
         return emailToken is not null && emailToken.IsUsable(time.GetUtcNow()) ? emailToken : null;
     }
 
-    private async Task<ChallengeResponse> StartSecondFactorAsync(User user, CancellationToken ct)
+    private async Task<ChallengeResponse> StartSecondFactorAsync(User user, CancellationToken ct, string? trustedDeviceToken = null)
     {
+        var now = time.GetUtcNow();
+        if (user.TotpEnabled && !string.IsNullOrWhiteSpace(trustedDeviceToken))
+        {
+            var tokenHash = TokenService.Hash(trustedDeviceToken);
+            var isTrusted = await db.TrustedDevices.AsNoTracking()
+                .AnyAsync(d => d.UserId == user.Id && d.TokenHash == tokenHash && d.RevokedAt == null && d.ExpiresAt > now, ct);
+            if (isTrusted)
+            {
+                var rawTrusted = TokenService.NewOpaqueToken();
+                db.LoginChallenges.Add(LoginChallenge.Create(user.Id, ChallengePurpose.TrustedDevice, TokenService.Hash(rawTrusted), now.AddMinutes(Options.ChallengeMinutes)));
+                await db.SaveChangesAsync(ct);
+                return new ChallengeResponse(ChallengeStatus.TrustedDevice, rawTrusted);
+            }
+        }
+
         var purpose = user.TotpEnabled ? ChallengePurpose.TwoFactor : ChallengePurpose.TwoFactorSetup;
         var raw = TokenService.NewOpaqueToken();
-        db.LoginChallenges.Add(LoginChallenge.Create(user.Id, purpose, TokenService.Hash(raw), time.GetUtcNow().AddMinutes(Options.ChallengeMinutes)));
+        db.LoginChallenges.Add(LoginChallenge.Create(user.Id, purpose, TokenService.Hash(raw), now.AddMinutes(Options.ChallengeMinutes)));
         await db.SaveChangesAsync(ct);
         return new ChallengeResponse(user.TotpEnabled ? ChallengeStatus.TwoFactorRequired : ChallengeStatus.TwoFactorSetupRequired, raw);
     }
@@ -451,7 +494,12 @@ public sealed partial class AuthService(
         return user is { Status: UserStatus.Active } ? (challenge, user) : null;
     }
 
-    private async Task<IssuedSession> IssueSessionAsync(User user, ClientContext context, IReadOnlyList<string>? recoveryCodes, CancellationToken ct)
+    private async Task<IssuedSession> IssueSessionAsync(
+        User user,
+        ClientContext context,
+        IReadOnlyList<string>? recoveryCodes,
+        bool rememberDevice,
+        CancellationToken ct)
     {
         var now = time.GetUtcNow();
         var sessionId = Guid.CreateVersion7();
@@ -459,8 +507,24 @@ public sealed partial class AuthService(
         var idle = await sessionPolicy.IdleTimeoutAsync(ct);
         var expires = SessionExpiry(now, now, idle);
         db.RefreshTokens.Add(RefreshToken.Create(user.Id, sessionId, TokenService.Hash(raw), now, now, expires, Truncate(context.UserAgent, 256), context.IpAddress));
+
+        string? trustedRaw = null;
+        DateTimeOffset? trustedExpires = null;
+        if (rememberDevice && Options.TrustedDeviceDays > 0)
+        {
+            trustedRaw = TokenService.NewOpaqueToken();
+            trustedExpires = now.AddDays(Options.TrustedDeviceDays);
+            db.TrustedDevices.Add(TrustedDevice.Create(
+                user.Id,
+                TokenService.Hash(trustedRaw),
+                now,
+                trustedExpires.Value,
+                Truncate(context.UserAgent, 256),
+                context.IpAddress));
+        }
+
         await db.SaveChangesAsync(ct);
-        return BuildIssued(user, sessionId, raw, expires, recoveryCodes, idle);
+        return BuildIssued(user, sessionId, raw, expires, recoveryCodes, idle, trustedRaw, trustedExpires);
     }
 
     /// <summary>A session ends after the configured inactivity (sliding) and never outlives the absolute limit.</summary>
@@ -471,10 +535,23 @@ public sealed partial class AuthService(
         return sliding < absolute ? sliding : absolute;
     }
 
-    private IssuedSession BuildIssued(User user, Guid sessionId, string rawRefreshToken, DateTimeOffset refreshExpires, IReadOnlyList<string>? recoveryCodes, TimeSpan idle)
+    private IssuedSession BuildIssued(
+        User user,
+        Guid sessionId,
+        string rawRefreshToken,
+        DateTimeOffset refreshExpires,
+        IReadOnlyList<string>? recoveryCodes,
+        TimeSpan idle,
+        string? trustedDeviceToken,
+        DateTimeOffset? trustedDeviceExpires)
     {
         var (access, expiresAt) = tokens.CreateAccessToken(user, sessionId);
-        return new IssuedSession(new AuthResponse(access, expiresAt, ToDto(user), recoveryCodes, (int)idle.TotalMinutes), rawRefreshToken, refreshExpires);
+        return new IssuedSession(
+            new AuthResponse(access, expiresAt, ToDto(user), recoveryCodes, (int)idle.TotalMinutes),
+            rawRefreshToken,
+            refreshExpires,
+            trustedDeviceToken,
+            trustedDeviceExpires);
     }
 
     private async Task RevokeAllSessionsAsync(Guid userId, DateTimeOffset now, CancellationToken ct)
@@ -483,6 +560,12 @@ public sealed partial class AuthService(
         foreach (var token in active)
         {
             token.Revoke(now);
+        }
+
+        var devices = await db.TrustedDevices.Where(d => d.UserId == userId && d.RevokedAt == null).ToListAsync(ct);
+        foreach (var device in devices)
+        {
+            device.Revoke(now);
         }
     }
 }

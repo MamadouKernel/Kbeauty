@@ -56,7 +56,7 @@ export function validateRows(rows: readonly DayRow[]): string | null {
 
     for (const [index, range] of ranges.entries()) {
       if (!range.opens || !range.closes || range.opens >= range.closes) {
-        return `${row.label} : l'heure de fermeture doit suivre l'heure d'ouverture.`;
+        return `${row.label} : l'heure de fermeture doit être postérieure à l'heure d'ouverture.`;
       }
 
       if (index > 0 && range.opens < ranges[index - 1].closes) {
@@ -88,7 +88,7 @@ export function validateRows(rows: readonly DayRow[]): string | null {
       padding: 0.75rem 1rem;
       border: 1px solid var(--kb-border);
       border-radius: var(--radius-md);
-      background: #fff;
+      background: var(--kb-card);
 
       @media (min-width: 640px) {
         grid-template-columns: 11rem 1fr;

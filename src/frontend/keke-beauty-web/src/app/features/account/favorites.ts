@@ -26,7 +26,7 @@ import { EstablishmentCard } from '../../shared/establishment-card/establishment
       padding: 1.5rem;
       border: 1px dashed var(--kb-primary-300);
       border-radius: var(--radius-lg);
-      background: #fff;
+      background: var(--kb-card);
     }
   `,
   template: `

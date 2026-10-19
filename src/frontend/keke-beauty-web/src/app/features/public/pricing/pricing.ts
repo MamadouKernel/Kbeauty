@@ -26,7 +26,7 @@ import { formatMoney } from '../../../core/format/format';
       padding: 0.25rem;
       border: 1px solid var(--kb-border);
       border-radius: var(--radius-pill);
-      background: #fff;
+      background: var(--kb-card);
     }
     .plans {
       display: grid;
@@ -40,7 +40,7 @@ import { formatMoney } from '../../../core/format/format';
       padding: 1.25rem;
       border: 1px solid var(--kb-border);
       border-radius: var(--radius-lg);
-      background: #fff;
+      background: var(--kb-card);
       box-shadow: var(--shadow-soft);
     }
     .price {

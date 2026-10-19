@@ -39,7 +39,7 @@ public static class DisputeEndpoints
                 Respond(await service.RespondAsync(user.UserId(), id, input, ct)))
             .Produces<DisputeDto>().ProducesProblem(StatusCodes.Status400BadRequest).ProducesProblem(StatusCodes.Status404NotFound).ProducesProblem(StatusCodes.Status409Conflict);
 
-        var admin = app.MapGroup("/api/v1/admin/disputes").WithTags("Admin").RequireAuthorization(AdminReviewEndpoints.AdminPolicy);
+        var admin = app.MapGroup("/api/v1/admin/disputes").WithTags("Admin").RequireAuthorization(AdminReviewEndpoints.AdminSupportPolicy);
 
         admin.MapGet("/", async ([FromQuery] string? status, DisputeService service, CancellationToken ct) =>
                 Respond(await service.ListAsync(status, ct)))

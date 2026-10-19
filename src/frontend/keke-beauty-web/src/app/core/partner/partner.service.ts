@@ -20,6 +20,59 @@ export type ReviewInfo = Schemas['ReviewInfo'];
 
 export type DocumentSide = 'front' | 'back' | 'selfie';
 
+export interface PartnerServiceRevenueRow {
+  readonly serviceName: string;
+  readonly count: number;
+  readonly totalAmount: number;
+}
+
+export interface PartnerMethodBreakdown {
+  readonly method: string;
+  readonly count: number;
+  readonly totalAmount: number;
+}
+
+export interface PartnerFinanceTransactionRow {
+  readonly appointmentId: string;
+  readonly startsAt: string;
+  readonly clientName: string;
+  readonly resourceName: string | null;
+  readonly servicesSummary: string;
+  readonly status: string;
+  readonly totalPrice: number;
+  readonly onlinePaidAmount: number;
+  readonly platformFee: number;
+  readonly netOnlineAmount: number;
+  readonly onSitePaidMethod: string | null;
+  readonly onSitePaidReference: string | null;
+  readonly tipAmount: number;
+  readonly commissionAmount: number;
+  readonly currencyCode: string;
+}
+
+export interface PartnerFinanceSummary {
+  readonly establishmentId: string;
+  readonly establishmentName: string;
+  readonly from: string;
+  readonly to: string;
+  readonly currencyCode: string;
+  readonly completedCount: number;
+  readonly noShowCount: number;
+  readonly grossRevenue: number;
+  readonly onlineGross: number;
+  readonly platformFees: number;
+  readonly onlineNet: number;
+  readonly onSiteCash: number;
+  readonly onSiteMobileMoney: number;
+  readonly totalTips: number;
+  readonly totalCommissions: number;
+  readonly totalPaidOut: number;
+  readonly byService: PartnerServiceRevenueRow[];
+  readonly byMethod: PartnerMethodBreakdown[];
+  readonly transactions: PartnerFinanceTransactionRow[];
+  readonly payouts: Schemas['PayoutDto'][];
+}
+
 export const DOCUMENT_TYPES: readonly { readonly value: string; readonly label: string }[] = [
   { value: 'NationalId', label: "Carte nationale d'identité" },
   { value: 'Passport', label: 'Passeport' },
@@ -159,6 +212,59 @@ export class PartnerService {
 
   reorderPhotos(id: string, ids: readonly string[]): Promise<void> {
     return this.send(this.http.put<void>(`${this.base}/establishments/${id}/media/order`, { ids }));
+  }
+
+  // ───────── Finances, accounting export & PDF receipts ─────────
+
+  finances(id: string, from?: string, to?: string): Promise<PartnerFinanceSummary> {
+    const params: Record<string, string> = {};
+    if (from) params['from'] = from;
+    if (to) params['to'] = to;
+    return firstValueFrom(
+      this.http.get<PartnerFinanceSummary>(`${this.base}/establishments/${id}/finances`, {
+        params,
+      }),
+    );
+  }
+
+  async downloadFinancesCsv(id: string, from?: string, to?: string): Promise<void> {
+    const params: Record<string, string> = {};
+    if (from) params['from'] = from;
+    if (to) params['to'] = to;
+    const blob = await firstValueFrom(
+      this.http.get(`${this.base}/establishments/${id}/finances.csv`, {
+        params,
+        responseType: 'blob',
+      }),
+    );
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `comptabilite-${id.slice(0, 8)}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
+  async openAppointmentReceiptPdf(appointmentId: string): Promise<void> {
+    const blob = await firstValueFrom(
+      this.http.get(`${this.base}/appointments/${appointmentId}/receipt.pdf`, {
+        responseType: 'blob',
+      }),
+    );
+    const url = URL.createObjectURL(blob);
+    window.open(url, '_blank', 'noopener');
+    setTimeout(() => URL.revokeObjectURL(url), 60_000);
+  }
+
+  async openPayoutReceiptPdf(payoutId: string): Promise<void> {
+    const blob = await firstValueFrom(
+      this.http.get(`${this.base}/payouts/${payoutId}/receipt.pdf`, {
+        responseType: 'blob',
+      }),
+    );
+    const url = URL.createObjectURL(blob);
+    window.open(url, '_blank', 'noopener');
+    setTimeout(() => URL.revokeObjectURL(url), 60_000);
   }
 
   // ───────── Identity (KYC) ─────────

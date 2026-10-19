@@ -11,7 +11,7 @@ namespace KekeBeauty.Infrastructure.Billing;
 public static class BillingErrors
 {
     public static readonly Error PlanNotFound = new("plan.not_found", "Plan introuvable.");
-    public static readonly Error NotPayable = new("plan.not_payable", "Ce plan n'est pas payant : rien à souscrire.");
+    public static readonly Error NotPayable = new("plan.not_payable", "Cette formule n'est pas payante : rien à souscrire.");
     public static readonly Error NotPublished = new("establishment.not_published", "L'établissement doit être publié avant de souscrire un abonnement.");
     public static readonly Error AlreadyActive = new("subscription.already_active", "Cet établissement a déjà un abonnement en cours.");
     public static readonly Error SubscriptionNotFound = new("subscription.not_found", "Abonnement introuvable.");
@@ -25,7 +25,7 @@ public static class BillingErrors
     public static readonly Error NothingToChange = new("subscription.no_change", "Choisissez une autre formule ou une autre périodicité que l'abonnement actuel.");
     public static readonly Error NotChangeable = new("subscription.not_changeable", "Le changement de formule n'est possible que sur un abonnement actif et à jour.");
     public static readonly Error NoScheduledChange = new("subscription.no_scheduled_change", "Aucun changement n'est programmé.");
-    public static readonly Error FeatureRequired = new("plan.feature_required", "Cette fonctionnalité fait partie du plan Premium.");
+    public static readonly Error FeatureRequired = new("plan.feature_required", "Cette fonctionnalité fait partie de la formule Premium.");
 
     public static Error Invalid(string message) => new("validation.failed", message);
 }
@@ -274,7 +274,7 @@ public sealed partial class BillingService(
         var name = input.Name.Trim();
         if (plan.Code == EntitlementService.FreePlanCode && (input.MonthlyPrice != 0 || input.AnnualPrice != 0 || !input.IsActive))
         {
-            return Result.Failure<PlanDto>(BillingErrors.Invalid("Le plan Gratuit reste gratuit et actif."));
+            return Result.Failure<PlanDto>(BillingErrors.Invalid("La formule Gratuite reste gratuite et active."));
         }
 
         var priceChanged = plan.MonthlyPrice != input.MonthlyPrice || plan.AnnualPrice != input.AnnualPrice;
@@ -366,6 +366,32 @@ public sealed partial class BillingService(
         return Result.Success(ToDto(plan));
     }
 
+    /// <summary>Deletes a plan that has never been subscribed to (the free plan is permanent).</summary>
+    public async Task<Result> DeletePlanAsync(Guid adminId, Guid planId, CancellationToken ct)
+    {
+        var plan = await db.Plans.FirstOrDefaultAsync(p => p.Id == planId, ct);
+        if (plan is null)
+        {
+            return Result.Failure(BillingErrors.PlanNotFound);
+        }
+
+        if (plan.Code == EntitlementService.FreePlanCode)
+        {
+            return Result.Failure(BillingErrors.Invalid("La formule Gratuite ne peut pas être supprimée."));
+        }
+
+        if (await db.Subscriptions.AnyAsync(s => s.PlanId == planId || s.PendingPlanId == planId, ct))
+        {
+            return Result.Failure(new Error("plan.in_use", "Impossible de supprimer une formule déjà souscrite ; désactivez-la plutôt."));
+        }
+
+        db.Plans.Remove(plan);
+        Admin.Audit.Add(db, new Admin.AdminContext(adminId, false, null), time, "plan.delete", "Plan", plan.Id,
+            new { plan.Code, plan.Name });
+        await db.SaveChangesAsync(ct);
+        return Result.Success();
+    }
+
     private static Error? ValidatePlan(PlanUpdate input)
     {
         var name = input.Name?.Trim() ?? string.Empty;
@@ -397,9 +423,16 @@ public sealed partial class BillingService(
 
         if (features.MaxMedia is < 0 or > 500 || features.MaxVideos is < 0 or > 50
             || features.MaxResources is < 1 or > Scheduling.ResourceService.MaxResources
-            || features.MaxAppointmentsPerMonth is < 1 or > 100000)
+            || features.MaxAppointmentsPerMonth is < 1 or > 100000
+            || features.MaxServices is < 1 or > 500)
         {
-            return BillingErrors.Invalid($"Limites hors bornes : photos 0 à 500, vidéos 0 à 50, ressources 1 à {Scheduling.ResourceService.MaxResources}, rendez-vous par mois 1 à 100 000 (vide = illimité).");
+            return BillingErrors.Invalid($"Limites hors bornes : photos 0 à 500, vidéos 0 à 50, prestations 1 à 500, ressources 1 à {Scheduling.ResourceService.MaxResources}, rendez-vous par mois 1 à 100 000 (vide = illimité).");
+        }
+
+        var perks = features.Perks?.Select(p => p?.Trim()).Where(p => !string.IsNullOrEmpty(p)).ToList() ?? [];
+        if (perks.Count > 12 || perks.Any(p => p!.Length > 120))
+        {
+            return BillingErrors.Invalid("Au plus 12 avantages par formule, de 120 caractères maximum chacun.");
         }
 
         // CinetPay only takes multiples of 5, at least 100: refuse a tariff that could never be paid.

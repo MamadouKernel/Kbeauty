@@ -1,3 +1,4 @@
+import { ThemeToggle } from './shared/theme-toggle/theme-toggle';
 import { DOCUMENT } from '@angular/common';
 import {
   ChangeDetectionStrategy,
@@ -41,6 +42,7 @@ type Menu = 'account' | 'mobile';
   selector: 'app-root',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
+    ThemeToggle,
     RouterOutlet,
     RouterLink,
     RouterLinkActive,
@@ -72,6 +74,7 @@ type Menu = 'account' | 'mobile';
 })
 export class App {
   protected readonly auth = inject(AuthService);
+  protected readonly idle = inject(IdleLogout);
   private readonly router = inject(Router);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly document = inject(DOCUMENT);
@@ -81,7 +84,16 @@ export class App {
 
   protected readonly isAdmin = computed(
     () =>
-      this.auth.user()?.roles.some((role) => role === 'Admin' || role === 'SuperAdmin') ?? false,
+      this.auth
+        .user()
+        ?.roles.some(
+          (role) =>
+            role === 'SuperAdmin' ||
+            role === 'Admin' ||
+            role === 'AdminKyc' ||
+            role === 'AdminSupport' ||
+            role === 'AdminAccountant',
+        ) ?? false,
   );
 
   protected readonly isPartner = computed(
@@ -98,7 +110,6 @@ export class App {
 
   constructor() {
     void inject(HealthService).check();
-    inject(IdleLogout);
     this.router.events
       .pipe(
         filter((event) => event instanceof NavigationEnd),

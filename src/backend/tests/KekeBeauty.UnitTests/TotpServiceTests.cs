@@ -83,4 +83,37 @@ public class TotpServiceTests
         uri.Should().StartWith("otpauth://totp/Keke%20Beauty:awa%40example.com?");
         uri.Should().Contain("secret=JBSWY3DPEHPK3PXP").And.Contain("issuer=Keke%20Beauty").And.Contain("digits=6").And.Contain("period=30");
     }
+
+    [Fact]
+    public void Trusted_device_remains_active_until_expiry_or_revocation()
+    {
+        var device = KekeBeauty.Modules.Identity.Domain.TrustedDevice.Create(
+            Guid.CreateVersion7(),
+            "hash-123",
+            Start,
+            Start.AddDays(30),
+            "Chrome / Linux",
+            "127.0.0.1");
+
+        device.IsActive(Start).Should().BeTrue();
+        device.IsActive(Start.AddDays(29)).Should().BeTrue();
+        device.IsActive(Start.AddDays(30)).Should().BeFalse();
+
+        var touchedAt = Start.AddDays(5);
+        device.Touch(touchedAt, "10.0.0.2");
+        device.LastUsedAt.Should().Be(touchedAt);
+        device.IpAddress.Should().Be("10.0.0.2");
+
+        device.Revoke(Start.AddDays(6));
+        device.IsActive(Start.AddDays(6)).Should().BeFalse();
+    }
+
+    [Fact]
+    public void AppRoles_exposes_all_fine_grained_admin_roles()
+    {
+        KekeBeauty.Modules.Identity.Domain.AppRoles.AllAdminRoles.Should().BeEquivalentTo(
+            ["SuperAdmin", "Admin", "AdminKyc", "AdminSupport", "AdminAccountant"]);
+        KekeBeauty.Modules.Identity.Domain.AppRoles.DelegatedAdminRoles.Should().BeEquivalentTo(
+            ["Admin", "AdminKyc", "AdminSupport", "AdminAccountant"]);
+    }
 }

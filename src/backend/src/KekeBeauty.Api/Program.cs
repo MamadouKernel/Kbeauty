@@ -35,6 +35,7 @@ builder.Services.AddIdentityModule(builder.Configuration);
 builder.Services.AddProxyAwareness(builder.Configuration);
 builder.Services.AddGlobalRateLimit(builder.Configuration);
 builder.Services.AddEstablishmentRateLimits();
+builder.Services.AddGrowthRateLimits();
 builder.Services.AddObservability(builder.Configuration);
 
 // With several API servers behind a load balancer, a message sent from one server must reach the browsers connected to the others:
@@ -132,6 +133,7 @@ app.MapAppointmentEndpoints();
 app.MapAgendaEndpoints();
 app.MapTeamEndpoints();
 app.MapDisputeEndpoints();
+app.MapGrowthEndpoints();
 app.MapNotificationEndpoints();
 app.MapBillingEndpoints();
 app.MapEngagementEndpoints();

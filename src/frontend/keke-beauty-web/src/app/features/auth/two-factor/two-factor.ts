@@ -1,3 +1,4 @@
+import { AuthLayout } from '../../../shared/auth-layout/auth-layout';
 import { NgTemplateOutlet } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -15,6 +16,7 @@ type Phase = 'loading' | 'setup' | 'verify' | 'recovery' | 'expired';
   selector: 'app-two-factor',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
+    AuthLayout,
     ReactiveFormsModule,
     NgTemplateOutlet,
     RouterLink,
@@ -40,7 +42,7 @@ type Phase = 'loading' | 'setup' | 'verify' | 'recovery' | 'expired';
       padding: 0.75rem;
       border: 1px solid var(--kb-border);
       border-radius: var(--radius-md);
-      background: #fff;
+      background: var(--kb-card);
     }
     .secret {
       justify-self: center;
@@ -84,92 +86,90 @@ type Phase = 'loading' | 'setup' | 'verify' | 'recovery' | 'expired';
     }
   `,
   template: `
-    <section class="auth-page" aria-labelledby="twofa-title">
-      <div class="auth-card">
-        @switch (phase()) {
-          @case ('loading') {
-            <h1 id="twofa-title">Sécurisation du compte…</h1>
-            <p class="auth-lead" role="status">Préparation de la double authentification.</p>
-          }
-
-          @case ('setup') {
-            <svg lucideShieldCheck class="shield" aria-hidden="true"></svg>
-            <p class="eyebrow">Étape de sécurité</p>
-            <h1 id="twofa-title">Activer Google Authenticator</h1>
-            <p class="auth-lead">
-              La double authentification protège votre compte, même si votre mot de passe fuite.
-            </p>
-            <ol>
-              <li>
-                Installez <strong>Google Authenticator</strong> (ou une application compatible) sur
-                votre téléphone.
-              </li>
-              <li>Scannez le QR code ci-dessous, ou saisissez la clé manuellement.</li>
-              <li>Entrez le code à 6 chiffres affiché par l'application.</li>
-            </ol>
-
-            @if (qr()) {
-              <img
-                class="qr"
-                [src]="qr()"
-                width="220"
-                height="220"
-                alt="QR code à scanner avec Google Authenticator"
-              />
-            }
-            <p class="secret">
-              <span class="visually-hidden">Clé de configuration manuelle : </span
-              ><code>{{ spacedSecret() }}</code>
-            </p>
-
-            <ng-container *ngTemplateOutlet="codeForm" />
-          }
-
-          @case ('verify') {
-            <svg lucideShieldCheck class="shield" aria-hidden="true"></svg>
-            <p class="eyebrow">Vérification en deux étapes</p>
-            <h1 id="twofa-title">Entrez votre code</h1>
-            <p class="auth-lead">
-              Saisissez le code à 6 chiffres de Google Authenticator, ou l'un de vos codes de
-              récupération.
-            </p>
-            <ng-container *ngTemplateOutlet="codeForm" />
-          }
-
-          @case ('recovery') {
-            <svg lucideShieldCheck class="shield" aria-hidden="true"></svg>
-            <p class="eyebrow">Double authentification activée</p>
-            <h1 id="twofa-title">Conservez vos codes de récupération</h1>
-            <p class="auth-lead">
-              Chaque code ne sert qu'une fois si vous perdez votre téléphone. Ils ne seront
-              <strong>plus jamais affichés</strong>.
-            </p>
-            <ul class="codes" aria-label="Codes de récupération">
-              @for (code of recoveryCodes(); track code) {
-                <li>{{ code }}</li>
-              }
-            </ul>
-            <button type="button" class="btn btn-ghost" (click)="copyCodes()">
-              <svg lucideCopy aria-hidden="true"></svg>
-              {{ copied() ? 'Copiés !' : 'Copier les codes' }}
-            </button>
-            <label class="confirm">
-              <input type="checkbox" [checked]="saved()" (change)="saved.set(!saved())" />
-              <span>J'ai conservé ces codes dans un endroit sûr.</span>
-            </label>
-            <button type="button" class="btn btn-primary" [disabled]="!saved()" (click)="finish()">
-              Continuer
-            </button>
-          }
-
-          @default {
-            <h1 id="twofa-title">Connexion expirée</h1>
-            <p class="form-error" role="alert">{{ error() }}</p>
-            <a class="btn btn-primary" routerLink="/connexion">Se reconnecter</a>
-          }
+    <app-auth-layout labelledBy="twofa-title">
+      @switch (phase()) {
+        @case ('loading') {
+          <h1 id="twofa-title">Sécurisation du compte…</h1>
+          <p class="auth-lead" role="status">Préparation de la double authentification.</p>
         }
-      </div>
-    </section>
+
+        @case ('setup') {
+          <svg lucideShieldCheck class="shield" aria-hidden="true"></svg>
+          <p class="eyebrow">Étape de sécurité</p>
+          <h1 id="twofa-title">Activer Google Authenticator</h1>
+          <p class="auth-lead">
+            La double authentification protège votre compte, même si votre mot de passe est dérobé.
+          </p>
+          <ol>
+            <li>
+              Installez <strong>Google Authenticator</strong> (ou une application compatible) sur
+              votre téléphone.
+            </li>
+            <li>Scannez le QR code ci-dessous, ou saisissez la clé manuellement.</li>
+            <li>Entrez le code à 6 chiffres affiché par l'application.</li>
+          </ol>
+
+          @if (qr()) {
+            <img
+              class="qr"
+              [src]="qr()"
+              width="220"
+              height="220"
+              alt="QR code à scanner avec Google Authenticator"
+            />
+          }
+          <p class="secret">
+            <span class="visually-hidden">Clé de configuration manuelle : </span
+            ><code>{{ spacedSecret() }}</code>
+          </p>
+
+          <ng-container *ngTemplateOutlet="codeForm" />
+        }
+
+        @case ('verify') {
+          <svg lucideShieldCheck class="shield" aria-hidden="true"></svg>
+          <p class="eyebrow">Vérification en deux étapes</p>
+          <h1 id="twofa-title">Entrez votre code</h1>
+          <p class="auth-lead">
+            Saisissez le code à 6 chiffres de Google Authenticator, ou l'un de vos codes de
+            récupération.
+          </p>
+          <ng-container *ngTemplateOutlet="codeForm" />
+        }
+
+        @case ('recovery') {
+          <svg lucideShieldCheck class="shield" aria-hidden="true"></svg>
+          <p class="eyebrow">Double authentification activée</p>
+          <h1 id="twofa-title">Conservez vos codes de récupération</h1>
+          <p class="auth-lead">
+            Si vous perdez votre téléphone, chacun de ces codes permet de vous connecter une seule
+            fois. Ils ne seront <strong>plus jamais affichés</strong>.
+          </p>
+          <ul class="codes" aria-label="Codes de récupération">
+            @for (code of recoveryCodes(); track code) {
+              <li>{{ code }}</li>
+            }
+          </ul>
+          <button type="button" class="btn btn-ghost" (click)="copyCodes()">
+            <svg lucideCopy aria-hidden="true"></svg>
+            {{ copied() ? 'Copiés !' : 'Copier les codes' }}
+          </button>
+          <label class="confirm">
+            <input type="checkbox" [checked]="saved()" (change)="saved.set(!saved())" />
+            <span>J'ai conservé ces codes dans un endroit sûr.</span>
+          </label>
+          <button type="button" class="btn btn-primary" [disabled]="!saved()" (click)="finish()">
+            Continuer
+          </button>
+        }
+
+        @default {
+          <h1 id="twofa-title">Connexion expirée</h1>
+          <p class="form-error" role="alert">{{ error() }}</p>
+          <a class="btn btn-primary" routerLink="/connexion">Se reconnecter</a>
+        }
+      }
+    </app-auth-layout>
 
     <ng-template #codeForm>
       <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
@@ -185,6 +185,11 @@ type Phase = 'loading' | 'setup' | 'verify' | 'recovery' | 'expired';
             maxlength="20"
           />
         </div>
+
+        <label class="confirm">
+          <input id="twofa-remember" type="checkbox" formControlName="rememberDevice" />
+          <span>Se souvenir de cet appareil pendant 30 jours</span>
+        </label>
 
         @if (error()) {
           <p class="form-error" role="alert">{{ error() }}</p>
@@ -221,6 +226,7 @@ export class TwoFactor {
 
   protected readonly form = inject(NonNullableFormBuilder).group({
     code: ['', [Validators.required]],
+    rememberDevice: [false],
   });
 
   constructor() {
@@ -230,7 +236,9 @@ export class TwoFactor {
       return;
     }
 
-    if (challenge.status === 'TwoFactorSetupRequired') {
+    if (challenge.status === 'TrustedDevice') {
+      void this.completeTrusted();
+    } else if (challenge.status === 'TwoFactorSetupRequired') {
       void this.startSetup();
     } else {
       this.phase.set('verify');
@@ -243,15 +251,15 @@ export class TwoFactor {
       return;
     }
 
-    const { code } = this.form.getRawValue();
+    const { code, rememberDevice } = this.form.getRawValue();
     this.busy.set(true);
     this.error.set('');
     try {
       if (this.phase() === 'setup') {
-        await this.auth.enableTwoFactor(code);
+        await this.auth.enableTwoFactor(code, rememberDevice);
         this.phase.set('recovery');
       } else {
-        await this.auth.verifyTwoFactor(code);
+        await this.auth.verifyTwoFactor(code, rememberDevice);
         await this.finish();
       }
     } catch (error) {
@@ -261,7 +269,7 @@ export class TwoFactor {
         this.phase.set('expired');
       } else {
         this.error.set(problemMessage(error, 'Code invalide. Réessayez.'));
-        this.form.reset();
+        this.form.controls.code.reset('');
       }
     } finally {
       this.busy.set(false);
@@ -280,6 +288,16 @@ export class TwoFactor {
   protected async finish(): Promise<void> {
     this.auth.clearChallenge();
     await this.router.navigateByUrl(safeReturnUrl(this.route.snapshot.queryParamMap.get('retour')));
+  }
+
+  private async completeTrusted(): Promise<void> {
+    try {
+      await this.auth.completeTrustedDevice();
+      await this.finish();
+    } catch (error) {
+      this.error.set(problemMessage(error, 'Appareil non reconnu. Saisissez votre code 2FA.'));
+      this.phase.set('verify');
+    }
   }
 
   private async startSetup(): Promise<void> {

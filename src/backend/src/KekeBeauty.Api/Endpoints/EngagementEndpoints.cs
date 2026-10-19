@@ -86,7 +86,7 @@ public static class EngagementEndpoints
             .Produces<ReviewDto>().ProducesProblem(StatusCodes.Status400BadRequest).ProducesProblem(StatusCodes.Status404NotFound);
 
         // Admin: hide an abusive review (with the reason) or restore it.
-        var admin = app.MapGroup("/api/v1/admin/reviews").WithTags("Admin").RequireAuthorization(AdminReviewEndpoints.AdminPolicy);
+        var admin = app.MapGroup("/api/v1/admin/reviews").WithTags("Admin").RequireAuthorization(AdminReviewEndpoints.AdminSupportPolicy);
         admin.MapPost("/{id:guid}/hide", async (Guid id, HideReviewInput input, ClaimsPrincipal user, OpinionService service, CancellationToken ct) =>
                 PartnerEndpoints.NoContentOr(await service.SetHiddenAsync(user.UserId(), id, hidden: true, input.Reason, ct)))
             .Produces(StatusCodes.Status204NoContent).ProducesProblem(StatusCodes.Status400BadRequest).ProducesProblem(StatusCodes.Status404NotFound);

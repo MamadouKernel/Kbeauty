@@ -180,7 +180,7 @@ public sealed class ResourceService(KekeBeautyDbContext db, TimeProvider time, K
 
         if (input.EndsAt <= input.StartsAt || input.EndsAt - input.StartsAt > TimeSpan.FromDays(366))
         {
-            return Result.Failure<Guid>(SchedulingErrors.Invalid("La fin doit suivre le début, sur 366 jours au plus."));
+            return Result.Failure<Guid>(SchedulingErrors.Invalid("La fin doit être postérieure au début, sur 366 jours au plus."));
         }
 
         if (input.Reason is { Length: > 250 })

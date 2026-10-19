@@ -138,4 +138,38 @@ describe('Header menus', () => {
     expect(links.length).toBe(4);
     links.forEach((link) => expect(link.querySelector('svg')).toBeTruthy());
   });
+
+  it('shows the Administration link for fine-grained admin roles such as AdminKyc', () => {
+    const { fixture, trigger, items } = create({
+      ...PARTNER,
+      roles: ['AdminKyc'],
+    });
+
+    trigger().click();
+    fixture.detectChanges();
+
+    const labels = items().map((i) => i.textContent?.trim());
+    expect(labels).toContain('Administration');
+  });
+
+  it('displays the pre-logout inactivity warning banner and allows staying signed in', () => {
+    const { fixture, root } = create(PARTNER);
+    const app = fixture.componentInstance as unknown as {
+      idle: { warningSecondsLeft: { set(v: number | null): void }; staySignedIn(): void };
+    };
+    const staySpy = vi.spyOn(app.idle, 'staySignedIn').mockImplementation(() => {
+      app.idle.warningSecondsLeft.set(null);
+    });
+
+    app.idle.warningSecondsLeft.set(45);
+    fixture.detectChanges();
+
+    const banner = root.querySelector('.idle-banner');
+    expect(banner?.textContent).toContain('45 s');
+    banner?.querySelector<HTMLButtonElement>('button')?.click();
+    fixture.detectChanges();
+
+    expect(staySpy).toHaveBeenCalled();
+    expect(root.querySelector('.idle-banner')).toBeNull();
+  });
 });
