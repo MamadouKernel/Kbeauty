@@ -199,7 +199,6 @@ public sealed partial class AuthService(
             user.SetPassword(hasher.HashPassword(user, request.Password!));
         }
 
-        user.ResetFailedLogins();
         return Result.Success(await StartSecondFactorAsync(user, ct, trustedDeviceToken));
     }
 
@@ -274,6 +273,11 @@ public sealed partial class AuthService(
         if (!totp.TryVerify(totp.Unprotect(user.TotpSecretProtected), code, null, out var step))
         {
             challenge.RegisterFailedAttempt();
+            if (challenge.Attempts >= LoginChallenge.MaxAttempts)
+            {
+                user.RegisterFailedLogin(time.GetUtcNow(), Options.MaxFailedLogins, TimeSpan.FromMinutes(Options.LockoutMinutes));
+            }
+
             await db.SaveChangesAsync(ct);
             return Result.Failure<IssuedSession>(AuthErrors.InvalidCode);
         }
@@ -326,6 +330,11 @@ public sealed partial class AuthService(
         if (!accepted)
         {
             challenge.RegisterFailedAttempt();
+            if (challenge.Attempts >= LoginChallenge.MaxAttempts)
+            {
+                user.RegisterFailedLogin(now, Options.MaxFailedLogins, TimeSpan.FromMinutes(Options.LockoutMinutes));
+            }
+
             await db.SaveChangesAsync(ct);
             return Result.Failure<IssuedSession>(AuthErrors.InvalidCode);
         }
@@ -403,18 +412,34 @@ public sealed partial class AuthService(
         return Result.Success(BuildIssued(user, current.SessionId, raw, expires, null, idle, null, null));
     }
 
-    public async Task LogoutAsync(string? refreshToken, CancellationToken ct)
+    public async Task LogoutAsync(string? refreshToken, CancellationToken ct, Guid? sessionId = null)
     {
-        if (string.IsNullOrEmpty(refreshToken))
+        var now = time.GetUtcNow();
+        var changed = false;
+
+        if (!string.IsNullOrEmpty(refreshToken))
         {
-            return;
+            var hash = TokenService.Hash(refreshToken);
+            var current = await db.RefreshTokens.FirstOrDefaultAsync(t => t.TokenHash == hash, ct);
+            if (current is not null && current.RevokedAt is null)
+            {
+                current.Revoke(now);
+                changed = true;
+            }
         }
 
-        var hash = TokenService.Hash(refreshToken);
-        var current = await db.RefreshTokens.FirstOrDefaultAsync(t => t.TokenHash == hash, ct);
-        if (current is not null)
+        if (sessionId is { } sid)
         {
-            current.Revoke(time.GetUtcNow());
+            var sessionTokens = await db.RefreshTokens.Where(t => t.SessionId == sid && t.RevokedAt == null).ToListAsync(ct);
+            foreach (var token in sessionTokens)
+            {
+                token.Revoke(now);
+                changed = true;
+            }
+        }
+
+        if (changed)
+        {
             await db.SaveChangesAsync(ct);
         }
     }
@@ -502,6 +527,7 @@ public sealed partial class AuthService(
         CancellationToken ct)
     {
         var now = time.GetUtcNow();
+        user.ResetFailedLogins();
         var sessionId = Guid.CreateVersion7();
         var raw = TokenService.NewOpaqueToken();
         var idle = await sessionPolicy.IdleTimeoutAsync(ct);

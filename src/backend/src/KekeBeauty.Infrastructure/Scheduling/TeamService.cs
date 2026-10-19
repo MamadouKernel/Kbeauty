@@ -80,7 +80,7 @@ public sealed class TeamService(KekeBeautyDbContext db, TimeProvider time)
                 return Result.Failure<TeamMemberDto>(UnknownAccount);
             }
 
-            if (user.Status != UserStatus.Active || user.Roles.Any(role => role is AppRoles.PartnerOwner or AppRoles.Admin or AppRoles.SuperAdmin))
+            if (user.Status != UserStatus.Active || user.Roles.Any(role => role == AppRoles.PartnerOwner || AppRoles.AllAdminRoles.Contains(role)))
             {
                 return Result.Failure<TeamMemberDto>(NotEligible);
             }

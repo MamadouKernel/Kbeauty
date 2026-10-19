@@ -70,7 +70,8 @@ public static class AuthEndpoints
 
         group.MapPost("/logout", async (HttpContext http, AuthService auth, CancellationToken ct) =>
         {
-            await auth.LogoutAsync(http.Request.Cookies[AuthOptions.RefreshCookieName], ct);
+            var sid = Guid.TryParse(http.User.FindFirst("sid")?.Value, out var parsed) ? parsed : (Guid?)null;
+            await auth.LogoutAsync(http.Request.Cookies[AuthOptions.RefreshCookieName], ct, sid);
             ClearRefreshCookie(http);
             return Results.NoContent();
         });

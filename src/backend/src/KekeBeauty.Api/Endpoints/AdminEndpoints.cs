@@ -24,7 +24,7 @@ public static class AdminEndpoints
         MapLegal(app.MapGroup("/api/v1/admin").WithTags("Admin").RequireAuthorization(AdminReviewEndpoints.AdminConfigPolicy));
         MapChannels(app.MapGroup("/api/v1/admin").WithTags("Admin").RequireAuthorization(AdminReviewEndpoints.AdminConfigPolicy));
         MapPayouts(app.MapGroup("/api/v1/admin").WithTags("Admin").RequireAuthorization(AdminReviewEndpoints.AdminFinancePolicy));
-        MapAudit(group);
+        MapAudit(app.MapGroup("/api/v1/admin").WithTags("Admin").RequireAuthorization(AdminReviewEndpoints.AdminConfigPolicy));
         MapAdmins(app.MapGroup("/api/v1/admin/admins").WithTags("Admin").RequireAuthorization("SuperAdmin"));
         MapBackups(app.MapGroup("/api/v1/admin/backups").WithTags("Admin").RequireAuthorization("SuperAdmin"));
         return app;

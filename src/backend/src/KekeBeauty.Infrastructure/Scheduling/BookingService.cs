@@ -60,6 +60,18 @@ public sealed class BookingService(
             }
         }
 
+        // Prevent a single client from hoarding all slots of a salon day.
+        var dayStart = new DateTimeOffset(request.StartsAt.UtcDateTime.Date, TimeSpan.Zero);
+        var clientDailyCount = await db.Appointments.CountAsync(a => a.EstablishmentId == context.Establishment.Id
+            && a.ClientUserId == clientId
+            && a.StartsAt >= dayStart && a.StartsAt < dayStart.AddDays(1)
+            && (a.Status == AppointmentStatus.Pending || a.Status == AppointmentStatus.Confirmed
+                || a.Status == AppointmentStatus.RescheduleProposed), ct);
+        if (clientDailyCount >= 4)
+        {
+            return Result.Failure<AppointmentDto>(new Error("booking.daily_limit_reached", "Vous avez atteint le nombre maximal de réservations pour cette journée dans cet établissement."));
+        }
+
         var now = time.GetUtcNow();
         var plan = await payments.PlanAsync(context.Establishment, context.TotalPrice, context.Services[0].CurrencyCode, ct);
 

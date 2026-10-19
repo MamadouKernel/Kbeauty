@@ -100,7 +100,7 @@ public sealed class PrivacyService(KekeBeautyDbContext db, IPasswordHasher<User>
             return Result.Failure(PrivacyErrors.WrongPassword);
         }
 
-        if (user.Roles.Contains(AppRoles.Admin) || user.Roles.Contains(AppRoles.SuperAdmin))
+        if (user.Roles.Any(r => AppRoles.AllAdminRoles.Contains(r)))
         {
             return Result.Failure(AdminErrors.Forbidden);
         }
@@ -133,10 +133,17 @@ public sealed class PrivacyService(KekeBeautyDbContext db, IPasswordHasher<User>
             .ExecuteUpdateAsync(set => set.SetProperty(a => a.ClientNote, (string?)null).SetProperty(a => a.ClientPhone, (string?)null), ct);
         await db.Favorites.Where(f => f.UserId == userId).ExecuteDeleteAsync(ct); // reviews stay, under the author name "Ancien client"
         await db.Notifications.Where(n => n.UserId == userId).ExecuteDeleteAsync(ct);
+        await db.NotificationPreferences.Where(p => p.UserId == userId).ExecuteDeleteAsync(ct);
+        await db.PushSubscriptions.Where(s => s.UserId == userId).ExecuteDeleteAsync(ct);
         await db.RefreshTokens.Where(t => t.UserId == userId).ExecuteDeleteAsync(ct);
+        await db.TrustedDevices.Where(d => d.UserId == userId).ExecuteDeleteAsync(ct);
+        await db.PhoneCodes.Where(c => c.UserId == userId).ExecuteDeleteAsync(ct);
         await db.LoginChallenges.Where(c => c.UserId == userId).ExecuteDeleteAsync(ct);
         await db.RecoveryCodes.Where(c => c.UserId == userId).ExecuteDeleteAsync(ct);
         await db.EmailTokens.Where(t => t.UserId == userId).ExecuteDeleteAsync(ct);
+        await db.CollaboratorPayoutAccounts.Where(a => a.UserId == userId).ExecuteDeleteAsync(ct);
+        await db.WaitlistEntries.Where(w => w.ClientUserId == userId).ExecuteDeleteAsync(ct);
+        await db.ClientTechnicalNotes.Where(n => n.ClientUserId == userId).ExecuteDeleteAsync(ct);
 
         user.Anonymize(now);
         db.AuditLogs.Add(new Modules.Administration.Domain.AuditLog

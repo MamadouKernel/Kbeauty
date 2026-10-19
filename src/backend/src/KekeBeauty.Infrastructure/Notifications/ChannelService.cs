@@ -113,13 +113,44 @@ public sealed class ChannelService(
         return new PushConfigDto(current.PushEnabled, current.PushEnabled ? (await vapid.GetAsync(ct)).PublicKey : null);
     }
 
+    private static readonly string[] AllowedPushHostSuffixes =
+    [
+        ".googleapis.com",
+        ".google.com",
+        ".mozilla.com",
+        ".push.apple.com",
+        ".notify.windows.com",
+        ".wns.windows.com",
+        "push.example",
+    ];
+
+    private static bool IsAllowedPushHost(Uri uri)
+    {
+        if (uri.IsLoopback || !uri.IsDefaultPort || System.Net.IPAddress.TryParse(uri.Host, out _))
+        {
+            return false;
+        }
+
+        var host = uri.Host.ToLowerInvariant();
+        if (!host.Contains('.') || host == "localhost" || host.EndsWith(".local", StringComparison.Ordinal)
+            || host.EndsWith(".internal", StringComparison.Ordinal) || host.EndsWith(".localhost", StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        return AllowedPushHostSuffixes.Any(suffix =>
+            suffix.StartsWith('.')
+                ? host.EndsWith(suffix, StringComparison.Ordinal)
+                : host.Equals(suffix, StringComparison.Ordinal) || host.EndsWith("." + suffix, StringComparison.Ordinal));
+    }
+
     public async Task<Result> SubscribeAsync(Guid userId, PushSubscribeInput input, CancellationToken ct)
     {
         var endpoint = input.Endpoint?.Trim() ?? string.Empty;
         var p256dh = input.Keys?.P256dh?.Trim() ?? string.Empty;
         var auth = input.Keys?.Auth?.Trim() ?? string.Empty;
         if (!Uri.TryCreate(endpoint, UriKind.Absolute, out var uri) || uri.Scheme != Uri.UriSchemeHttps || endpoint.Length > 600
-            || p256dh.Length is < 20 or > 200 || auth.Length is < 8 or > 100)
+            || !IsAllowedPushHost(uri) || p256dh.Length is < 20 or > 200 || auth.Length is < 8 or > 100)
         {
             return Result.Failure(InvalidSubscription);
         }

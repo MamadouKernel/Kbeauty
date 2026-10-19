@@ -36,6 +36,7 @@ public static class BillingEndpoints
 
         group.MapPost("/promo-codes/check", async (SubscribeInput input, PromoService service, CancellationToken ct) =>
                 Respond(await service.CheckAsync(input, ct)))
+            .RequireRateLimiting(GrowthEndpoints.GiftCardRateLimitPolicy)
             .Produces<PromoCheckDto>().ProducesProblem(StatusCodes.Status400BadRequest);
 
         group.MapPost("/establishments/{id:guid}/subscription/trial", async (Guid id, SubscribeInput input, ClaimsPrincipal user, BillingService service, CancellationToken ct) =>

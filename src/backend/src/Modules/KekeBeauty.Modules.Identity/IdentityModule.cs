@@ -59,6 +59,62 @@ public static class IdentityModule
 
                         return Task.CompletedTask;
                     },
+                    OnTokenValidated = async context =>
+                    {
+                        if (context.Principal?.Identity is not System.Security.Claims.ClaimsIdentity identity)
+                        {
+                            context.Fail("Invalid principal.");
+                            return;
+                        }
+
+                        var sub = identity.FindFirst("sub")?.Value;
+                        if (!Guid.TryParse(sub, out var userId))
+                        {
+                            context.Fail("Invalid subject claim.");
+                            return;
+                        }
+
+                        var db = context.HttpContext.RequestServices.GetRequiredService<IIdentityDbContext>();
+                        var now = time.GetUtcNow();
+                        var ct = context.HttpContext.RequestAborted;
+
+                        var user = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.FirstOrDefaultAsync(
+                            Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.AsNoTracking(db.Users),
+                            u => u.Id == userId && u.DeletedAt == null,
+                            ct);
+                        if (user is null || user.Status != UserStatus.Active)
+                        {
+                            context.Fail("Account is not active.");
+                            return;
+                        }
+
+                        var sid = identity.FindFirst("sid")?.Value;
+                        if (Guid.TryParse(sid, out var sessionId))
+                        {
+                            var sessionActive = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.AnyAsync(
+                                Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.AsNoTracking(db.RefreshTokens),
+                                t => t.UserId == userId && t.SessionId == sessionId && t.RevokedAt == null && t.ExpiresAt > now,
+                                ct);
+                            if (!sessionActive)
+                            {
+                                context.Fail("Session has been revoked.");
+                                return;
+                            }
+                        }
+
+                        foreach (var claim in identity.FindAll("role").Where(c => AppRoles.AllAdminRoles.Contains(c.Value) && !user.Roles.Contains(c.Value)).ToList())
+                        {
+                            identity.RemoveClaim(claim);
+                        }
+
+                        foreach (var role in user.Roles)
+                        {
+                            if (!identity.HasClaim("role", role))
+                            {
+                                identity.AddClaim(new System.Security.Claims.Claim("role", role));
+                            }
+                        }
+                    },
                 };
                 bearer.TokenValidationParameters = new TokenValidationParameters
                 {

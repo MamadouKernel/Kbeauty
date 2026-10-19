@@ -68,7 +68,13 @@ test.describe("Beyond V1 (lot 7)", () => {
     baseURL,
   }) => {
     test.setTimeout(240_000);
-    const booker = await createAccount(request, "Client");
+    // A single client may book at most 4 slots of a day (anti-hoarding cap), so spread the 9 hourly
+    // visits that fill the day across three bookers.
+    const bookers = [
+      await createAccount(request, "Client"),
+      await createAccount(request, "Client"),
+      await createAccount(request, "Client"),
+    ];
     const waiter = await createAccount(request, "Client");
 
     // Fill the whole day with one-hour visits.
@@ -77,6 +83,7 @@ test.describe("Beyond V1 (lot 7)", () => {
     for (let hour = 9; hour < 18; hour++) {
       const start = new Date(day);
       start.setUTCHours(hour);
+      const booker = bookers[Math.floor((hour - 9) / 4)];
       ids.push(await book(booker, salon.hourService, start));
     }
 
@@ -92,10 +99,10 @@ test.describe("Beyond V1 (lot 7)", () => {
       page.getByText(/vous serez prévenu\(e\) dès qu’un créneau se libère/),
     ).toBeVisible();
 
-    // The booker cancels one visit: the waiting client is told.
+    // The booker of that slot (ids[3] is the 4th hour, booked by the first booker) cancels: the waiting client is told.
     const cancelled = await request.post(
       `/api/v1/appointments/${ids[3]}/cancel`,
-      { headers: booker.auth, data: {} },
+      { headers: bookers[0].auth, data: {} },
     );
     expect(cancelled.ok(), await cancelled.text()).toBeTruthy();
 
