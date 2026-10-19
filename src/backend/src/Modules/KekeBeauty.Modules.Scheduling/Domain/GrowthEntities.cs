@@ -166,3 +166,17 @@ public sealed class GroupBookingRequest : Entity
     public DateTimeOffset? RespondedAt { get; set; }
     public DateTimeOffset CreatedAt { get; init; } = DateTimeOffset.UtcNow;
 }
+
+/// <summary>
+/// One row per establishment and per ISO week for which the Monday-morning recap has been sent to the owner. The unique
+/// index on (establishment, week) makes the weekly job idempotent: a retry or a second instance cannot send it twice.
+/// </summary>
+public sealed class WeeklyRecapLog : Entity
+{
+    public required Guid EstablishmentId { get; init; }
+
+    /// <summary>The Monday (local time of the establishment) that opens the week the recap covers the days before.</summary>
+    public required DateOnly WeekStart { get; init; }
+
+    public DateTimeOffset SentAt { get; init; } = DateTimeOffset.UtcNow;
+}

@@ -348,4 +348,47 @@ public sealed class Lot7GrowthTests(ApiFixture api)
             await TestCleanup.DeleteEstablishmentsAsync(api, salon.Owner.UserId);
         }
     }
+
+    [Fact]
+    public async Task The_owner_receives_a_weekly_recap_once_for_a_week_with_activity()
+    {
+        using var admin = await TestAccounts.AdminAsync(api);
+        var salon = await TestSalons.PublishAsync(api, admin, autoConfirm: true);
+        using var client = await TestAccounts.ClientAsync(api);
+        var job = api.Services.GetRequiredService<KekeBeauty.Infrastructure.Growth.WeeklyRecapMaintenance>();
+        try
+        {
+            // Avoid the only quiet window (Monday before 08:00 local = UTC for Abidjan); the clock only moves forward.
+            var now = api.Clock.GetUtcNow();
+            if (now.DayOfWeek == DayOfWeek.Monday && now.Hour < KekeBeauty.Infrastructure.Growth.WeeklyRecapMaintenance.SendFromHourLocal)
+            {
+                api.Clock.Advance(TimeSpan.FromHours(9));
+                now = api.Clock.GetUtcNow();
+            }
+
+            // One honoured visit in the week that just ended.
+            var today = DateOnly.FromDateTime(now.UtcDateTime);
+            var thisMonday = today.AddDays(-((int)today.DayOfWeek + 6) % 7);
+            var start = new DateTimeOffset(thisMonday.AddDays(-5).ToDateTime(new TimeOnly(10, 0)), TimeSpan.Zero);
+
+            var booked = await BookAsync(client, salon, TestSalons.NextOpenDay(api, 3));
+            await WithDbAsync(db => db.Appointments.Where(a => a.Id == booked.Id).ExecuteUpdateAsync(set => set
+                .SetProperty(a => a.Status, AppointmentStatus.Completed)
+                .SetProperty(a => a.StartsAt, start)
+                .SetProperty(a => a.EndsAt, start.AddMinutes(30))));
+
+            (await job.RunOnceAsync(CancellationToken.None)).Should().BeGreaterThanOrEqualTo(1);
+            var recap = (await NotificationTitlesAsync(salon.Owner.UserId, "partner.weekly_recap")).Should().ContainSingle().Subject;
+            recap.Should().Contain("rendez-vous honoré").And.Contain("F CFA");
+
+            // Idempotent: a second run never sends the same week twice.
+            await job.RunOnceAsync(CancellationToken.None);
+            (await NotificationTitlesAsync(salon.Owner.UserId, "partner.weekly_recap")).Should().ContainSingle();
+        }
+        finally
+        {
+            await TestCleanup.DeleteEstablishmentsAsync(api, salon.Owner.UserId);
+        }
+    }
+
 }

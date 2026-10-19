@@ -54,6 +54,7 @@ public sealed class KekeBeautyDbContext(DbContextOptions<KekeBeautyDbContext> op
     public DbSet<GiftCard> GiftCards => Set<GiftCard>();
     public DbSet<GiftCardRedemption> GiftCardRedemptions => Set<GiftCardRedemption>();
     public DbSet<GroupBookingRequest> GroupBookingRequests => Set<GroupBookingRequest>();
+    public DbSet<WeeklyRecapLog> WeeklyRecapLogs => Set<WeeklyRecapLog>();
     public DbSet<TipPayment> TipPayments => Set<TipPayment>();
     public DbSet<CollaboratorPayout> CollaboratorPayouts => Set<CollaboratorPayout>();
     public DbSet<CollaboratorPayoutAccount> CollaboratorPayoutAccounts => Set<CollaboratorPayoutAccount>();

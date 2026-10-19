@@ -3534,6 +3534,34 @@ namespace KekeBeauty.Infrastructure.Persistence.Migrations
                     b.ToTable("waitlist_entries", "scheduling");
                 });
 
+            modelBuilder.Entity("KekeBeauty.Modules.Scheduling.Domain.WeeklyRecapLog", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("EstablishmentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("establishment_id");
+
+                    b.Property<DateTimeOffset>("SentAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("sent_at");
+
+                    b.Property<DateOnly>("WeekStart")
+                        .HasColumnType("date")
+                        .HasColumnName("week_start");
+
+                    b.HasKey("Id")
+                        .HasName("pk_weekly_recap_logs");
+
+                    b.HasIndex("EstablishmentId", "WeekStart")
+                        .IsUnique()
+                        .HasDatabaseName("ix_weekly_recap_logs_establishment_id_week_start");
+
+                    b.ToTable("weekly_recap_logs", "scheduling");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.DataProtection.EntityFrameworkCore.DataProtectionKey", b =>
                 {
                     b.Property<int>("Id")

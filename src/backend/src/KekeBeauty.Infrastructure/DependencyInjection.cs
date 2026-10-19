@@ -121,6 +121,8 @@ public static class DependencyInjection
         services.AddScoped<KekeBeauty.Infrastructure.Growth.RecommendationService>();
         services.AddSingleton<KekeBeauty.Infrastructure.Growth.ReengagementMaintenance>();
         services.AddHostedService(provider => provider.GetRequiredService<KekeBeauty.Infrastructure.Growth.ReengagementMaintenance>());
+        services.AddSingleton<KekeBeauty.Infrastructure.Growth.WeeklyRecapMaintenance>();
+        services.AddHostedService(provider => provider.GetRequiredService<KekeBeauty.Infrastructure.Growth.WeeklyRecapMaintenance>());
 
         services.Configure<PaymentsOptions>(configuration.GetSection(PaymentsOptions.SectionName));
         services.Configure<BillingOptions>(configuration.GetSection(BillingOptions.SectionName));

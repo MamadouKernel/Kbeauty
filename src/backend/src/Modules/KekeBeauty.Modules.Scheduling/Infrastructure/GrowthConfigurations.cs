@@ -108,3 +108,14 @@ public sealed class GroupBookingRequestConfiguration : IEntityTypeConfiguration<
         builder.HasIndex(x => x.ClientUserId);
     }
 }
+
+public sealed class WeeklyRecapLogConfiguration : IEntityTypeConfiguration<WeeklyRecapLog>
+{
+    public void Configure(EntityTypeBuilder<WeeklyRecapLog> builder)
+    {
+        builder.ToTable("weekly_recap_logs", "scheduling");
+        builder.HasKey(x => x.Id);
+        builder.Property(x => x.Id).ValueGeneratedNever();
+        builder.HasIndex(x => new { x.EstablishmentId, x.WeekStart }).IsUnique();
+    }
+}

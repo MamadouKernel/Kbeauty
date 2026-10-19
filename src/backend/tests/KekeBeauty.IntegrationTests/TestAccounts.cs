@@ -255,6 +255,7 @@ internal static class TestCleanup
         await db.LoyaltyPrograms.Where(p => ids.Contains(p.EstablishmentId)).ExecuteDeleteAsync();
         await db.GiftCards.Where(g => ids.Contains(g.EstablishmentId)).ExecuteDeleteAsync();
         await db.GroupBookingRequests.Where(r => ids.Contains(r.EstablishmentId)).ExecuteDeleteAsync();
+        await db.WeeklyRecapLogs.Where(w => ids.Contains(w.EstablishmentId)).ExecuteDeleteAsync();
         await db.Appointments.Where(a => ids.Contains(a.EstablishmentId)).ExecuteDeleteAsync();
         await db.TimeOffs.Where(t => ids.Contains(t.EstablishmentId)).ExecuteDeleteAsync();
         await db.Resources.Where(r => ids.Contains(r.EstablishmentId)).ExecuteDeleteAsync();

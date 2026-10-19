@@ -66,6 +66,7 @@ public sealed class ApiFixture : WebApplicationFactory<Program>, IAsyncLifetime
         builder.UseSetting("Retention:MaintenanceEnabled", "false");
         builder.UseSetting("Reminders:MaintenanceEnabled", "false");
         builder.UseSetting("Reengagement:MaintenanceEnabled", "false");
+        builder.UseSetting("WeeklyRecap:MaintenanceEnabled", "false");
         builder.UseSetting("RateLimits:GiftCardCodesPerMinute", "100000");
         builder.UseSetting("Settlements:MaintenanceEnabled", "false");
         builder.UseSetting("Backups:MaintenanceEnabled", "false");
