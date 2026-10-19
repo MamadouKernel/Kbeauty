@@ -5,7 +5,19 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <WarningsNotAsErrors>NU1901;NU1902;NU1903;NU1904</WarningsNotAsErrors>
+    <!-- NU1510: pinning a transitive package for a security fix looks "unnecessary" to NuGet; that is expected here. -->
+    <NoWarn>$(NoWarn);NU1510</NoWarn>
     <AnalysisLevel>latest</AnalysisLevel>
     <InvariantGlobalization>true</InvariantGlobalization>
   </PropertyGroup>
+
+  <!--
+    Pin patched versions of transitive dependencies flagged by NuGet audit (NU1903/NU1902). These come through the .NET 10
+    framework and SignalR; the servicing release 10.0.13 fixes the Pkcs/Xml/SignalR advisories. Reviewed 2026-10-19.
+  -->
+  <ItemGroup>
+    <PackageReference Include="System.Security.Cryptography.Pkcs" Version="10.0.13" />
+    <PackageReference Include="System.Security.Cryptography.Xml" Version="10.0.13" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Common" Version="10.0.13" />
+  </ItemGroup>
 </Project>
