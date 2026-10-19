@@ -150,6 +150,22 @@ test.describe('A05 malformed input is a client error, not a server error', () =>
 });
 
 test.describe('A07 session and privilege revocation (fresh context per test)', () => {
+  test('a password-only login challenge is single-use and a bogus one is rejected', async ({ playwright, baseURL }) => {
+    const ctx = await playwright.request.newContext({ baseURL });
+    const victim = await createAccount(ctx, 'Client');
+
+    const login = await ctx.post('/api/v1/auth/login', { data: { email: victim.email, password: victim.password } });
+    const { challengeToken, status } = await login.json();
+    expect(status, 'a client gets the no-second-factor challenge').toBe('PasswordOnly');
+
+    // The challenge opens a session exactly once.
+    expect((await ctx.post('/api/v1/auth/complete-login', { data: { challengeToken } })).status()).toBe(200);
+    expect((await ctx.post('/api/v1/auth/complete-login', { data: { challengeToken } })).status(), 'a spent challenge cannot be replayed').not.toBe(200);
+    expect((await ctx.post('/api/v1/auth/complete-login', { data: { challengeToken: 'not-a-real-challenge-token' } })).status(), 'a forged challenge is refused').not.toBe(200);
+    await ctx.dispose();
+  });
+
+
   test('a suspended account loses access on its next request', async ({ playwright, baseURL }) => {
     const ctx = await playwright.request.newContext({ baseURL });
     const victim = await createAccount(ctx, 'Client');
@@ -178,10 +194,11 @@ test.describe('A07 session and privilege revocation (fresh context per test)', (
 
   test('session cookies are HttpOnly and SameSite', async ({ playwright, baseURL }) => {
     const ctx = await playwright.request.newContext({ baseURL });
-    const victim = await createAccount(ctx, 'Client');
-    const login = await ctx.post('/api/v1/auth/login', { data: { email: victim.email, password: victim.password } });
+    // A partner always opens its session through the second factor, where the refresh/trusted-device cookies are set.
+    const partner = await createAccount(ctx, 'PartnerOwner');
+    const login = await ctx.post('/api/v1/auth/login', { data: { email: partner.email, password: partner.password } });
     const { challengeToken } = await login.json();
-    const verified = await ctx.post('/api/v1/auth/2fa/verify', { data: { challengeToken, code: await freshCode(victim.secret), rememberDevice: true } });
+    const verified = await ctx.post('/api/v1/auth/2fa/verify', { data: { challengeToken, code: await freshCode(partner.secret), rememberDevice: true } });
     const cookies = verified.headersArray().filter((h) => h.name.toLowerCase() === 'set-cookie').map((h) => h.value);
     expect(cookies.length).toBeGreaterThan(0);
     for (const cookie of cookies) {
