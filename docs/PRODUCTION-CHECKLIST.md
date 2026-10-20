@@ -5,11 +5,41 @@ Légende : ✅ fait dans le code · 🔧 à faire par l'exploitant avant l'ouver
 ## Bloquants avant l'ouverture au public
 
 - 🔧 **E-mail** : configurer `Email__Smtp__*` avec votre relais (SendGrid, Brevo, Mailgun, serveur de l'hébergeur…) et un expéditeur dont le domaine a SPF, DKIM et DMARC. Sans relais, personne ne reçoit le lien de confirmation : l'inscription est impossible. Le sender (MailKit) est vérifié contre un relais de test local (Mailpit), pas contre un fournisseur réel.
-- 🔧 **Paiement** : obtenir les jetons du compte marchand WiniPayer (TEST puis PROD), passer `Payments__Provider=Winipay` et **dérouler le parcours de DEPLOYMENT.md §7 en bac à sable puis en réel**. Le code suit la documentation et est testé contre un faux serveur, mais n'a jamais parlé à WiniPayer ; le contenu des rappels et la liste des états ne sont pas documentés (voir §7).
-- 🔧 **SMS** : aucun fournisseur n'est branché (les SMS sont seulement journalisés). Brancher Infobip ou Twilio derrière `ISmsSender` ; en attendant, les clients ne reçoivent que les notifications dans l'application.
+- 🔧 **Paiement (WiniPayer)** : le parcours d'abonnement a été joué de bout en bout sur le **bac à sable** (20/10/2026). Reste à : passer le compte marchand en **PROD** (documents demandés par WiniPayer ; le compte TEST est supprimé après 30 jours), utiliser les jetons PROD (`Payments__Provider=Winipay`, `Payments__Winipay__Env=prod`), exposer l'API sur un **domaine stable en HTTPS**, puis **jouer un paiement réel de petit montant** et rejouer le parcours de DEPLOYMENT.md §7. Voir la section « Paiement WiniPayer » ci-dessous.
+- 🔧 **SMS** : le client **LeTexto** est écrit mais **désactivé** (`LETEXTO_ENABLED=false`) et n'a jamais envoyé de message réel ; sans lui les SMS sont seulement journalisés et les clients ne reçoivent que les notifications dans l'application. Activer LeTexto (DEPLOYMENT.md §9) et valider un envoi réel, ou brancher un autre fournisseur derrière `ISmsSender`.
 - 🔧 **Textes légaux** : faire relire par un conseil juridique les pages `/cgu` et `/confidentialite` (textes de départ), les compléter avec la raison sociale, l'adresse et le contact du responsable du traitement, et **déclarer les traitements à l'ARTCI**.
 - 🔧 **Fonds de carte** : `tile.openstreetmap.org` est réservé à un usage léger ; prendre un fournisseur de tuiles adapté (MapTiler, Stadia…) ou héberger les tuiles, puis ajuster `img-src` dans `docker/security-headers.conf`.
-- 🔧 **Secrets** : `Jwt__SigningKey`, mots de passe PostgreSQL et MinIO, clés CinetPay dans un coffre ; retirer `Admin__Email/Password` après le premier démarrage.
+- 🔧 **Secrets** : `Jwt__SigningKey`, mots de passe PostgreSQL et MinIO, **jetons WiniPayer (PROD)**, clés CinetPay et LeTexto dans un coffre, jamais dans le dépôt ni dans une discussion ; retirer `Admin__Email/Password` après le premier démarrage. **Régénérer** toute clé qui a été affichée ou partagée (cas des clés WiniPayer manipulées pendant les essais du 20/10/2026).
+
+## Paiement WiniPayer
+
+- ✅ Création de facture, page hébergée, relecture du statut, activation de l'abonnement, facture payée, notification et changement de formule avec prorata : **vérifiés sur le bac à sable**.
+- ✅ Confirmation sûre : rappel signé (HMAC) qui ne fait que déclencher une relecture, retour du client qui relit lui aussi chez WiniPayer (propriétaire uniquement, 3 paiements au plus, 24 h), réconciliation horaire, statut, montant et devise toujours relus, règlement idempotent, un montant différent est refusé.
+- ✅ Garde-fous au démarrage : jetons obligatoires, `Env=prod` imposé en production, passerelle `Fake` refusée.
+- ⚠️ **Constaté en TEST** : aucun rappel n'est envoyé et le paiement se valide automatiquement (l'application mobile WiniPayer n'est pas encore publiée). À reconfirmer en PROD.
+- 🔧 Passage en PROD, domaine HTTPS stable, jetons PROD en coffre, **clés régénérées**, séparation stricte TEST/PROD.
+- 🔧 **Virements et remboursements** (versements aux établissements et aux collaboratrices, remboursements) : disponibles seulement en PROD chez WiniPayer, jamais exercés. Déclarer l'adresse IP sortante du serveur dans la « liste blanche (Payout) » du Manager (3 adresses au plus), puis tester avec un montant minimal.
+- 🔧 Obtenir par écrit du support WiniPayer : contenu et signature du rappel, liste des états, limites de montant, frais réels et qui les supporte (voir `docs/WINIPAYER-QUESTIONS-SUPPORT.md`).
+- 🔧 Alertes sur `Refused payment … another amount or currency` et sur les échecs de joignabilité du fournisseur ; accès au Manager WiniPayer réservé et protégé (mot de passe fort, double authentification si disponible).
+- ⚠️ Contrôle du champ `hash` recommandé par WiniPayer non mis en œuvre : la relecture directe authentifiée offre déjà une garantie équivalente (DEPLOYMENT.md §7.7).
+
+## Services externes : inventaire
+
+| Service | Rôle | État dans le code | À faire avant l'ouverture |
+|---|---|---|---|
+| **WiniPayer** | Paiement des abonnements, virements | ✅ Bac à sable vérifié | PROD, domaine, premier paiement réel, virements (voir ci-dessus) |
+| **Relais SMTP** (SendGrid, Brevo, Mailgun…) | E-mails de compte (confirmation, mot de passe oublié) | ✅ Client MailKit, vérifié contre Mailpit seulement | **Bloquant** : relais réel, domaine avec SPF, DKIM, DMARC, test d'envoi réel |
+| **LeTexto** | SMS et e-mails | 🟡 Client écrit, **désactivé** | Clé API, expéditeur, `LETEXTO_ENABLED=true`, envoi réel, `LETEXTO_WEBHOOK_SECRET` |
+| **WhatsApp Business** | Code de connexion, notifications | ⏸ Désactivé, **aucun fournisseur branché** | Choisir un fournisseur, implémenter `IWhatsAppSender`, modèles de messages validés |
+| **Fournisseur de tuiles de carte** (MapTiler, Stadia…) | Fonds de carte | 🟡 Tuiles OSM/CARTO par défaut, usage léger seulement | Fournisseur avec engagement, clé restreinte au domaine, `img-src` |
+| **Stockage S3 / MinIO** | Photos, pièces d'identité | ✅ Code prêt | Instance de production, utilisateur limité, buckets (`private-kyc` privé et versionné), sauvegarde |
+| **Google (connexion)** | Connexion optionnelle | ✅ Code prêt, désactivé par défaut | Identifiant client OAuth si souhaité |
+| **Service push du navigateur (VAPID)** | Notifications push | 🟡 Côté serveur et client écrits, **jamais testé en réel** | Test sur HTTPS avec un vrai navigateur |
+| **Redis** | Temps réel sur plusieurs instances | ✅ Optionnel | Nécessaire dès que l'API tourne sur plus d'une instance |
+| **OpenTelemetry (collecteur)** | Traces et métriques | ✅ Optionnel | Choisir un collecteur et des alertes (disponibilité, 5xx, échecs de paiement) |
+| **Domaine, TLS, proxy** | Accès public | 🔧 Hors code | Nom de domaine, certificat, `Proxy__TrustForwardedHeaders=true`, `AllowedHosts` |
+| **Sauvegardes et PITR** | Reprise sur incident | ✅ Scripts fournis | Planification, archivage WAL, test de restauration régulier |
+| **Yango** | Lien d'itinéraire | ✅ Lien officiel | Identifiant partenaire (facultatif) |
 
 ## Sécurité
 

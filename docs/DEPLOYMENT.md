@@ -96,36 +96,87 @@ reprenez ses services avec vos secrets, sans publier les ports de PostgreSQL, de
 - Pièces d'identité : bucket privé, accès réservé aux admins, chaque consultation journalisée.
 - Droits des personnes : export et suppression de compte depuis « Mon compte ».
 
-## 7. Brancher WiniPayer en bac à sable
+## 7. Brancher WiniPayer (bac à sable, puis production)
 
-`WinipayGateway` suit la documentation WiniPayer (API 2.0, `docs.winipayer.com`) : création d'une facture sur `POST https://api-v2.winipayer.com/checkout/standard/create`, page de paiement hébergée, relecture du statut par `POST .../checkout/standard/detail/{uuid}`. Elle est couverte par des tests contre un faux serveur (formats, rejouabilité, signature de nos URL de rappel) ; elle **n'a jamais parlé à WiniPayer lui-même**.
+`WinipayGateway` suit la documentation WiniPayer (API 2.0, `docs.winipayer.com`) : création d'une facture sur `POST https://api-v2.winipayer.com/checkout/standard/create`, page de paiement hébergée, relecture du statut par `POST .../checkout/standard/detail/{uuid}`.
 
-1. Créez un compte sur `manager.winipayer.com`, puis un **compte marchand TEST** et relevez ses deux jetons : `X-Merchant-Apply` et `X-Merchant-Token`.
-2. Exposez l'API sur Internet : WiniPayer doit pouvoir appeler l'URL de rappel. En local, utilisez un tunnel (cloudflared, ngrok…) vers le conteneur `web` (port 4200) et mettez son URL dans `Payments__ApiBaseUrl` **et** `Payments__WebBaseUrl`.
-3. Variables du fichier `.env` (ignoré par git, jamais dans le dépôt ; `docker-compose.yml` les transmet à l'API) :
+**État de la vérification (20/10/2026).** Le parcours d'abonnement a été joué de bout en bout contre le **bac à sable** WiniPayer : création de la facture, page de paiement, relecture du statut, activation de l'abonnement, facture payée, notification « Paiement reçu », et changement de formule avec crédit au prorata. **Non vérifié** : le mode PROD, les virements (versements aux établissements et aux collaboratrices) et les remboursements, que WiniPayer ne propose qu'en production (voir « À confirmer avant la production »).
 
-   ```
-   PAYMENTS_PROVIDER=Winipay
-   WINIPAY_APPLY_KEY=...
-   WINIPAY_TOKEN=...
-   WINIPAY_ENV=test
-   PAYMENTS_PUBLIC_URL=https://<votre-tunnel>
-   ```
+### 7.1 Compte marchand et jetons
 
-   (Hors Docker, ce sont les variables `Payments__Provider`, `Payments__Winipay__ApplyKey`, `__Token`, `__Env`, `Payments__ApiBaseUrl` et `Payments__WebBaseUrl`.) Puis `docker compose up -d`.
-   Le démarrage échoue explicitement si une clé manque, et en production si `Env` n'est pas `prod`.
-4. Parcours à jouer : souscrire Premium depuis `/pro/etablissements/{id}/abonnement` → payer sur la page WiniPayer → retour sur la page abonnement → vérifier **abonnement actif**, **facture payée**, notification « Paiement reçu » ; puis un paiement refusé ou abandonné.
+1. Créez un compte sur `manager.winipayer.com`, puis un **compte marchand**. Un compte neuf est en environnement **TEST** ; il est **supprimé au bout de 30 jours** s'il n'est pas passé en PROD (« Passer en PROD » dans le Manager, après dépôt des documents demandés).
+2. Dans le détail du compte (« Paramètres API »), relevez **deux valeurs seulement** : *Marchand Apply Key* (`X-Merchant-Apply`) et *Test Token Key* ou *Prod Token Key* (`X-Merchant-Token`). Les clés privées (*Test/Prod Private Key*) **ne servent pas** à notre intégration : ne les copiez nulle part.
+3. Traitez ces valeurs comme des mots de passe :
+   - jamais dans le dépôt, dans une discussion, un ticket ou une capture d'écran ; localement, uniquement dans `.env` (ignoré par git) ;
+   - en production, dans un coffre de secrets (le jeton signe aussi nos URL de rappel) ;
+   - **régénérez-les dans le Manager dès qu'elles ont été exposées**, et distinguez strictement les jetons TEST et PROD ;
+   - changer le jeton invalide les URL de rappel en cours (30 minutes au plus) : faites-le hors des heures de pointe.
 
-Comment le rappel est traité : la documentation ne définit pas le contenu du rappel (`callback_url`). Notre URL de rappel porte donc notre identifiant de transaction et sa signature HMAC (`?tx=...&sig=...`) ; un appel sans signature valide est refusé (401), un appel valide ne fait que **déclencher la relecture** de la facture chez WiniPayer, et c'est cette relecture qui décide (statut, montant, devise). Un appel en GET ou en POST est accepté.
+### 7.2 Joignabilité de l'API
 
-À confirmer pendant l'essai en bac à sable (points non documentés) :
+WiniPayer doit pouvoir appeler l'URL de rappel et renvoyer le client sur le site, et **il refuse les adresses qu'il ne peut pas résoudre** (erreur `cancel_url must be a valid URL`).
 
-- le rappel est bien reçu (GET ou POST) et la relecture renvoie `state: success` après paiement ; seuls `success` (payé) et des états d'échec évidents (`failed`, `cancelled`, `expired`…) sont reconnus, tout autre état reste « en attente » et la réconciliation horaire le reprend ;
-- le montant relu (`amount_init`) est bien celui demandé : sinon le paiement est refusé par prudence ;
-- les noms d'opérateurs renvoyés (`wave-cote-divoire`…) : ils alimentent la ventilation par moyen de paiement du tableau de bord ;
-- les limites de montant, non documentées (les prix doivent déjà être des entiers en XOF).
+- **Essais en local** : un tunnel (cloudflared, ngrok…) vers le conteneur `web` (port 4200), dont l'URL va dans `Payments__ApiBaseUrl` **et** `Payments__WebBaseUrl` (`PAYMENTS_PUBLIC_URL` avec Docker). Un tunnel gratuit change d'adresse à chaque lancement et peut être supprimé côté fournisseur : si WiniPayer répond « service de paiement indisponible » (502), vérifiez d'abord que l'adresse répond encore. Ne l'utilisez jamais pour de vrais paiements.
+- **Production** : un nom de domaine stable, en HTTPS (TLS valide devant `web`), avec `Proxy__TrustForwardedHeaders=true` derrière le proxy. Le rappel `{ApiBaseUrl}/api/v1/webhooks/payments/winipay` doit être joignable depuis Internet ; l'API elle-même ne doit pas être publiée directement.
 
-Le lien de paiement expire au bout de 30 minutes ; une nouvelle tentative crée une nouvelle facture WiniPayer (bouton « Payer » de la facture).
+### 7.3 Variables
+
+Variables du fichier `.env` (`docker-compose.yml` les transmet à l'API) :
+
+```
+PAYMENTS_PROVIDER=Winipay
+WINIPAY_APPLY_KEY=...
+WINIPAY_TOKEN=...
+WINIPAY_ENV=test
+PAYMENTS_PUBLIC_URL=https://<votre-adresse-publique>
+```
+
+Hors Docker : `Payments__Provider`, `Payments__Winipay__ApplyKey`, `__Token`, `__Env`, `Payments__ApiBaseUrl` et `Payments__WebBaseUrl`. Puis `docker compose up -d`. Le démarrage échoue explicitement si une clé manque ; **en production, il échoue aussi si `Env` n'est pas `prod`** et si la passerelle simulée `Fake` est choisie.
+
+### 7.4 Parcours à jouer
+
+1. Partenaire avec un établissement approuvé : souscrire depuis `/pro/etablissements/{id}/abonnement` (ou y changer de formule : devis, puis confirmation).
+2. Payer sur la page WiniPayer, revenir sur la page abonnement.
+3. Vérifier **abonnement actif**, **facture payée**, notification « Paiement reçu ».
+4. Jouer aussi un paiement abandonné ou refusé : l'abonnement doit rester en attente et le bouton « Payer » de la facture doit relancer une nouvelle tentative.
+
+### 7.5 Comportement constaté en bac à sable
+
+La documentation WiniPayer ne le décrit pas ; ce sont des observations, à reconfirmer en PROD :
+
+- **Aucun rappel** n'est envoyé à `callback_url` en TEST (aucune requête reçue). Le client est renvoyé sur le site, puis c'est **notre API qui relit le statut** (voir 7.6).
+- **Validation automatique** : après « Valider », la page affiche un QR code « à scanner avec l'application WiniPayer Mobile » (non disponible dans les magasins à cette date) ; le paiement TEST se valide seul à la fin du compte à rebours.
+- La relecture renvoie `state: success`, `amount_init` (le montant demandé), `currency: xof` et `operator: winipayer`. Les états d'échec ne sont pas documentés : seuls `success` et des états d'échec évidents (`failed`, `cancelled`, `expired`…) sont reconnus, tout autre état reste « en attente ».
+- Le lien de paiement expire au bout de **30 minutes** ; chaque clic sur « Payer » crée une **nouvelle facture** WiniPayer (les précédentes expirent seules).
+- Frais : le solde TEST est crédité de 99 % du montant (14 850 pour 15 000), alors que la documentation cite 2,5 % de commission dans son exemple. Vérifiez le tarif contractuel (7.8).
+
+### 7.6 Comment le paiement est confirmé (modèle de sécurité)
+
+Nous ne faisons **jamais confiance** au navigateur ni au contenu d'un rappel : seule la relecture du statut chez WiniPayer, authentifiée par vos jetons et faite de serveur à serveur, décide.
+
+- **Rappel** (`/api/v1/webhooks/payments/winipay`, GET ou POST) : notre URL de rappel porte notre identifiant de transaction et sa signature **HMAC-SHA256** (clé : le jeton marchand). Sans signature valide : 401. Avec une signature valide, le rappel ne fait que **déclencher la relecture**.
+- **Retour du client** : la page abonnement appelle `POST /api/v1/pro/establishments/{id}/subscription/refresh` toutes les 2 secondes (15 fois au plus). L'API relit alors les paiements en attente de **cet établissement** (propriétaire uniquement, 404 sinon ; 3 au plus, de moins de 24 h ; un seul règlement par facture) et les règle comme un rappel.
+- **Réconciliation horaire** : filet de sécurité pour les paiements en attente depuis plus de 30 minutes (client parti avant le retour) ; abandon après 7 jours.
+- **Contrôles à chaque règlement** : statut, montant et devise relus chez WiniPayer (un montant différent est **refusé** et journalisé), règlement **idempotent** (un seul appelant gagne), montants entiers en XOF.
+
+### 7.7 Recommandations de sécurité
+
+- Un **compte marchand distinct** par environnement ; ne jamais mélanger les jetons TEST et PROD. Après le passage en production, **supprimez les formules et comptes de test** créés pendant les essais.
+- Surveillez les alertes `Refused payment … another amount or currency` (tentative de fraude ou erreur de configuration) et les échecs de joignabilité de WiniPayer (`Could not verify transaction`).
+- Limitez l'accès au Manager WiniPayer (mot de passe unique et fort, double authentification si le Manager la propose, personnes strictement nécessaires) : il donne accès aux jetons et aux virements.
+- Journalisez, sans jamais y inscrire les jetons ni les URL de rappel signées (le jeton d'un appelant n'a pas à figurer dans les journaux).
+- Faites réaliser, avant l'ouverture, un test d'intrusion externe incluant le paiement réel (voir `PENTEST.md`).
+- Défense supplémentaire possible, non mise en œuvre : WiniPayer recommande de contrôler le champ `hash` de la relecture (`sha256(clé privée . uuid . crypto . montant . date)`). Notre relecture directe authentifiée offre déjà une garantie équivalente ; le contrôle du `hash` demanderait de stocker la clé privée en plus et n'est utile que si une réponse pouvait être falsifiée en transit.
+
+### 7.8 À confirmer avant la production
+
+À valider auprès du support WiniPayer (questions prêtes dans `docs/WINIPAYER-QUESTIONS-SUPPORT.md`) puis sur un petit montant réel :
+
+- le contenu, la méthode et la signature du rappel en PROD, et la fonction du champ « Lien IPN » du compte marchand (laissé vide : notre URL de rappel attend notre propre signature) ;
+- la liste complète des états de facture et de virement ;
+- les limites de montant, les frais réels (paiement et virement) et qui les supporte ;
+- les virements : adresses IP à déclarer dans la « liste blanche (Payout) » du Manager (3 au plus), opérateurs disponibles, rappel de fin de virement, comportement en cas d'échec ; ils ne sont disponibles qu'en PROD ;
+- la procédure et les délais de passage en PROD (documents demandés).
 
 CinetPay reste disponible (`Payments__Provider=CinetPay`, voir ses variables ci-dessus) et suit le même principe de relecture serveur.
 
