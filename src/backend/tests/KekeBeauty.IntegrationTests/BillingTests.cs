@@ -162,6 +162,35 @@ public sealed class BillingTests(ApiFixture api)
     }
 
     [Fact]
+    public async Task A_notification_for_a_payment_that_is_already_final_is_acknowledged_so_the_provider_stops_retrying()
+    {
+        var salon = await FreeSalonAsync();
+        try
+        {
+            var checkout = await TestSalons.SubscribePremiumAsync(salon.Owner, salon.Id, pay: false);
+            (await salon.Owner.Client.PostAsJsonAsync($"/api/v1/dev/payments/{checkout.TransactionId}/simulate", new { status = "refused" })).EnsureSuccessStatusCode();
+
+            // The payment is final. The provider now only says "pending" (an invoice it never had, a late retry...): answering 503 would make it
+            // retry for ever a notification that can no longer change anything.
+            await WithDbAsync(async db => await db.PaymentWebhookEvents.ExecuteDeleteAsync()); // the earlier notification must not make this one a duplicate
+            api.Services.GetRequiredService<FakePaymentGateway>().Settle(checkout.TransactionId, GatewayStatus.Pending);
+            using var anonymous = api.CreateClient();
+            using var signed = new HttpRequestMessage(HttpMethod.Post, "/api/v1/webhooks/payments/fake")
+            {
+                Content = new FormUrlEncodedContent(new Dictionary<string, string> { ["cpm_trans_id"] = checkout.TransactionId }),
+            };
+            signed.Headers.Add("x-token", api.Services.GetRequiredService<IOptions<PaymentsOptions>>().Value.FakeSecret);
+
+            (await anonymous.SendAsync(signed)).StatusCode.Should().Be(HttpStatusCode.OK);
+            (await OverviewAsync(salon)).Subscription!.Status.Should().Be("PendingPayment");
+        }
+        finally
+        {
+            await TestCleanup.DeleteEstablishmentsAsync(api, salon.Owner.UserId);
+        }
+    }
+
+    [Fact]
     public async Task An_unpaid_invoice_closes_booking_after_the_grace_period_and_paying_reopens_it()
     {
         var salon = await FreeSalonAsync();

@@ -72,6 +72,14 @@ public sealed class PaymentProcessor(
             return NotificationOutcome.Ignored;
         }
 
+        if (payment.Status != PaymentStatus.Pending)
+        {
+            // Already settled (paid, refused or abandoned): the provider has nothing more to tell us, and answering "ask me again" would make it
+            // retry a notification that can never change anything.
+            await MarkProcessedAsync(record, ct);
+            return NotificationOutcome.Duplicate;
+        }
+
         PaymentVerification verification;
         try
         {
