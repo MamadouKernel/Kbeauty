@@ -25,6 +25,9 @@ internal static class TestSecrets
     /// <summary>Password of the bootstrap SuperAdmin the fixture creates at startup.</summary>
     public static readonly string AdminPassword = "Zx-" + Random(8) + "9";
 
+    /// <summary>Key that encrypts the Data Protection key ring at rest (base64 of 32 random bytes).</summary>
+    public static readonly string KeyEncryptionKey = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
+
     /// <summary>The "auth" secret of a Web Push subscription (16 random bytes, base64url).</summary>
     public static readonly string PushAuth = Convert.ToBase64String(RandomNumberGenerator.GetBytes(16)).TrimEnd('=').Replace('+', '-').Replace('/', '_');
 

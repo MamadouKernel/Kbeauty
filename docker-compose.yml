@@ -79,6 +79,8 @@ services:
       ASPNETCORE_ENVIRONMENT: Development
       # No signing key is committed (the repository is public). Empty = a random key for this process; set JWT_SIGNING_KEY in .env for a stable one.
       Jwt__SigningKey: ${JWT_SIGNING_KEY:-}
+      # Encrypts the Data Protection keys (which protect every TOTP secret) at rest. Generated into .env by scripts/init-env.sh.
+      DataProtection__KeyEncryptionKey: ${DATA_PROTECTION_KEK:-}
       # The API is only reachable through the web container's nginx: trust its X-Forwarded-* headers (real client IP for rate limits).
       Proxy__TrustForwardedHeaders: "true"
       # Development relay: every e-mail the API sends shows up in the Mailpit inbox (http://localhost:8025).

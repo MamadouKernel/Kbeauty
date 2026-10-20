@@ -39,6 +39,16 @@ public static class DependencyInjection
             .SetApplicationName("KekeBeauty")
             .PersistKeysToDbContext<KekeBeautyDbContext>();
 
+        // The keys are encrypted at rest with a key from the keystore (.env, a secrets file, a secret manager): a copy of the database
+        // must not open every TOTP secret. Without one (development only) they stay in clear; production refuses to start without it.
+        services.Configure<Security.KeyEncryptionOptions>(configuration.GetSection(Security.KeyEncryptionOptions.SectionName));
+        if (Security.KeyEncryption.Parse(configuration[$"{Security.KeyEncryptionOptions.SectionName}:KeyEncryptionKey"]) is { } keyEncryptionKey)
+        {
+            services.Configure<Microsoft.AspNetCore.DataProtection.KeyManagement.KeyManagementOptions>(
+                options => options.XmlEncryptor = new Security.AesGcmXmlEncryptor(keyEncryptionKey));
+            services.AddHostedService<Security.DataProtectionKeyMigrator>();
+        }
+
         services.AddScoped<EstablishmentQueries>();
 
         services.Configure<StorageOptions>(configuration.GetSection(StorageOptions.SectionName));

@@ -23,6 +23,7 @@ Notation ASP.NET : `Section__Cle` (double souligné). **Aucun secret dans le dé
 |---|---|---|
 | `ASPNETCORE_ENVIRONMENT` | oui | `Production` (désactive les envois e-mail en clair dans les logs, refuse la passerelle de paiement `Fake`) |
 | `ConnectionStrings__Default` | oui | Chaîne Npgsql (utilisateur dédié, mot de passe fort) |
+| `DataProtection__KeyEncryptionKey` | oui | Base64 de 32 octets aléatoires (`openssl rand -base64 32`), gardée dans le coffre de secrets : elle chiffre au repos les clés Data Protection de la base. **L'API refuse de démarrer en production sans elle.** En développement : `DATA_PROTECTION_KEK` dans `.env` (généré par `scripts/init-env.sh`) |
 | `Jwt__SigningKey` | oui | Clé **aléatoire** de 32 caractères minimum, générée par exemple avec `openssl rand -base64 48` et gardée dans le coffre de secrets. **En production l'API refuse de démarrer** si elle est absente, courte, factice ou si c'est une clé publiée dans le dépôt (public). Changer la clé déconnecte tout le monde. En développement, vide = clé aléatoire propre au processus (`JWT_SIGNING_KEY` dans `.env` pour en fixer une) |
 | `Auth__WebBaseUrl` | oui | URL publique du site (liens des e-mails), ex. `https://keke-beauty.ci` |
 | `Cors__Origins__0` | si web et API sur des origines différentes | Origine autorisée. Inutile avec le proxy nginx fourni (même origine) |
@@ -73,7 +74,7 @@ reprenez ses services avec vos secrets, sans publier les ports de PostgreSQL, de
 ## 4. Données et sauvegardes
 
 - **PostgreSQL** : sauvegarde quotidienne **et** archivage WAL pour la restauration à un instant donné (PITR) ; testez une restauration avant l'ouverture. L'application sait aussi faire des sauvegardes complètes (`pg_dump`) depuis le back-office du SuperAdmin : voir §10.
-- Les **clés de chiffrement** (Data Protection : secrets TOTP) sont dans la base : la sauvegarde de la base les contient. Sans elles, les secrets 2FA deviennent illisibles.
+- Les **clés de chiffrement** (Data Protection : secrets TOTP) sont dans la base, **elles-mêmes chiffrées** (AES-256-GCM) par `DataProtection__KeyEncryptionKey` : une copie de la base ou d'une sauvegarde ne suffit donc pas à ouvrir les secrets 2FA. **Conservez cette clé dans le coffre de secrets, et sauvegardez-la séparément de la base** : sans elle, les clés stockées sont illisibles et chaque utilisateur doit réenrôler son authentificateur. Les clés qu'une version antérieure avait stockées en clair sont chiffrées automatiquement au démarrage.
 - **MinIO / S3** : activez le versionnement ou la réplication du bucket `private-kyc` (pièces d'identité) ; ce bucket ne doit jamais être public. `public-media` peut être placé derrière un CDN.
 - **Rétention** : les pièces d'identité des comptes supprimés sont effacées ; définissez avec votre conseil juridique la durée de conservation des dossiers KYC des partenaires actifs.
 
@@ -217,7 +218,7 @@ pg_restore -h <hote> -U <utilisateur> --no-owner --dbname kekebeauty_restore kek
 # 3. Vérifier, puis pointer ConnectionStrings__Default vers cette base (ou renommer les bases) et redémarrer l'API.
 ```
 
-La sauvegarde contient les clés de chiffrement (Data Protection) : conservez-la comme un secret. Les fichiers des buckets (photos, vidéos, pièces d'identité) ne sont **pas** dans le dump : sauvegardez-les séparément (§4).
+La sauvegarde contient les clés de chiffrement (Data Protection), **chiffrées** : elles ne s'ouvrent qu'avec `DataProtection__KeyEncryptionKey`, qui n'est jamais dans la base ni dans la sauvegarde ; conservez néanmoins la sauvegarde comme un secret. Les fichiers des buckets (photos, vidéos, pièces d'identité) ne sont **pas** dans le dump : sauvegardez-les séparément (§4).
 
 ## 11. Plusieurs serveurs : Redis pour le temps réel
 

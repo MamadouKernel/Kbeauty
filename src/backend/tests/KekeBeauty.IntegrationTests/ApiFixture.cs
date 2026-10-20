@@ -57,6 +57,7 @@ public sealed class ApiFixture : WebApplicationFactory<Program>, IAsyncLifetime
         builder.UseSetting("Database:SeedOnStartup", "true");
         builder.UseSetting("Database:SeedDemoData", "true");
         builder.UseSetting("Jwt:SigningKey", TestSecrets.SigningKey);
+        builder.UseSetting("DataProtection:KeyEncryptionKey", TestSecrets.KeyEncryptionKey);
         builder.UseSetting("Auth:AuthPermitPerMinute", "100000");
         builder.UseSetting("Auth:Google:Enabled", "true");
         builder.UseSetting("Auth:Google:ClientId", "test-google-client");

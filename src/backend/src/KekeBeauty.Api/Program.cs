@@ -97,6 +97,11 @@ var app = builder.Build();
         throw new InvalidOperationException("Payments:Provider=Winipay requires Payments:Winipay:ApplyKey, Token and Env (test or prod).");
     }
 
+    if (app.Environment.IsProduction() && KekeBeauty.Infrastructure.Security.KeyEncryption.Parse(app.Configuration["DataProtection:KeyEncryptionKey"]) is null)
+    {
+        throw new InvalidOperationException("DataProtection:KeyEncryptionKey is required in Production: it encrypts the Data Protection keys (which protect every TOTP secret) at rest. Generate one with `openssl rand -base64 32` and keep it in the secret manager.");
+    }
+
     if (app.Environment.IsProduction() && SigningKeyGuard.RejectionReason(app.Configuration["Jwt:SigningKey"]) is { } keyProblem)
     {
         throw new InvalidOperationException($"Jwt:SigningKey is not acceptable in Production: {keyProblem}. Generate a random key (for example `openssl rand -base64 48`) and keep it in the secret manager.");

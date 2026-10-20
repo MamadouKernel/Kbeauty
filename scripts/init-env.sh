@@ -25,5 +25,7 @@ fill POSTGRES_PASSWORD "$(random 24)"
 fill MINIO_ROOT_USER "keke$(random 6)"
 fill MINIO_ROOT_PASSWORD "$(random 24)"
 fill JWT_SIGNING_KEY "$(random 48)"
+# base64 of exactly 32 random bytes (the = and / are part of the value)
+fill DATA_PROTECTION_KEK "$( (openssl rand -base64 32 2>/dev/null || head -c 32 /dev/urandom | base64) | tr -d '\n')"
 chmod 600 .env
 echo "Done. Values are in .env (ignored by git)."
