@@ -46,6 +46,9 @@ public sealed class AuthOptions
     public int TrustedDeviceDays { get; init; } = 30;
     public int MaxFailedLogins { get; init; } = 5;
     public int LockoutMinutes { get; init; } = 15;
+
+    /// <summary>Longest lock of the second factor after repeated failures (it starts at <see cref="LockoutMinutes"/> and doubles each time).</summary>
+    public int TotpMaxLockoutHours { get; init; } = 24;
     public int ChallengeMinutes { get; init; } = 10;
     public int ConfirmEmailHours { get; init; } = 24;
     public int ResetPasswordMinutes { get; init; } = 60;

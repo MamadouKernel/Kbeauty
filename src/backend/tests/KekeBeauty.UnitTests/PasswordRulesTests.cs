@@ -50,4 +50,19 @@ public class PasswordRulesTests
     {
         PasswordRules.IsValidEmail(email).Should().Be(expected);
     }
+
+    [Theory]
+    [InlineData("Password2026!")]
+    [InlineData("password123456")]
+    [InlineData("Azerty123456")]
+    [InlineData("MotDePasse2026")]
+    [InlineData("Qwertyuiop1")]
+    [InlineData("KekeBeauty2026!")]
+    [InlineData("Passw0rd12345")]
+    public void Common_passwords_are_refused_even_with_digits_and_symbols_added(string password) =>
+        PasswordRules.Validate(password, Email).Should().Contain(reason => reason.Contains("trop courant"));
+
+    [Fact]
+    public void An_unpredictable_password_of_the_same_shape_is_accepted() =>
+        PasswordRules.Validate("Zx-" + Guid.NewGuid().ToString("N")[..10] + "7", Email).Should().BeEmpty();
 }

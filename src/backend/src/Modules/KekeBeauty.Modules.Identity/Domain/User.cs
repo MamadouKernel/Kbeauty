@@ -55,6 +55,18 @@ public sealed class User : Entity
     /// <summary>Last accepted TOTP time step; codes at or before it are rejected (replay protection).</summary>
     public long? TotpLastStep { get; private set; }
 
+    /// <summary>
+    /// Wrong second-factor codes (authenticator or recovery) since the last success or lock. Counted per account, not per sign-in attempt:
+    /// an attacker who knows the password gets a handful of guesses, however many sign-in attempts they open.
+    /// </summary>
+    public int TotpFailedCount { get; private set; }
+
+    /// <summary>The second factor accepts no code until then (the password is not affected).</summary>
+    public DateTimeOffset? TotpLockedUntil { get; private set; }
+
+    /// <summary>How many times in a row the second factor has locked: each lock lasts twice as long as the previous one.</summary>
+    public int TotpLockoutLevel { get; private set; }
+
     public string? GoogleSubject { get; private set; }
 
     /// <summary>E.164 number linked to the account by a WhatsApp code; used for WhatsApp sign-in and nothing else.</summary>
@@ -109,11 +121,39 @@ public sealed class User : Entity
         PhoneVerifiedAt = null;
         FailedLoginCount = 0;
         LockedUntil = null;
+        ResetTotpFailures();
         Status = UserStatus.Suspended;
         DeletedAt = now;
     }
 
     public bool IsLocked(DateTimeOffset now) => LockedUntil is { } until && until > now;
+
+    public bool IsTotpLocked(DateTimeOffset now) => TotpLockedUntil is { } until && until > now;
+
+    /// <summary>
+    /// Counts one wrong code. After <paramref name="maxAttempts"/> of them the second factor locks for <paramref name="baseLock"/>, then twice
+    /// as long at each repeat, up to <paramref name="maxLock"/> (a successful code starts again from zero).
+    /// </summary>
+    public void RegisterFailedTotp(DateTimeOffset now, int maxAttempts, TimeSpan baseLock, TimeSpan maxLock)
+    {
+        TotpFailedCount++;
+        if (TotpFailedCount < maxAttempts)
+        {
+            return;
+        }
+
+        var minutes = Math.Min(baseLock.TotalMinutes * Math.Pow(2, TotpLockoutLevel), maxLock.TotalMinutes);
+        TotpLockedUntil = now + TimeSpan.FromMinutes(minutes);
+        TotpLockoutLevel = Math.Min(TotpLockoutLevel + 1, 16);
+        TotpFailedCount = 0;
+    }
+
+    public void ResetTotpFailures()
+    {
+        TotpFailedCount = 0;
+        TotpLockedUntil = null;
+        TotpLockoutLevel = 0;
+    }
 
     public void SetPassword(string passwordHash)
     {

@@ -2340,9 +2340,21 @@ namespace KekeBeauty.Infrastructure.Persistence.Migrations
                         .HasColumnType("boolean")
                         .HasColumnName("totp_enabled");
 
+                    b.Property<int>("TotpFailedCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("totp_failed_count");
+
                     b.Property<long?>("TotpLastStep")
                         .HasColumnType("bigint")
                         .HasColumnName("totp_last_step");
+
+                    b.Property<DateTimeOffset?>("TotpLockedUntil")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("totp_locked_until");
+
+                    b.Property<int>("TotpLockoutLevel")
+                        .HasColumnType("integer")
+                        .HasColumnName("totp_lockout_level");
 
                     b.Property<string>("TotpSecretProtected")
                         .HasMaxLength(1024)

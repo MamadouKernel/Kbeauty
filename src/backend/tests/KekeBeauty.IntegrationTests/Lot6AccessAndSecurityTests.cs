@@ -84,24 +84,28 @@ public sealed class Lot6AccessAndSecurityTests(ApiFixture api)
     }
 
     [Fact]
-    public async Task Repeated_exhausted_two_factor_challenges_lock_the_account()
+    public async Task Five_wrong_second_factor_codes_lock_the_second_factor_of_the_account_whatever_the_challenge()
     {
         // A partner always has a second factor; a plain client has none, so 2FA cannot be brute-forced on one.
         using var victim = await TestAccounts.PartnerAsync(api);
         using var anon = api.CreateClient();
 
-        for (var round = 0; round < 5; round++)
+        async Task<ChallengeResponse> NewChallengeAsync()
         {
             var login = await anon.PostAsJsonAsync("/api/v1/auth/login", new LoginRequest(victim.Email, TestAccounts.Password));
-            login.StatusCode.Should().Be(HttpStatusCode.OK);
-            var challenge = (await login.Content.ReadFromJsonAsync<ChallengeResponse>())!;
-            for (var attempt = 0; attempt < 5; attempt++)
-            {
-                await anon.PostAsJsonAsync("/api/v1/auth/2fa/verify", new ChallengeCodeRequest(challenge.ChallengeToken, "000000"));
-            }
+            login.StatusCode.Should().Be(HttpStatusCode.OK, "only the second factor is locked, never the password step");
+            return (await login.Content.ReadFromJsonAsync<ChallengeResponse>())!;
         }
 
-        var locked = await anon.PostAsJsonAsync("/api/v1/auth/login", new LoginRequest(victim.Email, TestAccounts.Password));
+        var first = await NewChallengeAsync();
+        for (var attempt = 0; attempt < 5; attempt++)
+        {
+            await anon.PostAsJsonAsync("/api/v1/auth/2fa/verify", new ChallengeCodeRequest(first.ChallengeToken, "000000"));
+        }
+
+        // The account counts every wrong code: a fresh challenge does not give back the guesses.
+        var second = await NewChallengeAsync();
+        var locked = await anon.PostAsJsonAsync("/api/v1/auth/2fa/verify", new ChallengeCodeRequest(second.ChallengeToken, "123456"));
         locked.StatusCode.Should().Be(HttpStatusCode.Locked);
     }
 

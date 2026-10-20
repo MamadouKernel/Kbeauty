@@ -21,6 +21,9 @@ public static class IdentityModule
 {
     public const string RateLimitPolicy = "auth";
 
+    /// <summary>PBKDF2-HMAC-SHA512 iterations for new password hashes (OWASP: at least 210 000).</summary>
+    public const int PasswordHashIterations = 210_000;
+
     public static IServiceCollection AddIdentityModule(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddOptions<JwtOptions>()
@@ -30,6 +33,9 @@ public static class IdentityModule
         services.AddOptions<AuthOptions>().Bind(configuration.GetSection(AuthOptions.SectionName));
 
         services.TryAddSingleton(TimeProvider.System);
+        // PBKDF2-HMAC-SHA512 at the cost the OWASP password storage guidance asks for (the framework default is 100 000). A hash made with fewer
+        // iterations still verifies and is upgraded at the next successful sign-in (PasswordVerificationResult.SuccessRehashNeeded).
+        services.Configure<PasswordHasherOptions>(options => options.IterationCount = PasswordHashIterations);
         services.TryAddSingleton<IPasswordHasher<User>, PasswordHasher<User>>();
         services.AddSingleton<TokenService>();
         services.AddSingleton<TotpService>();

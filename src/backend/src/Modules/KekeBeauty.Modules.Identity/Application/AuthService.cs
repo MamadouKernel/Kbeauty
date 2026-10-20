@@ -270,19 +270,19 @@ public sealed partial class AuthService(
             return Result.Failure<IssuedSession>(AuthErrors.InvalidInput);
         }
 
+        if (user.IsTotpLocked(time.GetUtcNow()))
+        {
+            return Result.Failure<IssuedSession>(AuthErrors.AccountLocked);
+        }
+
         var code = (request.Code ?? string.Empty).Replace(" ", string.Empty, StringComparison.Ordinal);
         if (!totp.TryVerify(totp.Unprotect(user.TotpSecretProtected), code, null, out var step))
         {
-            challenge.RegisterFailedAttempt();
-            if (challenge.Attempts >= LoginChallenge.MaxAttempts)
-            {
-                user.RegisterFailedLogin(time.GetUtcNow(), Options.MaxFailedLogins, TimeSpan.FromMinutes(Options.LockoutMinutes));
-            }
-
-            await db.SaveChangesAsync(ct);
+            await RegisterFailedSecondFactorAsync(challenge, user, ct);
             return Result.Failure<IssuedSession>(AuthErrors.InvalidCode);
         }
 
+        user.ResetTotpFailures();
         user.EnableTotp(step);
         db.RecoveryCodes.RemoveRange(await db.RecoveryCodes.Where(r => r.UserId == user.Id).ToListAsync(ct));
         var recoveryCodes = TokenService.NewRecoveryCodes();
@@ -295,6 +295,18 @@ public sealed partial class AuthService(
         return Result.Success(await IssueSessionAsync(user, context, recoveryCodes, request.RememberDevice, ct));
     }
 
+    /// <summary>One wrong second-factor code: it costs the sign-in attempt AND the account, which locks the second factor after a few of them.</summary>
+    private async Task RegisterFailedSecondFactorAsync(LoginChallenge challenge, User user, CancellationToken ct)
+    {
+        challenge.RegisterFailedAttempt();
+        user.RegisterFailedTotp(
+            time.GetUtcNow(),
+            Options.MaxFailedLogins,
+            TimeSpan.FromMinutes(Options.LockoutMinutes),
+            TimeSpan.FromHours(Options.TotpMaxLockoutHours));
+        await db.SaveChangesAsync(ct);
+    }
+
     public async Task<Result<IssuedSession>> VerifyTwoFactorAsync(ChallengeCodeRequest request, ClientContext context, CancellationToken ct)
     {
         var loaded = await LoadChallengeAsync(request.ChallengeToken, ChallengePurpose.TwoFactor, ct);
@@ -305,6 +317,11 @@ public sealed partial class AuthService(
 
         var (challenge, user) = loaded.Value;
         var now = time.GetUtcNow();
+        if (user.IsTotpLocked(now))
+        {
+            return Result.Failure<IssuedSession>(AuthErrors.AccountLocked);
+        }
+
         var trimmed = (request.Code ?? string.Empty).Trim();
         var compact = trimmed.Replace(" ", string.Empty, StringComparison.Ordinal);
         var accepted = false;
@@ -330,16 +347,11 @@ public sealed partial class AuthService(
 
         if (!accepted)
         {
-            challenge.RegisterFailedAttempt();
-            if (challenge.Attempts >= LoginChallenge.MaxAttempts)
-            {
-                user.RegisterFailedLogin(now, Options.MaxFailedLogins, TimeSpan.FromMinutes(Options.LockoutMinutes));
-            }
-
-            await db.SaveChangesAsync(ct);
+            await RegisterFailedSecondFactorAsync(challenge, user, ct);
             return Result.Failure<IssuedSession>(AuthErrors.InvalidCode);
         }
 
+        user.ResetTotpFailures();
         challenge.Consume(now);
         return Result.Success(await IssueSessionAsync(user, context, null, request.RememberDevice, ct));
     }

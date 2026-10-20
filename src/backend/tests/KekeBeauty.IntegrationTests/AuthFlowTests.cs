@@ -256,6 +256,78 @@ public sealed partial class AuthFlowTests(ApiFixture api)
         late.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 
+    private async Task<HttpResponseMessage> WrongCodeOnFreshChallengeAsync(HttpClient client, string email)
+    {
+        var challenge = await LoginAsync(client, email);
+        return await client.PostAsJsonAsync("/api/v1/auth/2fa/verify", new ChallengeCodeRequest(challenge.ChallengeToken, "000000"));
+    }
+
+    [Fact]
+    public async Task Wrong_second_factor_codes_lock_the_account_however_many_sign_in_attempts_are_opened()
+    {
+        using var client = api.CreateClient();
+        var email = NewEmail();
+        await RegisterAndConfirmAsync(client, email, "PartnerOwner");
+        var (secret, _) = await EnrollAsync(client, await LoginAsync(client, email));
+        api.Clock.Advance(TimeSpan.FromSeconds(30));
+
+        // One wrong code per fresh sign-in: no single challenge is ever exhausted, yet the account counts them all.
+        for (var attempt = 0; attempt < 5; attempt++)
+        {
+            (await WrongCodeOnFreshChallengeAsync(client, email)).StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        }
+
+        // Locked: even the right code is refused, and the password alone still gets a challenge (only the second factor is locked).
+        var locked = await LoginAsync(client, email);
+        var refused = await client.PostAsJsonAsync("/api/v1/auth/2fa/verify", new ChallengeCodeRequest(locked.ChallengeToken, TotpCode(secret)));
+        refused.StatusCode.Should().Be(HttpStatusCode.Locked);
+
+        // After the lock (15 minutes) the right code opens a session again.
+        api.Clock.Advance(TimeSpan.FromMinutes(15) + TimeSpan.FromSeconds(1));
+        var again = await client.PostAsJsonAsync("/api/v1/auth/2fa/verify", new ChallengeCodeRequest((await LoginAsync(client, email)).ChallengeToken, TotpCode(secret)));
+        again.StatusCode.Should().Be(HttpStatusCode.OK);
+    }
+
+    [Fact]
+    public async Task A_repeat_offence_doubles_the_lock_and_a_success_resets_it()
+    {
+        using var client = api.CreateClient();
+        var email = NewEmail();
+        await RegisterAndConfirmAsync(client, email, "PartnerOwner");
+        var (secret, _) = await EnrollAsync(client, await LoginAsync(client, email));
+        api.Clock.Advance(TimeSpan.FromSeconds(30));
+
+        async Task<HttpStatusCode> RightCodeAsync() =>
+            (await client.PostAsJsonAsync("/api/v1/auth/2fa/verify", new ChallengeCodeRequest((await LoginAsync(client, email)).ChallengeToken, TotpCode(secret)))).StatusCode;
+
+        for (var attempt = 0; attempt < 5; attempt++)
+        {
+            await WrongCodeOnFreshChallengeAsync(client, email);
+        }
+
+        api.Clock.Advance(TimeSpan.FromMinutes(16));
+        for (var attempt = 0; attempt < 5; attempt++)
+        {
+            await WrongCodeOnFreshChallengeAsync(client, email);
+        }
+
+        // Second lock: 30 minutes, so 16 minutes later it still holds.
+        api.Clock.Advance(TimeSpan.FromMinutes(16));
+        (await RightCodeAsync()).Should().Be(HttpStatusCode.Locked);
+        api.Clock.Advance(TimeSpan.FromMinutes(15));
+        (await RightCodeAsync()).Should().Be(HttpStatusCode.OK);
+
+        // The success wiped the history: four more wrong codes do not lock, and the right one still works.
+        api.Clock.Advance(TimeSpan.FromSeconds(30));
+        for (var attempt = 0; attempt < 4; attempt++)
+        {
+            await WrongCodeOnFreshChallengeAsync(client, email);
+        }
+
+        api.Clock.Advance(TimeSpan.FromSeconds(30));
+        (await RightCodeAsync()).Should().Be(HttpStatusCode.OK);
+    }
+
     [Fact]
     public async Task Password_reset_is_single_use_and_ends_existing_sessions()
     {
