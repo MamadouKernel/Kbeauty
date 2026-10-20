@@ -5,6 +5,7 @@ using KekeBeauty.Api.Observability;
 using KekeBeauty.Api.Http;
 using KekeBeauty.Infrastructure;
 using KekeBeauty.Modules.Identity;
+using KekeBeauty.Modules.Identity.Application;
 using KekeBeauty.Modules.Identity.Endpoints;
 using KekeBeauty.SharedKernel;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
@@ -31,6 +32,13 @@ builder.Host.UseSerilog((context, _, logger) =>
 });
 
 builder.Services.AddInfrastructure(builder.Configuration);
+// The repository is public, so no signing key may be committed. A development instance given none signs with a random key that
+// lives only as long as the process (set JWT_SIGNING_KEY in .env for a stable one); any other environment must provide its own.
+if (builder.Environment.IsDevelopment() && string.IsNullOrWhiteSpace(builder.Configuration["Jwt:SigningKey"]))
+{
+    builder.Configuration["Jwt:SigningKey"] = SigningKeyGuard.NewEphemeralKey();
+}
+
 builder.Services.AddIdentityModule(builder.Configuration);
 builder.Services.AddProxyAwareness(builder.Configuration);
 builder.Services.AddGlobalRateLimit(builder.Configuration);
@@ -82,6 +90,11 @@ var app = builder.Build();
             || !(payments.Winipay.Env is "test" or "prod")))
     {
         throw new InvalidOperationException("Payments:Provider=Winipay requires Payments:Winipay:ApplyKey, Token and Env (test or prod).");
+    }
+
+    if (app.Environment.IsProduction() && SigningKeyGuard.RejectionReason(app.Configuration["Jwt:SigningKey"]) is { } keyProblem)
+    {
+        throw new InvalidOperationException($"Jwt:SigningKey is not acceptable in Production: {keyProblem}. Generate a random key (for example `openssl rand -base64 48`) and keep it in the secret manager.");
     }
 
     if (app.Environment.IsProduction() && string.Equals(payments.Provider, "Winipay", StringComparison.OrdinalIgnoreCase) && payments.Winipay.Env != "prod")

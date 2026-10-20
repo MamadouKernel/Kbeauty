@@ -11,6 +11,11 @@ if errorlevel 1 (
   exit /b 1
 )
 
+if not exist .env (
+  echo Fichier .env absent : generez les secrets d'abord avec "sh scripts/init-env.sh" ^(Git Bash ou WSL^), puis relancez ce script.
+  exit /b 1
+)
+
 set BUILD=
 if /i "%~1"=="build" set BUILD=--build
 

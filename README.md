@@ -16,6 +16,12 @@ redémarrent d'eux-mêmes avec Docker (`restart: unless-stopped`).
 docker compose up --build   # équivalent, sur tout système
 ```
 
+**Première fois sur une machine : générer les secrets.** Le dépôt est public, donc il ne contient aucun mot de passe : exécutez une fois
+`sh scripts/init-env.sh` (Git Bash ou WSL sous Windows). Il crée `.env` à partir de `.env.example` et remplit avec des valeurs aléatoires le
+mot de passe PostgreSQL, les identifiants MinIO et la clé de signature des jetons ; `docker compose` refuse de démarrer tant qu'ils sont vides.
+`.env` est ignoré par git : ne le commitez jamais. Les ports de la pile ne sont publiés que sur `127.0.0.1` ; ne l'exposez pas
+(tunnel, réseau partagé, serveur) : c'est une pile de développement.
+
 | Service | URL |
 |---|---|
 | Web | http://localhost:4200 |
@@ -104,7 +110,11 @@ prête mais **désactivée** (WhatsApp : désactivé, non implémenté).
 ## Développement local (sans conteneur pour l'API et le web)
 
 ```bash
+sh scripts/init-env.sh                       # une fois : génère les secrets dans .env
 docker compose up -d postgres minio
+set -a; . ./.env; set +a                     # charge .env dans ce terminal
+ConnectionStrings__Default="Host=localhost;Port=5434;Database=kekebeauty;Username=keke;Password=$POSTGRES_PASSWORD" \
+Storage__AccessKey="$MINIO_ROOT_USER" Storage__SecretKey="$MINIO_ROOT_PASSWORD" Jwt__SigningKey="$JWT_SIGNING_KEY" \
 dotnet run --project src/backend/src/KekeBeauty.Api --urls http://localhost:8080
 cd src/frontend/keke-beauty-web && npm ci && npm start
 ```

@@ -23,7 +23,7 @@ Notation ASP.NET : `Section__Cle` (double souligné). **Aucun secret dans le dé
 |---|---|---|
 | `ASPNETCORE_ENVIRONMENT` | oui | `Production` (désactive les envois e-mail en clair dans les logs, refuse la passerelle de paiement `Fake`) |
 | `ConnectionStrings__Default` | oui | Chaîne Npgsql (utilisateur dédié, mot de passe fort) |
-| `Jwt__SigningKey` | oui | Clé aléatoire de 32 caractères minimum (l'API refuse de démarrer sinon). Changer la clé déconnecte tout le monde |
+| `Jwt__SigningKey` | oui | Clé **aléatoire** de 32 caractères minimum, générée par exemple avec `openssl rand -base64 48` et gardée dans le coffre de secrets. **En production l'API refuse de démarrer** si elle est absente, courte, factice ou si c'est une clé publiée dans le dépôt (public). Changer la clé déconnecte tout le monde. En développement, vide = clé aléatoire propre au processus (`JWT_SIGNING_KEY` dans `.env` pour en fixer une) |
 | `Auth__WebBaseUrl` | oui | URL publique du site (liens des e-mails), ex. `https://keke-beauty.ci` |
 | `Cors__Origins__0` | si web et API sur des origines différentes | Origine autorisée. Inutile avec le proxy nginx fourni (même origine) |
 | `AllowedHosts` | recommandé | Nom d'hôte public, ex. `keke-beauty.ci` (défaut `*`) |
@@ -95,6 +95,8 @@ reprenez ses services avec vos secrets, sans publier les ports de PostgreSQL, de
 - Limitation de débit par IP (globale, authentification, réservation) ; autorisation par rôle **et** par propriété.
 - Pièces d'identité : bucket privé, accès réservé aux admins, chaque consultation journalisée.
 - Droits des personnes : export et suppression de compte depuis « Mon compte ».
+- **Le dépôt est public** : aucun secret n'y a sa place (jetons de paiement, clé JWT, mots de passe réels). Ce qui y figure (les anciens mots de passe de la pile locale `keke_dev`, `keke_minio_dev`, désormais remplacés par des valeurs aléatoires générées par `scripts/init-env.sh` dans `.env`) est connu de tout le monde : la pile de développement ne doit **jamais** être exposée (tunnel, réseau partagé, serveur) ; ses ports ne sont publiés que sur `127.0.0.1`. L'ancienne clé JWT de développement est **brûlée** (présente dans l'historique git) : elle est refusée en production.
+- Si GitGuardian (ou un autre outil) signale un secret : le **révoquer et le régénérer chez le fournisseur d'abord**, puis le retirer du code. Effacer l'historique git ne suffit jamais, le dépôt étant public et déjà copiable.
 
 ## 7. Brancher WiniPayer (bac à sable, puis production)
 

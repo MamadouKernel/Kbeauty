@@ -9,10 +9,10 @@ services:
     environment:
       POSTGRES_DB: kekebeauty
       POSTGRES_USER: keke
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-keke_dev}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Define POSTGRES_PASSWORD in .env - run sh scripts/init-env.sh}
     ports:
       # 5434 on the host: 5432/5433 are commonly taken by other local PostgreSQL containers.
-      - "5434:5432"
+      - "127.0.0.1:5434:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -27,11 +27,11 @@ services:
     image: bitnamilegacy/minio:latest
     restart: unless-stopped
     environment:
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-keke_minio}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-keke_minio_dev}
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:?Define MINIO_ROOT_USER in .env - run sh scripts/init-env.sh}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?Define MINIO_ROOT_PASSWORD in .env - run sh scripts/init-env.sh}
     ports:
-      - "9000:9000"
-      - "9001:9001"
+      - "127.0.0.1:9000:9000"
+      - "127.0.0.1:9001:9001"
     volumes:
       - miniodata:/bitnami/minio/data
     healthcheck:
@@ -59,13 +59,13 @@ services:
     environment:
       COLLECTOR_OTLP_ENABLED: "true"
     ports:
-      - "16686:16686" # web UI
+      - "127.0.0.1:16686:16686" # web UI
 
   mailpit:
     image: axllent/mailpit:latest
     restart: unless-stopped
     ports:
-      - "8025:8025" # web inbox
+      - "127.0.0.1:8025:8025" # web inbox
     healthcheck:
       test: ["CMD", "/mailpit", "readyz"]
       interval: 10s
@@ -77,6 +77,8 @@ services:
     restart: unless-stopped
     environment:
       ASPNETCORE_ENVIRONMENT: Development
+      # No signing key is committed (the repository is public). Empty = a random key for this process; set JWT_SIGNING_KEY in .env for a stable one.
+      Jwt__SigningKey: ${JWT_SIGNING_KEY:-}
       # The API is only reachable through the web container's nginx: trust its X-Forwarded-* headers (real client IP for rate limits).
       Proxy__TrustForwardedHeaders: "true"
       # Development relay: every e-mail the API sends shows up in the Mailpit inbox (http://localhost:8025).
@@ -93,15 +95,15 @@ services:
       Email__Smtp__Security: None
       Email__Smtp__FromAddress: noreply@keke-beauty.local
       ASPNETCORE_URLS: http://+:8080
-      ConnectionStrings__Default: Host=postgres;Port=5432;Database=kekebeauty;Username=keke;Password=${POSTGRES_PASSWORD:-keke_dev}
+      ConnectionStrings__Default: Host=postgres;Port=5432;Database=kekebeauty;Username=keke;Password=${POSTGRES_PASSWORD:?Define POSTGRES_PASSWORD in .env - run sh scripts/init-env.sh}
       Database__MigrateOnStartup: "true"
       Database__SeedOnStartup: "true"
       # Fictional establishments for local demos only; never enable outside development.
       Database__SeedDemoData: "true"
       # Object storage (photos in public-media, identity documents in private-kyc). Same credentials as the minio service.
       Storage__ServiceUrl: http://minio:9000
-      Storage__AccessKey: ${MINIO_ROOT_USER:-keke_minio}
-      Storage__SecretKey: ${MINIO_ROOT_PASSWORD:-keke_minio_dev}
+      Storage__AccessKey: ${MINIO_ROOT_USER:?Define MINIO_ROOT_USER in .env}
+      Storage__SecretKey: ${MINIO_ROOT_PASSWORD:?Define MINIO_ROOT_PASSWORD in .env}
       # Optional initial SuperAdmin (created only when both are set; it must enrol in 2FA at first sign-in).
       Admin__Email: ${ADMIN_EMAIL:-}
       Admin__Password: ${ADMIN_PASSWORD:-}
@@ -128,7 +130,7 @@ services:
       Backups__RetentionDays: ${BACKUPS_RETENTION_DAYS:-14}
       Media__MaxVideoMegabytes: ${MEDIA_MAX_VIDEO_MB:-50}
     ports:
-      - "8080:8080"
+      - "127.0.0.1:8080:8080"
     depends_on:
       postgres:
         condition: service_healthy
@@ -163,7 +165,7 @@ services:
       MAP_TILES_URL: ${MAP_TILES_URL:-}
       MAP_TILES_ATTRIBUTION: ${MAP_TILES_ATTRIBUTION:-}
     ports:
-      - "4200:80"
+      - "127.0.0.1:4200:80"
     depends_on:
       api:
         condition: service_healthy
