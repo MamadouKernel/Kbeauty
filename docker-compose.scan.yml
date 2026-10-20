@@ -1,0 +1,11 @@
+# For security scans only (OWASP ZAP): never use it for anything else.
+#
+#   docker compose -f docker-compose.yml -f docker-compose.e2e.yml -f docker-compose.scan.yml up -d api
+#
+# A scanner needs the access token to outlive its own start-up and scan (the real lifetime is 15 minutes: the scan would be
+# unauthenticated after that, and silently so). The per-IP limits are raised by docker-compose.e2e.yml; the rate-limit behaviour itself is
+# tested separately.
+services:
+  api:
+    environment:
+      Jwt__AccessTokenMinutes: "180"

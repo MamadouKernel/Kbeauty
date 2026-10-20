@@ -41,7 +41,7 @@ public sealed class RedisBackplaneTests(ApiFixture api)
     [Fact]
     public async Task A_notification_sent_by_one_server_reaches_a_browser_connected_to_another_through_redis()
     {
-        await using var redis = new RedisBuilder("redis:7-alpine").Build();
+        await using var redis = new RedisBuilder("redis:8-alpine").Build();
         await redis.StartAsync();
         using var user = await TestAccounts.ClientAsync(api);
         var settings = redis.GetConnectionString();

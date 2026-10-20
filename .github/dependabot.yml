@@ -1,0 +1,24 @@
+# Keeps the dependencies, the container images and the CI actions up to date: a patched version is proposed as soon as one exists,
+# which is what the last audit found missing (images and packages that silently aged).
+version: 2
+updates:
+  - package-ecosystem: nuget
+    directory: /
+    schedule: { interval: weekly }
+    open-pull-requests-limit: 5
+  - package-ecosystem: npm
+    directory: /src/frontend/keke-beauty-web
+    schedule: { interval: weekly }
+    open-pull-requests-limit: 5
+  - package-ecosystem: npm
+    directory: /e2e
+    schedule: { interval: monthly }
+  - package-ecosystem: docker
+    directory: /src/frontend/keke-beauty-web
+    schedule: { interval: weekly }
+  - package-ecosystem: docker
+    directory: /src/backend
+    schedule: { interval: weekly }
+  - package-ecosystem: github-actions
+    directory: /
+    schedule: { interval: weekly }

@@ -16,7 +16,7 @@ namespace KekeBeauty.IntegrationTests;
 /// <summary>Boots the real API against a throw-away PostGIS container (migrations + seed applied at startup).</summary>
 public sealed class ApiFixture : WebApplicationFactory<Program>, IAsyncLifetime
 {
-    private readonly PostgreSqlContainer _database = new PostgreSqlBuilder("postgis/postgis:16-3.4")
+    private readonly PostgreSqlContainer _database = new PostgreSqlBuilder("postgis/postgis:16-3.6")
         .WithDatabase("kekebeauty")
         .WithUsername("keke")
         .WithPassword("keke_test")

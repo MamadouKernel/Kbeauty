@@ -4,7 +4,10 @@ name: keke-beauty
 # Credentials below are development defaults only; override through a .env file (see .env.example).
 services:
   postgres:
-    image: postgis/postgis:16-3.4
+    # PostGIS on Debian 13 (maintained). The previous image (16-3.4, Debian 11, end of support) had 152 fixable HIGH/CRITICAL OS vulnerabilities, this one 25
+    # (all in the Go helper `gosu`, not network exposed). Moving to another Debian changes text sorting rules: never reuse an old data volume,
+    # restore a dump into a new one (scripts/backup-postgres.sh, scripts/verify-restore.sh).
+    image: postgis/postgis:16-3.6
     restart: unless-stopped
     environment:
       POSTGRES_DB: kekebeauty
@@ -14,7 +17,7 @@ services:
       # 5434 on the host: 5432/5433 are commonly taken by other local PostgreSQL containers.
       - "127.0.0.1:5434:5432"
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - pgdata_d13:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U keke -d kekebeauty"]
       interval: 5s
@@ -22,9 +25,11 @@ services:
       retries: 20
 
   minio:
-    # MinIO no longer publishes official images on Docker Hub or Quay; this is the Bitnami legacy mirror
-    # of the same MinIO server (S3 API on 9000, console on 9001). Swap for a pinned image in production.
-    image: bitnamilegacy/minio:latest
+    # Chainguard's maintained, minimal MinIO build (MinIO publishes no official image any more; the Bitnami legacy mirror used before is
+    # archived and unpatched: 26 CRITICAL vulnerabilities). Runs as the non-root user 65532. S3 API on 9000, console on 9001.
+    # Rescan (Trivy) on each update; this tag moves, pin a digest in your own deployment.
+    image: cgr.dev/chainguard/minio:latest
+    command: ["server", "/data", "--console-address", ":9001"]
     restart: unless-stopped
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER:?Define MINIO_ROOT_USER in .env - run sh scripts/init-env.sh}
@@ -33,16 +38,24 @@ services:
       - "127.0.0.1:9000:9000"
       - "127.0.0.1:9001:9001"
     volumes:
-      - miniodata:/bitnami/minio/data
+      - miniodata:/data
     healthcheck:
-      test: ["CMD-SHELL", "curl -fs http://localhost:9000/minio/health/live || exit 1"]
+      # The image has no curl or wget: probe liveness through bash's /dev/tcp.
+      test:
+        - CMD
+        - bash
+        - -c
+        - >-
+          exec 3<>/dev/tcp/127.0.0.1/9000 &&
+          printf 'GET /minio/health/live HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n' >&3 &&
+          read -r line <&3 && [[ "$$line" == *200* ]]
       interval: 5s
       timeout: 3s
       retries: 20
 
   redis:
     # SignalR backplane: lets several API servers push live updates (calendar, agenda, notifications) to every connected browser.
-    image: redis:7-alpine
+    image: redis:8-alpine
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
@@ -167,16 +180,17 @@ services:
       MAP_TILES_URL: ${MAP_TILES_URL:-}
       MAP_TILES_ATTRIBUTION: ${MAP_TILES_ATTRIBUTION:-}
     ports:
-      - "127.0.0.1:4200:80"
+      - "127.0.0.1:4200:8080"
     depends_on:
       api:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://127.0.0.1/"]
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/"]
       interval: 5s
       timeout: 3s
       retries: 20
 
 volumes:
-  pgdata:
+  pgdata:     # old volume (Debian 11 PostGIS 3.4): kept until the migration is verified, then remove it with `docker volume rm keke-beauty_pgdata`
+  pgdata_d13:
   miniodata:
