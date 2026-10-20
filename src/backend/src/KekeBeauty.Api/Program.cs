@@ -36,6 +36,7 @@ builder.Services.AddProxyAwareness(builder.Configuration);
 builder.Services.AddGlobalRateLimit(builder.Configuration);
 builder.Services.AddEstablishmentRateLimits();
 builder.Services.AddGrowthRateLimits();
+builder.Services.AddBillingRateLimits();
 builder.Services.AddObservability(builder.Configuration);
 
 // With several API servers behind a load balancer, a message sent from one server must reach the browsers connected to the others:
@@ -105,8 +106,9 @@ app.UseSerilogRequestLogging();
 app.UseExceptionHandler();
 app.UseStatusCodePages();
 app.UseCors("web");
-app.UseRateLimiter();
 app.UseAuthentication();
+// After authentication, so that the per-user limits (gift cards, payment refresh) see the signed-in user and not just the address.
+app.UseRateLimiter();
 app.UseAuthorization();
 
 if (app.Environment.IsDevelopment())

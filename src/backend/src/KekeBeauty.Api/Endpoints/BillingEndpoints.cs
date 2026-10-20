@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using System.Threading.RateLimiting;
 using KekeBeauty.Api.Http;
 using KekeBeauty.Infrastructure.Billing;
 using KekeBeauty.SharedKernel;
@@ -9,6 +10,22 @@ namespace KekeBeauty.Api.Endpoints;
 /// <summary>Plans, subscriptions, invoices and payment notifications (PRD BIL-01 to BIL-08).</summary>
 public static class BillingEndpoints
 {
+    /// <summary>
+    /// Each call to the payment refresh makes the server query the payment provider: bounded per signed-in user so that nobody can use
+    /// the API to hammer the provider. The subscription page polls at most 30 times a minute.
+    /// </summary>
+    public const string PaymentRefreshRateLimitPolicy = "payment-refresh";
+
+    public static IServiceCollection AddBillingRateLimits(this IServiceCollection services) =>
+        services.AddRateLimiter(limiter => limiter.AddPolicy(PaymentRefreshRateLimitPolicy, context =>
+            RateLimitPartition.GetFixedWindowLimiter(
+                context.User.FindFirstValue("sub") ?? context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                _ => new FixedWindowRateLimiterOptions
+                {
+                    PermitLimit = context.RequestServices.GetRequiredService<IConfiguration>().GetValue("RateLimits:PaymentRefreshPerMinute", 40),
+                    Window = TimeSpan.FromMinutes(1),
+                })));
+
     public static IEndpointRouteBuilder MapBillingEndpoints(this IEndpointRouteBuilder app)
     {
         app.MapGet("/api/v1/plans", async (BillingService service, CancellationToken ct) => Results.Ok(await service.PlansAsync(false, ct)))
@@ -32,6 +49,7 @@ public static class BillingEndpoints
         // The customer is back from the payment page: re-read the provider instead of waiting for a notification that may not come.
         group.MapPost("/establishments/{id:guid}/subscription/refresh", async (Guid id, ClaimsPrincipal user, PaymentProcessor processor, CancellationToken ct) =>
                 Respond(await processor.RefreshPendingAsync(user.UserId(), id, ct)))
+            .RequireRateLimiting(PaymentRefreshRateLimitPolicy)
             .Produces<int>().ProducesProblem(StatusCodes.Status404NotFound);
 
         group.MapPost("/establishments/{id:guid}/subscription", async (Guid id, SubscribeInput input, ClaimsPrincipal user, BillingService service, CancellationToken ct) =>

@@ -35,10 +35,10 @@ Légende : ✅ fait dans le code · 🔧 à faire par l'exploitant avant l'ouver
 | **Stockage S3 / MinIO** | Photos, pièces d'identité | ✅ Code prêt | Instance de production, utilisateur limité, buckets (`private-kyc` privé et versionné), sauvegarde |
 | **Google (connexion)** | Connexion optionnelle | ✅ Code prêt, désactivé par défaut | Identifiant client OAuth si souhaité |
 | **Service push du navigateur (VAPID)** | Notifications push | 🟡 Côté serveur et client écrits, **jamais testé en réel** | Test sur HTTPS avec un vrai navigateur |
-| **Redis** | Temps réel sur plusieurs instances | ✅ Optionnel | Nécessaire dès que l'API tourne sur plus d'une instance |
-| **OpenTelemetry (collecteur)** | Traces et métriques | ✅ Optionnel | Choisir un collecteur et des alertes (disponibilité, 5xx, échecs de paiement) |
+| **Redis** | Temps réel sur plusieurs instances | ✅ Testé (20/10/2026) : deux serveurs, notification relayée, canaux SignalR actifs | Nécessaire dès que l'API tourne sur plus d'une instance ; mot de passe et TLS sur le Redis de production |
+| **OpenTelemetry (collecteur)** | Traces et métriques | ✅ Traces testées vers Jaeger (20/10/2026) ; métriques non vérifiées | Choisir un collecteur, vérifier les métriques, définir des alertes (disponibilité, 5xx, échecs de paiement) |
 | **Domaine, TLS, proxy** | Accès public | 🔧 Hors code | Nom de domaine, certificat, `Proxy__TrustForwardedHeaders=true`, `AllowedHosts` |
-| **Sauvegardes et PITR** | Reprise sur incident | ✅ Scripts fournis | Planification, archivage WAL, test de restauration régulier |
+| **Sauvegardes et PITR** | Reprise sur incident | ✅ Scripts et sauvegarde depuis l'application testés, restauration vérifiée (20/10/2026) | Planification, archivage WAL (PITR), test de restauration régulier, sauvegarde séparée des buckets |
 | **Yango** | Lien d'itinéraire | ✅ Lien officiel | Identifiant partenaire (facultatif) |
 
 ## Sécurité

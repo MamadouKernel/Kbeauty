@@ -346,6 +346,35 @@ public sealed class BillingTests(ApiFixture api)
     }
 
     [Fact]
+    public async Task Refreshing_is_rate_limited_per_user_so_the_provider_cannot_be_hammered_through_the_api()
+    {
+        var salon = await FreeSalonAsync();
+        using var other = await TestAccounts.PartnerAsync(api);
+        try
+        {
+            var url = $"{Sub(salon)}/refresh";
+
+            // 40 calls a minute per user (fixed one-minute windows: the first refusal comes after 40 calls, or up to 80 if the window
+            // rolled over in between). The subscription page itself polls at most 30 times a minute.
+            var statuses = new List<HttpStatusCode>();
+            for (var i = 0; i < 90 && !statuses.Contains(HttpStatusCode.TooManyRequests); i++)
+            {
+                statuses.Add((await salon.Owner.Client.PostAsync(url, null)).StatusCode);
+            }
+
+            statuses.Should().Contain(HttpStatusCode.TooManyRequests);
+            statuses.Take(40).Should().AllBeEquivalentTo(HttpStatusCode.OK);
+
+            // The ceiling follows the user, not the address: someone else on the same address is not slowed down by it.
+            (await other.Client.PostAsync(url, null)).StatusCode.Should().Be(HttpStatusCode.NotFound);
+        }
+        finally
+        {
+            await TestCleanup.DeleteEstablishmentsAsync(api, salon.Owner.UserId);
+        }
+    }
+
+    [Fact]
     public async Task The_photo_limit_follows_the_plan()
     {
         var salon = await FreeSalonAsync();
