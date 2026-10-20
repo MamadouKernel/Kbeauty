@@ -1,0 +1,16 @@
+#!/bin/sh
+# Refuses a commit that contains a secret (key, token, password...): the repository is public.
+# Needs Docker (gitleaks runs in a container). Without Docker the check is skipped with a warning; CI still blocks the push.
+# Install once: sh scripts/install-hooks.sh
+ROOT="$(git rev-parse --show-toplevel)"
+if ! command -v docker >/dev/null 2>&1 || ! docker info >/dev/null 2>&1; then
+  echo "pre-commit: Docker is not available, secret scan skipped (CI will still scan)." >&2
+  exit 0
+fi
+docker run --rm -v "$ROOT:/repo:ro" ghcr.io/gitleaks/gitleaks:v8.30.1 git /repo --pre-commit --staged --redact --no-banner -c /repo/.gitleaks.toml
+STATUS=$?
+if [ "$STATUS" -ne 0 ]; then
+  echo >&2
+  echo "pre-commit: a secret was detected in the staged changes. Remove it (use .env or a secrets file), revoke it if it was real, then commit again." >&2
+fi
+exit "$STATUS"

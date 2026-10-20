@@ -15,6 +15,11 @@ using Serilog.Formatting.Compact;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// The deployment's keystore: secrets mounted as files (Docker or Kubernetes secrets), one file per setting named like the setting with "__"
+// for ":" (for example /run/secrets/Jwt__SigningKey). Optional, read last so that a mounted secret wins; the folder can be moved with
+// SECRETS_DIR. No secret lives in the repository, which is public.
+builder.Configuration.AddKeyPerFile(Environment.GetEnvironmentVariable("SECRETS_DIR") ?? "/run/secrets", optional: true);
+
 builder.WebHost.ConfigureKestrel(options => options.AddServerHeader = false);
 
 builder.Host.UseSerilog((context, _, logger) =>

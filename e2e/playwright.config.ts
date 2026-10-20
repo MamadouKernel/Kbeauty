@@ -1,4 +1,8 @@
+import { randomBytes } from 'node:crypto';
 import { defineConfig, devices } from '@playwright/test';
+
+// A password for the throw-away accounts, random for each run (no password is written in the repository). The workers inherit it.
+process.env.E2E_PASSWORD ??= `Zx-${randomBytes(8).toString('hex')}7`;
 
 /**
  * End-to-end suite for Keke Beauty, run against the docker compose stack (`docker compose up -d` at the repository root).

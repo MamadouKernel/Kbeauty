@@ -14,6 +14,9 @@ import { authGuard, guestGuard, roleGuard, safeReturnUrl } from './auth.guards';
 import { authInterceptor } from './auth.interceptor';
 import { AuthService } from './auth.service';
 
+/** Random for each run: no password is written in the repository. Meets the rules (length, a letter, a digit). */
+const PASSWORD = `Zx-${crypto.randomUUID().slice(0, 12)}7`;
+
 const SESSION: AuthResponse = {
   accessToken: 'access-1',
   expiresAt: '2026-10-11T12:15:00Z',
@@ -99,7 +102,7 @@ describe('AuthService', () => {
   });
 
   it('keeps the two-factor challenge after a correct password but opens no session', async () => {
-    const pending = auth.login('awa@example.com', 'Correct-Horse-42');
+    const pending = auth.login('awa@example.com', PASSWORD);
     http
       .expectOne('/api/v1/auth/login')
       .flush({ status: 'TwoFactorSetupRequired', challengeToken: 'challenge-1' });

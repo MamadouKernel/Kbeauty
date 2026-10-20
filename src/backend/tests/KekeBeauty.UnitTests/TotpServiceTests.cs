@@ -78,10 +78,11 @@ public class TotpServiceTests
     [Fact]
     public void Builds_an_otpauth_uri_for_authenticator_apps()
     {
-        var uri = _service.BuildOtpauthUri("awa@example.com", "JBSWY3DPEHPK3PXP");
+        var secret = _service.GenerateSecret();
+        var uri = _service.BuildOtpauthUri("awa@example.com", secret);
 
         uri.Should().StartWith("otpauth://totp/Keke%20Beauty:awa%40example.com?");
-        uri.Should().Contain("secret=JBSWY3DPEHPK3PXP").And.Contain("issuer=Keke%20Beauty").And.Contain("digits=6").And.Contain("period=30");
+        uri.Should().Contain($"secret={secret}").And.Contain("issuer=Keke%20Beauty").And.Contain("digits=6").And.Contain("period=30");
     }
 
     [Fact]

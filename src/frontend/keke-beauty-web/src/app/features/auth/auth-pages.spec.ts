@@ -10,6 +10,12 @@ import { Login } from './login/login';
 import { Register } from './register/register';
 import { TwoFactor } from './two-factor/two-factor';
 
+/** Random for each run: no password is written in the repository. Meets the rules (length, a letter, a digit). */
+const PASSWORD = `Zx-${crypto.randomUUID().slice(0, 12)}7`;
+
+/** A throw-away authenticator secret (base32), random for each run. */
+const TOTP_SECRET = Array.from(crypto.getRandomValues(new Uint8Array(16)), (b) => 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567'[b % 32]).join('');
+
 describe('authentication pages', () => {
   let http: HttpTestingController;
   let router: Router;
@@ -61,13 +67,13 @@ describe('authentication pages', () => {
       const el = fixture.nativeElement as HTMLElement;
 
       type(el, '#login-email', 'awa@example.com');
-      type(el, 'input[type="password"]', 'Correct-Horse-42');
+      type(el, 'input[type="password"]', PASSWORD);
       el.querySelector<HTMLButtonElement>('button[type="submit"]')!.click();
 
       const request = await vi.waitFor(() => http.expectOne('/api/v1/auth/login'));
       expect(request.request.body).toEqual({
         email: 'awa@example.com',
-        password: 'Correct-Horse-42',
+        password: PASSWORD,
       });
       request.flush({ status: 'TwoFactorRequired', challengeToken: 'c1' });
 
@@ -133,8 +139,8 @@ describe('authentication pages', () => {
       type(el, '#reg-first', 'Awa');
       type(el, '#reg-last', 'Koné');
       type(el, '#reg-email', 'awa@example.com');
-      type(el, '#reg-password', 'Correct-Horse-42');
-      type(el, '#reg-confirm', 'Correct-Horse-43');
+      type(el, '#reg-password', PASSWORD);
+      type(el, '#reg-confirm', `${PASSWORD}x`);
       el.querySelector<HTMLInputElement>('input[type="checkbox"]')!.click();
       el.querySelector<HTMLButtonElement>('button[type="submit"]')!.click();
 
@@ -152,8 +158,8 @@ describe('authentication pages', () => {
       type(el, '#reg-first', 'Awa');
       type(el, '#reg-last', 'Koné');
       type(el, '#reg-email', 'awa@example.com');
-      type(el, '#reg-password', 'Correct-Horse-42');
-      type(el, '#reg-confirm', 'Correct-Horse-42');
+      type(el, '#reg-password', PASSWORD);
+      type(el, '#reg-confirm', PASSWORD);
       el.querySelector<HTMLInputElement>('input[type="checkbox"]')!.click();
       el.querySelector<HTMLButtonElement>('button[type="submit"]')!.click();
 
@@ -180,7 +186,7 @@ describe('authentication pages', () => {
       type(el, '#reg-first', 'Awa');
       type(el, '#reg-last', 'Koné');
       type(el, '#reg-email', 'awa@example.com');
-      type(el, 'input[type="password"]', 'Correct-Horse-42');
+      type(el, 'input[type="password"]', PASSWORD);
       el.querySelector<HTMLButtonElement>('button[type="submit"]')!.click();
 
       await eventually(fixture, () => expect(el.textContent).toContain('accepter les conditions'));
@@ -235,11 +241,11 @@ describe('authentication pages', () => {
 
       const setup = await vi.waitFor(() => http.expectOne('/api/v1/auth/2fa/setup'));
       setup.flush({
-        secret: 'JBSWY3DPEHPK3PXP',
-        otpauthUri: 'otpauth://totp/Keke:awa?secret=JBSWY3DPEHPK3PXP',
+        secret: TOTP_SECRET,
+        otpauthUri: `otpauth://totp/Keke:awa?secret=${TOTP_SECRET}`,
       });
       await eventually(fixture, () =>
-        expect(el.querySelector('code')?.textContent).toContain('JBSW Y3DP EHPK 3PXP'),
+        expect(el.querySelector('code')?.textContent).toContain(TOTP_SECRET.match(/.{1,4}/g)!.join(' ')),
       );
 
       type(el, '#twofa-code', '654321');

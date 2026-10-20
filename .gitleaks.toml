@@ -1,0 +1,8 @@
+title = "Keke Beauty"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Local environment file: it is git-ignored and holds this machine's own generated secrets"
+paths = ['''(^|/)\.env$''']

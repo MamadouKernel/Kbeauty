@@ -42,7 +42,8 @@ public sealed class PaymentsOptions
     /// <summary>Public address of the API: where the provider posts its notifications.</summary>
     public string ApiBaseUrl { get; init; } = "http://localhost:8080";
 
-    public string FakeSecret { get; init; } = "fake-secret";
+    /// <summary>Shared secret of the simulated gateway: random for each process, never a fixed published value.</summary>
+    public string FakeSecret { get; init; } = Convert.ToHexStringLower(System.Security.Cryptography.RandomNumberGenerator.GetBytes(16));
     public CinetPayOptions CinetPay { get; init; } = new();
     public WinipayOptions Winipay { get; init; } = new();
 

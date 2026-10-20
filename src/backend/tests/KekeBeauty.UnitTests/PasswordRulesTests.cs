@@ -10,7 +10,7 @@ public class PasswordRulesTests
     [Fact]
     public void Accepts_a_long_password_with_letters_and_digits()
     {
-        PasswordRules.Validate("Correct-Horse-42", Email).Should().BeEmpty();
+        PasswordRules.Validate("Zx-" + Guid.NewGuid().ToString("N")[..10] + "7", Email).Should().BeEmpty();
     }
 
     [Fact]

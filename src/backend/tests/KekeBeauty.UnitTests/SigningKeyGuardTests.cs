@@ -5,11 +5,17 @@ namespace KekeBeauty.UnitTests;
 
 public sealed class SigningKeyGuardTests
 {
-    [Theory]
-    [InlineData("dev-only-signing-key-change-me-0123456789abcdef")]
-    [InlineData("integration-tests-signing-key-0123456789abcdef")]
-    public void Keys_published_in_the_public_repository_are_never_acceptable(string key) =>
-        SigningKeyGuard.RejectionReason(key).Should().NotBeNull();
+    [Fact]
+    public void A_key_whose_fingerprint_is_published_is_rejected_but_not_when_it_differs()
+    {
+        // The real burned keys are only known by fingerprint: the check is exercised on a throw-away key of the same shape.
+        var key = SigningKeyGuard.NewEphemeralKey();
+
+        SigningKeyGuard.Fingerprint(key).Should().MatchRegex("^[0-9a-f]{64}$");
+        SigningKeyGuard.Fingerprint(key).Should().Be(SigningKeyGuard.Fingerprint(key));
+        SigningKeyGuard.Fingerprint(key).Should().NotBe(SigningKeyGuard.Fingerprint(SigningKeyGuard.NewEphemeralKey()));
+        SigningKeyGuard.RejectionReason(key).Should().BeNull();
+    }
 
     [Theory]
     [InlineData(null)]

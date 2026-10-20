@@ -20,7 +20,7 @@ internal sealed record UserSession(HttpClient Client, Guid UserId, string Email)
 /// <summary>Creates throw-away accounts through the real registration and 2FA endpoints.</summary>
 internal static partial class TestAccounts
 {
-    public const string Password = "Correct-Horse-42";
+    public static string Password => TestSecrets.Password;
 
     [GeneratedRegex(@"token=([^\s&]+)")]
     private static partial Regex TokenPattern();

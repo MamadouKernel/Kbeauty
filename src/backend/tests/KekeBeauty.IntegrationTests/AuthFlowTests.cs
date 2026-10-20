@@ -12,7 +12,7 @@ namespace KekeBeauty.IntegrationTests;
 [Collection(ApiCollection.Name)]
 public sealed partial class AuthFlowTests(ApiFixture api)
 {
-    private const string Password = "Correct-Horse-42";
+    private static string Password => TestSecrets.Password;
 
     private static string NewEmail() => $"user{Guid.NewGuid():N}@example.com";
 
@@ -38,9 +38,9 @@ public sealed partial class AuthFlowTests(ApiFixture api)
         confirm.StatusCode.Should().Be(HttpStatusCode.NoContent);
     }
 
-    private static async Task<ChallengeResponse> LoginAsync(HttpClient client, string email, string password = Password)
+    private static async Task<ChallengeResponse> LoginAsync(HttpClient client, string email, string? password = null)
     {
-        var response = await client.PostAsJsonAsync("/api/v1/auth/login", new LoginRequest(email, password));
+        var response = await client.PostAsJsonAsync("/api/v1/auth/login", new LoginRequest(email, password ?? Password));
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         return await Json<ChallengeResponse>(response);
     }

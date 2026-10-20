@@ -110,7 +110,7 @@ public sealed class Lot6AccessAndSecurityTests(ApiFixture api)
     {
         using var client = await TestAccounts.ClientAsync(api);
         const string p256dh = "BNcRdreALRFXTkOOUHK1EtK2wtaz5Ry4YfYCA_0QTpQtUbVlUls0VJXg7A8u-Ts1XbjhazAkj7I99e8QcYP7DkM";
-        const string auth = "tBHItJI5svbpez7KI4CCXg";
+        var auth = TestSecrets.PushAuth;
 
         foreach (var bad in new[]
         {

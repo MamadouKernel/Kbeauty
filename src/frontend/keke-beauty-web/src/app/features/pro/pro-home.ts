@@ -237,7 +237,7 @@ import { PartnerService, STATUS_LABELS } from '../../core/partner/partner.servic
                         type="button"
                         class="btn btn-light btn-sm"
                         [attr.aria-expanded]="openQrSlug() === e.slug"
-                        (click)="toggleQr(e.slug, e.name)"
+                        (click)="toggleQr(e.slug)"
                       >
                         {{ openQrSlug() === e.slug ? 'Masquer le kit partage' : 'QR Code & WhatsApp' }}
                       </button>
@@ -324,7 +324,7 @@ export class ProHome {
     return `https://wa.me/?text=${encodeURIComponent(text)}`;
   }
 
-  protected async toggleQr(slug: string, _name: string): Promise<void> {
+  protected async toggleQr(slug: string): Promise<void> {
     if (this.openQrSlug() === slug) {
       this.openQrSlug.set(null);
       return;

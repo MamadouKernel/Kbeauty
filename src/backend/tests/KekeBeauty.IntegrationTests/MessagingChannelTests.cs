@@ -20,7 +20,7 @@ public sealed class MessagingChannelTests(ApiFixture api)
 {
     private const string Phone = "0700001234";
     private const string ValidP256dh = "BNcRdreALRFXTkOOUHK1EtK2wtaz5Ry4YfYCA_0QTpQtUbVlUls0VJXg7A8u-Ts1XbjhazAkj7I99e8QcYP7DkM";
-    private const string ValidAuth = "tBHItJI5svbpez7KI4CCXg";
+    private static string ValidAuth => TestSecrets.PushAuth;
 
     private async Task ResetChannelsAsync()
     {
@@ -225,12 +225,12 @@ public sealed class MessagingChannelTests(ApiFixture api)
         (await client.PostAsJsonAsync("/api/v1/webhooks/sms/letexto", new { id = providerId, statuts = "DELIVERED" })).StatusCode.Should().Be(HttpStatusCode.Unauthorized);
         (await RowsAsync(user.UserId, NotificationChannel.Sms)).Single().Status.Should().Be(DeliveryStatus.Sent);
 
-        (await client.PostAsJsonAsync("/api/v1/webhooks/sms/letexto?sig=test-dlr-secret", new { id = providerId, statuts = "DELIVERED" })).StatusCode.Should().Be(HttpStatusCode.OK);
+        (await client.PostAsJsonAsync($"/api/v1/webhooks/sms/letexto?sig={TestSecrets.WebhookSecret}", new { id = providerId, statuts = "DELIVERED" })).StatusCode.Should().Be(HttpStatusCode.OK);
         (await RowsAsync(user.UserId, NotificationChannel.Sms)).Single().Status.Should().Be(DeliveryStatus.Delivered);
 
-        (await client.GetAsync($"/api/v1/webhooks/sms/letexto?sig=test-dlr-secret&id={providerId}&statuts=FAILED")).StatusCode.Should().Be(HttpStatusCode.OK);
+        (await client.GetAsync($"/api/v1/webhooks/sms/letexto?sig={TestSecrets.WebhookSecret}&id={providerId}&statuts=FAILED")).StatusCode.Should().Be(HttpStatusCode.OK);
         (await RowsAsync(user.UserId, NotificationChannel.Sms)).Single().Status.Should().Be(DeliveryStatus.Delivered, "a delivered message cannot become failed");
-        (await client.PostAsJsonAsync("/api/v1/webhooks/sms/letexto?sig=test-dlr-secret", new { id = "unknown", statuts = "FAILED" })).StatusCode.Should().Be(HttpStatusCode.OK);
+        (await client.PostAsJsonAsync($"/api/v1/webhooks/sms/letexto?sig={TestSecrets.WebhookSecret}", new { id = "unknown", statuts = "FAILED" })).StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
     // ───────── Back-office channel panel ─────────

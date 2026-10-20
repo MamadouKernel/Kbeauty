@@ -250,7 +250,7 @@ const PRICE_TYPES = [
         <section aria-labelledby="services-title">
           <h2 id="services-title">
             Prestations ({{ e.services.length
-            }}{{ e.maxServices != null ? ' / ' + e.maxServices : '' }})
+            }}{{ e.maxServices !== null ? ' / ' + e.maxServices : '' }})
           </h2>
           @if (e.services.length === 0) {
             <p class="hint">Aucune prestation. Ajoutez vos soins avec leur prix et leur durée.</p>

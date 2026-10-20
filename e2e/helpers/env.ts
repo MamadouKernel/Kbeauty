@@ -4,8 +4,8 @@ import path from 'node:path';
 export const BASE_URL = process.env.E2E_BASE_URL ?? 'http://localhost:4200';
 export const MAILPIT_URL = process.env.E2E_MAILPIT_URL ?? 'http://localhost:8025';
 
-/** Meets the password rules (10+ characters, a letter and a digit); shared by every throw-away account. */
-export const PASSWORD = 'Correct-Horse-42';
+/** Meets the password rules (10+ characters, a letter and a digit); shared by every throw-away account. Random per run (see playwright.config.ts). */
+export const PASSWORD = process.env.E2E_PASSWORD ?? 'unset-run-through-playwright';
 
 const REPOSITORY_ROOT = path.resolve(__dirname, '..', '..');
 

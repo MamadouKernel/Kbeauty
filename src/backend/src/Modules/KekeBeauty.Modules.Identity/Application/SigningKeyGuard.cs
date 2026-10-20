@@ -8,17 +8,23 @@ namespace KekeBeauty.Modules.Identity.Application;
 /// </summary>
 public static class SigningKeyGuard
 {
-    /// <summary>Keys that appeared in the repository (current or past commits): never valid in production.</summary>
-    private static readonly string[] BurnedKeys =
+    /// <summary>
+    /// SHA-256 fingerprints (lowercase hex) of keys that appeared in the repository, current or past commits. Only the fingerprints are
+    /// kept here: the guard recognises a published key without repeating it.
+    /// </summary>
+    private static readonly string[] BurnedKeyFingerprints =
     [
-        "dev-only-signing-key-change-me-0123456789abcdef",
-        "integration-tests-signing-key-0123456789abcdef",
+        "3e18ea49bc8a5528b730b49b2ee3bef5dadc73dc8722024de0cec988d7b375af",
+        "d4a436d602ed026bb1e370ffdcd5dfdab8c90b479b9482fa1f9fa1313bd7194a",
     ];
 
     private static readonly string[] PlaceholderMarkers = ["change-me", "changeme", "dev-only", "your-key", "example", "secret-key"];
 
     /// <summary>A fresh random key for a development instance that was given none; it only lives as long as the process.</summary>
     public static string NewEphemeralKey() => Convert.ToBase64String(RandomNumberGenerator.GetBytes(48));
+
+    /// <summary>SHA-256 of the key as lowercase hex.</summary>
+    public static string Fingerprint(string key) => Convert.ToHexStringLower(SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(key)));
 
     /// <summary>Why a key must not be used in production, or null when it looks acceptable.</summary>
     public static string? RejectionReason(string? key)
@@ -28,7 +34,7 @@ public static class SigningKeyGuard
             return "it is missing or shorter than 32 characters";
         }
 
-        if (BurnedKeys.Contains(key, StringComparer.Ordinal))
+        if (BurnedKeyFingerprints.Contains(Fingerprint(key), StringComparer.Ordinal))
         {
             return "it is a development or test key that is published in the repository";
         }

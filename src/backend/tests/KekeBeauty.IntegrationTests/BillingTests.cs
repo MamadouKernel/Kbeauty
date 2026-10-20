@@ -8,6 +8,7 @@ using KekeBeauty.Modules.Billing.Domain;
 using KekeBeauty.SharedKernel;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace KekeBeauty.IntegrationTests;
 
@@ -156,7 +157,7 @@ public sealed class BillingTests(ApiFixture api)
         (await anonymous.PostAsync("/api/v1/webhooks/payments/nobody", body)).StatusCode.Should().Be(HttpStatusCode.NotFound);
 
         using var signed = new HttpRequestMessage(HttpMethod.Post, "/api/v1/webhooks/payments/fake") { Content = body };
-        signed.Headers.Add("x-token", "fake-secret");
+        signed.Headers.Add("x-token", api.Services.GetRequiredService<IOptions<PaymentsOptions>>().Value.FakeSecret);
         (await anonymous.SendAsync(signed)).StatusCode.Should().Be(HttpStatusCode.OK, "an unknown transaction is acknowledged and ignored");
     }
 

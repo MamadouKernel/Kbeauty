@@ -40,7 +40,7 @@ public sealed class ApiFixture : WebApplicationFactory<Program>, IAsyncLifetime
     }
 
     public const string AdminEmail = "admin@keke.test";
-    public const string AdminPassword = "Zebra-Quartz-7391";
+    public static string AdminPassword => TestSecrets.AdminPassword;
 
     /// <summary>Deterministic clock shared with the API (TOTP steps, lockouts, token lifetimes).</summary>
     public FakeTimeProvider Clock => Services.GetRequiredService<FakeTimeProvider>();
@@ -56,7 +56,7 @@ public sealed class ApiFixture : WebApplicationFactory<Program>, IAsyncLifetime
         builder.UseSetting("Database:MigrateOnStartup", "true");
         builder.UseSetting("Database:SeedOnStartup", "true");
         builder.UseSetting("Database:SeedDemoData", "true");
-        builder.UseSetting("Jwt:SigningKey", "integration-tests-signing-key-0123456789abcdef");
+        builder.UseSetting("Jwt:SigningKey", TestSecrets.SigningKey);
         builder.UseSetting("Auth:AuthPermitPerMinute", "100000");
         builder.UseSetting("Auth:Google:Enabled", "true");
         builder.UseSetting("Auth:Google:ClientId", "test-google-client");
@@ -70,7 +70,7 @@ public sealed class ApiFixture : WebApplicationFactory<Program>, IAsyncLifetime
         builder.UseSetting("RateLimits:GiftCardCodesPerMinute", "100000");
         builder.UseSetting("Settlements:MaintenanceEnabled", "false");
         builder.UseSetting("Backups:MaintenanceEnabled", "false");
-        builder.UseSetting("LeTexto:WebhookSecret", "test-dlr-secret");
+        builder.UseSetting("LeTexto:WebhookSecret", TestSecrets.WebhookSecret);
         builder.UseSetting("RateLimits:GlobalPerMinute", "1000000");
         builder.UseSetting("RateLimits:BookingPerMinute", "100000");
         builder.UseSetting("Admin:Email", AdminEmail);
@@ -212,7 +212,7 @@ public sealed class ApiCollection : ICollectionFixture<ApiFixture>
 /// <summary>Plays CinetPay's <c>payment/check</c> endpoint: tests decide what the provider "says" about each transaction.</summary>
 public sealed class CinetPayStub : HttpMessageHandler
 {
-    public const string Secret = "sandbox-test-secret";
+    public static string Secret => TestSecrets.CinetPaySecret;
 
     private readonly ConcurrentDictionary<string, (string Status, string Amount)> _transactions = new();
 
@@ -233,7 +233,7 @@ public sealed class CinetPayStub : HttpMessageHandler
 /// <summary>Plays WiniPayer's <c>checkout/standard/detail/{uuid}</c>: tests decide what the provider "says" about each invoice.</summary>
 public sealed class WinipayStub : HttpMessageHandler
 {
-    public const string Token = "winipay-test-token";
+    public static string Token => TestSecrets.WinipayToken;
 
     private readonly ConcurrentDictionary<string, (string State, string Amount)> _invoices = new();
 
