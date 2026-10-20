@@ -170,7 +170,7 @@ interface PendingChange {
         <h1>Formule et <em>facturation</em></h1>
       </div>
 
-      @if (polling()) {
+      @if (polling() && overview.value()?.subscription?.status === 'PendingPayment') {
         <p role="status" class="badge">Confirmation du paiement en cours…</p>
       }
       @if (error(); as message) {
@@ -764,14 +764,30 @@ export class SubscriptionPage {
   private startPolling(): void {
     this.polling.set(true);
     let attempts = 0;
-    const timer = setInterval(() => {
-      attempts++;
-      this.refresh();
+    let checking = false;
+    const timer = setInterval(async () => {
+      if (checking) {
+        return;
+      }
+
       const status = this.overview.value()?.subscription?.status;
       if ((status && status !== 'PendingPayment') || attempts >= POLL_MAX) {
         clearInterval(timer);
         this.polling.set(false);
+        return;
       }
+
+      checking = true;
+      attempts++;
+      try {
+        // A provider may never call us back: have the server read its verdict on our pending payments now.
+        await this.billing.refreshPending(this.id());
+      } catch {
+        // The reload below still shows what the server knows, and the next tick asks again.
+      }
+
+      this.refresh();
+      checking = false;
     }, POLL_MS);
     this.destroyRef.onDestroy(() => clearInterval(timer));
   }

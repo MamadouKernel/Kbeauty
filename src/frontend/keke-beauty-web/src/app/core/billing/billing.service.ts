@@ -50,6 +50,16 @@ export class BillingService {
     );
   }
 
+  /**
+   * Back from the payment page: asks the server to re-read the provider's verdict on the pending payments (a provider may never
+   * call us back). Resolves with how many payments were settled.
+   */
+  refreshPending(establishmentId: string): Promise<number> {
+    return firstValueFrom(
+      this.http.post<number>(`/api/v1/pro/establishments/${establishmentId}/subscription/refresh`, {}),
+    );
+  }
+
   subscribe(
     establishmentId: string,
     planCode: string,

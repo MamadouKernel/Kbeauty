@@ -395,4 +395,46 @@ describe('SubscriptionPage', () => {
     expect(request.request.method).toBe('DELETE');
     request.flush(null, { status: 204, statusText: 'No Content' });
   });
+
+  it('asks the server to re-read the payment when the customer is back from the payment page', async () => {
+    const pending: SubscriptionOverview = {
+      ...PAST_DUE,
+      subscription: { ...PAST_DUE.subscription!, status: 'PendingPayment' },
+    };
+    const harness = await RouterTestingHarness.create();
+    await harness.navigateByUrl('/pro/etablissements/e1/abonnement?tx=KB1', SubscriptionPage);
+    (await vi.waitFor(() => http.expectOne('/api/v1/plans'))).flush(PLANS);
+    (await vi.waitFor(() => http.expectOne('/api/v1/pro/establishments/e1/subscription'))).flush(
+      pending,
+    );
+    (await vi.waitFor(() => http.expectOne('/api/v1/pro/invoices'))).flush([]);
+
+    // The provider may never call us back: the poll must make the server read its verdict.
+    const refresh = await vi.waitFor(
+      () => http.expectOne('/api/v1/pro/establishments/e1/subscription/refresh'),
+      { timeout: 5000, interval: 100 },
+    );
+    expect(refresh.request.method).toBe('POST');
+    refresh.flush(1);
+
+    // Then the page reloads the subscription, which is now active.
+    (
+      await vi.waitFor(() => http.expectOne('/api/v1/pro/establishments/e1/subscription'))
+    ).flush({ ...pending, subscription: { ...pending.subscription!, status: 'Active' } });
+    (await vi.waitFor(() => http.expectOne('/api/v1/pro/invoices'))).flush([]);
+    await vi.waitFor(() => {
+      harness.detectChanges();
+      expect(root(harness).textContent).not.toContain('Confirmation du paiement en cours');
+    });
+  });
+
+  it('does not poll the server when there is no payment to wait for', async () => {
+    const harness = await open(FREE);
+    await vi.waitFor(() => {
+      harness.detectChanges();
+      expect(root(harness).textContent).toContain('Premium');
+    });
+    await new Promise((resolve) => setTimeout(resolve, 2500));
+    http.expectNone('/api/v1/pro/establishments/e1/subscription/refresh');
+  });
 });

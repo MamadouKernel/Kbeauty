@@ -33,6 +33,16 @@ describe('BillingService', () => {
     expect((await promise).paymentUrl).toBe('http://pay');
   });
 
+  it('asks the server to re-read the pending payments of an establishment', async () => {
+    const promise = service.refreshPending('e1');
+
+    const request = http.expectOne('/api/v1/pro/establishments/e1/subscription/refresh');
+    expect(request.request.method).toBe('POST');
+    request.flush(1);
+
+    expect(await promise).toBe(1);
+  });
+
   it('cancels a subscription and starts the payment of an invoice', async () => {
     const cancel = service.cancel('s1');
     const deleted = http.expectOne('/api/v1/pro/subscriptions/s1');

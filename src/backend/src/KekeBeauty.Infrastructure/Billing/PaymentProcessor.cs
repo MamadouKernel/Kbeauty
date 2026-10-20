@@ -1,3 +1,4 @@
+using KekeBeauty.Infrastructure.Partner;
 using KekeBeauty.Infrastructure.Persistence;
 using KekeBeauty.Infrastructure.Scheduling;
 using KekeBeauty.Modules.Billing.Domain;
@@ -30,6 +31,11 @@ public sealed class PaymentProcessor(
     TimeProvider time,
     ILogger<PaymentProcessor> logger)
 {
+    /// <summary>How far back a returning customer's payments are re-read, and how many (each read is a call to the provider).</summary>
+    private static readonly TimeSpan RefreshWindow = TimeSpan.FromHours(24);
+
+    private const int RefreshMaxPayments = 3;
+
     public IPaymentGateway? GatewayFor(string provider) =>
         gateways.FirstOrDefault(g => string.Equals(g.Provider, provider, StringComparison.OrdinalIgnoreCase));
 
@@ -90,6 +96,68 @@ public sealed class PaymentProcessor(
         await SettleAsync(payment, verification, ct);
         await MarkProcessedAsync(record, ct);
         return NotificationOutcome.Processed;
+    }
+
+    /// <summary>
+    /// The customer is back from the payment page. A provider may never call us back (WiniPayer's sandbox does not), so rather than
+    /// wait for the hourly reconciliation we ask it about the establishment's recent pending subscription payments. Same safety as a
+    /// notification: the verdict, amount and currency come from the provider, and settling is idempotent. Returns how many were settled.
+    /// </summary>
+    public async Task<Result<int>> RefreshPendingAsync(Guid userId, Guid establishmentId, CancellationToken ct)
+    {
+        if (!await PartnerSupport.OwnedBy(db, userId, establishmentId).AnyAsync(ct))
+        {
+            return Result.Failure<int>(PartnerErrors.NotFound);
+        }
+
+        var since = time.GetUtcNow() - RefreshWindow;
+        var pending = await (
+            from p in db.Payments
+            join i in db.Invoices on p.InvoiceId equals (Guid?)i.Id
+            join s in db.Subscriptions on i.SubscriptionId equals s.Id
+            where s.EstablishmentId == establishmentId && p.Status == PaymentStatus.Pending && p.CreatedAt > since
+            orderby p.CreatedAt descending
+            select p).Take(RefreshMaxPayments).ToListAsync(ct);
+
+        var settled = 0;
+        var paidInvoices = new HashSet<Guid>();
+        foreach (var payment in pending)
+        {
+            // Each "Pay" click opens a new provider invoice; once one of them paid the subscription, the others add nothing.
+            if (payment.InvoiceId is { } invoiceId && paidInvoices.Contains(invoiceId))
+            {
+                continue;
+            }
+
+            var gateway = GatewayFor(payment.Provider);
+            if (gateway is null)
+            {
+                continue;
+            }
+
+            try
+            {
+                var verification = await gateway.VerifyAsync(payment.ProviderTransactionId, payment.ProviderReference, ct);
+                if (verification.Status == GatewayStatus.Pending)
+                {
+                    continue;
+                }
+
+                await SettleAsync(payment, verification, ct);
+                settled++;
+                if (verification.Status == GatewayStatus.Accepted && payment.InvoiceId is { } paid)
+                {
+                    paidInvoices.Add(paid);
+                }
+            }
+            catch (PaymentGatewayException ex)
+            {
+                // The provider is unreachable: the next poll (or the reconciliation) tries again.
+                logger.LogWarning(ex, "Could not verify transaction on {Provider}", gateway.Provider);
+            }
+        }
+
+        return Result.Success(settled);
     }
 
     /// <summary>Applies the provider's verdict to a pending payment. Safe to call twice: only one caller wins the claim.</summary>

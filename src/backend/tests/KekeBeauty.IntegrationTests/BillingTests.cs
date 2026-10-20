@@ -5,6 +5,7 @@ using KekeBeauty.Infrastructure.Billing;
 using KekeBeauty.Infrastructure.Persistence;
 using KekeBeauty.Infrastructure.Scheduling;
 using KekeBeauty.Modules.Billing.Domain;
+using KekeBeauty.SharedKernel;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -274,6 +275,69 @@ public sealed class BillingTests(ApiFixture api)
             (await intruder.Client.PostAsync($"/api/v1/pro/invoices/{checkout.InvoiceId}/pay", null)).StatusCode.Should().Be(HttpStatusCode.NotFound);
             (await intruder.Client.DeleteAsync($"/api/v1/pro/subscriptions/{checkout.SubscriptionId}")).StatusCode.Should().Be(HttpStatusCode.NotFound);
             (await intruder.Client.GetFromJsonAsync<List<InvoiceDto>>("/api/v1/pro/invoices"))!.Should().BeEmpty();
+        }
+        finally
+        {
+            await TestCleanup.DeleteEstablishmentsAsync(api, salon.Owner.UserId);
+        }
+    }
+
+    [Fact]
+    public async Task Refreshing_after_the_return_from_the_payment_page_settles_a_payment_the_provider_never_notified()
+    {
+        var salon = await FreeSalonAsync();
+        try
+        {
+            var checkout = await TestSalons.SubscribePremiumAsync(salon.Owner, salon.Id, pay: false);
+            var refresh = $"{Sub(salon)}/refresh";
+
+            // The customer is back but has not paid: the provider still says pending, nothing changes.
+            var waiting = await salon.Owner.Client.PostAsync(refresh, null);
+            waiting.StatusCode.Should().Be(HttpStatusCode.OK);
+            (await waiting.Content.ReadFromJsonAsync<int>()).Should().Be(0);
+            (await OverviewAsync(salon)).Subscription!.Status.Should().Be("PendingPayment");
+
+            // The customer pays, and the provider sends no notification at all.
+            api.Services.GetRequiredService<FakePaymentGateway>().Settle(checkout.TransactionId, GatewayStatus.Accepted).Should().BeTrue();
+            (await OverviewAsync(salon)).Subscription!.Status.Should().Be("PendingPayment");
+
+            var settled = await salon.Owner.Client.PostAsync(refresh, null);
+            settled.StatusCode.Should().Be(HttpStatusCode.OK);
+            (await settled.Content.ReadFromJsonAsync<int>()).Should().Be(1);
+            (await OverviewAsync(salon)).Subscription!.Status.Should().Be("Active");
+            (await salon.Owner.Client.GetFromJsonAsync<List<InvoiceDto>>("/api/v1/pro/invoices"))!.Should().ContainSingle().Which.Status.Should().Be("Paid");
+
+            // Asking again is harmless: nothing is pending any more.
+            (await (await salon.Owner.Client.PostAsync(refresh, null)).Content.ReadFromJsonAsync<int>()).Should().Be(0);
+        }
+        finally
+        {
+            await TestCleanup.DeleteEstablishmentsAsync(api, salon.Owner.UserId);
+        }
+    }
+
+    [Fact]
+    public async Task Refreshing_never_trusts_a_changed_amount_and_is_reserved_to_the_owner()
+    {
+        var salon = await FreeSalonAsync();
+        using var intruder = await TestAccounts.PartnerAsync(api);
+        try
+        {
+            var checkout = await TestSalons.SubscribePremiumAsync(salon.Owner, salon.Id, pay: false);
+            var refresh = $"{Sub(salon)}/refresh";
+
+            // Somebody else's establishment: same answer as an unknown one, and nothing is read from the provider.
+            (await intruder.Client.PostAsync(refresh, null)).StatusCode.Should().Be(HttpStatusCode.NotFound);
+            using var anonymous = api.CreateClient();
+            (await anonymous.PostAsync(refresh, null)).StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+
+            // The provider reports another amount than the one requested: the payment is refused, the plan stays locked.
+            var gateway = api.Services.GetRequiredService<FakePaymentGateway>();
+            gateway.OverrideAmount(checkout.TransactionId, 1);
+            gateway.Settle(checkout.TransactionId, GatewayStatus.Accepted);
+            (await salon.Owner.Client.PostAsync(refresh, null)).StatusCode.Should().Be(HttpStatusCode.OK);
+            (await OverviewAsync(salon)).Subscription!.Status.Should().Be("PendingPayment");
+            (await EnableBookingAsync(salon)).StatusCode.Should().Be(HttpStatusCode.PaymentRequired);
         }
         finally
         {

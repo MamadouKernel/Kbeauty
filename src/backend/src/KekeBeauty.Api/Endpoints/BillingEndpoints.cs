@@ -29,6 +29,11 @@ public static class BillingEndpoints
                 Respond(await service.OverviewAsync(user.UserId(), id, ct)))
             .Produces<SubscriptionOverview>().ProducesProblem(StatusCodes.Status404NotFound);
 
+        // The customer is back from the payment page: re-read the provider instead of waiting for a notification that may not come.
+        group.MapPost("/establishments/{id:guid}/subscription/refresh", async (Guid id, ClaimsPrincipal user, PaymentProcessor processor, CancellationToken ct) =>
+                Respond(await processor.RefreshPendingAsync(user.UserId(), id, ct)))
+            .Produces<int>().ProducesProblem(StatusCodes.Status404NotFound);
+
         group.MapPost("/establishments/{id:guid}/subscription", async (Guid id, SubscribeInput input, ClaimsPrincipal user, BillingService service, CancellationToken ct) =>
                 Respond(await service.SubscribeAsync(user.UserId(), id, input, ct)))
             .Produces<CheckoutDto>().ProducesProblem(StatusCodes.Status400BadRequest).ProducesProblem(StatusCodes.Status409Conflict)
