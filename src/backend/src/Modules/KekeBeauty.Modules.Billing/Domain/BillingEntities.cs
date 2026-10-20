@@ -79,9 +79,16 @@ public sealed class PlanFeatures
 
     public PlanFeatures Copy() => new()
     {
-        Booking = Booking, Videos = Videos, MaxMedia = MaxMedia, Featured = Featured, Stats = Stats,
-        MaxVideos = MaxVideos, MaxResources = MaxResources, MaxAppointmentsPerMonth = MaxAppointmentsPerMonth,
-        MaxServices = MaxServices, Perks = Perks,
+        Booking = Booking,
+        Videos = Videos,
+        MaxMedia = MaxMedia,
+        Featured = Featured,
+        Stats = Stats,
+        MaxVideos = MaxVideos,
+        MaxResources = MaxResources,
+        MaxAppointmentsPerMonth = MaxAppointmentsPerMonth,
+        MaxServices = MaxServices,
+        Perks = Perks,
     };
 }
 

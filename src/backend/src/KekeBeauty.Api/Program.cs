@@ -20,7 +20,14 @@ var builder = WebApplication.CreateBuilder(args);
 // SECRETS_DIR. No secret lives in the repository, which is public.
 builder.Configuration.AddKeyPerFile(Environment.GetEnvironmentVariable("SECRETS_DIR") ?? "/run/secrets", optional: true);
 
-builder.WebHost.ConfigureKestrel(options => options.AddServerHeader = false);
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.AddServerHeader = false;
+    // A JSON request never needs more than a few kilobytes: refuse anything larger before reading it (an anonymous caller must not be able
+    // to make the server parse megabytes). The four upload routes (photos, videos, identity documents, review photos) carry their own,
+    // higher RequestSizeLimit.
+    options.Limits.MaxRequestBodySize = 256 * 1024;
+});
 
 builder.Host.UseSerilog((context, _, logger) =>
 {

@@ -25,9 +25,16 @@ public sealed record PlanFeaturesDto(
             : string.Join('\n', Perks.Select(p => p?.Trim()).Where(p => !string.IsNullOrEmpty(p)));
         return new PlanFeatures
         {
-            Booking = Booking, Videos = Videos, MaxMedia = MaxMedia, Featured = Featured, Stats = Stats,
-            MaxVideos = MaxVideos, MaxResources = MaxResources, MaxAppointmentsPerMonth = MaxAppointmentsPerMonth,
-            MaxServices = MaxServices, Perks = string.IsNullOrEmpty(perks) ? null : perks,
+            Booking = Booking,
+            Videos = Videos,
+            MaxMedia = MaxMedia,
+            Featured = Featured,
+            Stats = Stats,
+            MaxVideos = MaxVideos,
+            MaxResources = MaxResources,
+            MaxAppointmentsPerMonth = MaxAppointmentsPerMonth,
+            MaxServices = MaxServices,
+            Perks = string.IsNullOrEmpty(perks) ? null : perks,
         };
     }
 }
