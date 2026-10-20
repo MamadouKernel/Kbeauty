@@ -29,6 +29,7 @@ public static class FileEndpoints
                 return file is null ? Results.NotFound() : Results.Stream(file.Content, ImageProcessor.WebpContentType);
             })
             .WithTags("Files")
+            .AllowAnonymous()
             .Produces(StatusCodes.Status200OK, contentType: ImageProcessor.WebpContentType)
             .Produces(StatusCodes.Status206PartialContent)
             .ProducesProblem(StatusCodes.Status404NotFound);

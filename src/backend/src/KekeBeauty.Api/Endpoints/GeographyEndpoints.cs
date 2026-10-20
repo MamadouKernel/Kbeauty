@@ -11,7 +11,7 @@ public static class GeographyEndpoints
 {
     public static IEndpointRouteBuilder MapGeographyEndpoints(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/api/v1/geo").WithTags("Geography");
+        var group = app.MapGroup("/api/v1/geo").WithTags("Geography").AllowAnonymous();
 
         group.MapGet("/countries", async (KekeBeautyDbContext db, CancellationToken ct) =>
             await db.Countries

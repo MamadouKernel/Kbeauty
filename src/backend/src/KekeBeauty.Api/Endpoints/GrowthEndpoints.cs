@@ -35,7 +35,7 @@ public static class GrowthEndpoints
 
     private static void MapPublic(IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/api/v1").WithTags("Discovery");
+        var group = app.MapGroup("/api/v1").WithTags("Discovery").AllowAnonymous();
 
         // Open to visitors; a signed-in client gets suggestions shaped by the places she already likes.
         group.MapGet("/recommendations", async ([FromQuery] double? lat, [FromQuery] double? lng, [FromQuery] int? count, ClaimsPrincipal user, RecommendationService service, CancellationToken ct) =>

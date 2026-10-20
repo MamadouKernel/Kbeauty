@@ -29,7 +29,7 @@ public static class BillingEndpoints
     public static IEndpointRouteBuilder MapBillingEndpoints(this IEndpointRouteBuilder app)
     {
         app.MapGet("/api/v1/plans", async (BillingService service, CancellationToken ct) => Results.Ok(await service.PlansAsync(false, ct)))
-            .WithTags("Billing").Produces<IReadOnlyList<PlanDto>>();
+            .WithTags("Billing").AllowAnonymous().Produces<IReadOnlyList<PlanDto>>();
 
         MapPartner(app.MapGroup("/api/v1/pro").WithTags("Billing").RequireAuthorization(PartnerEndpoints.PartnerPolicy));
         MapAdmin(app.MapGroup("/api/v1/admin/plans").WithTags("Admin").RequireAuthorization(AdminReviewEndpoints.AdminFinancePolicy));
@@ -223,7 +223,7 @@ public static class BillingEndpoints
                 // Deferred means "ask me again": a non-2xx makes the provider retry.
                 return outcome == NotificationOutcome.Deferred ? Results.StatusCode(StatusCodes.Status503ServiceUnavailable) : Results.Ok();
             })
-            .WithTags("Billing").ExcludeFromDescription().DisableAntiforgery();
+            .WithTags("Billing").ExcludeFromDescription().DisableAntiforgery().AllowAnonymous();
 
         // Development only: stands in for the customer on the payment provider's page.
         if (app is WebApplication web && web.Services.GetRequiredService<IOptions<PaymentsOptions>>().Value.IsFake)
@@ -239,7 +239,7 @@ public static class BillingEndpoints
                     await processor.HandleNotificationAsync(PaymentsOptions.FakeProvider, transactionId, transactionId, $"simulated:{status}", ct);
                     return Results.NoContent();
                 })
-                .WithTags("Billing").Produces(StatusCodes.Status204NoContent).ProducesProblem(StatusCodes.Status404NotFound);
+                .WithTags("Billing").AllowAnonymous().Produces(StatusCodes.Status204NoContent).ProducesProblem(StatusCodes.Status404NotFound);
         }
     }
 }

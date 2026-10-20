@@ -137,15 +137,16 @@ app.UseAuthorization();
 if (app.Environment.IsDevelopment())
 {
     // The API contract and its interactive documentation are for development: they are not published in Production.
-    app.MapOpenApi();
+    app.MapOpenApi().AllowAnonymous();
     // Interactive API documentation (Scalar) at /scalar; the root URL lands on it.
-    app.MapScalarApiReference(options => options.WithTitle("Keke Beauty API"));
-    app.MapGet("/", () => Results.Redirect("/scalar")).ExcludeFromDescription();
+    app.MapScalarApiReference(options => options.WithTitle("Keke Beauty API")).AllowAnonymous();
+    app.MapGet("/", () => Results.Redirect("/scalar")).ExcludeFromDescription().AllowAnonymous();
 }
 
-app.MapHealthChecks("/health/live", new HealthCheckOptions { Predicate = _ => false });
-app.MapHealthChecks("/health/ready", new HealthCheckOptions { Predicate = check => check.Tags.Contains("ready") });
-app.MapHealthChecks("/health", new HealthCheckOptions { Predicate = check => check.Tags.Contains("ready") });
+// Health checks are public so the container orchestrator and probes can reach them without a token.
+app.MapHealthChecks("/health/live", new HealthCheckOptions { Predicate = _ => false }).AllowAnonymous();
+app.MapHealthChecks("/health/ready", new HealthCheckOptions { Predicate = check => check.Tags.Contains("ready") }).AllowAnonymous();
+app.MapHealthChecks("/health", new HealthCheckOptions { Predicate = check => check.Tags.Contains("ready") }).AllowAnonymous();
 
 app.MapCatalogEndpoints();
 app.MapLegalEndpoints();
@@ -165,7 +166,8 @@ app.MapBillingEndpoints();
 app.MapEngagementEndpoints();
 app.MapAdminEndpoints();
 app.MapPrivacyEndpoints();
-app.MapHub<AvailabilityHub>(HubRoutes.Availability);
+// Availability is broadcast to the public booking page before sign-in; the Pro and Notifications hubs are [Authorize]d.
+app.MapHub<AvailabilityHub>(HubRoutes.Availability).AllowAnonymous();
 app.MapHub<ProHub>(HubRoutes.Pro);
 app.MapHub<NotificationsHub>(HubRoutes.Notifications);
 app.MapAuthEndpoints();

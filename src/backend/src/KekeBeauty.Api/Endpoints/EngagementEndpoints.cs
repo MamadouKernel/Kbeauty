@@ -17,6 +17,7 @@ public static class EngagementEndpoints
         app.MapGet("/api/v1/establishments/{slug}/reviews", async (string slug, int? page, int? pageSize, OpinionService service, CancellationToken ct) =>
                 Respond(await service.ListPublicAsync(slug, page ?? 1, pageSize ?? OpinionService.PageSizeDefault, ct)))
             .WithTags("Reviews")
+            .AllowAnonymous()
             .Produces<ReviewsPage>().ProducesProblem(StatusCodes.Status404NotFound);
 
         // Client: a review for a completed appointment, and the list of what was already reviewed.

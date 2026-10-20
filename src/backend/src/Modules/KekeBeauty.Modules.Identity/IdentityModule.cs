@@ -4,6 +4,7 @@ using KekeBeauty.Modules.Identity.Application;
 using KekeBeauty.Modules.Identity.Domain;
 using KekeBeauty.Modules.Identity.Infrastructure;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -136,6 +137,9 @@ public static class IdentityModule
                 };
             });
         services.AddAuthorizationBuilder()
+            // Deny by default: every endpoint requires an authenticated user unless it opts out with AllowAnonymous.
+            // Public reads (catalog, geography, directory), the auth flows, webhooks and health checks declare AllowAnonymous explicitly.
+            .SetFallbackPolicy(new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build())
             .AddPolicy("Partner", policy => policy.RequireRole(AppRoles.PartnerOwner))
             .AddPolicy("Staff", policy => policy.RequireRole(AppRoles.PartnerStaff))
             .AddPolicy("Admin", policy => policy.RequireRole([.. AppRoles.AllAdminRoles]))

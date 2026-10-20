@@ -103,5 +103,5 @@ public static class NotificationEndpoints
                 await service.ApplyDeliveryReportAsync(id, status, ct);
                 return Results.Ok();
             })
-            .WithTags("Notifications").ExcludeFromDescription().DisableAntiforgery();
+            .WithTags("Notifications").ExcludeFromDescription().DisableAntiforgery().AllowAnonymous();
 }

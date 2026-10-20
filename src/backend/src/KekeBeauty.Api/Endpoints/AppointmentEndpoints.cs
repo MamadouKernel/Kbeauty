@@ -12,7 +12,8 @@ public static class AppointmentEndpoints
 
     public static IEndpointRouteBuilder MapAppointmentEndpoints(this IEndpointRouteBuilder app)
     {
-        var establishments = app.MapGroup("/api/v1/establishments").WithTags("Booking");
+        // Public: the booking page shows availability before sign-in.
+        var establishments = app.MapGroup("/api/v1/establishments").WithTags("Booking").AllowAnonymous();
 
         establishments.MapGet("/{slug}/booking", async (string slug, AvailabilityService service, CancellationToken ct) =>
                 await service.GetInfoAsync(slug, ct) is { } info ? Results.Ok(info) : ProblemResults.From(SchedulingErrors.BookingClosed))

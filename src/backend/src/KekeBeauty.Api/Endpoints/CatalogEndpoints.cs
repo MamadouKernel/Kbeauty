@@ -9,7 +9,7 @@ public static class CatalogEndpoints
 {
     public static IEndpointRouteBuilder MapCatalogEndpoints(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/api/v1").WithTags("Catalog");
+        var group = app.MapGroup("/api/v1").WithTags("Catalog").AllowAnonymous();
 
         group.MapGet("/categories", async (KekeBeautyDbContext db, CancellationToken ct) =>
             await db.BeautyCategories

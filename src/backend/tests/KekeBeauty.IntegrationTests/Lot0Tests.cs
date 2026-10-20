@@ -90,6 +90,8 @@ public sealed class Lot0Tests(ApiFixture api)
         var response = await client.GetAsync("/openapi/v1.json");
 
         // The tests run in the "Testing" environment: like Production, it does not publish the API contract.
-        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        // With the deny-by-default authorization fallback, an unmapped route answers 401 to an anonymous caller
+        // instead of 404; either way the contract is not served.
+        response.StatusCode.Should().BeOneOf(HttpStatusCode.NotFound, HttpStatusCode.Unauthorized);
     }
 }

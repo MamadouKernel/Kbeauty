@@ -71,7 +71,7 @@ public static class EstablishmentEndpoints
 
     public static IEndpointRouteBuilder MapEstablishmentEndpoints(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/api/v1/establishments").WithTags("Establishments");
+        var group = app.MapGroup("/api/v1/establishments").WithTags("Establishments").AllowAnonymous();
 
         group.MapGet("/", async ([AsParameters] EstablishmentSearchRequest request, EstablishmentQueries queries, CancellationToken ct) =>
         {

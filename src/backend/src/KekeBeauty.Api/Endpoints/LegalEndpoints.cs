@@ -18,7 +18,7 @@ public static class LegalEndpoints
                 http.Response.Headers.CacheControl = "no-cache";
                 return document is null ? Results.NotFound() : Results.Ok(document);
             })
-            .WithTags("Legal").Produces<LegalDocumentDto>().Produces(StatusCodes.Status404NotFound);
+            .WithTags("Legal").AllowAnonymous().Produces<LegalDocumentDto>().Produces(StatusCodes.Status404NotFound);
 
         return app;
     }
