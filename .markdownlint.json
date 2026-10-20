@@ -1,0 +1,7 @@
+{
+  "//": "Project docs style: compact tables, and one top-level heading per section/round. These markdownlint style rules fight that convention, so they are turned off; all correctness rules stay on.",
+  "default": true,
+  "MD024": false,
+  "MD025": false,
+  "MD060": false
+}
