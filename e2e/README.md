@@ -25,6 +25,7 @@ Variables : `E2E_BASE_URL` (défaut `http://localhost:4200`), `E2E_MAILPIT_URL` 
 
 | Fichier | Parcours |
 |---|---|
+| `client-move-late-address.spec.ts` | la cliente déplace son rendez-vous, signale un retard (salon notifié), le partenaire cherche une adresse sur la carte |
 | `public.spec.ts` | accueil, annuaire, fiche (itinéraire Yango avec coordonnées), recherche, textes légaux, en-têtes de sécurité |
 | `a11y.spec.ts` | WCAG 2.1 A/AA + bonnes pratiques (axe-core) sur 10 pages publiques |
 | `pwa.spec.ts` | manifeste installable, service worker, ouverture hors-ligne, pas de défilement horizontal, barre d'onglets du téléphone |

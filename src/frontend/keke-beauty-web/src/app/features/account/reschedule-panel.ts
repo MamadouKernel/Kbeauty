@@ -36,6 +36,11 @@ function dayOf(instant: Date): string {
       border-radius: var(--radius-md);
       background: var(--kb-primary-50);
     }
+    .field {
+      display: grid;
+      gap: 0.35rem;
+      max-width: 16rem;
+    }
     .slots {
       display: flex;
       flex-wrap: wrap;
