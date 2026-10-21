@@ -254,6 +254,8 @@ services:
       MAP_TILES_ATTRIBUTION: ${MAP_TILES_ATTRIBUTION:-}
       # Lets the browser load Google sign-in's script (CSP); must match the API's Auth__Google__Enabled.
       GOOGLE_AUTH_ENABLED: ${GOOGLE_AUTH_ENABLED:-false}
+      # Addresses/CIDRs of the TLS terminator in front of this container (Caddy...), so that visitors keep their own rate-limit counter. Empty = none.
+      TRUSTED_PROXIES: ${TRUSTED_PROXIES:-}
     ports:
       - "127.0.0.1:4200:8080"
     depends_on:

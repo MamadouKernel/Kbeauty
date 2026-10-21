@@ -18,8 +18,8 @@ COPY docker/api-proxy.conf /etc/nginx/snippets/api-proxy.conf
 COPY --chmod=755 docker/40-runtime-config.sh /docker-entrypoint.d/40-runtime-config.sh
 COPY --from=build /app/dist/keke-beauty-web/browser /usr/share/nginx/html
 # The startup script runs as the unprivileged user and writes three generated files: give it exactly those, nothing else.
-RUN touch /etc/nginx/resolver.inc /etc/nginx/map-tiles.inc /etc/nginx/google-csp.inc \
+RUN touch /etc/nginx/resolver.inc /etc/nginx/map-tiles.inc /etc/nginx/google-csp.inc /etc/nginx/real-ip.inc \
  && touch /usr/share/nginx/html/config.json \
- && chown nginx:nginx /etc/nginx/resolver.inc /etc/nginx/map-tiles.inc /etc/nginx/google-csp.inc /usr/share/nginx/html /usr/share/nginx/html/config.json
+ && chown nginx:nginx /etc/nginx/resolver.inc /etc/nginx/map-tiles.inc /etc/nginx/google-csp.inc /etc/nginx/real-ip.inc /usr/share/nginx/html /usr/share/nginx/html/config.json
 USER nginx
 EXPOSE 8080

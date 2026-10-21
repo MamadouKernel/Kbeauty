@@ -42,6 +42,25 @@ else
   } > /etc/nginx/google-csp.inc
 fi
 
+# Trusted reverse proxies (comma separated addresses or CIDRs). Only a connection from one of them may say who the real client is; anyone else
+# sending X-Forwarded-For is ignored. Validated: a stray character would otherwise end up in the nginx configuration.
+{
+  if [ -n "${TRUSTED_PROXIES:-}" ]; then
+    echo "$TRUSTED_PROXIES" | tr ',' '\n' | while read -r proxy; do
+      proxy=$(printf '%s' "$proxy" | tr -d ' ')
+      [ -z "$proxy" ] && continue
+      if printf '%s' "$proxy" | grep -Eq '^[0-9a-fA-F:.]+(/[0-9]{1,3})?$'; then
+        printf 'set_real_ip_from %s;\n' "$proxy"
+      else
+        echo "TRUSTED_PROXIES: ignored invalid entry" >&2
+      fi
+    done
+    printf 'real_ip_header X-Forwarded-For;\nreal_ip_recursive on;\n'
+  else
+    printf '# TRUSTED_PROXIES is empty: the connecting peer is the client.\n'
+  fi
+} > /etc/nginx/real-ip.inc
+
 tiles=$(escape "$tiles_url")
 attribution=$(escape "${MAP_TILES_ATTRIBUTION:-}")
 printf '{ "yangoUrlTemplate": "%s", "mapTilesUrl": "%s", "mapAttribution": "%s" }\n' "$yango" "$tiles" "$attribution" > /usr/share/nginx/html/config.json

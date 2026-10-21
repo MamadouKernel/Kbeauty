@@ -10,6 +10,10 @@ public static class SecurityHeaders
 {
     public const string RequestIdHeader = "X-Request-Id";
 
+    /// <summary>Loopback, RFC 1918 and unique-local/link-local ranges: where a reverse proxy in front of the API lives.</summary>
+    public static readonly string[] DefaultProxyNetworks =
+        ["127.0.0.0/8", "::1/128", "10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16", "fc00::/7", "fe80::/10"];
+
     /// <summary>
     /// Honours <c>X-Forwarded-For/Proto</c> when <c>Proxy:TrustForwardedHeaders</c> is set (the API is then only reachable through the
     /// reverse proxy). Without it every visitor would share the proxy's address, and so one rate-limit bucket.
@@ -25,8 +29,16 @@ public static class SecurityHeaders
         {
             options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
             options.ForwardLimit = 1;
+            // Forwarded headers are believed only from the reverse proxy, which is always on a private network. From anywhere else (the API
+            // reached directly by mistake, a public address) they are ignored: otherwise a rotating X-Forwarded-For hands the caller a fresh
+            // rate-limit bucket for every request. Proxy:KnownNetworks (CIDR list) narrows or replaces these ranges.
             options.KnownIPNetworks.Clear();
             options.KnownProxies.Clear();
+            var configured = configuration.GetSection("Proxy:KnownNetworks").Get<string[]>();
+            foreach (var cidr in configured is { Length: > 0 } ? configured : DefaultProxyNetworks)
+            {
+                options.KnownIPNetworks.Add(System.Net.IPNetwork.Parse(cidr));
+            }
         });
     }
 
