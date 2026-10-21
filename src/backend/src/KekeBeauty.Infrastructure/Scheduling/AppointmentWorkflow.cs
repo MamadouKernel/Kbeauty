@@ -18,6 +18,8 @@ public static class SchedulingErrors
     public static readonly Error InvalidTransition = new("appointment.invalid_transition", "Cette action n'est pas possible dans l'état actuel du rendez-vous.");
     public static readonly Error TooLate = new("appointment.too_late", "Il est trop tard pour annuler ce rendez-vous en ligne : contactez directement l'établissement.");
 
+    public static readonly Error RescheduleLimit = new("appointment.reschedule_limit", "Vous avez déjà déplacé ce rendez-vous le nombre de fois autorisé : contactez l'établissement.");
+
     public static Error Invalid(string message) => new("validation.failed", message);
 
     public static Error FeeNotAccepted(decimal fee) =>
@@ -104,7 +106,8 @@ public sealed class AppointmentWorkflow(
             return;
         }
 
-        var message = Compose(appointment, from, info.Name, clientName, zone);
+        var moved = from is { } same && same == appointment.Status && previousStart is { } was && was != appointment.StartsAt;
+        var message = Compose(appointment, from, info.Name, clientName, zone, moved);
         var shown = TimeZoneInfo.ConvertTime(
             appointment.Status == AppointmentStatus.RescheduleProposed ? appointment.ProposedStartsAt ?? appointment.StartsAt : appointment.StartsAt,
             zone);
@@ -160,6 +163,33 @@ public sealed class AppointmentWorkflow(
         }
     }
 
+    /// <summary>Tells the owner of the establishment about something that is not a status change (e.g. the client is running late).</summary>
+    public async Task NotifyOwnerAsync(Appointment appointment, string template, string title, string body, IReadOnlyDictionary<string, string> variables, CancellationToken ct)
+    {
+        var info = await db.Establishments.AsNoTracking()
+            .Where(e => e.Id == appointment.EstablishmentId)
+            .Select(e => new { e.Name, e.OwnerUserId, e.Timezone })
+            .FirstAsync(ct);
+        if (info.OwnerUserId is not { } owner)
+        {
+            return;
+        }
+
+        var shown = TimeZoneInfo.ConvertTime(appointment.StartsAt, ZoneOf(info.Timezone));
+        var client = appointment.ClientUserId is { } clientUserId
+            ? await db.Users.AsNoTracking().Where(u => u.Id == clientUserId).Select(u => new { u.FirstName, u.LastName }).FirstAsync(ct)
+            : null;
+        var all = new Dictionary<string, string>(variables)
+        {
+            ["etablissement"] = info.Name,
+            ["client"] = appointment.WalkInName ?? $"{client?.FirstName} {client?.LastName}".Trim(),
+            ["date"] = shown.ToString("dd/MM/yyyy", System.Globalization.CultureInfo.InvariantCulture),
+            ["heure"] = shown.ToString("HH:mm", System.Globalization.CultureInfo.InvariantCulture),
+            ["motif"] = string.Empty,
+        };
+        await notifications.NotifyAsync(owner, template, title, body, null, ct, all);
+    }
+
     public static TimeZoneInfo ZoneOf(string timezoneId)
     {
         try
@@ -177,9 +207,18 @@ public sealed class AppointmentWorkflow(
 
     private sealed record Composed(string Template, Text? ForClient, Text? ForPartner);
 
-    private static Composed Compose(Appointment a, AppointmentStatus? from, string establishment, string client, TimeZoneInfo zone)
+    private static Composed Compose(Appointment a, AppointmentStatus? from, string establishment, string client, TimeZoneInfo zone, bool moved)
     {
         var when = Describe(a.StartsAt, zone);
+
+        // Same status, new start: the client moved the appointment to another slot.
+        if (moved)
+        {
+            return new Composed(
+                "appointment.rescheduled_by_client",
+                new Text("Rendez-vous déplacé", $"Votre rendez-vous chez {establishment} est maintenant {when}."),
+                new Text("Rendez-vous déplacé", $"{client} a déplacé son rendez-vous : {when}."));
+        }
 
         if (from is null)
         {

@@ -30,6 +30,8 @@ const base: Appointment = {
   tipAmount: 0,
   canTip: false,
   lateCancelFee: 0,
+  canReschedule: false,
+  canSignalLate: false,
 };
 
 describe('MyAppointments', () => {
@@ -99,6 +101,52 @@ describe('MyAppointments', () => {
     );
     accept.flush({ ...base, startsAt: '2026-10-15T14:00:00Z' });
     (await vi.waitFor(() => http.expectOne('/api/v1/me/appointments'))).flush([]);
+  });
+
+  it('offers to move or to signal a delay only when the server allows it', async () => {
+    const none = await open([base]);
+    expect(none.textContent).not.toContain('Déplacer le rendez-vous');
+    expect(none.textContent).not.toContain('Un retard ?');
+  });
+
+  it('lets the client signal a delay in one tap', async () => {
+    const root = await open([{ ...base, canSignalLate: true }]);
+
+    expect(root.textContent).toContain('Un retard ?');
+    [...root.querySelectorAll('button')].find((b) => b.textContent?.trim() === '15 min')?.click();
+
+    const request = await vi.waitFor(() => http.expectOne('/api/v1/appointments/a1/late'));
+    expect(request.request.body).toEqual({ minutes: 15 });
+    request.flush(base);
+    (await vi.waitFor(() => http.expectOne('/api/v1/me/appointments'))).flush([]);
+  });
+
+  it('opens the slot picker to move an appointment and asks for slots of the same services', async () => {
+    const root = await open([
+      {
+        ...base,
+        canReschedule: true,
+        lines: [{ name: 'Coupe longue', price: 10000, durationMinutes: 60, serviceId: 's1' }],
+      },
+    ]);
+
+    [...root.querySelectorAll('button')]
+      .find((b) => b.textContent?.includes('Déplacer le rendez-vous'))
+      ?.click();
+    const input = await vi.waitFor(() => {
+      const found = root.querySelector<HTMLInputElement>('input[type="date"]');
+      expect(found).toBeTruthy();
+      return found!;
+    });
+    input.value = '2026-10-20';
+    input.dispatchEvent(new Event('change'));
+
+    const slots = await vi.waitFor(() =>
+      http.expectOne((r) => r.url === '/api/v1/establishments/e1/availability'),
+    );
+    expect(slots.request.params.getAll('serviceIds')).toEqual(['s1']);
+    expect(slots.request.params.get('from')).toBe('2026-10-20');
+    slots.flush({ timezone: 'Africa/Abidjan', durationMinutes: 60, note: null, days: [] });
   });
 
   it('tells a visitor without appointments where to look', async () => {

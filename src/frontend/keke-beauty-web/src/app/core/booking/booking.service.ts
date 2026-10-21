@@ -107,6 +107,20 @@ export class BookingService {
     );
   }
 
+  /** The client moves her own appointment to another free slot (same services, same cut-off as a cancellation). */
+  reschedule(id: string, startsAt: string): Promise<Appointment> {
+    return firstValueFrom(
+      this.http.post<Appointment>(`/api/v1/appointments/${id}/reschedule`, { startsAt }),
+    );
+  }
+
+  /** Tells the establishment the client is running late: 10, 15 or 30 minutes, once per appointment. */
+  signalLate(id: string, minutes: 10 | 15 | 30): Promise<Appointment> {
+    return firstValueFrom(
+      this.http.post<Appointment>(`/api/v1/appointments/${id}/late`, { minutes }),
+    );
+  }
+
   acceptReschedule(id: string): Promise<Appointment> {
     return firstValueFrom(
       this.http.post<Appointment>(`/api/v1/appointments/${id}/reschedule/accept`, {}),

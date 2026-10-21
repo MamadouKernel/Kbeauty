@@ -282,3 +282,18 @@ docker compose --profile observability up -d
 - **Traces** : stockées en mémoire par Jaeger (perdues au redémarrage). Pour les conserver, utilisez Tempo ou le stockage de Jaeger.
 - **Paramètres OpenTelemetry** : `OpenTelemetry__OtlpEndpoint` (OTLP gRPC) ou `OpenTelemetry__Protocol=http`. Vide = rien n'est exporté.
 
+## 13. Recherche d'adresse (OpenStreetMap)
+
+Le formulaire d'adresse d'un établissement propose « Chercher l'adresse sur la carte » : l'**API** interroge Nominatim
+(OpenStreetMap) ; le navigateur ne contacte jamais un tiers (pas de CDN). Réglages, tous facultatifs sauf le premier en production :
+
+| Variable | Rôle |
+|---|---|
+| `Geo__UserAgent` | **À renseigner en production** : nom de l'application et moyen de joindre l'exploitant (exigence de la politique d'usage d'OpenStreetMap), par ex. `KekeBeauty/1.0 (contact@votre-domaine.ci)` |
+| `Geo__BaseUrl` | Serveur Nominatim (par défaut `https://nominatim.openstreetmap.org`) ; à remplacer par votre propre instance si le volume grandit |
+| `Geo__CountryCodes` | Pays où limiter la recherche (par défaut `ci`) |
+| `RateLimits__GeoPerMinute` | Recherches par minute et par utilisateur (30) |
+
+Le serveur d'API doit pouvoir sortir en HTTPS vers `nominatim.openstreetmap.org`. Au plus une requête par seconde est envoyée et
+les réponses sont gardées 24 h. Les adresses saisies sont transmises à OpenStreetMap : à indiquer dans la politique de confidentialité.
+

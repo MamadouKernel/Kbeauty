@@ -86,9 +86,9 @@ Méthode : les routes et pages de la V1 (`git show main:…`, contrôleurs et pa
 
 | Fonction V1 | Route / page V1 | V1.0.1 | Écart |
 |---|---|---|---|
-| Recherche d'adresse (géocodage) et adresse depuis un point de carte | `GET geo/search`, `GET geo/reverse` | ❌ aucune route | Le partenaire saisit l'adresse sans aide à la localisation ; à ajouter (via notre cache nginx OSM/Nominatim, pas de CDN) |
-| Le client signale un retard | `POST rdv/{id}/retard` (minutes) | ❌ | Utile contre le « absente » injuste (grâce déjà gérée côté partenaire) |
-| Le client demande lui-même un report | `POST rdv/{id}/reprogrammer` | 🟡 seul le partenaire propose, le client accepte ou refuse | Le client doit annuler puis reprendre un créneau (frais d'annulation tardive possibles) |
+| Recherche d'adresse (géocodage) et adresse depuis un point de carte | `GET geo/search`, `GET geo/reverse` | ✅ `GET /api/v1/geo/search` et `/reverse`, boutons dans l'assistant d'établissement | Fait le 21 octobre 2026 (API → OpenStreetMap, une requête par seconde, cache 24 h, 30/min par utilisateur) |
+| Le client signale un retard | `POST rdv/{id}/retard` (minutes) | ✅ `POST /api/v1/appointments/{id}/late` (10, 15 ou 30 min, une fois, de 3 h avant à 30 min après le début) | Fait le 21 octobre 2026 : boutons dans « Mes rendez-vous », notification au salon |
+| Le client demande lui-même un report | `POST rdv/{id}/reprogrammer` | ✅ `POST /api/v1/appointments/{id}/reschedule` : créneau libre des mêmes prestations, même délai qu'une annulation, 2 déplacements au plus | Fait le 21 octobre 2026 : « Déplacer le rendez-vous » dans « Mes rendez-vous », le salon est prévenu |
 | Fiche technique | `rdv/{id}/fiche-technique` | ✅ remplacée par une note par cliente (`clients/{id}/note`), plus utile : elle survit aux rendez-vous | — |
 | Assignation d'un RDV à une collaboratrice | `assigner` | ✅ équipe et ressources (`team/{resourceId}`) | — |
 | Auto-clôture des RDV | job de complétion | ✅ `AppointmentMaintenance` / `MaintenanceWorker` | — |
@@ -97,9 +97,9 @@ Méthode : les routes et pages de la V1 (`git show main:…`, contrôleurs et pa
 
 ## 6. Propositions pour faire mieux que la V1 (par priorité)
 
-1. **Report demandé par le client** : créneaux proposés, accord du partenaire (réutilise le flux « RescheduleProposed »). Faible risque, forte valeur.
-2. **« Je suis en retard »** en un bouton, avec notification au partenaire et prolongation du délai de grâce.
-3. **Aide à la saisie d'adresse** (géocodage) avec limitation de débit et cache : respecte la politique d'usage d'OSM.
+1. ✅ **Report demandé par le client** (fait).
+2. ✅ **« Je suis en retard »** en un bouton (fait ; la prolongation automatique du délai de grâce reste possible).
+3. ✅ **Aide à la saisie d'adresse** (fait).
 4. **Changer son mot de passe connecté(e)** (absent de la V1 comme de la V1.0.1) avec déconnexion des autres appareils.
 5. **Passkeys / WebAuthn** pour partenaires et admins (écart ASVS V2).
 6. **Vérification des mots de passe fuités** (k-anonymat), **rotation des clés** documentée et testée.

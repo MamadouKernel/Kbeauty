@@ -17,7 +17,7 @@ public static class ProblemResults
         "file.too_large" or "media.video_too_large" => StatusCodes.Status413PayloadTooLarge,
         "plan.feature_required" => StatusCodes.Status402PaymentRequired,
         "admin.forbidden" or "pass.foreign" => StatusCodes.Status403Forbidden,
-        "payment.gateway_error" or "payout.gateway_error" => StatusCodes.Status502BadGateway,
+        "payment.gateway_error" or "payout.gateway_error" or "geo.provider_error" => StatusCodes.Status502BadGateway,
         _ when code.EndsWith(".locked", StringComparison.Ordinal)
             || code.EndsWith(".incomplete", StringComparison.Ordinal)
             || code.EndsWith(".limit_reached", StringComparison.Ordinal)
@@ -29,6 +29,7 @@ public static class ProblemResults
             || code.EndsWith(".unavailable", StringComparison.Ordinal)
             || code.EndsWith(".invalid_transition", StringComparison.Ordinal)
             || code.EndsWith(".too_late", StringComparison.Ordinal)
+            || code.EndsWith(".reschedule_limit", StringComparison.Ordinal)
             || code.EndsWith(".last_active", StringComparison.Ordinal)
             || code.EndsWith(".already_active", StringComparison.Ordinal)
             || code.EndsWith(".self_action", StringComparison.Ordinal)

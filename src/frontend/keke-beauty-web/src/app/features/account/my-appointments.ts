@@ -31,6 +31,7 @@ import { PassQr } from '../../shared/pass-qr/pass-qr';
 import { NotificationService } from '../../core/notifications/notification.service';
 import { ReviewService } from '../../core/reviews/review.service';
 import { ReviewForm } from '../../shared/review-form/review-form';
+import { ReschedulePanel } from './reschedule-panel';
 import { StarRating } from '../../shared/star-rating/star-rating';
 
 /** Establishments are in Côte d'Ivoire; appointments carry instants, shown on the local wall clock. */
@@ -41,7 +42,7 @@ const ACTIVE = new Set(['Pending', 'Confirmed', 'RescheduleProposed']);
 @Component({
   selector: 'app-my-appointments',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, ReviewForm, StarRating, PassQr, DisputeForm],
+  imports: [RouterLink, ReviewForm, StarRating, PassQr, DisputeForm, ReschedulePanel],
   styles: `
     .page {
       display: grid;
@@ -227,6 +228,42 @@ const ACTIVE = new Set(['Pending', 'Confirmed', 'RescheduleProposed']);
                   </div>
                 }
               }
+              @if (a.canReschedule || a.canSignalLate) {
+                <div class="actions">
+                  @if (a.canReschedule) {
+                    <button
+                      class="btn btn-light btn-sm"
+                      type="button"
+                      [attr.aria-expanded]="openMove() === a.id"
+                      (click)="openMove.set(openMove() === a.id ? null : a.id)"
+                    >
+                      Déplacer le rendez-vous
+                    </button>
+                  }
+                </div>
+                @if (a.canReschedule && openMove() === a.id) {
+                  <app-reschedule-panel
+                    [appointment]="a"
+                    (picked)="move(a, $event)"
+                    (closed)="openMove.set(null)"
+                  />
+                }
+                @if (a.canSignalLate) {
+                  <div class="actions" role="group" aria-label="Signaler un retard">
+                    <span class="meta">Un retard ? Prévenez l'établissement :</span>
+                    @for (minutes of lateChoices; track minutes) {
+                      <button
+                        class="btn btn-light btn-sm"
+                        type="button"
+                        [disabled]="busy()"
+                        (click)="late(a, minutes)"
+                      >
+                        {{ minutes }} min
+                      </button>
+                    }
+                  </div>
+                }
+              }
               @if (a.status === 'RescheduleProposed' && a.proposedStartsAt) {
                 <p class="proposal">
                   L'établissement vous propose : <strong>{{ when(a.proposedStartsAt) }}</strong
@@ -406,6 +443,8 @@ export class MyAppointments {
   protected readonly disputes = resource({ loader: () => this.disputeService.mine() });
   protected readonly openDispute = signal<string | null>(null);
   protected readonly openPass = signal<string | null>(null);
+  protected readonly openMove = signal<string | null>(null);
+  protected readonly lateChoices = [10, 15, 30] as const;
   protected readonly busy = signal(false);
   protected readonly error = signal('');
 
@@ -571,6 +610,17 @@ export class MyAppointments {
     return confirm(question)
       ? this.run(() => this.booking.cancel(a.id, fee > 0))
       : Promise.resolve();
+  }
+
+  protected async move(a: Appointment, startsAt: string): Promise<void> {
+    await this.run(() => this.booking.reschedule(a.id, startsAt));
+    if (!this.error()) {
+      this.openMove.set(null);
+    }
+  }
+
+  protected late(a: Appointment, minutes: 10 | 15 | 30): Promise<void> {
+    return this.run(() => this.booking.signalLate(a.id, minutes));
   }
 
   protected accept(a: Appointment): Promise<void> {

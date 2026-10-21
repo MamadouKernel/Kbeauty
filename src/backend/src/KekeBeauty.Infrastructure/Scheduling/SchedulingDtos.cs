@@ -49,7 +49,7 @@ public sealed record BookingRequest(
     string Phone,
     string? Note);
 
-public sealed record AppointmentLineDto(string Name, decimal Price, int DurationMinutes);
+public sealed record AppointmentLineDto(string Name, decimal Price, int DurationMinutes, Guid? ServiceId = null);
 
 public sealed record AppointmentDto(
     Guid Id,
@@ -74,7 +74,9 @@ public sealed record AppointmentDto(
     ServicePaymentInfo? ServicePayment = null,
     decimal TipAmount = 0,
     bool CanTip = false,
-    decimal LateCancelFee = 0);
+    decimal LateCancelFee = 0,
+    bool CanReschedule = false,
+    bool CanSignalLate = false);
 
 /// <summary>The establishment's record that the service was paid: when, how (Cash or an operator id) and the mobile-money transaction reference.</summary>
 public sealed record ServicePaymentInfo(DateTimeOffset PaidAt, string Method, string? Reference);
@@ -105,6 +107,10 @@ public sealed record RejectInput(string? Reason);
 
 /// <summary>A client cancel request: after the cancellation limit it only goes through when she accepts the fee.</summary>
 public sealed record CancelByClientInput(bool AcceptLateFee);
+
+public sealed record RescheduleByClientInput(DateTimeOffset StartsAt);
+
+public sealed record LateInput(int Minutes);
 
 public sealed record RescheduleProposal(DateTimeOffset StartsAt, string? Comment);
 

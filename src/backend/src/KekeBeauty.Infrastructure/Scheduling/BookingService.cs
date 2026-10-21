@@ -236,6 +236,141 @@ public sealed class BookingService(
         db.AppointmentPayments.Where(p => p.Id == paymentId)
             .ExecuteUpdateAsync(set => set.SetProperty(p => p.RefundAmount, (decimal?)null).SetProperty(p => p.RetainedNet, (decimal?)null));
 
+    public const int MaxClientReschedules = 2;
+    public const string ClientMovedComment = "Déplacé par le client";
+    public const string LateCommentPrefix = "Retard signalé : ";
+    public static readonly int[] LateChoices = [10, 15, 30];
+
+    /// <summary>
+    /// The client moves an appointment to another free slot (V1 "reprogrammer"). Same cut-off as a cancellation, at most
+    /// <see cref="MaxClientReschedules"/> moves, same services and duration; the establishment is told and may still cancel.
+    /// </summary>
+    public async Task<Result<AppointmentDto>> RescheduleAsync(Guid clientId, Guid id, DateTimeOffset newStart, CancellationToken ct)
+    {
+        var appointment = await db.Appointments.FirstOrDefaultAsync(a => a.Id == id && a.ClientUserId == clientId, ct);
+        if (appointment is null)
+        {
+            return Result.Failure<AppointmentDto>(SchedulingErrors.AppointmentNotFound);
+        }
+
+        var now = time.GetUtcNow();
+        if (appointment.Status is not (AppointmentStatus.Pending or AppointmentStatus.Confirmed) || appointment.AwaitingPayment || appointment.StartedAt != null)
+        {
+            return Result.Failure<AppointmentDto>(SchedulingErrors.InvalidTransition);
+        }
+
+        if (newStart <= now || newStart == appointment.StartsAt)
+        {
+            return Result.Failure<AppointmentDto>(SchedulingErrors.SlotUnavailable);
+        }
+
+        var cancelLimit = await db.Establishments.AsNoTracking().Where(e => e.Id == appointment.EstablishmentId)
+            .Select(e => e.CancelLimitMinutes).FirstAsync(ct);
+        if (appointment.StartsAt - now < TimeSpan.FromMinutes(cancelLimit))
+        {
+            return Result.Failure<AppointmentDto>(SchedulingErrors.TooLate);
+        }
+
+        var moves = await db.AppointmentHistory.CountAsync(h => h.AppointmentId == appointment.Id && h.Comment == ClientMovedComment, ct);
+        if (moves >= MaxClientReschedules)
+        {
+            return Result.Failure<AppointmentDto>(SchedulingErrors.RescheduleLimit);
+        }
+
+        var serviceIds = await db.AppointmentLines.AsNoTracking().Where(l => l.AppointmentId == appointment.Id).Select(l => l.ServiceId).ToListAsync(ct);
+        var loaded = await availability.LoadContextAsync(appointment.EstablishmentId, serviceIds, null, ct);
+        if (loaded.IsFailure)
+        {
+            return Result.Failure<AppointmentDto>(loaded.Error);
+        }
+
+        var free = await availability.FreeResourcesAtAsync(loaded.Value, newStart, appointment.Id, ct);
+        if (free.Count == 0)
+        {
+            return Result.Failure<AppointmentDto>(SchedulingErrors.SlotUnavailable);
+        }
+
+        var previous = appointment.StartsAt;
+        var duration = appointment.EndsAt - appointment.StartsAt;
+        appointment.ResourceId = free.Contains(appointment.ResourceId) ? appointment.ResourceId : free[0];
+        appointment.StartsAt = newStart;
+        appointment.EndsAt = newStart + duration;
+        if (appointment.Status == AppointmentStatus.Pending && appointment.ExpiresAt != null)
+        {
+            appointment.ExpiresAt = now.AddHours(AppointmentWorkflow.RequestValidityHours);
+        }
+
+        db.AppointmentHistory.Add(new AppointmentStatusHistory
+        {
+            AppointmentId = appointment.Id,
+            FromStatus = appointment.Status,
+            ToStatus = appointment.Status,
+            ActorUserId = clientId,
+            At = now,
+            Comment = ClientMovedComment,
+        });
+
+        try
+        {
+            await db.SaveChangesAsync(ct);
+        }
+        catch (Exception ex) when (AppointmentWorkflow.IsOverlapViolation(ex))
+        {
+            db.ChangeTracker.Clear();
+            return Result.Failure<AppointmentDto>(SchedulingErrors.SlotTaken);
+        }
+
+        await workflow.AfterChangeAsync(appointment, appointment.Status, previous, ct);
+        return Result.Success((await ProjectAsync([appointment], ct))[0]);
+    }
+
+    /// <summary>The client tells the establishment they are running late (V1 "retard"): once per appointment, around the visit only.</summary>
+    public async Task<Result<AppointmentDto>> SignalLateAsync(Guid clientId, Guid id, int minutes, CancellationToken ct)
+    {
+        if (!LateChoices.Contains(minutes))
+        {
+            return Result.Failure<AppointmentDto>(SchedulingErrors.Invalid("Choisissez un retard de 10, 15 ou 30 minutes."));
+        }
+
+        var appointment = await db.Appointments.FirstOrDefaultAsync(a => a.Id == id && a.ClientUserId == clientId, ct);
+        if (appointment is null)
+        {
+            return Result.Failure<AppointmentDto>(SchedulingErrors.AppointmentNotFound);
+        }
+
+        var now = time.GetUtcNow();
+        if (appointment.Status != AppointmentStatus.Confirmed || appointment.StartedAt != null
+            || now < appointment.StartsAt.AddHours(-3) || now > appointment.StartsAt.AddMinutes(30))
+        {
+            return Result.Failure<AppointmentDto>(SchedulingErrors.InvalidTransition);
+        }
+
+        if (await db.AppointmentHistory.AnyAsync(h => h.AppointmentId == appointment.Id && h.Comment != null && h.Comment.StartsWith(LateCommentPrefix), ct))
+        {
+            return Result.Failure<AppointmentDto>(SchedulingErrors.Invalid("Vous avez déjà signalé un retard pour ce rendez-vous."));
+        }
+
+        db.AppointmentHistory.Add(new AppointmentStatusHistory
+        {
+            AppointmentId = appointment.Id,
+            FromStatus = appointment.Status,
+            ToStatus = appointment.Status,
+            ActorUserId = clientId,
+            At = now,
+            Comment = $"{LateCommentPrefix}{minutes} min",
+        });
+        await db.SaveChangesAsync(ct);
+
+        await workflow.NotifyOwnerAsync(
+            appointment,
+            "appointment.client_late.partner",
+            "Retard signalé",
+            $"Retard d'environ {minutes} minutes signalé pour ce rendez-vous.",
+            new Dictionary<string, string> { ["minutes"] = minutes.ToString(System.Globalization.CultureInfo.InvariantCulture) },
+            ct);
+        return Result.Success((await ProjectAsync([appointment], ct))[0]);
+    }
+
     public async Task<Result<AppointmentDto>> AcceptRescheduleAsync(Guid clientId, Guid id, CancellationToken ct)
     {
         var appointment = await db.Appointments.FirstOrDefaultAsync(a => a.Id == id && a.ClientUserId == clientId, ct);
@@ -416,9 +551,16 @@ public sealed class BookingService(
             .ToDictionaryAsync(r => r.Id, r => r.Name, ct);
         var lines = (await db.AppointmentLines.AsNoTracking().Where(l => appointmentIds.Contains(l.AppointmentId)).ToListAsync(ct))
             .GroupBy(l => l.AppointmentId)
-            .ToDictionary(g => g.Key, g => (IReadOnlyList<AppointmentLineDto>)g.Select(l => new AppointmentLineDto(l.NameSnapshot, l.PriceSnapshot, l.DurationSnapshot)).ToList());
+            .ToDictionary(g => g.Key, g => (IReadOnlyList<AppointmentLineDto>)g.Select(l => new AppointmentLineDto(l.NameSnapshot, l.PriceSnapshot, l.DurationSnapshot, l.ServiceId)).ToList());
 
         var now = time.GetUtcNow();
+        var moves = await db.AppointmentHistory.AsNoTracking()
+            .Where(h => appointmentIds.Contains(h.AppointmentId) && h.Comment == ClientMovedComment)
+            .GroupBy(h => h.AppointmentId).Select(g => new { g.Key, Count = g.Count() })
+            .ToDictionaryAsync(g => g.Key, g => g.Count, ct);
+        var signalled = (await db.AppointmentHistory.AsNoTracking()
+            .Where(h => appointmentIds.Contains(h.AppointmentId) && h.Comment != null && h.Comment.StartsWith(LateCommentPrefix))
+            .Select(h => h.AppointmentId).ToListAsync(ct)).ToHashSet();
         var paymentInfo = await payments.InfoForAsync(appointments, ct);
         var staffed = await db.Resources.AsNoTracking().Where(r => resourceIds.Contains(r.Id) && r.UserId != null).Select(r => r.Id).ToListAsync(ct);
         var tippable = appointments
@@ -446,7 +588,11 @@ public sealed class BookingService(
                 AgendaService.ServicePaymentOf(a),
                 a.TipAmount,
                 tippable.Contains(a.Id),
-                fee);
+                fee,
+                a.Status is AppointmentStatus.Pending or AppointmentStatus.Confirmed && !a.AwaitingPayment && a.StartedAt == null
+                    && !late && moves.GetValueOrDefault(a.Id) < MaxClientReschedules,
+                a.Status == AppointmentStatus.Confirmed && a.StartedAt == null && !signalled.Contains(a.Id)
+                    && now >= a.StartsAt.AddHours(-3) && now <= a.StartsAt.AddMinutes(30));
         }).ToList();
     }
 }

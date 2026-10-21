@@ -24,6 +24,7 @@ import type { components } from '../../../core/api/api.generated';
 import { problemMessage } from '../../../core/auth/auth.models';
 import { AuthService } from '../../../core/auth/auth.service';
 import { CatalogService } from '../../../core/catalog/catalog.service';
+import { AddressSearchService, GeoPlace } from '../../../core/geo/address-search.service';
 import { GeolocationFailure, GeolocationService } from '../../../core/geo/geolocation.service';
 import {
   EstablishmentInput,
@@ -201,6 +202,17 @@ const STEPS = [
     .coords {
       font-size: var(--fs-sm);
       color: var(--kb-ink-muted);
+    }
+    .suggestions {
+      display: grid;
+      gap: 0.35rem;
+      margin: 0.5rem 0 0;
+      padding: 0;
+      list-style: none;
+    }
+    .suggestions .btn {
+      text-align: left;
+      white-space: normal;
     }
     .stepper {
       overflow-x: auto;
@@ -404,6 +416,42 @@ const STEPS = [
                       Saisissez l'adresse (3 caractères minimum).
                     </p>
                   }
+                  <div class="actions">
+                    <button
+                      type="button"
+                      class="btn btn-ghost btn-sm"
+                      [disabled]="searching()"
+                      (click)="searchAddress()"
+                    >
+                      {{ searching() ? 'Recherche…' : "Chercher l'adresse sur la carte" }}
+                    </button>
+                    <button
+                      type="button"
+                      class="btn btn-ghost btn-sm"
+                      [disabled]="searching()"
+                      (click)="addressFromPin()"
+                    >
+                      Remplir l'adresse depuis le repère
+                    </button>
+                  </div>
+                  @if (suggestions().length > 0) {
+                    <ul class="suggestions" aria-label="Adresses trouvées">
+                      @for (place of suggestions(); track place.label) {
+                        <li>
+                          <button
+                            type="button"
+                            class="btn btn-light btn-sm"
+                            (click)="usePlace(place)"
+                          >
+                            {{ place.label }}
+                          </button>
+                        </li>
+                      }
+                    </ul>
+                  }
+                  @if (searchMessage()) {
+                    <p class="hint" role="status">{{ searchMessage() }}</p>
+                  }
                 </div>
 
                 <div class="field">
@@ -581,6 +629,7 @@ export class Wizard {
   private readonly partner = inject(PartnerService);
   private readonly router = inject(Router);
   private readonly geolocation = inject(GeolocationService);
+  private readonly addresses = inject(AddressSearchService);
   private readonly auth = inject(AuthService);
   private readonly categories = inject(CatalogService).categories;
 
@@ -596,6 +645,9 @@ export class Wizard {
   protected readonly showErrors = signal(false);
   protected readonly locating = signal(false);
   protected readonly locationError = signal('');
+  protected readonly searching = signal(false);
+  protected readonly suggestions = signal<readonly GeoPlace[]>([]);
+  protected readonly searchMessage = signal('');
 
   protected readonly selectedCategories = signal<readonly string[]>([]);
   protected readonly regionId = signal('');
@@ -798,6 +850,56 @@ export class Wizard {
       this.error.set(problemMessage(error));
     } finally {
       this.busy.set(false);
+    }
+  }
+
+  /** Looks the typed address up on OpenStreetMap (through our API); the owner picks one result, which also moves the pin. */
+  protected async searchAddress(): Promise<void> {
+    const query = this.basics.controls.address.value.trim();
+    this.suggestions.set([]);
+    this.searchMessage.set('');
+    if (query.length < 3) {
+      this.searchMessage.set("Saisissez d'abord quelques lettres de l'adresse.");
+      return;
+    }
+
+    this.searching.set(true);
+    try {
+      const places = await this.addresses.search(query);
+      this.suggestions.set(places);
+      if (places.length === 0) {
+        this.searchMessage.set('Aucune adresse trouvée : placez le repère sur la carte.');
+      }
+    } catch (error) {
+      this.searchMessage.set(problemMessage(error));
+    } finally {
+      this.searching.set(false);
+    }
+  }
+
+  protected usePlace(place: GeoPlace): void {
+    this.basics.controls.address.setValue(place.label.slice(0, 250));
+    this.position.set({ lat: place.latitude, lng: place.longitude });
+    this.suggestions.set([]);
+    this.searchMessage.set('');
+  }
+
+  /** The reverse of the search: the address written from where the pin stands. */
+  protected async addressFromPin(): Promise<void> {
+    this.suggestions.set([]);
+    this.searchMessage.set('');
+    this.searching.set(true);
+    try {
+      const place = await this.addresses.reverse(this.position().lat, this.position().lng);
+      if (place) {
+        this.basics.controls.address.setValue(place.label.slice(0, 250));
+      } else {
+        this.searchMessage.set('Aucune adresse connue à cet endroit : saisissez-la à la main.');
+      }
+    } catch (error) {
+      this.searchMessage.set(problemMessage(error));
+    } finally {
+      this.searching.set(false);
     }
   }
 

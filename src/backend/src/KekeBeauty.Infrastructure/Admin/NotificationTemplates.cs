@@ -15,6 +15,7 @@ public sealed record TemplateDefinition(string Code, string Label, IReadOnlyList
 public static class NotificationTemplateCatalog
 {
     private static readonly string[] Appointment = ["etablissement", "client", "date", "heure", "motif"];
+    private static readonly string[] AppointmentLate = ["etablissement", "client", "date", "heure", "motif", "minutes"];
     private static readonly string[] AppointmentPayment = ["etablissement", "client", "date", "heure", "motif", "montant"];
     private static readonly string[] Invoice = ["etablissement", "facture", "montant", "echeance", "jours"];
 
@@ -32,6 +33,9 @@ public static class NotificationTemplateCatalog
         new("appointment.reschedule_proposed", "Nouveau créneau proposé (client)", Appointment, "Nouveau créneau proposé", "{etablissement} vous propose le {date} à {heure} à la place. Acceptez ou refusez dans Mes rendez-vous."),
         new("appointment.reschedule_accepted", "Reprogrammation acceptée (client)", Appointment, "Rendez-vous reprogrammé", "Votre rendez-vous chez {etablissement} est confirmé le {date} à {heure}."),
         new("appointment.reschedule_accepted.partner", "Reprogrammation acceptée (partenaire)", Appointment, "Reprogrammation acceptée", "{client} a accepté le nouveau créneau : le {date} à {heure}."),
+        new("appointment.rescheduled_by_client", "Rendez-vous déplacé par le client (client)", Appointment, "Rendez-vous déplacé", "Votre rendez-vous chez {etablissement} a été déplacé au {date} à {heure}."),
+        new("appointment.rescheduled_by_client.partner", "Rendez-vous déplacé par le client (partenaire)", Appointment, "Rendez-vous déplacé", "{client} a déplacé son rendez-vous au {date} à {heure}."),
+        new("appointment.client_late.partner", "Retard signalé par le client (partenaire)", AppointmentLate, "Retard signalé", "{client} signale un retard d'environ {minutes} minutes pour son rendez-vous du {date} à {heure}."),
         new("appointment.reminder", "Rappel avant le rendez-vous (client)", Appointment, "Rappel de rendez-vous", "Rappel : votre rendez-vous chez {etablissement} a lieu le {date} à {heure}."),
         new("waitlist.slot_freed", "Créneau libéré, liste d'attente (client)", Appointment, "Un créneau s'est libéré", "Un créneau vient de se libérer chez {etablissement} le {date} à {heure}. Réservez vite : le premier qui réserve l'obtient."),
         new("client.reengagement", "Invitation à revenir après une visite (client)", Appointment, "Envie de revenir chez {etablissement} ?", "Votre dernière visite chez {etablissement} remonte à quelques semaines. Réservez votre prochain rendez-vous en quelques secondes."),

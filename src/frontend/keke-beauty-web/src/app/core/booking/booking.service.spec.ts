@@ -87,6 +87,21 @@ describe('BookingService', () => {
     await decline;
   });
 
+  it('moves an appointment and signals a delay through their own routes', async () => {
+    const move = service.reschedule('x', '2026-10-20T10:00:00Z');
+    const moved = http.expectOne('/api/v1/appointments/x/reschedule');
+    expect(moved.request.method).toBe('POST');
+    expect(moved.request.body).toEqual({ startsAt: '2026-10-20T10:00:00Z' });
+    moved.flush({ id: 'x', status: 'Confirmed' });
+    await move;
+
+    const late = service.signalLate('x', 15);
+    const signalled = http.expectOne('/api/v1/appointments/x/late');
+    expect(signalled.request.body).toEqual({ minutes: 15 });
+    signalled.flush({ id: 'x', status: 'Confirmed' });
+    await late;
+  });
+
   it('surfaces a taken slot as an HTTP 409 for the page to handle', async () => {
     const pending = service.book({
       establishmentId: 'e1',

@@ -59,6 +59,19 @@ public static class AppointmentEndpoints
             .ProducesProblem(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status409Conflict);
 
+        appointments.MapPost("/{id:guid}/reschedule", async (Guid id, RescheduleByClientInput input, ClaimsPrincipal user, BookingService service, CancellationToken ct) =>
+                Respond(await service.RescheduleAsync(user.UserId(), id, input.StartsAt, ct)))
+            .Produces<AppointmentDto>()
+            .ProducesProblem(StatusCodes.Status404NotFound)
+            .ProducesProblem(StatusCodes.Status409Conflict);
+
+        appointments.MapPost("/{id:guid}/late", async (Guid id, LateInput input, ClaimsPrincipal user, BookingService service, CancellationToken ct) =>
+                Respond(await service.SignalLateAsync(user.UserId(), id, input.Minutes, ct)))
+            .Produces<AppointmentDto>()
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status404NotFound)
+            .ProducesProblem(StatusCodes.Status409Conflict);
+
         appointments.MapPost("/{id:guid}/pay", async (Guid id, ClaimsPrincipal user, BookingService service, CancellationToken ct) =>
                 Respond(await service.ResumePaymentAsync(user.UserId(), id, ct)))
             .Produces<AppointmentDto>()

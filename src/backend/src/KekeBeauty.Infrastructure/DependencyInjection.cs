@@ -109,6 +109,17 @@ public static class DependencyInjection
         services.AddScoped<KekeBeauty.Infrastructure.Notifications.ChannelService>();
         services.AddSingleton<ReminderMaintenance>();
         services.AddHostedService(provider => provider.GetRequiredService<ReminderMaintenance>());
+        // Address search: the API calls OpenStreetMap's Nominatim itself (identified, throttled, cached); the browser never does.
+        services.Configure<KekeBeauty.Infrastructure.Geo.GeocodingOptions>(configuration.GetSection(KekeBeauty.Infrastructure.Geo.GeocodingOptions.SectionName));
+        services.AddMemoryCache();
+        services.AddHttpClient(KekeBeauty.Infrastructure.Geo.GeocodingService.ClientName, (provider, client) =>
+        {
+            var geo = provider.GetRequiredService<Microsoft.Extensions.Options.IOptions<KekeBeauty.Infrastructure.Geo.GeocodingOptions>>().Value;
+            client.BaseAddress = new Uri(geo.BaseUrl.TrimEnd('/') + "/");
+            client.Timeout = TimeSpan.FromSeconds(8);
+            client.DefaultRequestHeaders.UserAgent.ParseAdd(geo.UserAgent);
+        });
+        services.AddSingleton<KekeBeauty.Infrastructure.Geo.GeocodingService>();
         services.AddScoped<AppointmentWorkflow>();
         services.AddScoped<AvailabilityService>();
         services.AddScoped<BookingService>();

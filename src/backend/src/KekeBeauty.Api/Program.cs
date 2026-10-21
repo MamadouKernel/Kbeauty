@@ -57,6 +57,7 @@ builder.Services.AddGlobalRateLimit(builder.Configuration);
 builder.Services.AddEstablishmentRateLimits();
 builder.Services.AddGrowthRateLimits();
 builder.Services.AddBillingRateLimits();
+builder.Services.AddGeoRateLimits();
 builder.Services.AddObservability(builder.Configuration);
 
 // With several API servers behind a load balancer, a message sent from one server must reach the browsers connected to the others:
@@ -180,6 +181,7 @@ app.MapDisputeEndpoints();
 app.MapGrowthEndpoints();
 app.MapNotificationEndpoints();
 app.MapBillingEndpoints();
+app.MapGeoEndpoints();
 app.MapEngagementEndpoints();
 app.MapAdminEndpoints();
 app.MapPrivacyEndpoints();
