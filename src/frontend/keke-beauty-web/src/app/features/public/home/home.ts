@@ -92,7 +92,8 @@ export class Home {
       const reward = (b.rewardsAvailable > 0 ? 1 : 0) - (a.rewardsAvailable > 0 ? 1 : 0);
       return reward !== 0
         ? reward
-        : progressToReward(b.points, b.rewardThreshold) - progressToReward(a.points, a.rewardThreshold);
+        : progressToReward(b.points, b.rewardThreshold) -
+            progressToReward(a.points, a.rewardThreshold);
     })[0];
   });
   protected readonly position = signal<Position | null>(null);

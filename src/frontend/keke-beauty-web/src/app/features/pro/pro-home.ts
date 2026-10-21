@@ -239,7 +239,9 @@ import { PartnerService, STATUS_LABELS } from '../../core/partner/partner.servic
                         [attr.aria-expanded]="openQrSlug() === e.slug"
                         (click)="toggleQr(e.slug)"
                       >
-                        {{ openQrSlug() === e.slug ? 'Masquer le kit partage' : 'QR Code & WhatsApp' }}
+                        {{
+                          openQrSlug() === e.slug ? 'Masquer le kit partage' : 'QR Code & WhatsApp'
+                        }}
                       </button>
                     }
                   </div>
@@ -250,10 +252,13 @@ import { PartnerService, STATUS_LABELS } from '../../core/partner/partner.servic
                     >
                       <strong>Partagez votre lien de réservation ({{ e.name }})</strong>
                       <p style="margin: 0; font-size: var(--fs-sm); color: var(--kb-ink-muted);">
-                        Affichez ce QR Code au comptoir de votre salon ou publiez le lien dans votre statut WhatsApp et votre bio Instagram.
+                        Affichez ce QR Code au comptoir de votre salon ou publiez le lien dans votre
+                        statut WhatsApp et votre bio Instagram.
                       </p>
                       @if (qrDataUrl(); as qrUrl) {
-                        <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 1rem;">
+                        <div
+                          style="display: flex; flex-wrap: wrap; align-items: center; gap: 1rem;"
+                        >
                           <img
                             [src]="qrUrl"
                             width="160"

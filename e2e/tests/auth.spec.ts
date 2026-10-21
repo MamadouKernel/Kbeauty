@@ -6,13 +6,15 @@ import { freshCode } from '../helpers/totp';
 import { signIn } from '../helpers/ui';
 
 test.describe('Accounts', () => {
-  test('a visitor registers, confirms the e-mail, enrols Google Authenticator and signs in again', async ({
+  test('a partner registers, confirms the e-mail, enrols Google Authenticator and signs in again', async ({
     page,
     browser,
   }) => {
     const email = uniqueEmail('inscrit');
 
+    // A partner: since the adaptive second factor, a plain client signs in without enrolling one; partners and admins must.
     await page.goto('/inscription');
+    await page.locator('label.role', { hasText: 'Professionnel' }).click();
     await page.getByLabel('Prénom').fill('Awa');
     await page.getByLabel('Nom', { exact: true }).fill('Koné');
     await page.getByLabel('Adresse e-mail').fill(email);

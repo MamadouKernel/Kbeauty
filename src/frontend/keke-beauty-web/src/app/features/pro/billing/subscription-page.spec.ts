@@ -418,9 +418,10 @@ describe('SubscriptionPage', () => {
     refresh.flush(1);
 
     // Then the page reloads the subscription, which is now active.
-    (
-      await vi.waitFor(() => http.expectOne('/api/v1/pro/establishments/e1/subscription'))
-    ).flush({ ...pending, subscription: { ...pending.subscription!, status: 'Active' } });
+    (await vi.waitFor(() => http.expectOne('/api/v1/pro/establishments/e1/subscription'))).flush({
+      ...pending,
+      subscription: { ...pending.subscription!, status: 'Active' },
+    });
     (await vi.waitFor(() => http.expectOne('/api/v1/pro/invoices'))).flush([]);
     await vi.waitFor(() => {
       harness.detectChanges();

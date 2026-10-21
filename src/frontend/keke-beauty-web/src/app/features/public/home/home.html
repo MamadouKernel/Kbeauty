@@ -68,7 +68,10 @@
 @if (loyaltyTeaser(); as card) {
   <section class="section loyalty-teaser-section" aria-labelledby="loyalty-teaser-title">
     <div class="container">
-      <a class="loyalty-teaser" [routerLink]="['/etablissements', card.establishmentSlug, 'reserver']">
+      <a
+        class="loyalty-teaser"
+        [routerLink]="['/etablissements', card.establishmentSlug, 'reserver']"
+      >
         <span class="loyalty-teaser__icon"><svg lucideSparkles aria-hidden="true"></svg></span>
         <div class="loyalty-teaser__body">
           <p class="eyebrow">Votre fidélité</p>
@@ -76,7 +79,8 @@
             @if (card.rewardsAvailable > 0) {
               Récompense débloquée chez <em>{{ card.establishmentName }}</em> !
             } @else {
-              Plus que {{ loyaltyRemaining(card) }} point(s) chez <em>{{ card.establishmentName }}</em>
+              Plus que {{ loyaltyRemaining(card) }} point(s) chez
+              <em>{{ card.establishmentName }}</em>
             }
           </h2>
           <p class="loyalty-teaser__reward">{{ card.rewardDescription }}</p>

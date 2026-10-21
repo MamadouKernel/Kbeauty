@@ -14,7 +14,10 @@ import { TwoFactor } from './two-factor/two-factor';
 const PASSWORD = `Zx-${crypto.randomUUID().slice(0, 12)}7`;
 
 /** A throw-away authenticator secret (base32), random for each run. */
-const TOTP_SECRET = Array.from(crypto.getRandomValues(new Uint8Array(16)), (b) => 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567'[b % 32]).join('');
+const TOTP_SECRET = Array.from(
+  crypto.getRandomValues(new Uint8Array(16)),
+  (b) => 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567'[b % 32],
+).join('');
 
 describe('authentication pages', () => {
   let http: HttpTestingController;
@@ -245,7 +248,9 @@ describe('authentication pages', () => {
         otpauthUri: `otpauth://totp/Keke:awa?secret=${TOTP_SECRET}`,
       });
       await eventually(fixture, () =>
-        expect(el.querySelector('code')?.textContent).toContain(TOTP_SECRET.match(/.{1,4}/g)!.join(' ')),
+        expect(el.querySelector('code')?.textContent).toContain(
+          TOTP_SECRET.match(/.{1,4}/g)!.join(' '),
+        ),
       );
 
       type(el, '#twofa-code', '654321');

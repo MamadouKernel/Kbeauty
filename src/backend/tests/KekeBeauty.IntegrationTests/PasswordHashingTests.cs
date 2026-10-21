@@ -23,4 +23,22 @@ public sealed class PasswordHashingTests(ApiFixture api)
         iterations.Should().BeGreaterThanOrEqualTo(210_000);
         hasher.VerifyHashedPassword(user, hash, TestSecrets.Password).Should().Be(PasswordVerificationResult.Success);
     }
+
+    private static int IterationsOf(string hash)
+    {
+        var bytes = Convert.FromBase64String(hash);
+        return (bytes[5] << 24) | (bytes[6] << 16) | (bytes[7] << 8) | bytes[8];
+    }
+
+    [Theory]
+    [InlineData("1000", 210_000)]
+    [InlineData("300000", 300_000)]
+    public void The_iteration_count_is_configurable_but_never_below_the_owasp_floor(string configured, int expected)
+    {
+        using var host = api.WithWebHostBuilder(builder => builder.UseSetting("Auth:PasswordHashIterations", configured));
+        var hasher = host.Services.GetRequiredService<IPasswordHasher<User>>();
+        var user = User.Register("floor@example.com", "A", "B", "Client", emailConfirmed: true, DateTimeOffset.UtcNow);
+
+        IterationsOf(hasher.HashPassword(user, TestSecrets.Password)).Should().Be(expected);
+    }
 }

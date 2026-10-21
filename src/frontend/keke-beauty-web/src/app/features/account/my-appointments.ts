@@ -199,11 +199,7 @@ const ACTIVE = new Set(['Pending', 'Confirmed', 'RescheduleProposed']);
                     {{ openPass() === a.id ? 'Masquer mon pass' : 'Mon pass QR' }}
                   </button>
                 }
-                <button
-                  class="btn btn-ghost btn-sm"
-                  type="button"
-                  (click)="downloadIcs(a)"
-                >
+                <button class="btn btn-ghost btn-sm" type="button" (click)="downloadIcs(a)">
                   Ajouter au calendrier (.ics)
                 </button>
               </div>

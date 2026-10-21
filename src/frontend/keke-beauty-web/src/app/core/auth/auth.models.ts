@@ -20,10 +20,7 @@ export interface AuthResponse {
 }
 
 export type ChallengeStatus =
-  | 'TwoFactorRequired'
-  | 'TwoFactorSetupRequired'
-  | 'TrustedDevice'
-  | 'PasswordOnly';
+  'TwoFactorRequired' | 'TwoFactorSetupRequired' | 'TrustedDevice' | 'PasswordOnly';
 
 export interface ChallengeResponse {
   readonly status: ChallengeStatus;

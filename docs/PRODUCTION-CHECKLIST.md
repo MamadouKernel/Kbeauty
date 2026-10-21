@@ -48,6 +48,9 @@ Légende : ✅ fait dans le code · 🔧 à faire par l'exploitant avant l'ouver
 - ✅ HTTPS bout en bout : HSTS posé par nginx et par l'API dès que la requête est en HTTPS (🔧 TLS à fournir devant `web`).
 - ✅ En-têtes : CSP stricte, `X-Frame-Options`, `nosniff`, `Referrer-Policy`, `Permissions-Policy`, COOP ; `Cache-Control: no-store` sur l'API.
 - ✅ Double authentification obligatoire, verrouillage, sessions révocables, cookie de rafraîchissement httpOnly.
+- ✅ **Second facteur verrouillé par compte** : 5 mauvais codes le verrouillent 15 minutes, doublé à chaque récidive jusqu'à 24 h (`Auth__TotpMaxLockoutHours`) ; les mots de passe courants sont refusés ; hachage PBKDF2 à 210 000 itérations.
+- ✅ **Images maintenues et scannées** (Trivy) : API, site (nginx sans privilèges), Redis, MinIO sans vulnérabilité élevée ou critique ; PostGIS 25 avec correctif (utilitaire `gosu`). 🔧 En production : PostgreSQL et stockage S3 gérés, images épinglées par empreinte, `Dependabot` activé sur le dépôt, rescan à chaque mise à jour.
+- 🔧 **Rotation des clés** (jetons de session, clé de chiffrement du keystore) : écrire et tester la procédure ; **alertes** sur les verrouillages 2FA, les connexions en rafale et les montants refusés (voir `docs/ASVS-L2.md`).
 - ✅ Limitation de débit : globale par IP, authentification, réservation (🔧 `Proxy__TrustForwardedHeaders=true` derrière le proxy, sinon tous les visiteurs partagent une IP).
 - ✅ Autorisation par rôle et par propriété ; tests d'accès croisés (partenaire A / partenaire B, client / admin).
 - ✅ Pièces d'identité : bucket privé, accès admin journalisé, effacées à la suppression du compte.

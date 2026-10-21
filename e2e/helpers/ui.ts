@@ -17,8 +17,18 @@ export async function signIn(page: Page, account: Account): Promise<void> {
     page.waitForURL(signedIn).catch(() => {}),
   ]);
   if (await codeField.isVisible().catch(() => false)) {
-    await codeField.fill(await freshCode(account.secret));
-    await page.getByRole('button', { name: 'Valider' }).click();
+    if (await page.getByRole('heading', { name: 'Activer Google Authenticator' }).isVisible().catch(() => false)) {
+      // First sign-in of an account that must have a second factor (partner, staff, admin) but has none yet: enrol one, as a person would.
+      const secret = ((await page.locator('.secret code').textContent()) ?? '').replace(/\s/g, '');
+      Object.assign(account, { secret });
+      await codeField.fill(await freshCode(secret));
+      await page.getByRole('button', { name: 'Activer et me connecter' }).click();
+      await page.getByLabel(/J'ai conservé ces codes/).check();
+      await page.getByRole('button', { name: 'Continuer' }).click();
+    } else {
+      await codeField.fill(await freshCode(account.secret));
+      await page.getByRole('button', { name: 'Valider' }).click();
+    }
   }
   await page.waitForURL(signedIn);
 }

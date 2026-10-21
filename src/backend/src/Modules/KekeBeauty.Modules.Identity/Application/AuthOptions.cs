@@ -47,6 +47,12 @@ public sealed class AuthOptions
     public int MaxFailedLogins { get; init; } = 5;
     public int LockoutMinutes { get; init; } = 15;
 
+    /// <summary>
+    /// PBKDF2-HMAC-SHA512 iterations of new password hashes. 210 000 is the OWASP minimum; each sign-in attempt (even a failed one: a dummy hash
+    /// equalises the timing) costs that much CPU, so measure the latency on the target hardware (aim for about 100 ms) before raising it.
+    /// </summary>
+    public int PasswordHashIterations { get; init; } = 210_000;
+
     /// <summary>Longest lock of the second factor after repeated failures (it starts at <see cref="LockoutMinutes"/> and doubles each time).</summary>
     public int TotpMaxLockoutHours { get; init; } = 24;
     public int ChallengeMinutes { get; init; } = 10;

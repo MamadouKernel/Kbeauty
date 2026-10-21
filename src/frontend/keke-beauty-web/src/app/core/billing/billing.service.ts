@@ -56,7 +56,10 @@ export class BillingService {
    */
   refreshPending(establishmentId: string): Promise<number> {
     return firstValueFrom(
-      this.http.post<number>(`/api/v1/pro/establishments/${establishmentId}/subscription/refresh`, {}),
+      this.http.post<number>(
+        `/api/v1/pro/establishments/${establishmentId}/subscription/refresh`,
+        {},
+      ),
     );
   }
 

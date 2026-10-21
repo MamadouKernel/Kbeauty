@@ -173,7 +173,8 @@ test.describe('A01 Broken access control', () => {
       '/api/v1/files/%2e%2e/%2e%2e/etc/passwd',
     ]) {
       const response = await request.get(path);
-      expect([400, 404], path).toContain(response.status());
+      // 401 since the deny-by-default policy: a path that matches no route is refused to an anonymous caller before it is even looked up.
+      expect([400, 401, 404], path).toContain(response.status());
     }
   });
 
@@ -455,7 +456,9 @@ test.describe('A04 Abuse: rate limiting', () => {
     for (let round = 0; round < 40 && !statuses.has(429); round += 1) {
       const batch = await Promise.all(
         Array.from({ length: 25 }, () =>
-          request.post('/api/v1/auth/login', { data: { email: uniqueEmail('flood'), password: 'Mauvais-Passe-1' } }),
+          // The second-factor step of a sign-in: same rate-limit policy as the password step, but cheap. A real password attempt costs hundreds of
+          // milliseconds of hashing (by design), so a flood of them cannot exceed the per-minute limit on a modest machine.
+          request.post('/api/v1/auth/2fa/verify', { data: { challengeToken: uniqueEmail('flood'), code: '000000' } }),
         ),
       );
       batch.forEach((r) => statuses.add(r.status()));
