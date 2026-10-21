@@ -24,6 +24,24 @@ if [ -z "$tiles_host" ]; then
 fi
 printf 'set $csp_map_tiles "https://%s";\n' "$tiles_host" > /etc/nginx/map-tiles.inc
 
+# Google sign-in loads Google's own script, frame and styles: the browser may fetch them only when the platform turned it on, and only from the
+# exact addresses Google documents. Disabled (the default), the policy stays "self" only and nothing outside the site can load.
+if [ "${GOOGLE_AUTH_ENABLED:-false}" = "true" ]; then
+  {
+    printf 'set $csp_google_script "https://accounts.google.com/gsi/client";\n'
+    printf 'set $csp_google_style "https://accounts.google.com/gsi/style";\n'
+    printf 'set $csp_google_frame "https://accounts.google.com/gsi/";\n'
+    printf 'set $csp_google_connect "https://accounts.google.com/gsi/";\n'
+  } > /etc/nginx/google-csp.inc
+else
+  {
+    printf 'set $csp_google_script "";\n'
+    printf 'set $csp_google_style "";\n'
+    printf 'set $csp_google_frame "";\n'
+    printf 'set $csp_google_connect "";\n'
+  } > /etc/nginx/google-csp.inc
+fi
+
 tiles=$(escape "$tiles_url")
 attribution=$(escape "${MAP_TILES_ATTRIBUTION:-}")
 printf '{ "yangoUrlTemplate": "%s", "mapTilesUrl": "%s", "mapAttribution": "%s" }\n' "$yango" "$tiles" "$attribution" > /usr/share/nginx/html/config.json

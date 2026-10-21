@@ -1,0 +1,95 @@
+# Alert rules. Each one names what to do, because an alert that does not say so is only noise at 3 a.m.
+groups:
+  - name: availability
+    rules:
+      - alert: SiteOrApiDown
+        expr: probe_success{job="availability"} == 0
+        for: 2m
+        labels: { severity: critical }
+        annotations:
+          summary: "{{ $labels.instance }} does not answer"
+          action: "Check `docker compose ps` and `docker compose logs api`; the database or storage may be down (the readiness probe checks the database)."
+
+  - name: errors
+    rules:
+      - alert: ServerErrorsBurst
+        expr: sum(increase(http_server_request_duration_seconds_count{http_response_status_code=~"5.."}[5m])) > 10
+        for: 1m
+        labels: { severity: critical }
+        annotations:
+          summary: "More than 10 server errors (5xx) in 5 minutes"
+          action: "Read the API logs around the time of the alert; look for the traceId of a 5xx response in Jaeger."
+      - alert: ServerErrorRateHigh
+        expr: |
+          sum(rate(http_server_request_duration_seconds_count{http_response_status_code=~"5.."}[10m]))
+            / sum(rate(http_server_request_duration_seconds_count[10m])) > 0.05
+          and sum(rate(http_server_request_duration_seconds_count[10m])) > 0.2
+        for: 5m
+        labels: { severity: critical }
+        annotations:
+          summary: "More than 5% of requests fail on the server side"
+          action: "A recent deployment or a dependency (database, payment provider) is the first suspect."
+      - alert: ApiSlow
+        expr: |
+          histogram_quantile(0.95, sum by (le) (rate(http_server_request_duration_seconds_bucket{http_route!~"/hubs.*"}[10m]))) > 2
+        for: 10m
+        labels: { severity: warning }
+        annotations:
+          summary: "95% of requests take more than 2 seconds"
+          action: "Check the database (slow queries in traces) and the host's CPU."
+      - alert: ManyRequestsRefusedByRateLimit
+        expr: |
+          sum(increase(http_server_request_duration_seconds_count{http_response_status_code="429"}[10m])) > 200
+        for: 5m
+        labels: { severity: warning }
+        annotations:
+          summary: "More than 200 requests refused by the rate limits in 10 minutes"
+          action: "Either an attack (see the sign-in alerts) or limits too low behind a proxy: check Proxy__TrustForwardedHeaders, otherwise every visitor shares one address."
+
+  - name: payments
+    rules:
+      - alert: PaymentAmountMismatch
+        expr: sum(increase(keke_payments_settled_total{outcome="amount_mismatch"}[15m])) > 0
+        labels: { severity: critical }
+        annotations:
+          summary: "A payment was refused because the provider reported another amount or currency"
+          action: "Misconfiguration or fraud attempt. Do NOT activate the subscription by hand: compare the invoice with the provider's dashboard first."
+      - alert: PaymentsFailing
+        expr: sum(increase(keke_payments_settled_total{outcome="failed"}[30m])) >= 3
+        labels: { severity: warning }
+        annotations:
+          summary: "3 or more payments failed in 30 minutes"
+          action: "Check the provider's status and the API logs; customers can retry from their invoice."
+      - alert: PaymentProviderErrors
+        expr: sum(increase(keke_payments_provider_errors_total[10m])) >= 3
+        labels: { severity: critical }
+        annotations:
+          summary: "The payment provider is unreachable or refusing our calls"
+          action: "Check the provider's status page, the merchant keys (they may have been rotated) and the API's outbound network."
+      - alert: ForgedPaymentNotifications
+        expr: sum(increase(keke_payments_notifications_total{result="rejected_signature"}[10m])) > 5
+        labels: { severity: warning }
+        annotations:
+          summary: "Payment notifications with an invalid signature"
+          action: "Someone is probing the callback address. The signature check holds; make sure the merchant token was not changed without redeploying."
+
+  - name: security
+    rules:
+      - alert: SignInFlood
+        expr: sum(increase(keke_auth_failed_logins_total[5m])) > 50
+        labels: { severity: warning }
+        annotations:
+          summary: "More than 50 failed sign-ins in 5 minutes"
+          action: "Credential stuffing or guessing. Accounts lock themselves; consider blocking the source address at the proxy."
+      - alert: SecondFactorLocked
+        expr: sum(increase(keke_auth_second_factor_lockouts_total[15m])) > 0
+        labels: { severity: warning }
+        annotations:
+          summary: "An account's second factor was locked after repeated wrong codes"
+          action: "Someone who knows that account's password is guessing codes: warn the owner and have the password changed."
+      - alert: SharedRateLimitStoreFailing
+        expr: sum(increase(keke_ratelimit_store_errors_total[5m])) > 3
+        labels: { severity: warning }
+        annotations:
+          summary: "The shared rate-limit store (Redis) is failing"
+          action: "The site keeps working and each instance enforces its own limits, so with several instances the real limit is higher until Redis is back. Check Redis (docker compose ps redis) and the REDIS_PASSWORD / connection string."

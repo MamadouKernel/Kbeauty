@@ -1,0 +1,33 @@
+# Development: alerts are e-mailed to the local Mailpit inbox (http://localhost:8025), so the whole chain can be tested without leaving the machine.
+# Production: replace the smarthost with your SMTP relay and keep the password OUT of this file (smtp_auth_password_file, mounted as a secret),
+# and add the people or the on-call address to `to`.
+global:
+  smtp_smarthost: mailpit:1025
+  smtp_from: alerts@keke-beauty.local
+  smtp_require_tls: false
+
+route:
+  receiver: ops
+  group_by: [alertname]
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 4h
+  routes:
+    - matchers: [severity="critical"]
+      receiver: ops
+      repeat_interval: 1h
+
+receivers:
+  - name: ops
+    email_configs:
+      - to: ops@keke-beauty.local
+        send_resolved: true
+        headers:
+          subject: '[{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}] {{ .GroupLabels.alertname }}: {{ (index .Alerts 0).Annotations.summary }}'
+        html: |
+          <h3>{{ .GroupLabels.alertname }} ({{ .Status }})</h3>
+          {{ range .Alerts }}
+          <p><b>{{ .Annotations.summary }}</b><br>
+          Severity: {{ .Labels.severity }}{{ if .Labels.instance }} &middot; {{ .Labels.instance }}{{ end }}<br>
+          <b>What to do:</b> {{ .Annotations.action }}</p>
+          {{ end }}

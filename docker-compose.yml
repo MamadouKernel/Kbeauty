@@ -54,23 +54,95 @@ services:
       retries: 20
 
   redis:
-    # SignalR backplane: lets several API servers push live updates (calendar, agenda, notifications) to every connected browser.
+    security_opt: ["no-new-privileges:true"]
+    # SignalR backplane (live updates across several API servers) AND the shared rate-limit counters. No data worth keeping (no snapshot, no
+    # append-only file), no published port, password required: it is reachable only from the other containers, and only with the password.
     image: redis:8-alpine
     restart: unless-stopped
+    command: ["sh", "-c", "exec redis-server --requirepass \"$$REDIS_PASSWORD\" --save '' --appendonly no --maxmemory 128mb --maxmemory-policy volatile-ttl"]
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?Define REDIS_PASSWORD in .env - run sh scripts/init-env.sh}
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD-SHELL", "REDISCLI_AUTH=\"$$REDIS_PASSWORD\" redis-cli ping | grep -q PONG"]
       interval: 5s
       timeout: 3s
       retries: 20
 
-  jaeger:
-    # Optional trace viewer: `docker compose --profile observability up -d`, set OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317 in .env,
-    # then open http://localhost:16686.
-    image: jaegertracing/all-in-one:1.62.0
+  # --- Supervision (profile `observability`): everything runs on your own machine, nothing is sent to a third party. -------------------------------------
+  #   docker compose --profile observability up -d     then set OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317 in .env and restart the api.
+  #   Grafana http://localhost:3000 (admin / GRAFANA_ADMIN_PASSWORD), Prometheus :9090, Alertmanager :9093, Jaeger :16686, alert e-mails in Mailpit :8025.
+  otel-collector:
+    security_opt: ["no-new-privileges:true"]
+    image: otel/opentelemetry-collector-contrib:0.163.1
+    restart: unless-stopped
+    profiles: ["observability"]
+    command: ["--config=/etc/otelcol/config.yaml"]
+    volumes:
+      - ./ops/observability/otel-collector.yaml:/etc/otelcol/config.yaml:ro
+
+  prometheus:
+    security_opt: ["no-new-privileges:true"]
+    # Rescan on update: the upstream image carries fixable HIGH findings in its Go libraries (Trivy, 2026-10-21). Local port only.
+    image: prom/prometheus:v3.15.0
+    restart: unless-stopped
+    profiles: ["observability"]
+    command: ["--config.file=/etc/prometheus/prometheus.yml", "--storage.tsdb.retention.time=15d", "--web.enable-lifecycle"]
+    volumes:
+      - ./ops/observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./ops/observability/alerts.yml:/etc/prometheus/alerts.yml:ro
+      - promdata:/prometheus
+    ports:
+      - "127.0.0.1:9090:9090"
+    depends_on: [otel-collector, alertmanager, blackbox]
+
+  alertmanager:
+    security_opt: ["no-new-privileges:true"]
+    image: prom/alertmanager:v0.34.1
+    restart: unless-stopped
+    profiles: ["observability"]
+    volumes:
+      - ./ops/observability/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+    ports:
+      - "127.0.0.1:9093:9093"
+
+  blackbox:
+    user: "65534:65534"   # plain HTTP probes need no raw socket, so no root
+    security_opt: ["no-new-privileges:true"]
+    # Probes the site and the API from outside their processes, the way a load balancer or an uptime service would.
+    image: prom/blackbox-exporter:v0.29.0
+    restart: unless-stopped
+    profiles: ["observability"]
+    command: ["--config.file=/etc/blackbox/blackbox.yml"]
+    volumes:
+      - ./ops/observability/blackbox.yml:/etc/blackbox/blackbox.yml:ro
+
+  grafana:
+    security_opt: ["no-new-privileges:true"]
+    image: grafana/grafana:13.2.4
     restart: unless-stopped
     profiles: ["observability"]
     environment:
-      COLLECTOR_OTLP_ENABLED: "true"
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?Define GRAFANA_ADMIN_PASSWORD in .env - run sh scripts/init-env.sh}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
+      GF_ANALYTICS_CHECK_FOR_PLUGIN_UPDATES: "false"
+    volumes:
+      - ./ops/observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./ops/observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafanadata:/var/lib/grafana
+    ports:
+      - "127.0.0.1:3000:3000"
+    depends_on: [prometheus]
+
+  jaeger:
+    security_opt: ["no-new-privileges:true"]
+    # Traces (which request was slow, which call failed). Jaeger v2, non-root; in-memory storage: a restart forgets them.
+    image: jaegertracing/jaeger:2.22.0
+    restart: unless-stopped
+    profiles: ["observability"]
     ports:
       - "127.0.0.1:16686:16686" # web UI
 
@@ -137,7 +209,8 @@ services:
       Push__PrivateKey: ${PUSH_VAPID_PRIVATE_KEY:-}
       Push__Subject: ${PUSH_VAPID_SUBJECT:-mailto:contact@kekebeauty.example}
       # Several API servers: SignalR relays through Redis.
-      Redis__ConnectionString: ${REDIS_CONNECTION:-redis:6379}
+      # Empty = no shared state (a single API instance). In production put the whole connection string in the keystore (host:6380,ssl=true,password=...).
+      Redis__ConnectionString: ${REDIS_CONNECTION:-redis:6379,password=${REDIS_PASSWORD:?Define REDIS_PASSWORD in .env - run sh scripts/init-env.sh}}
       # OpenTelemetry traces and metrics: empty = off. With the `observability` profile use http://jaeger:4317.
       OpenTelemetry__OtlpEndpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
       # Database backups taken by the SuperAdmin from the back-office; ScheduledEnabled adds a nightly one.
@@ -179,6 +252,8 @@ services:
       # Map tiles: empty = OpenStreetMap (development). In production use a provider with a service-level agreement.
       MAP_TILES_URL: ${MAP_TILES_URL:-}
       MAP_TILES_ATTRIBUTION: ${MAP_TILES_ATTRIBUTION:-}
+      # Lets the browser load Google sign-in's script (CSP); must match the API's Auth__Google__Enabled.
+      GOOGLE_AUTH_ENABLED: ${GOOGLE_AUTH_ENABLED:-false}
     ports:
       - "127.0.0.1:4200:8080"
     depends_on:
@@ -194,3 +269,5 @@ volumes:
   pgdata:     # old volume (Debian 11 PostGIS 3.4): kept until the migration is verified, then remove it with `docker volume rm keke-beauty_pgdata`
   pgdata_d13:
   miniodata:
+  promdata:
+  grafanadata:
