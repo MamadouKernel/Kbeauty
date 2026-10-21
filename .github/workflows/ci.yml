@@ -22,5 +22,7 @@ jobs:
           output="$(dotnet list KekeBeauty.slnx package --vulnerable --include-transitive)"
           echo "$output"
           ! grep -qE 'High|Critical|Élevée|Critique' <<< "$output"
+      - name: Prepare compose variables (placeholders from .env.example, CI only)
+        run: cp .env.example .env
       - run: docker compose config --quiet
       - run: docker compose build api web
