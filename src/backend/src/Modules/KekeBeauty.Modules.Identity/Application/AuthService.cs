@@ -169,11 +169,13 @@ public sealed partial class AuthService(
         if (user?.PasswordHash is null)
         {
             hasher.HashPassword(DummyUser, request.Password ?? string.Empty); // equalise timing with a real check
+            Telemetry.FailedLogins.Add(1, new KeyValuePair<string, object?>("reason", "bad_credentials"));
             return Result.Failure<ChallengeResponse>(AuthErrors.InvalidCredentials);
         }
 
         if (user.IsLocked(now))
         {
+            Telemetry.FailedLogins.Add(1, new KeyValuePair<string, object?>("reason", "account_locked"));
             return Result.Failure<ChallengeResponse>(AuthErrors.AccountLocked);
         }
 
@@ -182,6 +184,7 @@ public sealed partial class AuthService(
         {
             user.RegisterFailedLogin(now, Options.MaxFailedLogins, TimeSpan.FromMinutes(Options.LockoutMinutes));
             await db.SaveChangesAsync(ct);
+            Telemetry.FailedLogins.Add(1, new KeyValuePair<string, object?>("reason", "bad_credentials"));
             return Result.Failure<ChallengeResponse>(AuthErrors.InvalidCredentials);
         }
 
@@ -299,12 +302,18 @@ public sealed partial class AuthService(
     private async Task RegisterFailedSecondFactorAsync(LoginChallenge challenge, User user, CancellationToken ct)
     {
         challenge.RegisterFailedAttempt();
+        var wasLocked = user.IsTotpLocked(time.GetUtcNow());
         user.RegisterFailedTotp(
             time.GetUtcNow(),
             Options.MaxFailedLogins,
             TimeSpan.FromMinutes(Options.LockoutMinutes),
             TimeSpan.FromHours(Options.TotpMaxLockoutHours));
         await db.SaveChangesAsync(ct);
+        Telemetry.FailedSecondFactors.Add(1);
+        if (!wasLocked && user.IsTotpLocked(time.GetUtcNow()))
+        {
+            Telemetry.SecondFactorLockouts.Add(1);
+        }
     }
 
     public async Task<Result<IssuedSession>> VerifyTwoFactorAsync(ChallengeCodeRequest request, ClientContext context, CancellationToken ct)

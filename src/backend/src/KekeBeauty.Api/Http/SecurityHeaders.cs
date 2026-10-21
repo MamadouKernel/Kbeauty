@@ -1,3 +1,4 @@
+using KekeBeauty.SharedKernel;
 using System.Diagnostics;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.HttpOverrides;
@@ -44,9 +45,7 @@ public static class SecurityHeaders
                 return RateLimitPartition.GetNoLimiter("static");
             }
 
-            return RateLimitPartition.GetFixedWindowLimiter(
-                context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-                _ => new FixedWindowRateLimiterOptions { PermitLimit = limit, Window = TimeSpan.FromMinutes(1) });
+            return SharedRateLimit.FixedWindow(context.RequestServices, "global", context.Connection.RemoteIpAddress?.ToString() ?? "unknown", limit, TimeSpan.FromMinutes(1));
         }));
     }
 

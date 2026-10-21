@@ -193,6 +193,9 @@ public sealed class PaymentProcessor(
             return; // somebody else already settled it
         }
 
+        Telemetry.PaymentsSettled.Add(1, new KeyValuePair<string, object?>("provider", payment.Provider),
+            new KeyValuePair<string, object?>("outcome", status == PaymentStatus.Succeeded ? "succeeded" : mismatch ? "amount_mismatch" : "failed"));
+
         if (mismatch)
         {
             logger.LogError("Refused payment {Payment}: the provider reported another amount or currency", payment.Id);

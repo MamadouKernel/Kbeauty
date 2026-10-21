@@ -59,6 +59,7 @@ public sealed class WinipayGateway(HttpClient http, IOptions<PaymentsOptions> op
             return new PaymentSession(pageUrl, Text(results, "uuid"));
         }
 
+        Telemetry.ProviderErrors.Add(1, new KeyValuePair<string, object?>("provider", Provider), new KeyValuePair<string, object?>("operation", "refused"));
         throw new PaymentGatewayException($"WiniPayer refused the invoice ({Describe(root)}).");
     }
 
@@ -135,6 +136,7 @@ public sealed class WinipayGateway(HttpClient http, IOptions<PaymentsOptions> op
         }
         catch (Exception ex) when (ex is HttpRequestException or JsonException or TaskCanceledException)
         {
+            Telemetry.ProviderErrors.Add(1, new KeyValuePair<string, object?>("provider", Provider), new KeyValuePair<string, object?>("operation", path.Split('/')[1]));
             throw new PaymentGatewayException("WiniPayer is unreachable or answered with an unreadable response.", ex);
         }
     }

@@ -18,13 +18,12 @@ public static class BillingEndpoints
 
     public static IServiceCollection AddBillingRateLimits(this IServiceCollection services) =>
         services.AddRateLimiter(limiter => limiter.AddPolicy(PaymentRefreshRateLimitPolicy, context =>
-            RateLimitPartition.GetFixedWindowLimiter(
+            SharedRateLimit.FixedWindow(
+                context.RequestServices,
+                "payment-refresh",
                 context.User.FindFirstValue("sub") ?? context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-                _ => new FixedWindowRateLimiterOptions
-                {
-                    PermitLimit = context.RequestServices.GetRequiredService<IConfiguration>().GetValue("RateLimits:PaymentRefreshPerMinute", 40),
-                    Window = TimeSpan.FromMinutes(1),
-                })));
+                context.RequestServices.GetRequiredService<IConfiguration>().GetValue("RateLimits:PaymentRefreshPerMinute", 40),
+                TimeSpan.FromMinutes(1))));
 
     public static IEndpointRouteBuilder MapBillingEndpoints(this IEndpointRouteBuilder app)
     {
@@ -210,6 +209,7 @@ public static class BillingEndpoints
 
                 if (!gateway.IsNotificationAuthentic(fields, token))
                 {
+                    Telemetry.PaymentNotifications.Add(1, new KeyValuePair<string, object?>("provider", provider), new KeyValuePair<string, object?>("result", "rejected_signature"));
                     return Results.Unauthorized();
                 }
 
@@ -220,6 +220,8 @@ public static class BillingEndpoints
 
                 var raw = string.Join('&', fields.Where(f => f.Key != "sig").Select(f => $"{f.Key}={f.Value}"));
                 var outcome = await processor.HandleNotificationAsync(provider, transactionId, transactionId, raw, ct);
+                Telemetry.PaymentNotifications.Add(1, new KeyValuePair<string, object?>("provider", provider),
+                    new KeyValuePair<string, object?>("result", outcome.ToString().ToLowerInvariant()));
                 // Deferred means "ask me again": a non-2xx makes the provider retry.
                 return outcome == NotificationOutcome.Deferred ? Results.StatusCode(StatusCodes.Status503ServiceUnavailable) : Results.Ok();
             })

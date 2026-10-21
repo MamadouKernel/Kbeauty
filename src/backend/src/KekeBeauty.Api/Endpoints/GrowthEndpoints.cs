@@ -17,13 +17,12 @@ public static class GrowthEndpoints
 
     public static IServiceCollection AddGrowthRateLimits(this IServiceCollection services) =>
         services.AddRateLimiter(limiter => limiter.AddPolicy(GiftCardRateLimitPolicy, context =>
-            RateLimitPartition.GetFixedWindowLimiter(
+            SharedRateLimit.FixedWindow(
+                context.RequestServices,
+                "gift-card",
                 context.User.FindFirstValue("sub") ?? context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-                _ => new FixedWindowRateLimiterOptions
-                {
-                    PermitLimit = context.RequestServices.GetRequiredService<IConfiguration>().GetValue("RateLimits:GiftCardCodesPerMinute", 10),
-                    Window = TimeSpan.FromMinutes(1),
-                })));
+                context.RequestServices.GetRequiredService<IConfiguration>().GetValue("RateLimits:GiftCardCodesPerMinute", 10),
+                TimeSpan.FromMinutes(1))));
 
     public static IEndpointRouteBuilder MapGrowthEndpoints(this IEndpointRouteBuilder app)
     {

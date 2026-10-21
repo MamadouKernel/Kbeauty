@@ -65,6 +65,16 @@ var signalR = builder.Services.AddSignalR();
 if (builder.Configuration["Redis:ConnectionString"] is { Length: > 0 } redisConnection)
 {
     signalR.AddStackExchangeRedis(redisConnection, options => options.Configuration.ChannelPrefix = StackExchange.Redis.RedisChannel.Literal("keke"));
+
+    // The same Redis also holds the rate-limit counters, so that a limit means the same thing on one instance or on ten. Short timeouts: a Redis
+    // that does not answer fast must cost a request milliseconds, not seconds, before the limiter falls back to its own counter.
+    var limitOptions = StackExchange.Redis.ConfigurationOptions.Parse(redisConnection);
+    limitOptions.AbortOnConnectFail = false;
+    limitOptions.ConnectTimeout = 1000;
+    limitOptions.SyncTimeout = 250;
+    limitOptions.AsyncTimeout = 250;
+    builder.Services.AddSingleton<StackExchange.Redis.IConnectionMultiplexer>(_ => StackExchange.Redis.ConnectionMultiplexer.Connect(limitOptions));
+    builder.Services.AddSingleton<ISharedRateLimitStore, KekeBeauty.Api.Http.RedisRateLimitStore>();
 }
 
 builder.Services.AddSingleton<IRealtimeNotifier, SignalRRealtimeNotifier>();

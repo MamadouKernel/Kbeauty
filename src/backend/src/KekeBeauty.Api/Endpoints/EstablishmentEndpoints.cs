@@ -1,3 +1,4 @@
+using KekeBeauty.SharedKernel;
 using System.Threading.RateLimiting;
 using KekeBeauty.Infrastructure.Search;
 using Microsoft.AspNetCore.Builder;
@@ -54,19 +55,16 @@ public static class EstablishmentEndpoints
         services.AddRateLimiter(limiter =>
         {
             limiter.AddPolicy(EventsRateLimitPolicy, context =>
-                RateLimitPartition.GetFixedWindowLimiter(
-                    context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-                    _ => new FixedWindowRateLimiterOptions { PermitLimit = 120, Window = TimeSpan.FromMinutes(1) }));
+                SharedRateLimit.FixedWindow(context.RequestServices, "events", context.Connection.RemoteIpAddress?.ToString() ?? "unknown", 120, TimeSpan.FromMinutes(1)));
 
             // Booking and calendar reads: generous for a person clicking through days, tight for scripts.
             limiter.AddPolicy(AppointmentEndpoints.BookingRateLimitPolicy, context =>
-                RateLimitPartition.GetFixedWindowLimiter(
+                SharedRateLimit.FixedWindow(
+                    context.RequestServices,
+                    "booking",
                     context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-                    _ => new FixedWindowRateLimiterOptions
-                    {
-                        PermitLimit = context.RequestServices.GetRequiredService<IConfiguration>().GetValue("RateLimits:BookingPerMinute", 90),
-                        Window = TimeSpan.FromMinutes(1),
-                    }));
+                    context.RequestServices.GetRequiredService<IConfiguration>().GetValue("RateLimits:BookingPerMinute", 90),
+                    TimeSpan.FromMinutes(1)));
         });
 
     public static IEndpointRouteBuilder MapEstablishmentEndpoints(this IEndpointRouteBuilder app)

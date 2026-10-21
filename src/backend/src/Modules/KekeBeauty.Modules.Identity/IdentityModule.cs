@@ -3,6 +3,7 @@ using System.Threading.RateLimiting;
 using KekeBeauty.Modules.Identity.Application;
 using KekeBeauty.Modules.Identity.Domain;
 using KekeBeauty.Modules.Identity.Infrastructure;
+using KekeBeauty.SharedKernel;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
@@ -160,13 +161,12 @@ public static class IdentityModule
         services.AddRateLimiter(limiter =>
         {
             limiter.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
-            limiter.AddPolicy(RateLimitPolicy, context => RateLimitPartition.GetFixedWindowLimiter(
+            limiter.AddPolicy(RateLimitPolicy, context => SharedRateLimit.FixedWindow(
+                context.RequestServices,
+                "auth",
                 context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-                _ => new FixedWindowRateLimiterOptions
-                {
-                    PermitLimit = context.RequestServices.GetRequiredService<IOptions<AuthOptions>>().Value.AuthPermitPerMinute,
-                    Window = TimeSpan.FromMinutes(1),
-                }));
+                context.RequestServices.GetRequiredService<IOptions<AuthOptions>>().Value.AuthPermitPerMinute,
+                TimeSpan.FromMinutes(1)));
         });
 
         return services;
