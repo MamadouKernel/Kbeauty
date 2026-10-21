@@ -79,3 +79,30 @@ Légende : ✅ présent · 🟡 partiel · ⬜ à faire · ➕ n'existe pas en V
 7. **Au-delà de la V1** : liste d'attente, fidélité, cartes cadeaux, groupes, recommandations, ré-engagement J+30, mode sombre et taille de texte ✅.
 
 Chaque lot : backend + front + tests (unitaires, intégration, E2E) + mise à jour de `ETAT-DES-FONCTIONNALITES.md` + commit.
+
+## 5. Vérification ligne à ligne contre le code (21 octobre 2026)
+
+Méthode : les routes et pages de la V1 (`git show main:…`, contrôleurs et pages Blazor) ont été comparées aux routes de l'API et aux pages Angular de la V1.0.1. Le tableau du §1 reste exact ; la vérification de terrain relève **trois écarts réels** que ce tableau ne mentionnait pas.
+
+| Fonction V1 | Route / page V1 | V1.0.1 | Écart |
+|---|---|---|---|
+| Recherche d'adresse (géocodage) et adresse depuis un point de carte | `GET geo/search`, `GET geo/reverse` | ❌ aucune route | Le partenaire saisit l'adresse sans aide à la localisation ; à ajouter (via notre cache nginx OSM/Nominatim, pas de CDN) |
+| Le client signale un retard | `POST rdv/{id}/retard` (minutes) | ❌ | Utile contre le « absente » injuste (grâce déjà gérée côté partenaire) |
+| Le client demande lui-même un report | `POST rdv/{id}/reprogrammer` | 🟡 seul le partenaire propose, le client accepte ou refuse | Le client doit annuler puis reprendre un créneau (frais d'annulation tardive possibles) |
+| Fiche technique | `rdv/{id}/fiche-technique` | ✅ remplacée par une note par cliente (`clients/{id}/note`), plus utile : elle survit aux rendez-vous | — |
+| Assignation d'un RDV à une collaboratrice | `assigner` | ✅ équipe et ressources (`team/{resourceId}`) | — |
+| Auto-clôture des RDV | job de complétion | ✅ `AppointmentMaintenance` / `MaintenanceWorker` | — |
+| Export, modération, journal, litiges, remboursements, abonnements admin | `admin/*` | ✅ | — |
+| Pages Blazor `/prototype`, `/mot-de-passe` (connexion par mot de passe) | — | ✅ intégrées à la connexion | — |
+
+## 6. Propositions pour faire mieux que la V1 (par priorité)
+
+1. **Report demandé par le client** : créneaux proposés, accord du partenaire (réutilise le flux « RescheduleProposed »). Faible risque, forte valeur.
+2. **« Je suis en retard »** en un bouton, avec notification au partenaire et prolongation du délai de grâce.
+3. **Aide à la saisie d'adresse** (géocodage) avec limitation de débit et cache : respecte la politique d'usage d'OSM.
+4. **Changer son mot de passe connecté(e)** (absent de la V1 comme de la V1.0.1) avec déconnexion des autres appareils.
+5. **Passkeys / WebAuthn** pour partenaires et admins (écart ASVS V2).
+6. **Vérification des mots de passe fuités** (k-anonymat), **rotation des clés** documentée et testée.
+7. **Rappel par WhatsApp/SMS** et avis post-soin automatiques (dépend de LeTexto).
+
+Chaque ajout suivra la règle du dépôt : tests (unitaires, intégration, E2E), puis passe de sécurité consignée dans `docs/PENTEST.md`.
