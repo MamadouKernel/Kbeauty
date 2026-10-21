@@ -57,7 +57,7 @@ Notation ASP.NET : `Section__Cle` (double souligné). **Aucun secret dans le dé
 Variables du conteneur `web` :
 
 - `YANGO_URL_TEMPLATE` : vide = lien officiel Yango (`yango.go.link/route`, qui ouvre l'application Yango sur un téléphone où elle est installée, avec la destination renseignée, sinon la page web de commande Yango) ; `off` = bouton masqué ; ou un gabarit personnalisé avec `{lat}` et `{lng}`. Demandez un identifiant partenaire à integration-support@yango.com puis remplacez `ref=kekebeauty` si besoin.
-- `MAP_TILES_URL` et `MAP_TILES_ATTRIBUTION` : fournisseur de tuiles de carte. Vide = tuiles CARTO Voyager (données OpenStreetMap ; gratuit pour le développement et un usage non commercial, sans garantie de disponibilité ; les serveurs bénévoles d'OpenStreetMap répondent 504 à de nombreux navigateurs). En production, utilisez un fournisseur avec engagement de service (MapTiler, Stadia Maps, Jawg…) : gabarit `https://…/{z}/{x}/{y}…`, par exemple `https://api.maptiler.com/maps/streets-v2/{z}/{x}/{y}.png?key=VOTRE_CLE` ; restreignez la clé à votre domaine (elle est visible dans le navigateur). L'hôte des tuiles est ajouté automatiquement à la politique CSP (`img-src`).
+- `MAP_TILES_URL` et `MAP_TILES_ATTRIBUTION` : fournisseur de tuiles de carte. Vide = tuiles OpenStreetMap servies **par votre propre site** (`/tiles/`, relais nginx avec cache de 30 jours) : aucun CDN, le navigateur ne contacte jamais un serveur de tuiles tiers. Gratuit et sans garantie de service ; sa politique d'usage interdit un fort trafic (le cache réduit les appels, mais prévoyez un fournisseur dédié à l'ouverture au public). En production, utilisez un fournisseur avec engagement de service (MapTiler, Stadia Maps, Jawg…) : gabarit `https://…/{z}/{x}/{y}…`, par exemple `https://api.maptiler.com/maps/streets-v2/{z}/{x}/{y}.png?key=VOTRE_CLE` ; restreignez la clé à votre domaine (elle est visible dans le navigateur). L'hôte des tuiles est ajouté automatiquement à la politique CSP (`img-src`).
 
 ## 3. Mise en route
 
@@ -227,14 +227,57 @@ pg_restore -h <hote> -U <utilisateur> --no-owner --dbname kekebeauty_restore kek
 
 La sauvegarde contient les clés de chiffrement (Data Protection), **chiffrées** : elles ne s'ouvrent qu'avec `DataProtection__KeyEncryptionKey`, qui n'est jamais dans la base ni dans la sauvegarde ; conservez néanmoins la sauvegarde comme un secret. Les fichiers des buckets (photos, vidéos, pièces d'identité) ne sont **pas** dans le dump : sauvegardez-les séparément (§4).
 
-## 11. Plusieurs serveurs : Redis pour le temps réel
+## 11. Plusieurs serveurs : Redis
 
-Avec plusieurs instances de l'API derrière un répartiteur de charge, SignalR relaie ses messages (agenda, créneaux, notifications) par Redis. Renseignez `Redis__ConnectionString` (ex. `redis:6379`, ou `host:6380,ssl=true,password=…`) sur **toutes** les instances ; le service `redis` de `docker-compose.yml` sert pour le développement. Les WebSockets doivent traverser le répartiteur (le `nginx.conf` fourni gère `/hubs/`).
+Redis n'est **pas nécessaire avec une seule instance de l'API** : laissez `Redis__ConnectionString` vide. Dès qu'il y a plusieurs instances derrière un répartiteur, il sert à deux choses, avec **la même chaîne de connexion sur toutes les instances** :
 
-## 12. Traces et métriques (OpenTelemetry)
+1. **Temps réel** : SignalR relaie ses messages (agenda, créneaux, notifications) entre instances.
+2. **Limites de débit partagées** : sans Redis, chaque instance compte seule, donc une limite de 30 tentatives par minute devient 30 **par instance** (3 instances : 90). Avec Redis, un compteur atomique commun (script Lua, clé `keke:rl:<politique>:<client>:<fenêtre>`, qui expire d'elle-même) applique **une seule** limite. Une même adresse IPv4 écrite `1.2.3.4` ou `::ffff:1.2.3.4` compte pour un seul client.
 
-Désactivé par défaut. Renseignez `OpenTelemetry__OtlpEndpoint` (collecteur OTLP gRPC, ex. `http://otel-collector:4317` ; `OpenTelemetry__Protocol=http` pour OTLP/HTTP) :
+**Si Redis tombe, le site continue** et les limites aussi : chaque instance revient à son propre compteur (donc une limite par instance, le temps de la panne), un disjoncteur évite d'attendre Redis à chaque requête (10 s), et le compteur `keke_ratelimit_store_errors_total` déclenche l'alerte `SharedRateLimitStoreFailing`. Les délais d'attente sont courts (250 ms) : un Redis lent coûte quelques millisecondes, pas des secondes.
 
-- **Traces** : requêtes ASP.NET Core, appels HTTP sortants (paiements, LeTexto, push), requêtes Npgsql, et les spans métier (`booking.create`). Les sondes `/health` et les connexions SignalR sont filtrées.
-- **Métriques** : ASP.NET Core, HTTP client, runtime .NET, Npgsql et les compteurs `keke.bookings.created` et `keke.appointment_payments` (étiquette `outcome`).
-- En local : `docker compose --profile observability up -d`, `OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317` dans `.env`, relancer l'API, puis ouvrir http://localhost:16686 (Jaeger).
+**Sécurité de Redis.** Dans la pile fournie : mot de passe obligatoire (`REDIS_PASSWORD`, généré par `scripts/init-env.sh`), **aucun port publié**, aucune persistance (rien à voler au repos : ce ne sont que des compteurs et des messages éphémères), mémoire plafonnée. En production : un Redis géré ou protégé, avec **TLS** (`host:6380,ssl=true,password=…`), joignable seulement depuis les serveurs de l'API, la chaîne de connexion dans le coffre de secrets. Ne publiez jamais le port 6379 sur Internet.
+
+## 12. Supervision : disponibilité, erreurs, paiements, sécurité
+
+Une pile de supervision **auto-hébergée** est fournie (profil `observability` de `docker-compose.yml`) : rien n'est envoyé à un tiers. Elle contient un collecteur OpenTelemetry, Prometheus, Alertmanager, Grafana, une sonde de disponibilité (blackbox) et Jaeger (traces).
+
+```bash
+docker compose --profile observability up -d
+# dans .env : OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317 puis redémarrer l'API (docker compose up -d api)
+```
+
+| Outil | Adresse (locale) | Rôle |
+|---|---|---|
+| Grafana | http://localhost:3000 (`admin`, mot de passe `GRAFANA_ADMIN_PASSWORD`) | Tableau de bord « Keke Beauty - overview » (14 panneaux) : disponibilité, erreurs 5xx, latence, paiements, connexions échouées, mémoire |
+| Prometheus | http://localhost:9090 | Métriques et règles d'alerte |
+| Alertmanager | http://localhost:9093 | Envoi des alertes par e-mail (en développement : dans Mailpit, http://localhost:8025) |
+| Jaeger | http://localhost:16686 | Traces : quelle requête est lente, quel appel a échoué |
+
+**Alertes** (`ops/observability/alerts.yml`, chacune dit quoi faire) :
+
+| Alerte | Se déclenche quand | Gravité |
+|---|---|---|
+| `SiteOrApiDown` | le site ou l'API ne répond plus à sa sonde de disponibilité pendant 2 minutes (la sonde vérifie aussi la base de données) | critique |
+| `ServerErrorsBurst` / `ServerErrorRateHigh` | plus de 10 erreurs 5xx en 5 minutes, ou plus de 5 % des requêtes en erreur | critique |
+| `ApiSlow` | 95 % des requêtes dépassent 2 secondes pendant 10 minutes | avertissement |
+| `ManyRequestsRefusedByRateLimit` | plus de 200 requêtes refusées par les limites en 10 minutes (attaque, ou limites mal réglées derrière un proxy) | avertissement |
+| `PaymentAmountMismatch` | un paiement est refusé parce que le fournisseur annonce un autre montant ou une autre devise (configuration ou fraude) | critique |
+| `PaymentsFailing` | 3 paiements échoués ou plus en 30 minutes | avertissement |
+| `PaymentProviderErrors` | le fournisseur de paiement est injoignable ou refuse nos appels (clés changées ?) | critique |
+| `ForgedPaymentNotifications` | des rappels de paiement avec une signature invalide : quelqu'un sonde l'adresse de rappel | avertissement |
+| `SignInFlood` | plus de 50 connexions échouées en 5 minutes | avertissement |
+| `SecondFactorLocked` | le second facteur d'un compte vient d'être verrouillé : quelqu'un qui connaît le mot de passe devine les codes | avertissement |
+| `SharedRateLimitStoreFailing` | Redis (limites partagées) est en panne : les limites tournent par instance | avertissement |
+
+**Métriques métier** (en plus de celles d'ASP.NET Core, du client HTTP, du runtime .NET et de PostgreSQL) : `keke_payments_settled_total{provider,outcome}`, `keke_payments_notifications_total{provider,result}`, `keke_payments_provider_errors_total{provider,operation}`, `keke_auth_failed_logins_total{reason}`, `keke_auth_failed_second_factor_total`, `keke_auth_second_factor_lockouts_total`, `keke_ratelimit_store_errors_total`, `keke_bookings_created_total`. Elles sont vérifiées par des tests d'intégration (le compteur bouge quand l'événement se produit). Les compteurs ont une latence d'environ une minute (intervalle d'export).
+
+**Avant la production** (non fournis, à décider) :
+- **Destinataires des alertes** : remplacez `smtp_smarthost` et `to` dans `alertmanager.yml` par votre relais et l'adresse de l'équipe d'astreinte ; gardez le mot de passe SMTP **hors du fichier** (`smtp_auth_password_file`, monté comme secret). Un canal à réveil réel (SMS, appel) pour les alertes critiques est préférable à l'e-mail seul.
+- **Supervision hors de la machine** : si tout tourne sur un seul serveur, une panne du serveur emporte aussi la supervision. Ajoutez un contrôle externe gratuit sur `/health/ready` (UptimeRobot, Better Stack…).
+- **Journaux** : ils restent dans `docker logs` (format JSON structuré en production). Pour les conserver et les interroger, ajoutez Loki ; non inclus.
+- **Sauvegardes de supervision** : les volumes `promdata` (15 jours) et `grafanadata` ne sont pas sauvegardés.
+- **Images** : les images Prometheus, Alertmanager, Grafana et Jaeger sont des versions épinglées, rescannées avec Trivy : elles portent des vulnérabilités élevées dans leurs bibliothèques Go (corrigées en amont, pas encore dans l'image). Elles ne sont publiées que sur `127.0.0.1` ; ne les exposez jamais à Internet, sans authentification forte devant Grafana.
+- **Traces** : stockées en mémoire par Jaeger (perdues au redémarrage). Pour les conserver, utilisez Tempo ou le stockage de Jaeger.
+- **Paramètres OpenTelemetry** : `OpenTelemetry__OtlpEndpoint` (OTLP gRPC) ou `OpenTelemetry__Protocol=http`. Vide = rien n'est exporté.
+

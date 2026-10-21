@@ -70,7 +70,7 @@ Légende : ✅ conforme, preuve à l'appui · 🟡 partiel ou à compléter · �
 | Pas de détail technique dans les erreurs | ✅ | Réponses `problem+json` génériques ; ZAP « Application Error Disclosure » : réussi |
 | Pas de donnée sensible dans les journaux | ✅ | Chaîne de requête des WebSocket exclue des journaux nginx (jeton) ; secrets jamais journalisés |
 | Journal d'audit des actions d'administration et des accès aux pièces d'identité | ✅ | `admin.audit_logs` |
-| Alertes sur les événements de sécurité | ❌ | Aucune supervision configurée (voir checklist) |
+| Alertes sur les événements de sécurité | 🟡 | 12 règles (disponibilité, 5xx, paiements, rappels falsifiés, rafale de connexions, verrouillage du second facteur) testées par un exercice réel ; à compléter par les destinataires d'astreinte de production |
 
 ## V8 Protection des données
 
@@ -131,7 +131,7 @@ Légende : ✅ conforme, preuve à l'appui · 🟡 partiel ou à compléter · �
 ## Écarts à traiter, par priorité
 
 1. **Rotation des clés** (jetons de session, clé de chiffrement du keystore) : écrire et tester la procédure (V6).
-2. **Alertes de sécurité** : supervision des échecs de connexion en rafale, verrouillages 2FA, montants refusés (V7).
+2. **Destinataires des alertes en production** (V7) : les règles existent et ont été éprouvées ; il reste à brancher l'astreinte réelle.
 3. **Passkeys / WebAuthn** pour partenaires et admins (V2) ; **vérification des mots de passe fuités** (V2).
 4. **TLS, chiffrement au repos, SBOM, images épinglées par empreinte** à la mise en production (V8, V9, V10).
 5. **Audit indépendant** : cette revue le prépare mais ne le remplace pas.
