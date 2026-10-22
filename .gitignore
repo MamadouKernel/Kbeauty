@@ -42,3 +42,8 @@ backups/
 # Fichiers temporaires de capture du motion design
 artifacts/motion-demo/frames/
 artifacts/motion-demo/*.log
+
+# Data Protection key rings hold unencrypted master keys: never commit them.
+**/data-protection-keys/
+*.pfx
+*.pem
