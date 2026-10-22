@@ -6,3 +6,16 @@ useDefault = true
 [allowlist]
 description = "Local environment file: it is git-ignored and holds this machine's own generated secrets"
 paths = ['''(^|/)\.env$''']
+
+# Keys of the providers this project uses, on top of gitleaks' default rules.
+[[rules]]
+id = "zavu-api-key"
+description = "Zavu API key (live or test)"
+regex = '''zv_(?:live|test)_[A-Za-z0-9]{16,}'''
+keywords = ["zv_live_", "zv_test_"]
+
+[[rules]]
+id = "zavu-webhook-secret"
+description = "Zavu webhook signing secret"
+regex = '''(?i)zavu[_\-]?webhook[_\-]?secret["']?\s*[:=]\s*["']?[A-Za-z0-9_\-]{20,}'''
+keywords = ["zavu"]

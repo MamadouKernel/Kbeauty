@@ -1,0 +1,12 @@
+# Every change is reviewed by the owner; security-sensitive areas are listed on their own so a rule that requires
+# code-owner review (docs/GITHUB-SECURITY.md) can never be skipped for them.
+*                                   @MamadouKernel
+/.github/                           @MamadouKernel
+/.gitleaks.toml                     @MamadouKernel
+/.gitleaks-baseline.json            @MamadouKernel
+/docker-compose*.yml                @MamadouKernel
+/ops/                               @MamadouKernel
+/scripts/                           @MamadouKernel
+/src/backend/src/KekeBeauty.Infrastructure/Security/ @MamadouKernel
+/src/backend/src/Modules/KekeBeauty.Modules.Identity/ @MamadouKernel
+/src/backend/src/Modules/KekeBeauty.Modules.Billing/ @MamadouKernel

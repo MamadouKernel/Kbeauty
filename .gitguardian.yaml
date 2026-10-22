@@ -1,0 +1,8 @@
+# GitGuardian configuration (https://docs.gitguardian.com/ggshield-docs/reference/configuration).
+# Only generated or redacted files are excluded: source and tests stay scanned (test secrets are generated at run time, never committed).
+version: 2
+secret:
+  ignored_paths:
+    - ".gitleaks-baseline.json"
+    - "src/frontend/keke-beauty-web/src/app/core/api/api.generated.ts"
+    - "**/package-lock.json"

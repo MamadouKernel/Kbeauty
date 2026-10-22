@@ -2,16 +2,26 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, v1.0.1]
   pull_request:
+
+# Least privilege: the jobs only read the repository. Actions are pinned to a full commit (a moved tag cannot change what runs);
+# Dependabot proposes the updates.
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   secrets:
     # The repository is public: no key, token or password may be committed, not even a test one. Known historical findings are in
     # .gitleaks-baseline.json (revoked and never reused); anything new fails the build.
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           fetch-depth: 0
       - name: Scan history and files for secrets
@@ -21,9 +31,10 @@ jobs:
 
   backend:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4.3.1
         with:
           dotnet-version: 10.0.x
       - run: dotnet build KekeBeauty.sln --configuration Release
@@ -38,12 +49,13 @@ jobs:
 
   frontend:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     defaults:
       run:
         working-directory: src/frontend/keke-beauty-web
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 24
           cache: npm
