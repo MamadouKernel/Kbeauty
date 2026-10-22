@@ -95,6 +95,12 @@ public static class DependencyInjection
         {
             services.AddSingleton<IWhatsAppSender, KekeBeauty.Infrastructure.Notifications.LoggingWhatsAppSender>();
         }
+        else if (string.Equals(configuration[$"{KekeBeauty.Infrastructure.Notifications.WhatsAppOptions.SectionName}:Provider"], "Zavu", StringComparison.OrdinalIgnoreCase))
+        {
+            services.AddHttpClient<KekeBeauty.Infrastructure.Notifications.ZavuWhatsAppSender>((provider, client) =>
+                KekeBeauty.Infrastructure.Notifications.ZavuWhatsAppSender.Configure(client, provider.GetRequiredService<Microsoft.Extensions.Options.IOptions<KekeBeauty.Infrastructure.Notifications.ZavuOptions>>().Value));
+            services.AddTransient<IWhatsAppSender>(provider => provider.GetRequiredService<KekeBeauty.Infrastructure.Notifications.ZavuWhatsAppSender>());
+        }
         else
         {
             services.AddSingleton<IWhatsAppSender, KekeBeauty.Infrastructure.Notifications.UnconfiguredWhatsAppSender>();
@@ -112,6 +118,8 @@ public static class DependencyInjection
         // Address search: the API calls OpenStreetMap's Nominatim itself (identified, throttled, cached); the browser never does.
         services.Configure<KekeBeauty.Infrastructure.Geo.GeocodingOptions>(configuration.GetSection(KekeBeauty.Infrastructure.Geo.GeocodingOptions.SectionName));
         services.AddMemoryCache();
+        services.Configure<KekeBeauty.Infrastructure.Notifications.ZavuOptions>(configuration.GetSection(KekeBeauty.Infrastructure.Notifications.ZavuOptions.SectionName));
+        services.AddScoped<KekeBeauty.Infrastructure.Notifications.ZavuWebhookHandler>();
         services.AddHttpClient(KekeBeauty.Infrastructure.Geo.GeocodingService.ClientName, (provider, client) =>
         {
             var geo = provider.GetRequiredService<Microsoft.Extensions.Options.IOptions<KekeBeauty.Infrastructure.Geo.GeocodingOptions>>().Value;

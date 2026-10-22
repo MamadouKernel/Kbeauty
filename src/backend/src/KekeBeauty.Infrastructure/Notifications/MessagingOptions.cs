@@ -41,7 +41,10 @@ public sealed class LeTextoOptions
         : null;
 }
 
-/// <summary>WhatsApp provider selection. <c>Log</c> (default) only logs; no WhatsApp endpoint is documented for LeTexto yet, so nothing is sent.</summary>
+/// <summary>
+/// WhatsApp provider selection. <c>Log</c> (default) only logs; <c>Zavu</c> sends approved Meta templates through Zavu (https://docs.zavu.dev).
+/// LeTexto's API documentation has no WhatsApp endpoint.
+/// </summary>
 public sealed class WhatsAppOptions
 {
     public const string SectionName = "WhatsApp";
@@ -56,6 +59,33 @@ public sealed class WhatsAppOptions
     public string NotificationTemplate { get; init; } = "keke_notification";
 
     public bool IsConfigured => false;
+}
+
+/// <summary>
+/// Zavu (WhatsApp through the Meta Cloud API). The API key is a secret (<c>.env</c> or the secrets directory, never the repository).
+/// <c>zv_test_</c> keys use Zavu's sandbox number and only reach phones verified in the Zavu dashboard; <c>zv_live_</c> keys use the
+/// connected WhatsApp Business number.
+/// </summary>
+public sealed class ZavuOptions
+{
+    public const string SectionName = "Zavu";
+    public const string TestKeyPrefix = "zv_test_";
+
+    public string ApiKey { get; init; } = string.Empty;
+    public string BaseUrl { get; init; } = "https://api.zavu.dev";
+
+    /// <summary>Optional <c>Zavu-Sender</c> header: the sender (WhatsApp account) to use instead of the project's default.</summary>
+    public string SenderId { get; init; } = string.Empty;
+
+    /// <summary>Signing secret of the webhook (shown once by Zavu): without it every webhook call is refused.</summary>
+    public string WebhookSecret { get; init; } = string.Empty;
+
+    /// <summary>How long a resolved template id is remembered.</summary>
+    public int TemplateCacheMinutes { get; init; } = 10;
+
+    public bool HasApiKey => ApiKey.Length > 0;
+
+    public bool IsTestKey => ApiKey.StartsWith(TestKeyPrefix, StringComparison.Ordinal);
 }
 
 /// <summary>Web Push settings. Keys are optional: without them a key pair is generated once and kept in the database.</summary>

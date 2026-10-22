@@ -16,6 +16,9 @@ internal static class TestSecrets
     /// <summary>Shared secret of the SMS delivery-report webhook.</summary>
     public static readonly string WebhookSecret = Random(16);
 
+    /// <summary>Signing secret of the Zavu (WhatsApp) webhook.</summary>
+    public static readonly string ZavuWebhookSecret = "whsec_" + Random(16);
+
     /// <summary>Secret with which the fake CinetPay signs its notifications.</summary>
     public static readonly string CinetPaySecret = Random(16);
 

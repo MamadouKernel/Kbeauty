@@ -70,7 +70,47 @@ public static class NotificationEndpoints
     /// LeTexto posts the delivery state of each SMS here (GET or POST, fields <c>id</c> and <c>statuts</c>). The reports are not signed,
     /// so the URL given to LeTexto carries a shared secret (<c>sig</c>); the secret only lets someone move the status of a known message.
     /// </summary>
-    private static void MapDeliveryReports(IEndpointRouteBuilder app) =>
+    private static void MapDeliveryReports(IEndpointRouteBuilder app)
+    {
+        MapZavuWebhook(app);
+        MapLeTextoReports(app);
+    }
+
+    /// <summary>
+    /// Zavu posts WhatsApp delivery reports, template reviews and replies here. Anonymous but signed: the raw body is read (bounded) and
+    /// the <c>X-Zavu-Signature</c> checked before anything is parsed. Refusals answer 401 with no detail; Zavu retries on any non-2xx.
+    /// </summary>
+    private static void MapZavuWebhook(IEndpointRouteBuilder app) =>
+        app.MapPost("/api/v1/webhooks/whatsapp/zavu", async (HttpRequest request, ZavuWebhookHandler handler, CancellationToken ct) =>
+            {
+                if (request.ContentLength is > ZavuWebhookHandler.MaxBodyBytes)
+                {
+                    return Results.StatusCode(StatusCodes.Status413PayloadTooLarge);
+                }
+
+                using var buffer = new MemoryStream();
+                var chunk = new byte[8192];
+                int read;
+                while ((read = await request.Body.ReadAsync(chunk, ct)) > 0)
+                {
+                    if (buffer.Length + read > ZavuWebhookHandler.MaxBodyBytes)
+                    {
+                        return Results.StatusCode(StatusCodes.Status413PayloadTooLarge);
+                    }
+
+                    buffer.Write(chunk, 0, read);
+                }
+
+                return await handler.HandleAsync(buffer.ToArray(), request.Headers[ZavuSignature.HeaderName].ToString(), ct) switch
+                {
+                    ZavuWebhookResult.Rejected => Results.Unauthorized(),
+                    ZavuWebhookResult.Malformed => Results.BadRequest(),
+                    _ => Results.Ok(),
+                };
+            })
+            .WithTags("Notifications").ExcludeFromDescription().DisableAntiforgery().AllowAnonymous();
+
+    private static void MapLeTextoReports(IEndpointRouteBuilder app) =>
         app.MapMethods("/api/v1/webhooks/sms/letexto", ["GET", "POST"], async (HttpRequest request, IOptions<LeTextoOptions> options, ChannelService service, CancellationToken ct) =>
             {
                 var secret = options.Value.WebhookSecret;

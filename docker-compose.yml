@@ -197,13 +197,21 @@ services:
       # Optional Google sign-in (disabled until a Google OAuth client ID is provided).
       Auth__Google__Enabled: ${GOOGLE_AUTH_ENABLED:-false}
       Auth__Google__ClientId: ${GOOGLE_CLIENT_ID:-}
-      # LeTexto (SMS and e-mail campaigns). Disabled until LETEXTO_ENABLED=true and the key and senders are filled in (see .env.example).
-      LeTexto__Enabled: ${LETEXTO_ENABLED:-false}
-      LeTexto__ApiKey: ${LETEXTO_API_KEY:-}
-      LeTexto__SmsSender: ${LETEXTO_SMS_SENDER:-}
-      LeTexto__EmailFrom: ${LETEXTO_EMAIL_FROM:-}
-      LeTexto__PublicApiUrl: ${PAYMENTS_PUBLIC_URL:-http://localhost:4200}
-      LeTexto__WebhookSecret: ${LETEXTO_WEBHOOK_SECRET:-}
+      # LeTexto (SMS and e-mail campaigns): configuration kept for later, switched off (the code stays, nothing is read from here).
+      # LeTexto__Enabled: ${LETEXTO_ENABLED:-false}
+      # LeTexto__ApiKey: ${LETEXTO_API_KEY:-}
+      # LeTexto__SmsSender: ${LETEXTO_SMS_SENDER:-}
+      # LeTexto__EmailFrom: ${LETEXTO_EMAIL_FROM:-}
+      # LeTexto__PublicApiUrl: ${PAYMENTS_PUBLIC_URL:-http://localhost:4200}
+      # LeTexto__WebhookSecret: ${LETEXTO_WEBHOOK_SECRET:-}
+      # WhatsApp through Zavu (https://docs.zavu.dev). Log = nothing is sent (default). Zavu = approved Meta templates, see docs/DEPLOYMENT.md §14.
+      WhatsApp__Provider: ${WHATSAPP_PROVIDER:-Log}
+      Zavu__ApiKey: ${ZAVU_API_KEY:-}
+      Zavu__SenderId: ${ZAVU_SENDER_ID:-}
+      Zavu__WebhookSecret: ${ZAVU_WEBHOOK_SECRET:-}
+      Zavu__BaseUrl: ${ZAVU_BASE_URL:-https://api.zavu.dev}
+      # Sign in with a one-time code sent by WhatsApp to a linked number (needs WHATSAPP_PROVIDER=Zavu and an approved keke_otp template).
+      Auth__WhatsApp__Enabled: ${WHATSAPP_LOGIN_ENABLED:-false}
       # Web Push (VAPID). Empty = keys are generated once and kept in the database.
       Push__PublicKey: ${PUSH_VAPID_PUBLIC_KEY:-}
       Push__PrivateKey: ${PUSH_VAPID_PRIVATE_KEY:-}

@@ -130,6 +130,25 @@ var app = builder.Build();
         throw new InvalidOperationException("Payments:Winipay:Env must be 'prod' in Production.");
     }
 
+    if (string.Equals(app.Configuration["WhatsApp:Provider"], "Zavu", StringComparison.OrdinalIgnoreCase))
+    {
+        var zavu = app.Configuration.GetSection(KekeBeauty.Infrastructure.Notifications.ZavuOptions.SectionName).Get<KekeBeauty.Infrastructure.Notifications.ZavuOptions>() ?? new();
+        if (!zavu.HasApiKey)
+        {
+            throw new InvalidOperationException("WhatsApp:Provider=Zavu requires Zavu:ApiKey (ZAVU_API_KEY).");
+        }
+
+        if (app.Environment.IsProduction() && zavu.IsTestKey)
+        {
+            throw new InvalidOperationException("Zavu:ApiKey is a test key (zv_test_): in Production use the live key (zv_live_), otherwise messages only reach sandbox numbers.");
+        }
+
+        if (app.Environment.IsProduction() && zavu.WebhookSecret.Length == 0)
+        {
+            throw new InvalidOperationException("Zavu:WebhookSecret is required in Production: without it every Zavu webhook (delivery reports, STOP replies) is refused.");
+        }
+    }
+
     if (app.Environment.IsProduction() && string.IsNullOrWhiteSpace(app.Configuration["Email:Smtp:Host"]))
     {
         app.Logger.LogWarning("Email:Smtp:Host is not configured: no e-mail (account confirmation, password reset) will be delivered.");

@@ -93,3 +93,25 @@ groups:
         annotations:
           summary: "The shared rate-limit store (Redis) is failing"
           action: "The site keeps working and each instance enforces its own limits, so with several instances the real limit is higher until Redis is back. Check Redis (docker compose ps redis) and the REDIS_PASSWORD / connection string."
+
+  - name: whatsapp
+    rules:
+      - alert: WhatsAppQuotaReached
+        expr: sum(increase(keke_whatsapp_sends_total{outcome="quota_exceeded"}[15m])) > 0
+        labels: { severity: warning }
+        annotations:
+          summary: "WhatsApp messages are refused: Zavu's monthly or daily limit is reached"
+          action: "On the Free plan the 2,000 messages a month (sent and received) are spent; sending AND receiving stop until the 1st or until you upgrade. One-time codes by WhatsApp no longer arrive: check the SMS/e-mail fallback and the Zavu dashboard plan card."
+      - alert: WhatsAppTemplateMissing
+        expr: sum(increase(keke_whatsapp_sends_total{outcome="template_missing"}[15m])) > 0
+        labels: { severity: warning }
+        annotations:
+          summary: "A WhatsApp template is not approved by Meta"
+          action: "Run `python3 scripts/zavu_templates.py status`: a template is still pending or was rejected. Names must match WhatsApp__OtpTemplate and WhatsApp__NotificationTemplate."
+      - alert: WhatsAppWebhookSignatureRejected
+        expr: sum(increase(keke_whatsapp_webhooks_total{result="rejected_signature"}[15m])) > 5
+        labels: { severity: warning }
+        annotations:
+          summary: "WhatsApp webhook calls with an invalid signature"
+          action: "Someone is probing the webhook address, or the signing secret changed in Zavu without ZAVU_WEBHOOK_SECRET being updated (delivery reports and STOP replies would be refused)."
+

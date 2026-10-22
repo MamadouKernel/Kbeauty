@@ -70,7 +70,7 @@ Légende : ✅ conforme, preuve à l'appui · 🟡 partiel ou à compléter · �
 | Pas de détail technique dans les erreurs | ✅ | Réponses `problem+json` génériques ; ZAP « Application Error Disclosure » : réussi |
 | Pas de donnée sensible dans les journaux | ✅ | Chaîne de requête des WebSocket exclue des journaux nginx (jeton) ; secrets jamais journalisés |
 | Journal d'audit des actions d'administration et des accès aux pièces d'identité | ✅ | `admin.audit_logs` |
-| Alertes sur les événements de sécurité | 🟡 | 12 règles (disponibilité, 5xx, paiements, rappels falsifiés, rafale de connexions, verrouillage du second facteur) testées par un exercice réel ; à compléter par les destinataires d'astreinte de production |
+| Alertes sur les événements de sécurité | 🟡 | 15 règles (disponibilité, 5xx, paiements, rappels falsifiés, rafale de connexions, verrouillage du second facteur, quota et webhook WhatsApp) testées par un exercice réel ; à compléter par les destinataires d'astreinte de production |
 
 ## V8 Protection des données
 

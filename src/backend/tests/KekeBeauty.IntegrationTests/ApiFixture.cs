@@ -72,6 +72,7 @@ public sealed class ApiFixture : WebApplicationFactory<Program>, IAsyncLifetime
         builder.UseSetting("Settlements:MaintenanceEnabled", "false");
         builder.UseSetting("Backups:MaintenanceEnabled", "false");
         builder.UseSetting("LeTexto:WebhookSecret", TestSecrets.WebhookSecret);
+        builder.UseSetting("Zavu:WebhookSecret", TestSecrets.ZavuWebhookSecret);
         builder.UseSetting("RateLimits:GlobalPerMinute", "1000000");
         builder.UseSetting("RateLimits:BookingPerMinute", "100000");
         builder.UseSetting("Admin:Email", AdminEmail);

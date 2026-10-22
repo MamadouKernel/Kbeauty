@@ -197,7 +197,9 @@ CinetPay reste disponible (`Payments__Provider=CinetPay`, voir ses variables ci-
 
 `docker compose up` démarre **Mailpit** : tous les e-mails envoyés par l'API (liens de confirmation, mot de passe oublié, relances) arrivent dans la boîte de test http://localhost:8025. Aucun message ne sort vers l'extérieur.
 
-## 9. LeTexto : SMS et e-mails
+## 9. LeTexto : SMS et e-mails (configuration mise en commentaire)
+
+> **Mis en commentaire le 22 octobre 2026** (`docker-compose.yml` et `.env.example`) : le code LeTexto reste dans l'application mais rien ne le lit tant que les lignes `LETEXTO_*` ne sont pas décommentées. SMS et e-mails retombent sur les journaux et le SMTP de test. WhatsApp passe par Zavu (§14).
 
 LeTexto (https://www.letexto.com) envoie les SMS et peut envoyer les e-mails de compte. **Tout est configuré mais désactivé** : tant que `LeTexto__Enabled=false`, les messages restent dans les journaux (expéditeurs « log »).
 
@@ -259,6 +261,9 @@ docker compose --profile observability up -d
 
 | Alerte | Se déclenche quand | Gravité |
 |---|---|---|
+| `WhatsAppQuotaReached` | Zavu refuse les envois : quota mensuel (plan Free) ou plafond quotidien atteint | avertissement |
+| `WhatsAppTemplateMissing` | un modèle WhatsApp n'est pas approuvé par Meta | avertissement |
+| `WhatsAppWebhookSignatureRejected` | plus de 5 appels au webhook Zavu avec une mauvaise signature en 15 minutes | avertissement |
 | `SiteOrApiDown` | le site ou l'API ne répond plus à sa sonde de disponibilité pendant 2 minutes (la sonde vérifie aussi la base de données) | critique |
 | `ServerErrorsBurst` / `ServerErrorRateHigh` | plus de 10 erreurs 5xx en 5 minutes, ou plus de 5 % des requêtes en erreur | critique |
 | `ApiSlow` | 95 % des requêtes dépassent 2 secondes pendant 10 minutes | avertissement |
@@ -296,4 +301,32 @@ Le formulaire d'adresse d'un établissement propose « Chercher l'adresse sur la
 
 Le serveur d'API doit pouvoir sortir en HTTPS vers `nominatim.openstreetmap.org`. Au plus une requête par seconde est envoyée et
 les réponses sont gardées 24 h. Les adresses saisies sont transmises à OpenStreetMap : à indiquer dans la politique de confidentialité.
+
+## 14. WhatsApp par Zavu
+
+Zavu (https://docs.zavu.dev) envoie les messages WhatsApp par l'API Cloud de Meta. L'application n'envoie que des **modèles approuvés par Meta** : le code OTP (`keke_otp`, catégorie authentification, bouton « Copier le code ») et les informations (`keke_notification`, catégorie utilitaire, deux variables : titre et message). Au-delà des 24 h de conversation, WhatsApp n'accepte rien d'autre.
+
+### Variables (`.env`, jamais dans le dépôt)
+| Variable | Rôle |
+|---|---|
+| `WHATSAPP_PROVIDER` | `Log` (défaut : rien n'est envoyé) ou `Zavu` |
+| `ZAVU_API_KEY` | **Secret.** `zv_test_…` (bac à sable) ou `zv_live_…` (production). En production, une clé de test **empêche le démarrage** |
+| `ZAVU_SENDER_ID` | Facultatif : le compte WhatsApp à utiliser s'il y en a plusieurs (en-tête `Zavu-Sender`) |
+| `ZAVU_WEBHOOK_SECRET` | **Secret.** Montré **une seule fois** par Zavu à la création du webhook ; obligatoire en production |
+| `ZAVU_BASE_URL` | Facultatif (tests) : `https://api.zavu.dev` par défaut |
+
+En production sur le VPS, les secrets peuvent aussi être des fichiers `Zavu__ApiKey` et `Zavu__WebhookSecret` dans le dossier des secrets (`SECRETS_DIR`).
+
+### Mise en route
+1. **Compte Zavu** (plan Free, sans carte) : https://zavu.dev. Copiez la clé de test dans `.env` (`ZAVU_API_KEY`) et passez `WHATSAPP_PROVIDER=Zavu`.
+2. **Bac à sable** : tableau de bord Zavu › *Sandbox* › *Generate Verification Code*, puis envoyez le message `VERIFY-…` depuis votre WhatsApp. Jusqu'à 5 numéros ; les messages partent pour de vrai, depuis le numéro partagé de Zavu. La clé de test ne sait pas soumettre de modèles (à vérifier au premier essai : l'envoi d'un modèle en bac à sable n'est pas décrit dans la documentation).
+3. **Webhook** : tableau de bord Zavu › expéditeur › *Webhooks* : URL `{PAYMENTS_PUBLIC_URL}/api/v1/webhooks/whatsapp/zavu` (HTTPS public ; en local, le même tunnel que WiniPayer), événements `message.delivered`, `message.failed`, `message.inbound`, `template.status_changed`. Copiez le secret affiché dans `ZAVU_WEBHOOK_SECRET`.
+4. **Production** : numéro +225 dédié (SIM non inscrite sur WhatsApp) ou application WhatsApp Business (coexistence), entreprise vérifiée chez Meta, moyen de paiement dans le gestionnaire Meta ; puis `ZAVU_API_KEY=zv_live_…`.
+5. **Modèles** : `python3 scripts/zavu_templates.py create` les crée et les soumet à Meta (1 à 4 h pour le code, 24 à 72 h pour l'information) ; `python3 scripts/zavu_templates.py status` donne l'état. Un modèle refusé se recrée sous un autre nom (`WhatsApp__OtpTemplate`, `WhatsApp__NotificationTemplate`).
+
+### Ce que fait l'application
+- Envoi : `POST /v1/messages` en `channel: whatsapp`, **sans repli SMS automatique** (un code ne doit pas partir par un canal non demandé). Les retours à la ligne, tabulations et longues suites d'espaces sont remplacés par « · » (WhatsApp les refuse).
+- Webhook : la signature `X-Zavu-Signature` (HMAC-SHA256, `v2` sur `t.corps`, tolérance 5 minutes) est vérifiée **avant** toute lecture ; corps limité à 64 Ko ; chaque événement n'est traité qu'une fois ; un rapport `delivered` / `failed` met à jour la notification ; une réponse **STOP** d'un numéro connu coupe les notifications WhatsApp de la personne.
+- Quota : sur le plan Free, **2 000 messages par mois, envoyés et reçus**. À la limite, l'envoi **et la réception** s'arrêtent jusqu'au 1er du mois ; l'alerte `WhatsAppQuotaReached` prévient. Les notifications retombent alors sur le SMS (s'il est actif) ; les codes OTP par WhatsApp n'arrivent plus : prévoir la connexion par e-mail et mot de passe.
+- Coût : aucun supplément Zavu sur WhatsApp ; Meta facture par message selon le pays du destinataire (à vérifier sur la grille Meta).
 

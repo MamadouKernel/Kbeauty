@@ -30,6 +30,14 @@ public static class Telemetry
     public static readonly Counter<long> ProviderErrors =
         AppMeter.CreateCounter<long>("keke.payments.provider_errors", description: "Failed calls to a payment provider.");
 
+    /// <summary>WhatsApp template sends. Tag: outcome (sent, quota_exceeded, template_missing, failed).</summary>
+    public static readonly Counter<long> WhatsAppSends =
+        AppMeter.CreateCounter<long>("keke.whatsapp.sends", description: "WhatsApp template sends, tagged with the outcome.");
+
+    /// <summary>Webhook calls from the WhatsApp provider. Tag: result (rejected_signature, processed, duplicate, ignored).</summary>
+    public static readonly Counter<long> WhatsAppWebhooks =
+        AppMeter.CreateCounter<long>("keke.whatsapp.webhooks", description: "WhatsApp provider webhook calls, tagged with the result.");
+
     /// <summary>Sign-in attempts that did not succeed. Tag: reason (bad_credentials, account_locked).</summary>
     public static readonly Counter<long> FailedLogins =
         AppMeter.CreateCounter<long>("keke.auth.failed_logins", description: "Failed sign-in attempts, tagged with the reason.");
