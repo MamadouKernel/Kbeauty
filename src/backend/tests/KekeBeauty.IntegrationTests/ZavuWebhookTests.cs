@@ -44,8 +44,14 @@ public sealed class ZavuWebhookTests(ApiFixture api)
         var db = scope.ServiceProvider.GetRequiredService<KekeBeautyDbContext>();
         db.Notifications.Add(new Notification
         {
-            UserId = userId, Channel = NotificationChannel.WhatsApp, TemplateCode = "appointment.confirmed", Title = "t", Body = "b",
-            Status = status, ProviderMessageId = messageId, SentAt = api.Clock.GetUtcNow(),
+            UserId = userId,
+            Channel = NotificationChannel.WhatsApp,
+            TemplateCode = "appointment.confirmed",
+            Title = "t",
+            Body = "b",
+            Status = status,
+            ProviderMessageId = messageId,
+            SentAt = api.Clock.GetUtcNow(),
         });
         await db.SaveChangesAsync();
         return (userId, messageId);
