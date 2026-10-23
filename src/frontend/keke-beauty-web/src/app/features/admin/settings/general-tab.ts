@@ -167,6 +167,10 @@ import { problemMessage } from '../../../core/auth/auth.models';
           <fieldset>
             <legend>Canaux de notification</legend>
             <label class="check">
+              <input type="checkbox" name="email" [(ngModel)]="form.emailEnabled" />
+              E-mail (confirmations, rappels, annulations)
+            </label>
+            <label class="check">
               <input type="checkbox" name="sms" [(ngModel)]="form.smsEnabled" />
               SMS (LeTexto)
             </label>
@@ -212,6 +216,7 @@ export class GeneralTab {
     smsEnabled: false,
     whatsAppEnabled: false,
     pushEnabled: false,
+    emailEnabled: true,
     appointmentPaymentsEnabled: false,
     platformFeePercent: 0,
     reengagementDays: 30,

@@ -18,7 +18,7 @@ public sealed record PushKeysInput(string? P256dh, string? Auth);
 
 public sealed record PushSubscribeInput(string? Endpoint, PushKeysInput? Keys, string? UserAgent);
 
-public sealed record NotificationPreferencesDto(bool Push, bool Sms, bool WhatsApp, bool Reminders);
+public sealed record NotificationPreferencesDto(bool Push, bool Sms, bool WhatsApp, bool Reminders, bool Email = true);
 
 public sealed record SmsTestInput(string? Phone);
 
@@ -73,7 +73,7 @@ public sealed class ChannelService(
             new ChannelState(current.SmsEnabled, lt.SmsReady, lt.SmsReady ? "LeTexto" : "Journal", lt.SmsReady ? null : "Expéditeur ou clé API manquants, ou LeTexto désactivé : les SMS sont seulement journalisés."),
             new ChannelState(current.WhatsAppEnabled, whatsApp.Value.IsConfigured, whatsApp.Value.Provider, "Aucun fournisseur WhatsApp n'est branché : les messages sont seulement journalisés."),
             new ChannelState(current.PushEnabled, true, "Web Push (VAPID)"),
-            new ChannelState(true, emailProvider != "Journal", emailProvider),
+            new ChannelState(current.EmailEnabled, emailProvider != "Journal", emailProvider),
             balance);
     }
 
@@ -192,7 +192,7 @@ public sealed class ChannelService(
     public async Task<NotificationPreferencesDto> PreferencesAsync(Guid userId, CancellationToken ct)
     {
         var row = await db.NotificationPreferences.AsNoTracking().FirstOrDefaultAsync(p => p.UserId == userId, ct);
-        return row is null ? new NotificationPreferencesDto(true, true, true, true) : new NotificationPreferencesDto(row.Push, row.Sms, row.WhatsApp, row.Reminders);
+        return row is null ? new NotificationPreferencesDto(true, true, true, true, true) : new NotificationPreferencesDto(row.Push, row.Sms, row.WhatsApp, row.Reminders, row.Email);
     }
 
     public async Task<NotificationPreferencesDto> SavePreferencesAsync(Guid userId, NotificationPreferencesDto input, CancellationToken ct)
@@ -207,6 +207,7 @@ public sealed class ChannelService(
         row.Push = input.Push;
         row.Sms = input.Sms;
         row.WhatsApp = input.WhatsApp;
+        row.Email = input.Email;
         row.Reminders = input.Reminders;
         row.UpdatedAt = time.GetUtcNow();
         await db.SaveChangesAsync(ct);

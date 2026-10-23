@@ -4,6 +4,7 @@ using FluentAssertions;
 using KekeBeauty.Infrastructure.Admin;
 using KekeBeauty.Infrastructure.Growth;
 using KekeBeauty.Infrastructure.Persistence;
+using KekeBeauty.Modules.Notifications.Domain;
 using KekeBeauty.Infrastructure.Scheduling;
 using KekeBeauty.Modules.Scheduling.Domain;
 using Microsoft.EntityFrameworkCore;
@@ -49,7 +50,7 @@ public sealed class Lot7GrowthTests(ApiFixture api)
 
     private Task<List<string>> NotificationTitlesAsync(Guid userId, string templateCode) =>
         WithDbAsync(db => db.Notifications.AsNoTracking()
-            .Where(n => n.UserId == userId && n.TemplateCode == templateCode)
+            .Where(n => n.UserId == userId && n.Channel == NotificationChannel.InApp && n.TemplateCode == templateCode)
             .Select(n => n.Body).ToListAsync());
 
     [Fact]

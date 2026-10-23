@@ -330,3 +330,30 @@ En production sur le VPS, les secrets peuvent aussi être des fichiers `Zavu__Ap
 - Quota : sur le plan Free, **2 000 messages par mois, envoyés et reçus**. À la limite, l'envoi **et la réception** s'arrêtent jusqu'au 1er du mois ; l'alerte `WhatsAppQuotaReached` prévient. Les notifications retombent alors sur le SMS (s'il est actif) ; les codes OTP par WhatsApp n'arrivent plus : prévoir la connexion par e-mail et mot de passe.
 - Coût : aucun supplément Zavu sur WhatsApp ; Meta facture par message selon le pays du destinataire (à vérifier sur la grille Meta).
 
+## 15. E-mails par SMTP (MailKit)
+
+**Tout passe par l'e-mail** : les e-mails de compte (confirmation d'adresse, mot de passe oublié, reçus) **et** les notifications (demande envoyée, rendez-vous confirmé, rappels la veille et 2 h avant, annulation ou report, créneau libéré, invitation à revenir). L'application les envoie par SMTP avec **MailKit** : aucun fournisseur d'API, n'importe quel relais SMTP convient.
+
+| Variable (`.env`) | Rôle |
+|---|---|
+| `SMTP_HOST`, `SMTP_PORT` | Le relais (en local : `mailpit`, `1025`, la boîte de test http://localhost:8025) |
+| `SMTP_SECURITY` | `None` (local), `StartTls` (port 587, le plus courant) ou `SslOnConnect` (port 465) |
+| `SMTP_USER`, `SMTP_PASSWORD` | Identifiants du relais ; **`SMTP_PASSWORD` est un secret** : `.env` ou dossier des secrets (`Email__Smtp__Password`), jamais dans le dépôt |
+| `SMTP_FROM`, `SMTP_FROM_NAME` | Adresse et nom de l'expéditeur (`noreply@votre-domaine.ci`) |
+
+**Choix du relais** (le domaine d'abord : sans lui, SPF, DKIM et DMARC sont impossibles et les messages tombent dans les spams) :
+- un **fournisseur d'envoi** avec SMTP (Brevo, Mailjet, Amazon SES, Resend…) : quelques centaines de messages par jour gratuits, statistiques de remise, c'est le choix recommandé ;
+- **Google Workspace** (`smtp.gmail.com`, 587, `StartTls`, mot de passe d'application) : acceptable pour un faible volume, limité à environ 2 000 messages par jour, un compte Gmail gratuit à 500 ;
+- le serveur de messagerie de votre hébergeur.
+
+**Réglages côté application**
+- Chaque personne choisit dans « Mes notifications » (case **E-mail**) ; les rappels ont leur propre case. Les e-mails de compte partent toujours.
+- Le back-office (Paramètres › Général › Canaux de notification) a un interrupteur **E-mail** (activé par défaut).
+- Un e-mail n'est envoyé qu'à une adresse **confirmée**, d'un compte **actif**. Les messages de facturation des partenaires gardent leur envoi propre (pas de doublon).
+- Un envoi refusé par le relais est réessayé trois fois, puis enregistré comme **échec** (l'historique des notifications le garde) ; une panne du relais ne bloque jamais l'action de la personne.
+- Au démarrage en production, un avertissement est écrit si le relais est encore la boîte de test locale.
+
+**À faire avant la production** : domaine, relais, `SMTP_*` dans `.env`, enregistrements SPF, DKIM et DMARC chez votre hébergeur DNS, puis un envoi réel vers une vraie boîte (jamais fait à ce jour : seuls Mailpit et des tests ont reçu des messages).
+
+> WhatsApp (Zavu, §14) et SMS (LeTexto, §9) restent disponibles mais **ne sont plus nécessaires** : le chemin par défaut est l'e-mail. Le code de connexion par WhatsApp est le seul usage sans équivalent par e-mail (la connexion par e-mail et mot de passe reste valable).
+

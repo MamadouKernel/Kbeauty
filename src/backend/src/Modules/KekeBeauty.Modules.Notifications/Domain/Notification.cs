@@ -8,6 +8,9 @@ public enum NotificationChannel
     Sms,
     WhatsApp,
     Push,
+
+    /// <summary>E-mail through the SMTP relay (MailKit).</summary>
+    Email,
 }
 
 public enum DeliveryStatus
@@ -63,6 +66,7 @@ public sealed class NotificationPreference
     public bool Push { get; set; } = true;
     public bool Sms { get; set; } = true;
     public bool WhatsApp { get; set; } = true;
+    public bool Email { get; set; } = true;
 
     /// <summary>Reminders before an appointment (the in-app notification is always kept).</summary>
     public bool Reminders { get; set; } = true;

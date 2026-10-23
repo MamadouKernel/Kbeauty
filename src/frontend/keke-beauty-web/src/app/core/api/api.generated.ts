@@ -11489,6 +11489,8 @@ export interface components {
        * @default 30
        */
       reengagementDays: number;
+      /** @default true */
+      emailEnabled: boolean;
     };
     AppointmentDto: {
       /** Format: uuid */
@@ -12456,6 +12458,8 @@ export interface components {
       sms: boolean;
       whatsApp: boolean;
       reminders: boolean;
+      /** @default true */
+      email: boolean;
     };
     OpenDisputeInput: {
       /** Format: uuid */

@@ -2462,6 +2462,10 @@ namespace KekeBeauty.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("user_id");
 
+                    b.Property<bool>("Email")
+                        .HasColumnType("boolean")
+                        .HasColumnName("email");
+
                     b.Property<bool>("Push")
                         .HasColumnType("boolean")
                         .HasColumnName("push");

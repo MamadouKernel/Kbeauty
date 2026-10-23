@@ -1,6 +1,8 @@
 using KekeBeauty.Infrastructure.Admin;
 using KekeBeauty.Infrastructure.Notifications;
 using KekeBeauty.Infrastructure.Persistence;
+using KekeBeauty.Modules.Identity.Application;
+using KekeBeauty.Modules.Identity.Domain;
 using KekeBeauty.Modules.Notifications.Domain;
 using KekeBeauty.SharedKernel;
 using Microsoft.EntityFrameworkCore;
@@ -11,14 +13,16 @@ namespace KekeBeauty.Infrastructure.Scheduling;
 
 /// <summary>
 /// Delivers one message to one user on every channel that applies: the in-app notification centre (always), then Web Push,
-/// WhatsApp and SMS. A channel is used only when the admins switched it on and the person did not opt out; WhatsApp falls
-/// back to SMS when it fails. External deliveries are attempted up to three times (PRD NOT-01, NOT-04).
+/// e-mail (SMTP, MailKit), WhatsApp and SMS. A channel is used only when the admins switched it on and the person did not opt out;
+/// WhatsApp falls back to SMS when it fails. External deliveries are attempted up to three times (PRD NOT-01, NOT-04).
 /// </summary>
 public sealed class NotificationService(
     KekeBeautyDbContext db,
     ISmsSender sms,
     IWhatsAppSender whatsApp,
     IPushSender push,
+    IEmailSender email,
+    IOptions<AuthOptions> authOptions,
     IRealtimeNotifier realtime,
     AppSettingsService settings,
     IOptions<WhatsAppOptions> whatsAppOptions,
@@ -86,6 +90,11 @@ public sealed class NotificationService(
             await DeliverPushAsync(userId, templateCode, title, body, ct);
         }
 
+        if (channels.EmailEnabled && preferences.Email)
+        {
+            await DeliverEmailAsync(userId, templateCode, title, body, now, ct);
+        }
+
         if (string.IsNullOrWhiteSpace(phone))
         {
             return;
@@ -149,6 +158,34 @@ public sealed class NotificationService(
         }
 
         return templateCode.StartsWith("billing", StringComparison.Ordinal) ? "/pro" : "/";
+    }
+
+    /// <summary>
+    /// The same message by e-mail, to the address of the account when it is confirmed and the account is active. Billing messages are
+    /// skipped: the billing job already e-mails the owners itself (with the establishment's name), so they would arrive twice.
+    /// </summary>
+    private async Task DeliverEmailAsync(Guid userId, string templateCode, string title, string body, DateTimeOffset createdAt, CancellationToken ct)
+    {
+        if (templateCode.StartsWith("billing", StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        var recipient = await db.Users.AsNoTracking().Where(u => u.Id == userId && u.EmailConfirmed && u.Status == UserStatus.Active)
+            .Select(u => new { u.Email, u.FirstName }).FirstOrDefaultAsync(ct);
+        if (recipient is null || string.IsNullOrWhiteSpace(recipient.Email))
+        {
+            return;
+        }
+
+        var web = authOptions.Value.WebBaseUrl.TrimEnd('/');
+        var text = $"Bonjour {recipient.FirstName},\n\n{body}\n\nOuvrir Keke Beauty : {web}{TargetUrl(templateCode)}\n\n"
+            + $"— L'équipe Keke Beauty\nPour choisir les messages que vous recevez par e-mail : {web}/compte";
+        var message = new EmailMessage(recipient.Email, $"{title} — Keke Beauty", text);
+        await DeliverExternalAsync(userId, NotificationChannel.Email, templateCode, title, body, createdAt, ct, async () =>
+            await email.TrySendAsync(message, ct)
+                ? new Delivery(true, null, null)
+                : new Delivery(false, null, "Le serveur d'envoi d'e-mails a refusé ou n'a pas répondu."));
     }
 
     private async Task DeliverPushAsync(Guid userId, string templateCode, string title, string body, CancellationToken ct)

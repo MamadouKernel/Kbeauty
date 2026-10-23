@@ -177,10 +177,15 @@ services:
       Payments__ApiBaseUrl: ${PAYMENTS_PUBLIC_URL:-http://localhost:4200}
       Payments__WebBaseUrl: ${PAYMENTS_PUBLIC_URL:-http://localhost:4200}
       Email__Provider: ${EMAIL_PROVIDER:-}
-      Email__Smtp__Host: mailpit
-      Email__Smtp__Port: "1025"
-      Email__Smtp__Security: None
-      Email__Smtp__FromAddress: noreply@keke-beauty.local
+      # E-mails (account, confirmations, reminders) go through SMTP with MailKit. Locally: the mailpit test inbox (nothing leaves the machine).
+      # Production: your relay, see docs/DEPLOYMENT.md §15 (SMTP_PASSWORD belongs in .env or the secrets directory only).
+      Email__Smtp__Host: ${SMTP_HOST:-mailpit}
+      Email__Smtp__Port: ${SMTP_PORT:-1025}
+      Email__Smtp__Security: ${SMTP_SECURITY:-None}
+      Email__Smtp__User: ${SMTP_USER:-}
+      Email__Smtp__Password: ${SMTP_PASSWORD:-}
+      Email__Smtp__FromAddress: ${SMTP_FROM:-noreply@keke-beauty.local}
+      Email__Smtp__FromName: ${SMTP_FROM_NAME:-Keke Beauty}
       ASPNETCORE_URLS: http://+:8080
       ConnectionStrings__Default: Host=postgres;Port=5432;Database=kekebeauty;Username=keke;Password=${POSTGRES_PASSWORD:?Define POSTGRES_PASSWORD in .env - run sh scripts/init-env.sh}
       Database__MigrateOnStartup: "true"

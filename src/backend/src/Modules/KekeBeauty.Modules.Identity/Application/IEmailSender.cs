@@ -6,6 +6,16 @@ public sealed record EmailMessage(string To, string Subject, string TextBody);
 public interface IEmailSender
 {
     Task SendAsync(EmailMessage message, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Like <see cref="SendAsync"/> but says whether the relay accepted the message, so a notification can be recorded as sent or failed.
+    /// Senders that cannot tell (logging, third-party campaigns) report success once the call returns.
+    /// </summary>
+    async Task<bool> TrySendAsync(EmailMessage message, CancellationToken cancellationToken = default)
+    {
+        await SendAsync(message, cancellationToken);
+        return true;
+    }
 }
 
 public sealed record GoogleIdentity(string Subject, string Email, bool EmailVerified, string FirstName, string LastName);

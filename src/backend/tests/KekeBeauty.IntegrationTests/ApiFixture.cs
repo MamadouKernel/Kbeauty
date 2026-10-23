@@ -119,10 +119,24 @@ public sealed class CapturingEmailSender : IEmailSender
 
     public IReadOnlyCollection<EmailMessage> Messages => _messages.ToArray();
 
+    /// <summary>When set, the relay "refuses" notification e-mails (<see cref="IEmailSender.TrySendAsync"/> answers false).</summary>
+    public bool Refuse { get; set; }
+
     public Task SendAsync(EmailMessage message, CancellationToken cancellationToken = default)
     {
         _messages.Enqueue(message);
         return Task.CompletedTask;
+    }
+
+    Task<bool> IEmailSender.TrySendAsync(EmailMessage message, CancellationToken cancellationToken)
+    {
+        if (Refuse)
+        {
+            return Task.FromResult(false);
+        }
+
+        _messages.Enqueue(message);
+        return Task.FromResult(true);
     }
 }
 

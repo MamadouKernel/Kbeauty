@@ -35,7 +35,8 @@ public sealed record AppSettingsDto(
     bool PushEnabled = false,
     bool AppointmentPaymentsEnabled = false,
     int PlatformFeePercent = 0,
-    int ReengagementDays = AppSettingsService.DefaultReengagementDays);
+    int ReengagementDays = AppSettingsService.DefaultReengagementDays,
+    bool EmailEnabled = true);
 
 /// <summary>Global parameters that can be changed without a deployment (PRD ADM-05).</summary>
 public sealed class AppSettingsService(KekeBeautyDbContext db, IOptions<BillingOptions> billing, TimeProvider time)
@@ -48,6 +49,7 @@ public sealed class AppSettingsService(KekeBeautyDbContext db, IOptions<BillingO
     public const string SmsEnabledKey = "channel.sms_enabled";
     public const string WhatsAppEnabledKey = "channel.whatsapp_enabled";
     public const string PushEnabledKey = "channel.push_enabled";
+    public const string EmailEnabledKey = "channel.email_enabled";
     public const string AppointmentPaymentsKey = "payments.appointments_enabled";
     public const string PlatformFeeKey = "payments.platform_fee_percent";
     public const string ReengagementDaysKey = "reengagement.days";
@@ -69,7 +71,7 @@ public sealed class AppSettingsService(KekeBeautyDbContext db, IOptions<BillingO
     private static readonly string[] AllKeys =
     [
         GraceDaysKey, SessionIdleKey, KycRetentionKey, ReminderFirstKey, ReminderSecondKey,
-        SmsEnabledKey, WhatsAppEnabledKey, PushEnabledKey, AppointmentPaymentsKey, PlatformFeeKey, ReengagementDaysKey,
+        SmsEnabledKey, WhatsAppEnabledKey, PushEnabledKey, EmailEnabledKey, AppointmentPaymentsKey, PlatformFeeKey, ReengagementDaysKey,
     ];
 
     public async Task<int> GraceDaysAsync(CancellationToken ct) => (await LoadAsync(ct)).GraceDays;
@@ -111,6 +113,7 @@ public sealed class AppSettingsService(KekeBeautyDbContext db, IOptions<BillingO
             [SmsEnabledKey] = input.SmsEnabled.ToString(),
             [WhatsAppEnabledKey] = input.WhatsAppEnabled.ToString(),
             [PushEnabledKey] = input.PushEnabled.ToString(),
+            [EmailEnabledKey] = input.EmailEnabled.ToString(),
             [AppointmentPaymentsKey] = input.AppointmentPaymentsEnabled.ToString(),
             [PlatformFeeKey] = Text(input.PlatformFeePercent),
             [ReengagementDaysKey] = Text(input.ReengagementDays),
@@ -151,7 +154,8 @@ public sealed class AppSettingsService(KekeBeautyDbContext db, IOptions<BillingO
             Flag(rows, PushEnabledKey),
             Flag(rows, AppointmentPaymentsKey),
             Number(rows, PlatformFeeKey, 0, 0, MaxPlatformFeePercent),
-            Number(rows, ReengagementDaysKey, DefaultReengagementDays, 0, MaxReengagementDays));
+            Number(rows, ReengagementDaysKey, DefaultReengagementDays, 0, MaxReengagementDays),
+            !rows.TryGetValue(EmailEnabledKey, out var emailStored) || emailStored == bool.TrueString);
     }
 
     private static int Number(Dictionary<string, string> rows, string key, int fallback, int min, int max) =>

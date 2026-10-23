@@ -24,7 +24,7 @@ public sealed class CounterAndPassTests(ApiFixture api)
             (await stranger.Client.PostAsJsonAsync(url, request)).StatusCode.Should().Be(HttpStatusCode.NotFound);
             (await salon.Owner.Client.PostAsJsonAsync(url, request with { ClientName = " " })).StatusCode.Should().Be(HttpStatusCode.BadRequest);
             (await salon.Owner.Client.PostAsJsonAsync(url, request with { Phone = "abc" })).StatusCode.Should().Be(HttpStatusCode.BadRequest);
-            (await salon.Owner.Client.PostAsJsonAsync(url, request with { StartsAt = DateTimeOffset.UtcNow.AddDays(3) })).StatusCode.Should().Be(HttpStatusCode.BadRequest);
+            (await salon.Owner.Client.PostAsJsonAsync(url, request with { StartsAt = api.Clock.GetUtcNow().AddDays(3) })).StatusCode.Should().Be(HttpStatusCode.BadRequest);
 
             var created = await salon.Owner.Client.PostAsJsonAsync(url, request);
             created.StatusCode.Should().Be(HttpStatusCode.Created);

@@ -153,6 +153,10 @@ var app = builder.Build();
     {
         app.Logger.LogWarning("Email:Smtp:Host is not configured: no e-mail (account confirmation, password reset) will be delivered.");
     }
+    else if (app.Environment.IsProduction() && (app.Configuration["Email:Smtp:Host"] is "mailpit" || app.Configuration["Email:Smtp:FromAddress"]?.EndsWith(".local", StringComparison.OrdinalIgnoreCase) == true))
+    {
+        app.Logger.LogWarning("Email:Smtp still points to the local test inbox (host or sender ends with .local): no real e-mail leaves the server. Set SMTP_HOST, SMTP_USER, SMTP_PASSWORD and SMTP_FROM.");
+    }
 }
 
 if (app.Environment.IsProduction() && app.Services.GetRequiredService<Microsoft.Extensions.Options.IOptions<KekeBeauty.Infrastructure.Billing.PaymentsOptions>>().Value.IsFake)

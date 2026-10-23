@@ -41,7 +41,11 @@ public sealed class SmtpEmailSender(IOptions<SmtpOptions> options, ILogger<SmtpE
 {
     private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(20);
 
-    public async Task SendAsync(EmailMessage message, CancellationToken cancellationToken = default)
+    public async Task SendAsync(EmailMessage message, CancellationToken cancellationToken = default) =>
+        await TrySendAsync(message, cancellationToken);
+
+    /// <summary>Sends through the relay and returns whether it accepted the message (failures are logged, never thrown).</summary>
+    public async Task<bool> TrySendAsync(EmailMessage message, CancellationToken cancellationToken = default)
     {
         var settings = options.Value;
         try
@@ -62,12 +66,14 @@ public sealed class SmtpEmailSender(IOptions<SmtpOptions> options, ILogger<SmtpE
 
             await client.SendAsync(mime, cancellationToken);
             await client.DisconnectAsync(true, cancellationToken);
+            return true;
         }
         catch (Exception ex) when (ex is ProtocolException or ServiceNotConnectedException or ServiceNotAuthenticatedException
             or CommandException or AuthenticationException or FormatException or ParseException or IOException
             or System.Net.Sockets.SocketException or TimeoutException)
         {
             logger.LogError(ex, "E-mail '{Subject}' could not be delivered to {Recipient}", message.Subject, message.To);
+            return false;
         }
     }
 }

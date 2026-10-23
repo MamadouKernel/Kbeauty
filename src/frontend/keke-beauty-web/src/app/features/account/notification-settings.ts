@@ -77,6 +77,15 @@ import { ChannelService, NotificationPreferences } from '../../core/notification
         <label class="check">
           <input
             type="checkbox"
+            name="email"
+            [checked]="form.email"
+            (change)="toggle('email', $any($event.target).checked)"
+          />
+          E-mail (confirmations, rappels, annulations)
+        </label>
+        <label class="check">
+          <input
+            type="checkbox"
             name="sms"
             [checked]="form.sms"
             (change)="toggle('sms', $any($event.target).checked)"
@@ -102,8 +111,9 @@ import { ChannelService, NotificationPreferences } from '../../core/notification
           Rappels avant mes rendez-vous
         </label>
         <p class="hint">
-          Les notifications dans l'application et les e-mails de compte sont toujours envoyés. Les
-          SMS et WhatsApp ne partent que si ces canaux sont ouverts par la plateforme.
+          Les notifications dans l'application et les e-mails de compte (confirmation d'adresse, mot
+          de passe oublié) sont toujours envoyés. Les SMS et WhatsApp ne partent que si ces canaux
+          sont ouverts par la plateforme.
         </p>
       </fieldset>
     }
@@ -224,6 +234,7 @@ export class NotificationSettings {
     sms: true,
     whatsApp: true,
     reminders: true,
+    email: true,
   };
   protected phone = '';
   protected code = '';
