@@ -22,6 +22,7 @@ public sealed class NotificationService(
     IWhatsAppSender whatsApp,
     IPushSender push,
     IEmailSender email,
+    WhatsAppConsentService consents,
     IOptions<AuthOptions> authOptions,
     IRealtimeNotifier realtime,
     AppSettingsService settings,
@@ -100,16 +101,23 @@ public sealed class NotificationService(
             return;
         }
 
+        // One approved WhatsApp template per message (docs/WHATSAPP-TEMPLATES.md). It goes out only if the message has one, all of its
+        // variables are known, and the person agreed (in the consent register) for that kind of message at the linked number.
         var viaWhatsApp = false;
-        if (channels.WhatsAppEnabled && preferences.WhatsApp)
+        if (channels.WhatsAppEnabled && preferences.WhatsApp && variables is not null && WhatsAppTemplates.ByNotification.ContainsKey(templateCode))
         {
-            var language = whatsAppOptions.Value.Language;
-            var template = whatsAppOptions.Value.NotificationTemplate;
-            viaWhatsApp = await DeliverExternalAsync(userId, NotificationChannel.WhatsApp, templateCode, title, body, now, ct, async () =>
+            var e164 = PhoneNumbers.ToE164(phone);
+            var firstName = await db.Users.AsNoTracking().Where(u => u.Id == userId).Select(u => u.FirstName).FirstOrDefaultAsync(ct);
+            if (e164 is not null && WhatsAppTemplates.Build(templateCode, variables, firstName) is { } built
+                && await consents.IsGrantedAsync(userId, e164, built.Template.Purpose, ct))
             {
-                var result = await whatsApp.SendTemplateAsync(phone, template, language, [title, body], false, ct);
-                return new Delivery(result.Success, result.ProviderMessageId, result.Error);
-            });
+                var language = whatsAppOptions.Value.Language;
+                viaWhatsApp = await DeliverExternalAsync(userId, NotificationChannel.WhatsApp, templateCode, title, body, now, ct, async () =>
+                {
+                    var result = await whatsApp.SendTemplateAsync(e164, built.Template.Name, language, built.Parameters, false, ct);
+                    return new Delivery(result.Success, result.ProviderMessageId, result.Error);
+                });
+            }
         }
 
         if (!viaWhatsApp && channels.SmsEnabled && preferences.Sms)

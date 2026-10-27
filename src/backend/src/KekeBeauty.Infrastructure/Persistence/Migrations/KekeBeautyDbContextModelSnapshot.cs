@@ -2546,6 +2546,63 @@ namespace KekeBeauty.Infrastructure.Persistence.Migrations
                     b.ToTable("push_subscriptions", "notifications");
                 });
 
+            modelBuilder.Entity("KekeBeauty.Modules.Notifications.Domain.WhatsAppConsent", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("At")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("at");
+
+                    b.Property<bool>("Granted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("granted");
+
+                    b.Property<string>("Phone")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("phone");
+
+                    b.Property<string>("Purpose")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("purpose");
+
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("source");
+
+                    b.Property<string>("TextSnapshot")
+                        .IsRequired()
+                        .HasMaxLength(600)
+                        .HasColumnType("character varying(600)")
+                        .HasColumnName("text_snapshot");
+
+                    b.Property<string>("TextVersion")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("text_version");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_whatsapp_consents");
+
+                    b.HasIndex("UserId", "Phone", "Purpose", "At")
+                        .HasDatabaseName("ix_whatsapp_consents_user_id_phone_purpose_at");
+
+                    b.ToTable("whatsapp_consents", "notifications");
+                });
+
             modelBuilder.Entity("KekeBeauty.Modules.Onboarding.Domain.EstablishmentReview", b =>
                 {
                     b.Property<Guid>("Id")

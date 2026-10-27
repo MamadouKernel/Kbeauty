@@ -30,6 +30,7 @@ public static class ProblemResults
             || code.EndsWith(".invalid_transition", StringComparison.Ordinal)
             || code.EndsWith(".too_late", StringComparison.Ordinal)
             || code.EndsWith(".reschedule_limit", StringComparison.Ordinal)
+            || code.EndsWith(".not_linked", StringComparison.Ordinal)
             || code.EndsWith(".last_active", StringComparison.Ordinal)
             || code.EndsWith(".already_active", StringComparison.Ordinal)
             || code.EndsWith(".self_action", StringComparison.Ordinal)

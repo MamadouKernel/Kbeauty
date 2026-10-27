@@ -55,9 +55,6 @@ public sealed class WhatsAppOptions
     /// <summary>Authentication template: one body parameter (the code) and a copy-code button.</summary>
     public string OtpTemplate { get; init; } = "keke_otp";
 
-    /// <summary>Utility template with two body parameters: title and message.</summary>
-    public string NotificationTemplate { get; init; } = "keke_notification";
-
     public bool IsConfigured => false;
 }
 

@@ -65,6 +65,7 @@ public sealed class KekeBeautyDbContext(DbContextOptions<KekeBeautyDbContext> op
     public DbSet<Notification> Notifications => Set<Notification>();
     public DbSet<PushSubscription> PushSubscriptions => Set<PushSubscription>();
     public DbSet<NotificationPreference> NotificationPreferences => Set<NotificationPreference>();
+    public DbSet<WhatsAppConsent> WhatsAppConsents => Set<WhatsAppConsent>();
     public DbSet<Plan> Plans => Set<Plan>();
     public DbSet<PromoCode> PromoCodes => Set<PromoCode>();
     public DbSet<PlanPriceHistory> PlanPriceHistory => Set<PlanPriceHistory>();

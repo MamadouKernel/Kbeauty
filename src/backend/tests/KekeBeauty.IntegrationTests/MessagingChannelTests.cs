@@ -22,6 +22,15 @@ public sealed class MessagingChannelTests(ApiFixture api)
     private const string ValidP256dh = "BNcRdreALRFXTkOOUHK1EtK2wtaz5Ry4YfYCA_0QTpQtUbVlUls0VJXg7A8u-Ts1XbjhazAkj7I99e8QcYP7DkM";
     private static string ValidAuth => TestSecrets.PushAuth;
 
+    private static readonly Dictionary<string, string> AppointmentVariables = new()
+    {
+        ["etablissement"] = "Salon Test",
+        ["client"] = "Awa Koné",
+        ["date"] = "12/11/2026",
+        ["heure"] = "10:00",
+        ["motif"] = string.Empty,
+    };
+
     private async Task ResetChannelsAsync()
     {
         await using var scope = api.Services.CreateAsyncScope();
@@ -33,7 +42,7 @@ public sealed class MessagingChannelTests(ApiFixture api)
     {
         await using var scope = api.Services.CreateAsyncScope();
         await scope.ServiceProvider.GetRequiredService<NotificationService>()
-            .NotifyAsync(userId, template, "Titre", $"Corps {Guid.NewGuid():N}", phone, CancellationToken.None, isReminder: isReminder);
+            .NotifyAsync(userId, template, "Titre", $"Corps {Guid.NewGuid():N}", phone, CancellationToken.None, AppointmentVariables, isReminder);
     }
 
     private async Task<List<Notification>> RowsAsync(Guid userId, NotificationChannel channel)
@@ -98,13 +107,21 @@ public sealed class MessagingChannelTests(ApiFixture api)
             await TestChannels.EnableSmsAsync(api);
             await TestChannels.SetAsync(api, AppSettingsService.WhatsAppEnabledKey, true);
 
-            await NotifyAsync(worked.UserId);
+            // WhatsApp needs a linked number and the person's agreement for that number (the consent register).
+            var workedPhone = TestConsent.NewPhone();
+            var failedPhone = TestConsent.NewPhone();
+            await TestConsent.LinkAsync(api, worked.UserId, workedPhone);
+            await TestConsent.LinkAsync(api, failed.UserId, failedPhone);
+            await TestConsent.GrantAsync(api, worked.UserId, ConsentPurpose.Service);
+            await TestConsent.GrantAsync(api, failed.UserId, ConsentPurpose.Service);
+
+            await NotifyAsync(worked.UserId, phone: workedPhone);
             (await RowsAsync(worked.UserId, NotificationChannel.WhatsApp)).Should().ContainSingle().Which.Status.Should().Be(DeliveryStatus.Sent);
             (await RowsAsync(worked.UserId, NotificationChannel.Sms)).Should().BeEmpty();
 
             // Failed deliveries are retried after a short pause measured on the (fake) clock, so the test moves it forward.
             whatsApp.Succeed = false;
-            var sending = NotifyAsync(failed.UserId);
+            var sending = NotifyAsync(failed.UserId, phone: failedPhone);
             while (!sending.IsCompleted)
             {
                 api.Clock.Advance(TimeSpan.FromSeconds(1));

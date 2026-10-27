@@ -7,6 +7,8 @@ import type { components } from '../api/api.generated';
 type Schemas = components['schemas'];
 
 export type NotificationPreferences = Schemas['NotificationPreferencesDto'];
+export type WhatsAppConsentStatus = Schemas['WhatsAppConsentStatus'];
+export type ConsentPurpose = 'Service' | 'Marketing';
 export type PushConfig = Schemas['PushConfigDto'];
 
 /** Whether a phone number can be linked to WhatsApp, and the masked number when it is. */
@@ -93,6 +95,26 @@ export class ChannelService {
 
   confirmWhatsAppLink(code: string): Promise<void> {
     return firstValueFrom(this.http.post<void>('/api/v1/me/whatsapp/verify', { code }));
+  }
+
+  /** The agreements to WhatsApp messages for the linked number, with the exact texts and their version. */
+  whatsAppConsent(): Promise<WhatsAppConsentStatus> {
+    return firstValueFrom(this.http.get<WhatsAppConsentStatus>('/api/v1/me/whatsapp-consent'));
+  }
+
+  /** Gives or withdraws one agreement; the text version echoes the wording that was on screen, so the server records what was agreed to. */
+  setWhatsAppConsent(
+    purpose: ConsentPurpose,
+    granted: boolean,
+    textVersion: string,
+  ): Promise<WhatsAppConsentStatus> {
+    return firstValueFrom(
+      this.http.put<WhatsAppConsentStatus>('/api/v1/me/whatsapp-consent', {
+        purpose,
+        granted,
+        textVersion,
+      }),
+    );
   }
 
   unlinkWhatsApp(): Promise<void> {

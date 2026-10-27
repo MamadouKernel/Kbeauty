@@ -20,7 +20,7 @@ describe('NotificationSettings', () => {
     http = TestBed.inject(HttpTestingController);
   });
 
-  async function open(email: boolean) {
+  async function open(email: boolean, linked = false) {
     const fixture = TestBed.createComponent(NotificationSettings);
     fixture.detectChanges();
     (await vi.waitFor(() => http.expectOne('/api/v1/me/notification-preferences'))).flush({
@@ -30,10 +30,26 @@ describe('NotificationSettings', () => {
       reminders: true,
       email,
     });
-    (await vi.waitFor(() => http.expectOne('/api/v1/me/whatsapp'))).flush({ available: false });
+    (await vi.waitFor(() => http.expectOne('/api/v1/me/whatsapp'))).flush({
+      available: linked,
+      linked,
+      phoneMasked: linked ? '******1234' : null,
+    });
+    (await vi.waitFor(() => http.expectOne('/api/v1/me/whatsapp-consent'))).flush({
+      linked,
+      phoneMasked: linked ? '******1234' : null,
+      service: { granted: false, at: null },
+      marketing: { granted: false, at: null },
+      textVersion: '2026-10-27',
+      serviceText: "J'accepte de recevoir sur WhatsApp les messages sur mes rendez-vous.",
+      marketingText: "J'accepte de recevoir sur WhatsApp des offres.",
+    });
     await vi.waitFor(() => {
       fixture.detectChanges();
       expect(fixture.nativeElement.querySelector('input[name="email"]')).toBeTruthy();
+      if (linked) {
+        expect(fixture.nativeElement.querySelector('input[name="consentService"]')).toBeTruthy();
+      }
     });
     return fixture.nativeElement as HTMLElement;
   }
@@ -56,5 +72,43 @@ describe('NotificationSettings', () => {
     expect(save.request.method).toBe('PUT');
     expect(save.request.body).toMatchObject({ email: false, push: true });
     save.flush({ push: true, sms: true, whatsApp: true, reminders: true, email: false });
+  });
+
+  it('shows no consent boxes until a number is linked', async () => {
+    const root = await open(true, false);
+
+    expect(root.querySelector('input[name="consentService"]')).toBeNull();
+  });
+
+  it('offers two separate agreements once linked, the marketing one unticked, and records what was ticked with the text version', async () => {
+    const root = await open(true, true);
+
+    const service = root.querySelector<HTMLInputElement>('input[name="consentService"]')!;
+    const marketing = root.querySelector<HTMLInputElement>('input[name="consentMarketing"]')!;
+    expect(service.checked).toBe(false);
+    expect(marketing.checked).toBe(false);
+    expect(root.textContent).toContain(
+      "J'accepte de recevoir sur WhatsApp les messages sur mes rendez-vous.",
+    );
+
+    service.checked = true;
+    service.dispatchEvent(new Event('change'));
+
+    const save = await vi.waitFor(() => http.expectOne('/api/v1/me/whatsapp-consent'));
+    expect(save.request.method).toBe('PUT');
+    expect(save.request.body).toEqual({
+      purpose: 'Service',
+      granted: true,
+      textVersion: '2026-10-27',
+    });
+    save.flush({
+      linked: true,
+      phoneMasked: '******1234',
+      service: { granted: true, at: '2026-10-27T10:00:00Z' },
+      marketing: { granted: false, at: null },
+      textVersion: '2026-10-27',
+      serviceText: 'x',
+      marketingText: 'y',
+    });
   });
 });

@@ -106,7 +106,7 @@ public enum ZavuWebhookResult
 /// off for that person. Delivery is at-least-once, so an event id is remembered for a day and a repeat is acknowledged without effect
 /// (the status changes are idempotent anyway, so a second server that did not see the id does no harm).
 /// </summary>
-public sealed class ZavuWebhookHandler(KekeBeautyDbContext db, IMemoryCache cache, IOptions<ZavuOptions> options, TimeProvider time, ILogger<ZavuWebhookHandler> logger)
+public sealed class ZavuWebhookHandler(KekeBeautyDbContext db, WhatsAppConsentService consents, IMemoryCache cache, IOptions<ZavuOptions> options, TimeProvider time, ILogger<ZavuWebhookHandler> logger)
 {
     public const int MaxBodyBytes = 64 * 1024;
     private static readonly string[] StopWords = ["stop", "arret", "arrêt", "arrete", "arrêter", "desabonner", "désabonner"];
@@ -221,6 +221,9 @@ public sealed class ZavuWebhookHandler(KekeBeautyDbContext db, IMemoryCache cach
         }
 
         await db.SaveChangesAsync(ct);
+
+        // The register keeps the proof of the withdrawal: every agreement this number still had is closed, with where it happened.
+        await consents.WithdrawAllAsync(userId.Value, phone, "stop", ct);
         logger.LogInformation("WhatsApp notifications switched off after a STOP reply from {Phone}", PhoneNumbers.Mask(phone));
         return ZavuWebhookResult.Processed;
     }

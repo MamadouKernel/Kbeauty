@@ -160,6 +160,44 @@ import { ChannelService, NotificationPreferences } from '../../core/notification
         <strong>WhatsApp</strong>
         @if (w.linked) {
           <p>Numéro lié : {{ w.phoneMasked }}</p>
+          @if (consent.hasValue()) {
+            @let c = consent.value();
+            <fieldset class="block">
+              <legend>
+                <strong>Mon accord pour les messages WhatsApp</strong>
+              </legend>
+              <label class="check">
+                <input
+                  type="checkbox"
+                  name="consentService"
+                  [checked]="c.service.granted"
+                  [disabled]="busy()"
+                  (change)="setConsent('Service', $any($event.target).checked, c.textVersion)"
+                />
+                {{ c.serviceText }}
+              </label>
+              @if (c.service.granted && c.service.at) {
+                <p class="hint">Accord enregistré le {{ stamp(c.service.at) }}.</p>
+              }
+              <label class="check">
+                <input
+                  type="checkbox"
+                  name="consentMarketing"
+                  [checked]="c.marketing.granted"
+                  [disabled]="busy()"
+                  (change)="setConsent('Marketing', $any($event.target).checked, c.textVersion)"
+                />
+                {{ c.marketingText }}
+              </label>
+              @if (c.marketing.granted && c.marketing.at) {
+                <p class="hint">Accord enregistré le {{ stamp(c.marketing.at) }}.</p>
+              }
+              <p class="hint">
+                Sans accord, rien n'est envoyé sur WhatsApp : vous gardez les e-mails et les
+                notifications dans l'application.
+              </p>
+            </fieldset>
+          }
           <div>
             <button
               type="button"
@@ -245,6 +283,7 @@ export class NotificationSettings {
   protected readonly codeSent = signal(false);
   protected readonly preferences = resource({ loader: () => this.channels.preferences() });
   protected readonly whatsApp = resource({ loader: () => this.channels.whatsAppStatus() });
+  protected readonly consent = resource({ loader: () => this.channels.whatsAppConsent() });
 
   constructor() {
     effect(() => {
@@ -254,6 +293,26 @@ export class NotificationSettings {
       }
     });
     void this.channels.currentSubscription().then((s) => this.subscribed.set(s !== null));
+  }
+
+  protected setConsent(
+    purpose: 'Service' | 'Marketing',
+    granted: boolean,
+    textVersion: string,
+  ): Promise<void> {
+    return this.run(async () => {
+      await this.channels.setWhatsAppConsent(purpose, granted, textVersion);
+      this.consent.reload();
+      return granted ? 'Accord enregistré.' : 'Accord retiré.';
+    });
+  }
+
+  protected stamp(instant: string): string {
+    return new Date(instant).toLocaleString('fr-FR', {
+      dateStyle: 'long',
+      timeStyle: 'short',
+      timeZone: 'Africa/Abidjan',
+    });
   }
 
   protected toggle(key: keyof NotificationPreferences, value: boolean): Promise<void> {
@@ -294,6 +353,7 @@ export class NotificationSettings {
       this.codeSent.set(false);
       this.code = '';
       this.whatsApp.reload();
+      this.consent.reload();
       return 'Numéro WhatsApp lié.';
     });
   }
@@ -302,6 +362,7 @@ export class NotificationSettings {
     return this.run(async () => {
       await this.channels.unlinkWhatsApp();
       this.whatsApp.reload();
+      this.consent.reload();
       return 'Numéro WhatsApp délié.';
     });
   }

@@ -38,6 +38,22 @@ public sealed class PushSubscriptionConfiguration : IEntityTypeConfiguration<Pus
     }
 }
 
+public sealed class WhatsAppConsentConfiguration : IEntityTypeConfiguration<WhatsAppConsent>
+{
+    public void Configure(EntityTypeBuilder<WhatsAppConsent> builder)
+    {
+        builder.ToTable("whatsapp_consents", "notifications");
+        builder.HasKey(x => x.Id);
+        builder.Property(x => x.Id).ValueGeneratedNever();
+        builder.Property(x => x.Phone).HasMaxLength(20).IsRequired();
+        builder.Property(x => x.Purpose).HasConversion<string>().HasMaxLength(10);
+        builder.Property(x => x.TextVersion).HasMaxLength(20).IsRequired();
+        builder.Property(x => x.TextSnapshot).HasMaxLength(600).IsRequired();
+        builder.Property(x => x.Source).HasMaxLength(20).IsRequired();
+        builder.HasIndex(x => new { x.UserId, x.Phone, x.Purpose, x.At });
+    }
+}
+
 public sealed class NotificationPreferenceConfiguration : IEntityTypeConfiguration<NotificationPreference>
 {
     public void Configure(EntityTypeBuilder<NotificationPreference> builder)

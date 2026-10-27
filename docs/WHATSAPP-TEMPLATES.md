@@ -80,12 +80,11 @@ Exceptions : dans `paiement_recu`, `{{2}}` est le montant (exemple `10 000 F CFA
 
 ### 3.3 Marketing (uniquement avec un accord marketing explicite)
 
-| Champ | Contenu |
+Catégorie **MARKETING** (facturée plus cher, la plus contrôlée par Meta). Variables : `{{1}}` prénom, `{{2}}` établissement. Exemples : `Awa`, `Maison Éclat Coiffure`.
+
+| Nom | Corps |
 |---|---|
-| Nom | `keke_retour` |
-| Catégorie | **MARKETING** (facturée plus cher, la plus contrôlée par Meta) |
-| Corps | Bonjour {{1}}, votre dernière visite chez {{2}} remonte à quelques semaines. Réservez votre prochain rendez-vous en quelques secondes sur Keke Beauty. |
-| Exemples | `Awa`, `Maison Éclat Coiffure` |
+| `keke_retour` | Bonjour {{1}}, votre dernière visite chez {{2}} remonte à quelques semaines. Réservez votre prochain rendez-vous en quelques secondes sur Keke Beauty. |
 
 **Risque de reclassement** : `creneau_libere` peut être jugé promotionnel par Meta et reclassé en marketing (même texte, facturation plus élevée). Les autres modèles utilitaires sont des suites directes d'une action de la cliente.
 
@@ -99,23 +98,20 @@ Exceptions : dans `paiement_recu`, `{{2}}` est le montant (exemple `10 000 F CFA
 
 ## 4. Consentement (opt-in) et désinscription (opt-out)
 
-Meta exige un accord **explicite** avant tout message, et la **preuve est à ta charge**.
+Meta exige un accord **explicite** avant tout message, et la **preuve est à ta charge**. Tout ce qui suit est **en place dans l'application** (testé).
 
-### Ce qui existe déjà
-| Élément | État |
+| Élément | Comment c'est fait |
 |---|---|
-| Lier son numéro suppose de recevoir et de saisir un code reçu sur WhatsApp : la cliente prouve qu'elle contrôle le numéro | ✅ |
-| Case « WhatsApp » dans « Mes notifications » : la cliente peut tout couper à tout moment | ✅ |
-| Réponse **STOP** à un message : coupe les messages WhatsApp (connecteur Zavu) | ✅ (à reproduire côté Arolitec s'il est choisi) |
-| Pied de page « Répondez STOP… » dans chaque message | ✅ dans la proposition ci-dessus |
+| Lier son numéro | la cliente reçoit un code sur WhatsApp et le saisit : elle prouve qu'elle contrôle le numéro |
+| **Accord pour les messages de service** | case dédiée dans « Mes notifications », avec le texte exact : « J'accepte de recevoir sur WhatsApp, à ce numéro, les confirmations, rappels et informations sur mes rendez-vous Keke Beauty. Je peux me désabonner à tout moment en répondant STOP ou depuis « Mes notifications ». » |
+| **Accord marketing, séparé** | seconde case, **décochée par défaut**, pour les invitations et offres (modèle `keke_retour`) ; l'accord de service ne le couvre pas |
+| **Registre de preuve** | table `notifications.whatsapp_consents`, **en ajout seulement** : pour chaque accord ou retrait, le numéro, le type, la décision, la **version et le texte exact affichés**, l'origine (`settings` ou `stop`) et la date et l'heure. Un changement de texte (nouvelle version) ne réécrit jamais une preuve ancienne |
+| Validité | un accord ne vaut que pour le numéro **actuellement lié** et s'il a été donné **après** la liaison : changer de numéro ou relier le même numéro repart de zéro |
+| Aucun message sans accord | l'application n'envoie un modèle WhatsApp que si le message a un modèle, que toutes ses variables sont connues et que l'accord correspondant existe pour ce numéro |
+| Désinscription | réponse **STOP** (retire tous les accords du numéro, avec trace dans le registre), case décochée dans « Mes notifications », mention « Répondez STOP » dans chaque message |
+| Hors consentement | le **code de connexion** (`keke_otp`) est demandé par la personne elle-même : il n'exige pas d'accord préalable |
 
-### Ce qui manque avant la production (je peux le développer)
-| Manque | Pourquoi |
-|---|---|
-| **Texte d'accord affiché au moment de lier le numéro** : « J'accepte de recevoir sur WhatsApp les confirmations et rappels de mes rendez-vous » | Sans texte clair, l'accord n'est pas explicite |
-| **Preuve enregistrée** : date et heure, numéro, version du texte, page d'origine | Meta peut la demander ; en cas de plainte, c'est ta défense |
-| **Accord marketing séparé**, décoché par défaut, pour `keke_retour` | Un accord pour les confirmations ne couvre pas les offres |
-| Aujourd'hui **tous** les messages, y compris l'invitation à revenir, partent avec le même modèle générique : il faut un modèle par message (§3) avant la production | Un message promotionnel envoyé comme « utilitaire » est refusé ou reclassé, avec un effet sur la note de qualité du numéro |
+Conservation : le registre garde le numéro, le texte et les dates tant que l'accord peut être contesté ; à mentionner dans la politique de confidentialité. L'adresse IP et l'agent de navigation ne sont **pas** enregistrés (minimisation des données).
 
 ## 5. Limites et bonnes pratiques d'envoi
 
@@ -136,5 +132,5 @@ Meta exige un accord **explicite** avant tout message, et la **preuve est à ta 
 | Cas d'usage (§2) | ce dossier | ☑ |
 | Textes, variables et exemples de valeurs (§3) | ce dossier | ☑ |
 | Catégorie de chaque modèle (§3) | ce dossier | ☑ |
-| Mécanisme d'accord et de désinscription (§4) | à compléter (preuve d'accord) | ☐ |
+| Mécanisme d'accord et de désinscription (§4) | en place dans l'application | ☑ |
 | Création du sender et soumission des modèles | fournisseur (`python3 scripts/zavu_templates.py` pour Zavu) | ☐ |

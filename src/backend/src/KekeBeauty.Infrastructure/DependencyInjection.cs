@@ -120,6 +120,7 @@ public static class DependencyInjection
         services.AddMemoryCache();
         services.Configure<KekeBeauty.Infrastructure.Notifications.ZavuOptions>(configuration.GetSection(KekeBeauty.Infrastructure.Notifications.ZavuOptions.SectionName));
         services.AddScoped<KekeBeauty.Infrastructure.Notifications.ZavuWebhookHandler>();
+        services.AddScoped<KekeBeauty.Infrastructure.Notifications.WhatsAppConsentService>();
         services.AddHttpClient(KekeBeauty.Infrastructure.Geo.GeocodingService.ClientName, (provider, client) =>
         {
             var geo = provider.GetRequiredService<Microsoft.Extensions.Options.IOptions<KekeBeauty.Infrastructure.Geo.GeocodingOptions>>().Value;

@@ -1,44 +1,61 @@
 #!/usr/bin/env python3
 """Creates the WhatsApp templates Keke Beauty sends through Zavu and submits them to Meta for approval.
 
-    python3 scripts/zavu_templates.py create     # creates the two templates that do not exist yet, then submits them
-    python3 scripts/zavu_templates.py status     # name, language, status and rejection reason of every template
+    python3 scripts/zavu_templates.py list       # what would be created (name, category, body), nothing is sent
+    python3 scripts/zavu_templates.py create     # creates the templates that do not exist yet, then submits them to Meta
+    python3 scripts/zavu_templates.py status     # name, status and rejection reason of every template
 
-The API key is read from ZAVU_API_KEY (environment or .env) and never printed. A test key (zv_test_) cannot submit templates:
-use the live key once the WhatsApp Business account is connected. ZAVU_SENDER_ID selects the WhatsApp account (optional).
-Template names must match WhatsApp__OtpTemplate / WhatsApp__NotificationTemplate (keke_otp, keke_notification by default).
+The texts come from docs/WHATSAPP-TEMPLATES.md (the dossier sent to the provider): one source of truth, and a unit test checks that the
+code and the dossier agree. The API key is read from ZAVU_API_KEY (environment or .env) and never printed. A test key (zv_test_)
+cannot submit templates: use the live key once the WhatsApp Business account is connected. ZAVU_SENDER_ID selects the WhatsApp account;
+without it the only sender of the project is used.
 """
 import json
 import os
+import re
 import sys
 import urllib.error
 import urllib.request
 
 BASE = os.environ.get("ZAVU_BASE_URL", "https://api.zavu.dev")
+ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
+FOOTER = "Répondez STOP pour ne plus recevoir ces messages"
 
-TEMPLATES = [
-    {
-        "name": "keke_otp",
-        "language": "fr",
-        "category": "AUTHENTICATION",
-        "body": "{{1}} est votre code de vérification.",
-        "buttons": [{"type": "otp", "text": "Copier le code", "otpType": "COPY_CODE"}],
-        "addSecurityRecommendation": True,
-        "codeExpirationMinutes": 10,
-        "examples": {"var1": "123456"},
-    },
-    {
-        "name": "keke_notification",
-        "language": "fr",
-        "category": "UTILITY",
-        "body": "Bonjour, une information de Keke Beauty : {{1}} - {{2}}. Pour ne plus recevoir ces messages, répondez STOP.",
-        "variables": ["titre", "message"],
-        "examples": {
-            "var1": "Rendez-vous confirmé",
-            "var2": "Votre rendez-vous chez Salon Éclat le 12/11/2026 à 10:00 est confirmé",
-        },
-    },
-]
+APPOINTMENT_EXAMPLES = {"var1": "Awa", "var2": "Maison Éclat Coiffure", "var3": "12/11/2026", "var4": "10:00"}
+EXAMPLES = {
+    "paiement_recu": {"var1": "Awa", "var2": "10 000 F CFA", "var3": "Maison Éclat Coiffure"},
+    "keke_retour": {"var1": "Awa", "var2": "Maison Éclat Coiffure"},
+}
+
+OTP = {
+    "name": "keke_otp",
+    "language": "fr",
+    "whatsappCategory": "AUTHENTICATION",
+    "body": "{{1}} est votre code de vérification.",
+    "buttons": [{"type": "otp", "text": "Copier le code", "otpType": "COPY_CODE"}],
+    "addSecurityRecommendation": True,
+    "codeExpirationMinutes": 10,
+    "examples": {"var1": "482915"},
+}
+
+
+def templates_from_dossier():
+    """The utility and marketing rows of the dossier: | `name` | body |, under the heading of their category."""
+    category = None
+    found = []
+    with open(os.path.join(ROOT, "docs", "WHATSAPP-TEMPLATES.md"), encoding="utf-8") as dossier:
+        for line in dossier:
+            if line.startswith("### "):
+                category = "UTILITY" if "Utilitaires" in line else "MARKETING" if "Marketing" in line else None
+            row = re.match(r"^\| `([a-z_]+)` \| (.*\{\{1\}\}.*) \|\s*$", line)
+            if category and row:
+                name, body = row.group(1), row.group(2).strip()
+                variables = [f"var{n}" for n in re.findall(r"\{\{(\d+)\}\}", body)]
+                found.append({
+                    "name": name, "language": "fr", "whatsappCategory": category, "body": body, "footer": FOOTER,
+                    "variables": variables, "examples": EXAMPLES.get(name, APPOINTMENT_EXAMPLES),
+                })
+    return [OTP] + found
 
 
 def setting(name):
@@ -46,7 +63,7 @@ def setting(name):
     if value:
         return value
     try:
-        with open(os.path.join(os.path.dirname(__file__), "..", ".env"), encoding="utf-8") as env:
+        with open(os.path.join(ROOT, ".env"), encoding="utf-8") as env:
             for line in env:
                 if line.startswith(name + "="):
                     return line.split("=", 1)[1].strip()
@@ -60,8 +77,6 @@ def call(method, path, body=None):
     if not key:
         sys.exit("ZAVU_API_KEY is not set (environment or .env).")
     headers = {"Authorization": f"Bearer {key}", "Content-Type": "application/json"}
-    if setting("ZAVU_SENDER_ID"):
-        headers["Zavu-Sender"] = setting("ZAVU_SENDER_ID")
     request = urllib.request.Request(BASE + path, method=method, headers=headers,
                                      data=json.dumps(body).encode() if body is not None else None)
     try:
@@ -70,6 +85,16 @@ def call(method, path, body=None):
     except urllib.error.HTTPError as error:
         detail = error.read().decode("utf-8", "replace")[:500]
         sys.exit(f"{method} {path} -> HTTP {error.code}: {detail}")
+
+
+def sender_id():
+    configured = setting("ZAVU_SENDER_ID")
+    if configured:
+        return configured
+    senders = call("GET", "/v1/senders").get("items", [])
+    if len(senders) != 1:
+        sys.exit(f"{len(senders)} senders found: set ZAVU_SENDER_ID to the WhatsApp account to use.")
+    return senders[0]["id"]
 
 
 def existing():
@@ -83,19 +108,23 @@ def existing():
     return items
 
 
+def list_templates():
+    for t in templates_from_dossier():
+        print(f"{t['name']} [{t['whatsappCategory']}] {len(t['body'])} characters: {t['body']}")
+
+
 def create():
     known = {(t["name"], t["language"]) for t in existing()}
-    for template in TEMPLATES:
+    sender = sender_id()
+    for template in templates_from_dossier():
         if (template["name"], template["language"]) in known:
             print(f"{template['name']}: already exists, skipped")
             continue
         payload = {k: v for k, v in template.items() if k != "examples"}
         created = call("POST", "/v1/templates", payload)
-        submit = {"category": template["category"], "variableExamples": template["examples"]}
-        if setting("ZAVU_SENDER_ID"):
-            submit["senderId"] = setting("ZAVU_SENDER_ID")
-        call("POST", f"/v1/templates/{created['id']}/submit", submit)
-        print(f"{template['name']}: created and submitted to Meta (review takes 1 h to 72 h)")
+        call("POST", f"/v1/templates/{created['id']}/submit",
+             {"senderId": sender, "category": template["whatsappCategory"], "variableExamples": template["examples"]})
+        print(f"{template['name']}: created and submitted to Meta (review takes minutes to 24 h)")
 
 
 def status():
@@ -105,4 +134,4 @@ def status():
 
 
 if __name__ == "__main__":
-    {"create": create, "status": status}.get(sys.argv[1] if len(sys.argv) > 1 else "", lambda: sys.exit(__doc__))()
+    {"list": list_templates, "create": create, "status": status}.get(sys.argv[1] if len(sys.argv) > 1 else "", lambda: sys.exit(__doc__))()

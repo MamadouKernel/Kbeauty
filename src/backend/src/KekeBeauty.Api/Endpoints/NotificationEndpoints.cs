@@ -38,6 +38,19 @@ public static class NotificationEndpoints
                 Results.Ok(await service.PreferencesAsync(user.UserId(), ct)))
             .WithTags("Notifications").RequireAuthorization().Produces<NotificationPreferencesDto>();
 
+        app.MapGet("/api/v1/me/whatsapp-consent", async (ClaimsPrincipal user, WhatsAppConsentService service, CancellationToken ct) =>
+                Results.Ok(await service.StatusAsync(user.UserId(), ct)))
+            .WithTags("Notifications").RequireAuthorization()
+            .Produces<WhatsAppConsentStatus>();
+
+        app.MapPut("/api/v1/me/whatsapp-consent", async (WhatsAppConsentInput input, ClaimsPrincipal user, WhatsAppConsentService service, CancellationToken ct) =>
+            {
+                var result = await service.SetAsync(user.UserId(), input, "settings", ct);
+                return result.IsSuccess ? Results.Ok(result.Value) : ProblemResults.From(result.Error);
+            })
+            .WithTags("Notifications").RequireAuthorization()
+            .Produces<WhatsAppConsentStatus>().ProducesProblem(StatusCodes.Status400BadRequest).ProducesProblem(StatusCodes.Status409Conflict);
+
         app.MapPut("/api/v1/me/notification-preferences", async (NotificationPreferencesDto input, ClaimsPrincipal user, ChannelService service, CancellationToken ct) =>
                 Results.Ok(await service.SavePreferencesAsync(user.UserId(), input, ct)))
             .WithTags("Notifications").RequireAuthorization().Produces<NotificationPreferencesDto>();
