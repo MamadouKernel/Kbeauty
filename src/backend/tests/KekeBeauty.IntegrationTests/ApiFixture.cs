@@ -49,6 +49,8 @@ public sealed class ApiFixture : WebApplicationFactory<Program>, IAsyncLifetime
 
     public CapturingEmailSender Emails => Services.GetRequiredService<CapturingEmailSender>();
 
+    private static FakeTimeProvider? MainClock;
+
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Testing");
@@ -80,7 +82,11 @@ public sealed class ApiFixture : WebApplicationFactory<Program>, IAsyncLifetime
 
         builder.ConfigureTestServices(services =>
         {
-            services.AddSingleton(new FakeTimeProvider(DateTimeOffset.UtcNow));
+            // Another server built later (WithWebHostBuilder: Redis, proxy and rate-limit tests) starts at the time the main one has reached:
+            // tests that move the clock forward would otherwise leave it with tokens "from the future", and every request would answer 401.
+            var clock = new FakeTimeProvider(MainClock?.GetUtcNow() ?? DateTimeOffset.UtcNow);
+            MainClock ??= clock;
+            services.AddSingleton(clock);
             services.AddSingleton<TimeProvider>(provider => provider.GetRequiredService<FakeTimeProvider>());
             services.AddSingleton<CapturingEmailSender>();
             services.AddSingleton<IEmailSender>(provider => provider.GetRequiredService<CapturingEmailSender>());
